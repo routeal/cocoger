@@ -1,0 +1,83 @@
+body {
+  padding-top: 56px;
+  padding-bottom: 48px;
+}
+
+.container {
+}
+
+.download-icons {
+  text-align: center;
+
+  position: absolute;
+  left: 50%;
+  top: 50%;
+
+  transform: translate(-50%, 0%);
+}
+
+pre {
+    white-space: pre-wrap;
+}
+
+.navbar-custom {
+  background-color: #1f96a6;
+  border-color: #1f97a6;
+}
+.navbar-custom .navbar-brand {
+  color: #ecf0f1;
+}
+/*
+.navbar-custom .navbar-brand:hover, .navbar-custom .navbar-brand:focus {
+  color: #1e7b87;
+}
+*/
+.navbar-custom .navbar-text {
+  color: #ecf0f1;
+}
+.navbar-custom .navbar-nav > li > a {
+  color: #ecf0f1;
+}
+.navbar-custom .navbar-nav > li > a:hover, .navbar-custom .navbar-nav > li > a:focus {
+  color: #1e7b87;
+}
+.navbar-custom .navbar-nav > .active > a, .navbar-custom .navbar-nav > .active > a:hover, .navbar-custom .navbar-nav > .active > a:focus {
+  color: #1e7b87;
+  background-color: #1f97a6;
+}
+.navbar-custom .navbar-nav > .open > a, .navbar-custom .navbar-nav > .open > a:hover, .navbar-custom .navbar-nav > .open > a:focus {
+  color: #1e7b87;
+  background-color: #1f97a6;
+}
+.navbar-custom .navbar-toggle {
+  border-color: #1f97a6;
+}
+.navbar-custom .navbar-toggle:hover, .navbar-custom .navbar-toggle:focus {
+  background-color: #1f97a6;
+}
+.navbar-custom .navbar-toggle .icon-bar {
+  background-color: #ecf0f1;
+}
+.navbar-custom .navbar-collapse,
+.navbar-custom .navbar-form {
+  border-color: #ecf0f1;
+}
+.navbar-custom .navbar-link {
+  color: #ecf0f1;
+}
+.navbar-custom .navbar-link:hover {
+  color: #1e7b87;
+}
+
+@media (max-width: 767px) {
+  .navbar-custom .navbar-nav .open .dropdown-menu > li > a {
+    color: #ecf0f1;
+  }
+  .navbar-custom .navbar-nav .open .dropdown-menu > li > a:hover, .navbar-custom .navbar-nav .open .dropdown-menu > li > a:focus {
+    color: #1e7b87;
+  }
+  .navbar-custom .navbar-nav .open .dropdown-menu > .active > a, .navbar-custom .navbar-nav .open .dropdown-menu > .active > a:hover, .navbar-custom .navbar-nav .open .dropdown-menu > .active > a:focus {
+    color: #1e7b87;
+    background-color: #1f97a6;
+  }
+}

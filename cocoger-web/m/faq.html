@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" integrity="sha512-dTfge/zgoMYpP7QbHy4gWMEGsbsdZeCXz7irItjcC3sPUFtf0kuFbDz/ixG7ArTxmDjLXDmezHubeNikyKGVyQ==" crossorigin="anonymous">
+
+    <link href="./m.css" rel="stylesheet">
+  </head>
+
+  <body>
+
+    <div class="container space">
+
+<div class="panel-group" id="accordion">
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapse01">
+	  What is Cocoger?
+        </a><i class="indicator glyphicon glyphicon-chevron-down  pull-right"></i>
+      </h4>
+    </div>
+    <div id="collapse01" class="panel-collapse collapse in">
+      <div class="panel-body">
+	Cocoger is a location sharing app.
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapse02">
+	  What's difference?
+        </a><i class="indicator glyphicon glyphicon-chevron-right  pull-right"></i>
+      </h4>
+    </div>
+    <div id="collapse02" class="panel-collapse collapse">
+      <div class="panel-body">
+	Cocoger allows you to share location by the polical entities
+	i.e. town, city or state.  When your setting is by city, you
+	can locate your friend somewhere in city, vice versa to your
+	friend.  The device usually picks the geographical center for
+	the selected political entity.
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapse03">
+	  Who runs Cocoger?
+        </a><i class="indicator glyphicon glyphicon-chevron-right  pull-right"></i>
+      </h4>
+    </div>
+    <div id="collapse03" class="panel-collapse collapse">
+      <div class="panel-body">
+	Routeal, L.L.C.
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapse04">
+	  The notification delays. Why?
+        </a><i class="indicator glyphicon glyphicon-chevron-right pull-right"></i>
+      </h4>
+    </div>
+    <div id="collapse04" class="panel-collapse collapse">
+      <div class="panel-body">
+	While your app runs in the foreground, your movement is
+	periodically updated so that your friend receives the
+	notification almost in real time.  However, while your app
+	runs in the background, your movement is detected only when
+	you move significantly.  How significant?  It varies depending
+	on where you are.  You get more update in city than out of
+	town.
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapse05">
+	  Facebook images won't be changed.  Why?
+        </a><i class="indicator glyphicon glyphicon-chevron-right pull-right"></i>
+      </h4>
+    </div>
+    <div id="collapse05" class="panel-collapse collapse">
+      <div class="panel-body">
+	All the images are cached.  Logout, and login to reload the images.
+      </div>
+    </div>
+  </div>
+
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapse06">
+	  My friend icons seem out of date. Why?
+        </a><i class="indicator glyphicon glyphicon-chevron-right pull-right"></i>
+      </h4>
+    </div>
+    <div id="collapse06" class="panel-collapse collapse">
+      <div class="panel-body">
+	Due to some technical problem, the icons can be out of date.  You can do either of:
+	<ul>
+	  <li>
+	    Refresh the icons by the Fresh button in the toolbar.
+	  </li>
+	  <li>
+	    Reload the friend list by dragging down in the Friend view.
+	  </li>
+	</ul>
+      </div>
+    </div>
+  </div>
+
+<!--
+  <div class="panel panel-default">
+    <div class="panel-heading">
+      <h4 class="panel-title">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapse05">
+	  Title
+        </a><i class="indicator glyphicon glyphicon-chevron-right pull-right"></i>
+      </h4>
+    </div>
+    <div id="collapse05" class="panel-collapse collapse">
+      <div class="panel-body">
+	Message
+      </div>
+    </div>
+  </div>
+-->
+
+</div>
+
+    </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js" integrity="sha512-K1qjQ+NcF2TYO/eI3M6v8EiNYZfA95pQumfvcVrTHtwQVDG+aHRqLi/ETn2uB+1JqwYqVG3LIvdm9lj6imS/pQ==" crossorigin="anonymous"></script>
+    <script>
+      function toggleChevron(e) {
+      $(e.target)
+      .prev('.panel-heading')
+      .find("i.indicator")
+      .toggleClass('glyphicon-chevron-down glyphicon-chevron-right');
+      }
+      $('#accordion').on('hidden.bs.collapse', toggleChevron);
+      $('#accordion').on('shown.bs.collapse', toggleChevron);
+    </script>
+
+  </body>
+
+</html>

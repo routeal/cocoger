@@ -1,0 +1,117 @@
+#!/bin/sh
+
+usage() {
+    echo "$0 [-l ja] [terms|privacy]"
+}
+
+while [[ $# > 1 ]]
+do
+key="$1"
+
+case $key in
+-l|--locale)
+    LANGUAGE="$2"
+    shift # past argument
+    ;;
+    *)
+            # unknown option
+    ;;
+esac
+shift # past argument or value
+done
+
+TARGET="$1"
+
+if [ -z $TARGET ]; then
+   usage
+   exit 1
+fi
+
+rm -rf /tmp/header.html
+
+if [ "$TARGET" == "terms" ]; then
+    if [ "$LANGUAGE" == "ja" ]; then
+
+	sed -e '
+s/{{title}}/cocoger- 利用規約/g
+s/{{langcode}}/ja/g
+s/{{mylang}}/?lang=ja/g
+s/{{self}}/terms/g
+s/{{language}}/English/g
+s/{{lang}}//g
+' header.html > /tmp/header.html
+
+    else
+
+	sed -e '
+s/{{title}}/cocoger- Terms \&amp; Conditions/g
+s/{{langcode}}/en/g
+s/{{mylang}}//g
+s/{{self}}/terms/g
+s/{{language}}/Japanese/g
+s/{{lang}}/?lang=ja/g
+' header.html > /tmp/header.html
+
+    fi
+elif [ "$TARGET" == "privacy" ]; then
+    if [ "$LANGUAGE" == "ja" ]; then
+
+	sed -e '
+s/{{title}}/cocoger- プライバシーポリシー/g
+s/{{langcode}}/ja/g
+s/{{mylang}}/?lang=ja/g
+s/{{self}}/privacy/g
+s/{{language}}/English/g
+s/{{lang}}//g
+' header.html > /tmp/header.html
+
+    else
+
+	sed -e '
+s/{{title}}/cocoger- Privacy Policy/g
+s/{{langcode}}/en/g
+s/{{mylang}}//g
+s/{{self}}/privacy/g
+s/{{language}}/Japanese/g
+s/{{lang}}/?lang=ja/g
+' header.html > /tmp/header.html
+
+    fi
+fi
+
+rm -rf /tmp/content.html
+
+if [ "$LANGUAGE" == "ja" ]; then
+#    cat "$TARGET"_cocoger.md | pandoc -f markdown_github > /tmp/content.html
+    cat "$TARGET"_ja.html > /tmp/content.html
+else
+#    cat "$TARGET"_cocoger.md | pandoc -f markdown_github > /tmp/content.html
+    cat "$TARGET"_en.html > /tmp/content.html
+fi
+
+rm -rf /tmp/footer.html
+
+
+if [ "$LANGUAGE" == "ja" ]; then
+
+	sed -e '
+s/{{about}}/会社概要/g
+s/{{terms}}/利用規約/g
+s/{{privacy}}/プライバシーポリシー/g
+s/{{lang}}/?lang=ja/g
+' footer.html > /tmp/footer.html
+
+else
+
+	sed -e '
+s/{{about}}/About Us/g
+s/{{terms}}/Terms \&amp; Conditions/g
+s/{{privacy}}/Privacy Policy/g
+s/{{lang}}//g
+' footer.html > /tmp/footer.html
+
+fi
+
+cat /tmp/header.html /tmp/content.html /tmp/footer.html > $TARGET.html
+
+rm -rf /tmp/header.html /tmp/content.html /tmp/footer.html
