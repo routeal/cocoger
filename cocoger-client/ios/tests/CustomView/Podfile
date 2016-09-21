@@ -1,0 +1,15 @@
+link_with ['CustomView', 'CustomViewTests']
+# Uncomment this line to define a global platform for your project
+# platform :ios, '8.1'
+
+target 'CustomView' do
+
+  pod 'ACEDrawingView'
+
+end
+
+target 'CustomViewTests' do
+
+end
+
+use_frameworks!

@@ -1,0 +1,20 @@
+link_with ['cocoger']
+# Uncomment this line to define a global platform for your project
+# platform :ios, '8.0'
+
+target 'cocoger' do
+
+  pod 'Alamofire'
+  pod 'EasyMapping'
+  pod 'MagicalRecord'
+  pod 'DeviceGuru'
+  # this version has a modal dialog
+  pod 'MJPopupViewController', :git => "https://github.com/basitali/MJPopupViewController.git"
+  pod 'ACEDrawingView'
+  pod 'PKHUD'
+  pod 'SlideMenuControllerSwift'
+  pod 'INTULocationManager'
+
+end
+
+use_frameworks!

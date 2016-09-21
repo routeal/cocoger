@@ -1,0 +1,392 @@
+/*
+ File.strings
+ cocoger
+ 
+ Created by Hiroshi Watanabe on 10/23/15.
+ Copyright © 2015 routeal. All rights reserved.
+ */
+
+"%@ entered in %@" = "%@が%@に来ました.";
+
+"%@ has changed the location range" = "%@はロケーション範囲を変更しました.";
+
+/* No comment provided by engineer. */
+"%d friends" = "友達%d人";
+
+"Accept" = "同意";
+
+/* action label
+ tableview label */
+"About" = "提供者";
+
+"An email has been sent to %@ with further instructions." = "%@にパスワード変更を行うためのメールを送信しました.";
+
+"Back" = "戻る";
+
+/* tableview label
+ viewcontroller title */
+"Birth Year" = "生年";
+
+/* segmentedcontrol label */
+"Boy" = "男性";
+
+/* tableview label */
+"Boys" = "男性";
+
+"Black" = "黒";
+
+"Blue" = "青";
+
+/* action label
+ barbutton title
+ batbutton title
+ label title */
+"Cancel" = "キャンセル";
+
+"Can't sign in due to an error" = "ログインできません.";
+
+"Can't sign up due to an error" = "会員登録できません.";
+
+"Choose Photo" = "アルバム";
+
+/* location range */
+"City" = "市・区";
+
+"Cocoger lets you share location with your friends and family members, allowing to keeping privacy and comfort.  Please accept the Term of Use and the Privacy Policy, and press 'Continue' for sign up." = "Cocogerはプライバシーを守りながら快適に家族や友達と位置情報を共有するサービスを提供します. 利用規約とプライバシーポリシーに同意して、続けるを押して会員登録にお進みください.";
+
+"Cocoger requires Location Access with Always.  Please update the Settings." = "Cocogerは位置情報に常にアクセスします. 設定を変更してください.";
+
+/* tableview label
+ viewcontoller title */
+"Colors" = "カラー";
+
+"Common Location Range" = "共通のロケーション範囲";
+
+"Continue" = "続ける";
+
+"Could Not Send Email" = "メールを送れませんでした.";
+
+"Could Not Send SMS" = "SMSを送れませんでした.";
+
+/* location range */
+"Country" = "国";
+
+/* location range */
+"County" = "地域";
+
+"Date" = "日時";
+
+"Decline" = "却下";
+
+/* tableview label */
+"Delete Account" = "アカウントを削除";
+
+"Delete Photo" = "画像を削除";
+
+"Delete" = "削除";
+
+"Don't have an account?  Sign Up" = "新規会員登録はこちらから";
+
+"Do you really want to delete your account?" = "本当にアカウントを削除しますか？";
+
+/* viewcontroller title */
+"Edit Friend" = "友達のプロファイル";
+
+"Edit Photo" = "画像を編集";
+
+/* viewcontroller title */
+"Edit Profile" = "プロファイル";
+
+"Ellipse" = "円";
+
+/* tableview label */
+"Email" = "メール";
+
+"Email already exists" = "メールアドレスはすでに使われています.";
+
+/* alert for invalid email */
+"Email in invalid format" = "メールアドレスのフォーマットにエラー";
+
+/* body message for Email */
+"Email message body" = "";
+
+"Email permission is required for Facebook login." = "Facebookログインにはメールの許可が必要です.";
+
+"Enter your account email" = "登録したメールを入力してください.";
+
+/* action label
+ tableview label */
+"FAQ" = "ＦＡＱ";
+
+/* tableview label */
+"Facebook" = "Facebook";
+
+"Facebook Friends" = "Facebookの友達";
+
+"Facebook login error" = "Facebookログインエラー";
+
+"Failed to search" = "検索できませんでした.";
+
+"Failed to send invitation" = "友達申請を送信できませんでした.";
+
+"Failed to send the password reset.  Please try again later." = "パスワード変更リクエストの送信ができません. しばらくしてもう一度やり直してください.";
+
+"Failed to update profile" = "プロファイルを更新できませんでした.";
+
+/* tableview label */
+"Feedback" = "フィードバック";
+
+/* viewcontroller title */
+"Find Friends" = "友達を検索";
+
+/* tableview label */
+"Forgot Password" = "パスワードをお忘れですか？";
+
+/* alert for empty field */
+"Found an empty field" = "空欄があります.";
+
+"Friend Request" = "友達申請のリクエスト";
+
+"Friend update error" = "更新できませんでした.";
+
+/* action label
+ viewcontroller title */
+"Friends" = "友達";
+
+"Future of You" = "将来のあなた";
+
+/* tableview label */
+"Gender" = "性別";
+
+/* segmentedcontrol label */
+"Girl" = "女性";
+
+/* tableview label */
+"Girls" = "女性";
+
+"Green" = "緑";
+
+"Have an account?  Sign In" = "会員の方はこちらからログイン";
+
+"Hi, I'd like to share locations with you by distance below.  Thanks." = "こんにちは\n\n以下の範囲以上でロケーションをシェアしませんか？\n\nよろしくお願いします.";
+
+"How" = "どうやって";
+
+"Hybrid Map" = "地図＋写真マップ";
+
+"Invitation has been sent." = "友達への招待状は送信されました.";
+
+/* action label */
+"Invite" = "友達リクエスト";
+
+/* viewcontroller title */
+"Invite Friends" = "友達リクエスト";
+
+"License Agreement" = "利用規約";
+
+"Line" = "線";
+
+/* tableview label */
+"Location" = "現在地";
+
+"Location Access Denied" = "位置情報サービス拒否";
+
+/* action label
+ viewcontroller title */
+"Location History" = "場所の履歴";
+
+"Location range request" = "ロケーション範囲変更リクエスト";
+
+/* tableview label */
+"Member Since" = "会員登録";
+
+"Message" = "メッセージ";
+
+/* tableview place holder */
+"Min. 6 characters" = "最低６文字";
+
+"More precise location range has to be agreed by your friend.  Click OK to send a request to your friend." = "より詳細なロケーション範囲への変更は友達の同意が必要です. OKをクリックして変更のリクエストを友達に送ってください.";
+
+/* tableview label */
+"My Profile" = "プロフィール";
+
+"Name" = "名前";
+
+"Name can not be empty" = "空の名前はダメです";
+
+"No location available for %@" = "%@の場所の履歴はありません.";
+
+"No friend found" = "検索なし";
+
+/* location range */
+"None" = "無";
+
+"Not for Facebook" = "Facebookには使えません.";
+
+"Not found" = "見つかりません.";
+
+"Note" = "注意して";
+
+/* action label
+ alert action
+ label title */
+"OK" = "OK";
+
+/* tableview footer */
+"OR" = "または";
+
+/* tableview label */
+"Password" = "パスワード";
+
+"Password Forgot" = "パスワード";
+
+/* alert for short password */
+"Password too short" = "パスワードは６文字以上です.";
+
+"Pen" = "ペン";
+
+"Photo" = "アイコン";
+
+"Photo Editor" = "画像編集";
+
+"Pink" = "ピンク";
+
+"Please check SMS configuration and try again." = "";
+
+"Please check e-mail configuration and try again." = "";
+
+"Poke" = "つついてみる";
+
+"Post on Facebook" = "Facebookにポスト";
+
+"Post on Twitter" = "Twitterにポスト";
+
+"Privacy Policy" = "プライバシーポリシー";
+
+"Profile" = "プロフィール";
+
+/* alert message */
+"Range Change Request" = "ロケーションレンジ変更申請";
+
+"Rectangle" = "四角";
+
+"Red" = "赤";
+
+"Refresh Screen" = "画面の再描画";
+
+"Remove Routes" = "ルート非表示";
+
+"Restore your password" = "パスワードをリセットします.";
+
+"Round" = "枠";
+
+"SMS" = "SMS";
+
+"SMS message body" = "";
+
+"Save" = "保存";
+
+"Search by Name & Email" = "名前とメールで検索";
+
+/* barbutton title */
+"Select" = "選択";
+
+/* barbutton title */
+"Send" = "送信";
+
+"Send Email" = "メールで送信";
+/* viewcontroller title */
+"Send Invitation" = "友達リクエスト";
+
+"Send SMS" = "SMSで送信";
+
+/* tableview label */
+"Send to App User" = "このアプリのユーザー";
+
+"Send with Line" = "Lineで送信";
+
+/* action label
+ viewcontroller title */
+"Settings" = "設定";
+
+"Show Routes" = "ルート探索";
+
+/* tableview label
+ viewcontroller title */
+"Sign In" = "ログイン";
+
+"Sign In or Up" = "ログイン・会員登録";
+
+/* tableview label */
+"Sign Out" = "ログアウト";
+
+/* tableview label */
+"Sign Up" = "会員登録";
+
+"Standard Map" = "標準マップ";
+
+/* location range */
+"State" = "県";
+
+/* location range */
+"Street" = "現在地";
+
+"Take Photo" = "写真を撮る";
+
+"Teal" = "ティール";
+
+"Term of Use" = "利用規約";
+
+"Text" = "テキスト";
+
+"To %@" = "%@";
+
+/* barbutton title */
+"Today" = "今日";
+
+/* location range */
+"Town" = "町・丁目";
+
+/* barbutton title */
+"Update" = "更新";
+
+"Use Case" = "例えば";
+
+"User Feedback" = "フィードバック";
+
+"Welcome to Cocoger" = "Cocogerにようこそ";
+
+"What" = "って何？";
+
+"Why" = "なんで";
+
+"Yellow" = "黄";
+
+/* tableview label */
+"You" = "You";
+
+"You have a request for the change of Location Range. Please review the change. You can extend the requested change and accept." = "より詳細なロケーション範囲への変更のリクエストを受け取りました. リクエストの範囲を変更して同意することもできます.";
+
+/* tableview label */
+"Your friend name here" = "検索結果";
+
+"Your suggestions, ideas, and problem reporting are important to us.  Thank you." = "新機能や機能改善などのご意見・ご要望をお気軽にご連絡ください. よろしくお願いいたします.";
+
+/* sokora */
+"cocoger" = "cocoger";
+
+"from %@" = "%@から";
+
+"let's cocoger" = "let's cocoger";
+
+"share location with comfort" = "share location with comfort";
+
+/* tableview place holder */
+"user@cocoger.com" = "user@cocoger.com";
+
+/* from server */
+
+"Invalid password" = "パスワードが一致しません.";
+
+"Unknown user" = "ユーザーが見つかりません.";
+

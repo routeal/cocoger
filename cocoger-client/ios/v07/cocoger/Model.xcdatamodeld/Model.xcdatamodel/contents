@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="9057" systemVersion="14F27" minimumToolsVersion="Xcode 4.3">
+    <entity name="AddressLocation" representedClassName="AddressLocation" syncable="YES">
+        <attribute name="address" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="latitude" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
+        <attribute name="longitude" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
+        <attribute name="reference" optional="YES" attributeType="Integer 64" defaultValueString="0.0" syncable="YES"/>
+    </entity>
+    <entity name="Friend" representedClassName="Friend" syncable="YES">
+        <attribute name="created" optional="YES" attributeType="Date" syncable="YES"/>
+        <attribute name="statusChecked" optional="YES" attributeType="Date" syncable="YES"/>
+        <attribute name="gender" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
+        <attribute name="hasMoved" optional="YES" attributeType="Boolean" defaultValueString="0" syncable="YES"/>
+        <attribute name="hasSignedOut" optional="YES" attributeType="Boolean" defaultValueString="0" syncable="YES"/>
+        <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="photoName" optional="YES" attributeType="String" defaultValueString="uncle" syncable="YES"/>
+        <attribute name="photoType" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
+        <attribute name="provider" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="providerID" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="range" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
+        <attribute name="user" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
+    <entity name="Image" representedClassName="Image" syncable="YES">
+        <attribute name="created" optional="YES" attributeType="Date" syncable="YES"/>
+        <attribute name="data" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES" syncable="YES"/>
+        <attribute name="name" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="type" optional="YES" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
+        <attribute name="url" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="user" optional="YES" attributeType="String" syncable="YES"/>
+    </entity>
+    <entity name="Location" representedClassName="Location" syncable="YES">
+        <attribute name="accuracy" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
+        <attribute name="altitude" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
+        <attribute name="city" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="country" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="county" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="created" optional="YES" attributeType="Date" syncable="YES"/>
+        <attribute name="device" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="latitude" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
+        <attribute name="longitude" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
+        <attribute name="speed" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
+        <attribute name="state" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="street" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="timezone" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="town" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="user" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="zip" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+    </entity>
+    <entity name="LocationRangeData" representedClassName="LocationRangeData" syncable="YES">
+        <attribute name="city" optional="YES" attributeType="Integer 32" defaultValueString="32" syncable="YES"/>
+        <attribute name="country" optional="YES" attributeType="Integer 32" defaultValueString="32" syncable="YES"/>
+        <attribute name="county" optional="YES" attributeType="Integer 32" defaultValueString="32" syncable="YES"/>
+        <attribute name="none" optional="YES" attributeType="Integer 32" defaultValueString="32" syncable="YES"/>
+        <attribute name="state" optional="YES" attributeType="Integer 32" defaultValueString="32" syncable="YES"/>
+        <attribute name="street" optional="YES" attributeType="Integer 32" defaultValueString="32" syncable="YES"/>
+        <attribute name="town" optional="YES" attributeType="Integer 32" defaultValueString="32" syncable="YES"/>
+    </entity>
+    <entity name="RawLocation" representedClassName="RawLocation" syncable="YES">
+        <attribute name="altitude" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
+        <attribute name="course" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
+        <attribute name="hAccuracy" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
+        <attribute name="latitude" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
+        <attribute name="longitude" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
+        <attribute name="speed" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
+        <attribute name="timestamp" optional="YES" attributeType="Date" syncable="YES"/>
+        <attribute name="vAccuracy" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
+    </entity>
+    <entity name="User" representedClassName="User" syncable="YES">
+        <attribute name="_authToken" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="_bod" attributeType="Integer 32" defaultValueString="1980" syncable="YES"/>
+        <attribute name="_boyColor" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="_created" attributeType="Date" syncable="YES"/>
+        <attribute name="_device" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="_email" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="_frameColor" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="_gender" attributeType="Integer 32" defaultValueString="0" syncable="YES"/>
+        <attribute name="_girlColor" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="_id" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="_latitude" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
+        <attribute name="_longitude" optional="YES" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
+        <attribute name="_myColor" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="_name" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="_photoName" optional="YES" attributeType="String" defaultValueString="uncle" syncable="YES"/>
+        <attribute name="_photoType" attributeType="Integer 32" defaultValueString="0" allowsExternalBinaryDataStorage="YES" syncable="YES"/>
+        <attribute name="_provider" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="_providerID" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="_providerToken" optional="YES" attributeType="String" defaultValueString="" syncable="YES"/>
+        <attribute name="_revised" optional="YES" attributeType="Date" syncable="YES"/>
+    </entity>
+    <elements>
+        <element name="AddressLocation" positionX="-234" positionY="-504" width="128" height="105"/>
+        <element name="Friend" positionX="-198" positionY="-657" width="128" height="195"/>
+        <element name="Image" positionX="-252" positionY="-378" width="128" height="105"/>
+        <element name="Location" positionX="-441" positionY="-555" width="128" height="285"/>
+        <element name="LocationRangeData" positionX="-243" positionY="-513" width="128" height="150"/>
+        <element name="RawLocation" positionX="-243" positionY="-513" width="128" height="120"/>
+        <element name="User" positionX="99" positionY="-516" width="128" height="255"/>
+    </elements>
+</model>
