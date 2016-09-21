@@ -1,0 +1,23 @@
+<section data-ng-controller="InfoController" data-ng-init="init()">
+
+	<div class="page-header" data-ng-hide="mobile()">
+		<h3>Frequently Asked Questions</h3>
+	</div>
+
+	<div class="list-group">
+	  <a data-ng-repeat="item in getFAQ()" class="list-group-item">
+	    <span class="badge">{{item.faq.length}}</span>
+	    <h4 class="list-group-item-heading" data-ng-bind="item.title"></h4>
+	    <uib-accordion close-others="true">
+	      <uib-accordion-group ng-repeat="faq in item.faq" ng-init="status = {isOpen: false}" is-open="status.isOpen">
+		<uib-accordion-heading>
+		  {{faq.question}}
+		  <i class="pull-right glyphicon" ng-class="{'glyphicon-chevron-down': status.isOpen, 'glyphicon-chevron-right': !status.isOpen}"></i>
+		</uib-accordion-heading>
+		<p ng-bind-html="faq.answer | unsafe"></p>
+	      </uib-accordion-group>
+	    </uib-accordion>
+	  </a>
+	</div>
+
+</section>

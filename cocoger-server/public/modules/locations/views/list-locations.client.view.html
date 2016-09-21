@@ -1,0 +1,25 @@
+<section data-ng-controller="LocationsController" data-ng-init="find()">
+    <div class="page-header">
+        <h1>Locations</h1>
+    </div>
+
+    <div class="row">
+      <div class="col-xs-4 col-xs-offset-4">
+	<p class="input-group">
+          <input type="date" class="form-control" uib-datepicker-popup ng-model="dt" is-open="status.opened" min-date="minDate" max-date="maxDate" datepicker-options="dateOptions" ng-change="changedate()" ng-required="true" close-text="Close" clear-text="" />
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-default" ng-click="open($event)"><i class="glyphicon glyphicon-calendar"></i></button>
+          </span>
+	</p>
+      </div>
+    </div>
+
+    <div class="row">
+      <ui-gmap-google-map center='map.center' zoom='map.zoom'>
+        <ui-gmap-polyline path="locations" draggable="false"
+                          geodesic="true" stroke="map.lineStyle" fit="true" dorebuildall="true">
+        </ui-gmap-polyline>
+      </ui-gmap-google-map>
+    </div>
+
+</section>

@@ -1,0 +1,3 @@
+o System wide bash profile
+
+copy cocoger-mean.sh to /etc/profile.d
