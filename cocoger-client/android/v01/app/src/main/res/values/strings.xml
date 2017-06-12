@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">cocoger</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="email_address">Email address</string>
+    <string name="password">Password</string>
+    <string name="reenter_password">Same Password</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="login">Login</string>
+    <string name="signup">Sign Up</string>
+    <string name="name">Nick Name</string>
+    <string name="year_birth">Year-ish of Birth</string>
+    <string name="gender">Gender</string>
+    <string name="login_for_member">Already a member? Login</string>
+    <string name="create_account">Create Account</string>
+    <string name="back">BACK</string>
+    <string name="reset_password">Reset Password</string>
+    <string name="reset_password_instruction">We just need your registered Email address to send your password reset instruction.</string>
+    <string name="authenticating">Authenticating...</string>
+    <string name="creating_account">Create Account...</string>
+</resources>

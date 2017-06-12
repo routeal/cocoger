@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="genders">
+        <item>Boy</item>
+        <item>Girl</item>
+        <item>None</item>
+    </string-array>
+
+    <string-array name="years">
+        <item>2010</item>
+        <item>2000</item>
+        <item>1990</item>
+        <item>1980</item>
+        <item>1970</item>
+        <item>1960</item>
+        <item>1950</item>
+        <item>1940</item>
+        <item>1930</item>
+    </string-array>
+</resources>
