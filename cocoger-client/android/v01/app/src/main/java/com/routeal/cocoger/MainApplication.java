@@ -4,23 +4,30 @@ import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
 
+import com.routeal.cocoger.net.RestClient;
+
 /**
  * Created by nabe on 6/11/17.
  */
 
 public class MainApplication extends Application {
-    private SharedPreferences preferences;
+    private final static String BASE_URL = "";
+
+    private SharedPreferences mPreferences;
 
     private static Context mContext;
 
-    private static MainApplication sInstance;
+    private static MainApplication mInstance;
+
+    private static RestClient mRestClient;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        sInstance = this;
+        mInstance = this;
         mContext = getApplicationContext();
-        preferences = getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE);
+        mPreferences = getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE);
+        mRestClient = new RestClient(BASE_URL);
     }
 
     public static Context getContext() {
@@ -28,42 +35,44 @@ public class MainApplication extends Application {
     }
 
     public static String getApplicationName() {
-        return sInstance.getString(R.string.app_name);
+        return mInstance.getString(R.string.app_name);
     }
 
+    public static RestClient getRestClient() { return mRestClient; }
+
     public static void putString(String key, String value) {
-        sInstance.preferences.edit().putString(key, value).apply();
+        mInstance.mPreferences.edit().putString(key, value).apply();
     }
 
     public static String getString(String key) {
-        return sInstance.preferences.getString(key, null);
+        return mInstance.mPreferences.getString(key, null);
     }
 
     public static String getString(String key, String value) {
-        return sInstance.preferences.getString(key, value);
+        return mInstance.mPreferences.getString(key, value);
     }
 
     public static void putInt(String key, int value) {
-        sInstance.preferences.edit().putInt(key, value).apply();
+        mInstance.mPreferences.edit().putInt(key, value).apply();
     }
 
     public static int getInt(String key) {
-        return sInstance.preferences.getInt(key, 0);
+        return mInstance.mPreferences.getInt(key, 0);
     }
 
     public static int getInt(String key, int value) {
-        return sInstance.preferences.getInt(key, value);
+        return mInstance.mPreferences.getInt(key, value);
     }
 
     public static void putLong(String key, long value) {
-        sInstance.preferences.edit().putLong(key, value).apply();
+        mInstance.mPreferences.edit().putLong(key, value).apply();
     }
 
     public static long getLong(String key) {
-        return sInstance.preferences.getLong(key, 0);
+        return mInstance.mPreferences.getLong(key, 0);
     }
 
     public static long getLong(String key, long value) {
-        return sInstance.preferences.getLong(key, value);
+        return mInstance.mPreferences.getLong(key, value);
     }
 }

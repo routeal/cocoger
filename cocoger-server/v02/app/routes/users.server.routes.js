@@ -15,10 +15,10 @@ module.exports = function(app) {
   app.route('/m/auth/signup').post(users.signupToken);
 
   // sign in with email and password and return a jwt token
-  app.route('/m/auth/signin').post(users.signinToken);
+  app.route('/m/auth/login').post(users.signinToken);
 
   // disable the current jwt token
-  app.route('/m/auth/signout').get(auth_callback, users.signoutToken);
+  app.route('/m/auth/logout').get(auth_callback, users.signoutToken);
 
   // get a user info which is indentified by the jwt token
   app.route('/m/users/me').get(auth_callback, users.me);

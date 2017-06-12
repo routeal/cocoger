@@ -10,7 +10,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.model.Device;
+import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.ui.main.MapsActivity;
 
 import butterknife.Bind;
@@ -85,7 +88,12 @@ public class LoginActivity extends AppCompatActivity {
         String email = emailText.getText().toString();
         String password = passwordText.getText().toString();
 
-        // TODO: Implement your own authentication logic here.
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(password);
+        user.setDevice(Device.getInstance());
+
+        MainApplication.getRestClient().getService().login(user);
 
         new android.os.Handler().postDelayed(
                 new Runnable() {
