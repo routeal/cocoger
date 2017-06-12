@@ -1,4 +1,4 @@
-package com.routeal.cocoger;
+package com.routeal.cocoger.ui.login;
 
 import android.content.Intent;
 import android.os.Bundle;

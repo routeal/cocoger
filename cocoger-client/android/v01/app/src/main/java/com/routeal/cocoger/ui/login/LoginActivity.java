@@ -1,4 +1,4 @@
-package com.routeal.cocoger;
+package com.routeal.cocoger.ui.login;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,6 +10,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.routeal.cocoger.R;
+import com.routeal.cocoger.ui.main.MapsActivity;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -102,7 +104,8 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void onLoginSuccess() {
-        loginButton.setEnabled(true);
+        Intent intent = new Intent(getApplicationContext(), MapsActivity.class);
+        startActivity(intent);
         finish();
     }
 

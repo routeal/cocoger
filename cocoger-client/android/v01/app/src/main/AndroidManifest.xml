@@ -2,12 +2,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.routeal.cocoger">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
          Google Maps Android API v2, but you must specify either coarse or fine
          location permissions for the 'MyLocation' functionality. 
     -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!-- Service on Boot -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:name=".MainApplication"
@@ -31,7 +39,7 @@
             android:value="@string/google_maps_key" />
 
         <activity
-            android:name=".SplashActivity"
+            android:name=".ui.login.SplashActivity"
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -41,15 +49,29 @@
         </activity>
 
         <activity
-            android:name=".MapsActivity"
+            android:name=".ui.main.MapsActivity"
             android:label="@string/title_activity_maps"></activity>
 
-        <activity android:name=".LoginActivity"
+        <activity android:name=".ui.login.LoginActivity"
             android:theme="@style/LoginTheme"/>
-        <activity android:name=".SignupActivity"
+        <activity android:name=".ui.login.SignupActivity"
             android:theme="@style/LoginTheme"/>
-        <activity android:name=".PasswordActivity"
+        <activity android:name=".ui.login.PasswordActivity"
             android:theme="@style/LoginTheme"/>
+
+        <receiver android:name=".service.OnBootReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <service android:name=".service.MailSyncService" />
+
+        <provider
+            android:name=".provider.DatabaseProvider"
+            android:authorities="com.kotonoha_tech.moriomail.provider"
+            android:exported="false" />
+
     </application>
 
 </manifest>
