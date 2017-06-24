@@ -15,6 +15,12 @@ var _ = require('lodash'),
     moment = require('moment-timezone'),
     agenda = require('../../../config/agenda');
 
+// returns the user
+exports.me = function(req, res) {
+  console.log(req.user.device);
+  res.json(req.user || null);
+};
+
 /**
  * updates the user
  */
@@ -103,11 +109,6 @@ exports.delete = function(req, res) {
       });
     }
   });
-};
-
-// returns the user
-exports.me = function(req, res) {
-  res.json(req.user || null);
 };
 
 // searches by email

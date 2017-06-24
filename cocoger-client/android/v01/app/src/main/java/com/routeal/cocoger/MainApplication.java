@@ -3,15 +3,19 @@ package com.routeal.cocoger;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.JsonReader;
+import android.widget.Toast;
 
 import com.routeal.cocoger.net.RestClient;
+
+import java.io.InputStreamReader;
 
 /**
  * Created by nabe on 6/11/17.
  */
 
 public class MainApplication extends Application {
-    private final static String BASE_URL = "";
+    private final static String JSON_FILENAME = "cocoger.json";
 
     private SharedPreferences mPreferences;
 
@@ -24,10 +28,36 @@ public class MainApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
         mInstance = this;
+
         mContext = getApplicationContext();
+
         mPreferences = getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE);
-        mRestClient = new RestClient(BASE_URL);
+
+        String server_url = "";
+
+        try {
+            JsonReader reader =
+                    new JsonReader(new InputStreamReader(getAssets().open(JSON_FILENAME)));
+            reader.beginObject();
+            while (reader.hasNext()) {
+                String name = reader.nextName();
+                if (name.equals("server_url")) {
+                    server_url = reader.nextString();
+                } else {
+                    reader.skipValue();
+                }
+            }
+            reader.endObject();
+        } catch (Exception e) {
+        }
+
+        if (server_url.isEmpty()) {
+            Toast.makeText(mContext, "Empty Server URL", Toast.LENGTH_SHORT).show();
+        }
+
+        mRestClient = new RestClient(server_url);
     }
 
     public static Context getContext() {

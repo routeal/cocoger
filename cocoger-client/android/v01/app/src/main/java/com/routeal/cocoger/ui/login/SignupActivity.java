@@ -1,7 +1,11 @@
 package com.routeal.cocoger.ui.login;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.support.annotation.IntegerRes;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -10,13 +14,26 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.github.johnpersano.supertoasts.library.Style;
+import com.github.johnpersano.supertoasts.library.SuperActivityToast;
+import com.github.johnpersano.supertoasts.library.utils.PaletteUtils;
+import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.model.User;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class SignupActivity extends AppCompatActivity {
     private static final String TAG = "SignupActivity";
+
+    private int genderIndex = 0;
 
     @Bind(R.id.input_name)
     EditText nameText;
@@ -88,6 +105,7 @@ public class SignupActivity extends AppCompatActivity {
                         String[] genders = getResources().getStringArray(R.array.genders);
                         genderText.setText(genders[which]);
                         genderText.setError(null);
+                        genderIndex = which;
                         return true;
                     }
                 })
@@ -113,45 +131,65 @@ public class SignupActivity extends AppCompatActivity {
         Log.d(TAG, "Signup");
 
         if (!validate()) {
-            onSignupFailed();
             return;
         }
 
-        signupButton.setEnabled(false);
+        final ProgressDialog dialog = ProgressDialog.show(this, null, null, false, true);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        dialog.setContentView(R.layout.progress_bar);
 
-        final MaterialDialog dialog = new MaterialDialog.Builder(this)
-                .content(R.string.creating_account)
-                .progress(true, 0)
-                .show();
+        signupButton.setEnabled(false);
 
         String name = nameText.getText().toString();
         String yearBirth = yearBirthText.getText().toString();
         String gender = genderText.getText().toString();
         String email = emailText.getText().toString();
         String password = passwordText.getText().toString();
-        String reEnterPassword = reEnterPasswordText.getText().toString();
 
-        // TODO: Implement your own signup logic here.
+        int bod = Integer.parseInt(yearBirth);
 
-        new android.os.Handler().postDelayed(
-                new Runnable() {
-                    public void run() {
-                        // On complete call either onSignupSuccess or onSignupFailed
-                        // depending on success
-                        onSignupSuccess();
-                        // onSignupFailed();
-                        dialog.dismiss();
-                    }
-                }, 3000);
+        User user = new User();
+        user.setName(name);
+        user.setBod(bod);
+        user.setGender(genderIndex);
+        user.setEmail(email);
+        user.setPassword(password);
+
+        Call<User> login = MainApplication.getRestClient().getService().signup(user);
+
+        login.enqueue(new Callback<User>() {
+            @Override
+            public void onResponse(Call<User> call, Response<User> response) {
+                dialog.dismiss();
+                if (response.isSuccessful()) {
+                    onSignupSuccess();
+                } else {
+                    onSignupFailed(response.toString());
+                }
+            }
+            @Override
+            public void onFailure(Call<User> call, Throwable t) {
+                dialog.dismiss();
+                onSignupFailed(t.getLocalizedMessage());
+            }
+        });
     }
 
-
     private void onSignupSuccess() {
-        signupButton.setEnabled(true);
+        // Prompt to login just for testing
+        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+        startActivity(intent);
         finish();
     }
 
-    private void onSignupFailed() {
+    private void onSignupFailed(String message) {
+        SuperActivityToast.create(this)
+                .setText(message)
+                .setFrame(Style.FRAME_STANDARD)
+                .setDuration(Style.DURATION_MEDIUM)
+                .setColor(PaletteUtils.getSolidColor(PaletteUtils.MATERIAL_RED))
+                .setAnimations(Style.ANIMATIONS_POP)
+                .show();
         signupButton.setEnabled(true);
     }
 

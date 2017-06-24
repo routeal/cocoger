@@ -17,4 +17,12 @@
     <string name="reset_password_instruction">We just need your registered Email address to send your password reset instruction.</string>
     <string name="authenticating">Authenticating...</string>
     <string name="creating_account">Create Account...</string>
+    <string name="signup_success">Successfully signed up</string>
+    <string name="action_voice_rec"></string>
+    <string name="action_location"></string>
+    <string name="action_taxi"></string>
+    <string name="action_change_colors"></string>
+    <string name="search_view_hint">Search here</string>
+    <string name="about_app">About</string>
+    <string name="open_source_libraries">Open Source Libraries</string>
 </resources>

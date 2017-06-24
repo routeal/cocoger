@@ -1,51 +1,50 @@
 package com.routeal.cocoger.model;
 
-import android.os.Build;
-
-import com.routeal.cocoger.MainApplication;
-
 import java.io.Serializable;
 
-public class Device implements Serializable
-{
+public class Device implements Serializable {
 
-    private String device;
+    private String id;
+    private String type;
+    private String brand;
+    private String model;
     private String platform;
     private String platformVersion;
+    private String lang;
     private String country;
-    private boolean simulator;
-    private final static long serialVersionUID = -2638624042170848185L;
+    private String simulator;
+    private final static long serialVersionUID = -4875232561461015233L;
 
-    /**
-     * No args constructor for use in serialization
-     *
-     */
-    public Device() {
+    public String getId() {
+        return id;
     }
 
-    /**
-     *
-     * @param platformVersion
-     * @param platform
-     * @param simulator
-     * @param device
-     * @param country
-     */
-    public Device(String device, String platform, String platformVersion, String country, boolean simulator) {
-        super();
-        this.device = device;
-        this.platform = platform;
-        this.platformVersion = platformVersion;
-        this.country = country;
-        this.simulator = simulator;
+    public void setId(String id) {
+        this.id = id;
     }
 
-    public String getDevice() {
-        return device;
+    public String getType() {
+        return type;
     }
 
-    public void setDevice(String device) {
-        this.device = device;
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
     }
 
     public String getPlatform() {
@@ -64,6 +63,14 @@ public class Device implements Serializable
         this.platformVersion = platformVersion;
     }
 
+    public String getLang() {
+        return lang;
+    }
+
+    public void setLang(String lang) {
+        this.lang = lang;
+    }
+
     public String getCountry() {
         return country;
     }
@@ -72,23 +79,12 @@ public class Device implements Serializable
         this.country = country;
     }
 
-    public boolean getSimulator() {
+    public String getSimulator() {
         return simulator;
     }
 
-    public void setSimulator(boolean simulator) {
+    public void setSimulator(String simulator) {
         this.simulator = simulator;
     }
 
-    public static Device getInstance() {
-        String countryCode = MainApplication.getContext().getResources()
-                .getConfiguration().locale.getCountry();
-        Device device = new Device();
-        device.setDevice(Build.DEVICE);
-        device.setCountry(countryCode);
-        device.setPlatformVersion(Build.VERSION.RELEASE);
-        device.setPlatform(Build.VERSION.CODENAME);
-        device.setSimulator(false);
-        return device;
-    }
 }

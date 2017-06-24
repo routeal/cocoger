@@ -21,36 +21,10 @@ var _ = require('lodash'),
     async = require('async');
 
 /**
- * Web Signup - creates the user only
+ * For testing only
  */
-exports.signup = function(req, res) {
-  // For security measurement we remove the roles from the req.body object
-  delete req.body.roles;
-
-  // Init Variables
-  var user = new User(req.body);
-
-  // Add missing user fields
-  user.provider = 'local';
-
-  // Then save the user
-  user.save(function(err) {
-    if (err) {
-      res.status(400).send({message: errorHandler.getErrorMessage(err)});
-    } else {
-      // Remove sensitive data before login
-      user.password = undefined;
-      user.salt = undefined;
-
-      req.login(user, function(err) {
-	if (err) {
-	  res.status(400).send({message: errorHandler.getErrorMessage(err)});
-	} else {
-	  res.json(user);
-	}
-      });
-    }
-  });
+exports.test = function(req, res) {
+  res.json({"message":"Hello World!"});
 };
 
 /**
@@ -66,15 +40,14 @@ exports.signup = function(req, res) {
  *
  * Response:  returns a whole User data
  */
-exports.signupToken = function(req, res) {
-  // For security measurement we remove the roles from the req.body object
-  delete req.body.roles;
-
+exports.signup = function(req, res) {
   // Init Variables
   var user = new User(req.body);
 
   // Add missing user fields
   user.provider = 'local';
+
+  console.log(req.body);
 
   // Then save the user
   user.save(function(err, user) {
@@ -87,39 +60,21 @@ exports.signupToken = function(req, res) {
 };
 
 /**
- * Web Signin after passport authentication
- */
-exports.signin = function(req, res, next) {
-  passport.authenticate('local', {session: false}, function(err, user, info) {
-    if (err || !user) {
-      res.status(400).send({message: info});
-    } else {
-      // Remove sensitive data before login
-      user.password = undefined;
-      user.salt = undefined;
-
-      req.login(user, function(err) {
-	if (err) {
-	  res.status(400).send({message: errorHandler.getErrorMessage(err)});
-	} else {
-	  res.json(user);
-	}
-      });
-    }
-  })(req, res, next);
-};
-
-/**
  * Mobile Signin - password authentication, token generation
  *
  * {
  *  "email":"a@b.com",
  *  "password":"this is a passowrd",
  *  "device": {
- *   "device": iphone5/iphone6/ipad6/
- *   "platform":"",
- *   "platformVersion":"",
+ *   "id": "xxx", // device unque id
+ *   "type": mobile/desktop/settop
+ *   "brand":
+ *   "model":
+ *   "version":
+ *   "platform": ios/android/windows/linux
+ *   "platformVersion": 10/6.0/10
  *   "country":"",
+ *   "lang":"",
  *   "simulator":false
  *  }
  * }
@@ -130,70 +85,70 @@ exports.signin = function(req, res, next) {
  *
  * A Json Web Token will be returned with:
  * {
- *  device: device._id, // device id
- *  ts: device.login  // device login timestamp
+ *  user: user db id
+ *  id: device.id - unique id
+ *  login: login timestamp
  * }
  */
-exports.signinToken = function(req, res, next) {
+exports.login = function(req, res, next) {
+  // autheticated with email and password
   passport.authenticate('local', {session: false}, function(err, user, info) {
-    if (err || !user) {
+    if (err || !user || !req.body.device || !req.body.device.id) {
       res.status(404).send({message: info});
     } else {
-      Device.findOne({'owner': user._id}, function(err, device) {
+      // search a device by id
+      var index = _.findIndex(user.devices, {id: req.body.device.id});
+      // if not found, add a first one
+      if (index < 0) {
+        index = 0;
+        user.devices.push(req.body.device);
+      } else {
+        // merge the new value
+        _.extend(user.devices[index], req.body.device);
+      }
+      /* allow multiple devices
+      for (var i = 0; i < user.devices.length; i++) {
+        user.devices[index].login = 0;
+      }
+      */
+      user.devices[index].login = Date.now();
+      // save to the db
+      user.save(function(err, user) {
 	if (err) {
 	  res.status(400).send({message: errorHandler.getErrorMessage(err)});
 	  return;
 	}
-        // if the device exists, update it with the device info
-	if (device &&
-            device.device.toLowerCase() == req.body.device.device.toLowerCase()) {
-	  device = _.extend(device, req.body.device);
-	}
-        // create a device from the device info
-        else {
-	  device = new Device(req.body.device);
-	  device.owner = user._id;
-	}
-        device.id = shortid.generate();
-        // save to the db
-	device.save(function(err, device) {
-	  if (err) {
-	    res.status(400).send({message: errorHandler.getErrorMessage(err)});
-	    return;
-	  }
-          var json = user.toJSON();
-          var jwt_payload = {device:device._id, id:device.id};
-          json.authToken = jwt.sign(jwt_payload, config.jwtSecret);
-          res.json(json);
-        });
+        var json = user.toJSON();
+        var device = user.devices[index];
+        var jwt_payload = {user:user._id, id:device.id, login:device.login};
+        json.authToken = jwt.sign(jwt_payload, config.jwtSecret);
+        res.json(json);
       });
     }
   })(req, res, next);
 };
 
 /**
- * Web Signout
+ * Logout
  */
-exports.signout = function(req, res) {
-  req.logout();
-  res.redirect('/');
-};
-
-/**
- * Mobile Signout
- */
-exports.signoutToken = function(req, res) {
-  var userid = req.user.id; // keep it as a string
-  Device.findById(req.user.device._id, function(err, device) {
-    if (err || !device) {
-      res.status(400).send({message: 'device not found'});
+exports.logout = function(req, res) {
+  User.findById(req.user._id, function(err, user) {
+    if (err || !user) {
+      res.status(400).send({message: errorHandler.getErrorMessage(err)});
     } else {
-      device.id = '';
-      device.save(function(err) {
+      var index = _.findIndex(user.devices, {id: req.user.device.id});
+      if (index < 0) {
+        res.status(400).send({message: 'device not found'});
+        return;
+      } else {
+        user.devices[index].login = 0;
+      }
+      user.save(function(err, user) {
 	if (err) {
-	  // continue
-	}
-	res.json({});
+	  res.status(400).send({message: errorHandler.getErrorMessage(err)});
+          return;
+        }
+        res.json();
       });
     }
   });
@@ -404,3 +359,4 @@ exports.removeOAuthProvider = function(req, res, next) {
     });
   }
 };
+

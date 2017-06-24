@@ -41,10 +41,14 @@ console.log(app.locals);
 console.log("/////////////////// END LOCAL VARIABLES ///////////////////");
 
 // Start the app by listening on <port>
-app.listen(config.port);
+var server = app.listen(config.port, function() {
+    var host = server.address().address;
+    var port = server.address().port;
+    console.log('running at http://' + host + ':' + port)
+});
 
 // Expose app
 exports = module.exports = app;
 
 // Logging initialization
-console.log('started on port ' + config.port);
+//console.log(ip.address() + ':' + config.port);

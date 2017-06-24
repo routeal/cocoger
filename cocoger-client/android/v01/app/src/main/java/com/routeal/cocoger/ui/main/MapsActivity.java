@@ -1,7 +1,7 @@
 package com.routeal.cocoger.ui.main;
 
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -12,6 +12,8 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.routeal.cocoger.R;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+
+    private final static String TAG = "MapsActivity";
 
     private GoogleMap mMap;
 
@@ -24,7 +26,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
     }
-
 
     /**
      * Manipulates the map once available.

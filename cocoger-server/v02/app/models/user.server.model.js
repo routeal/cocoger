@@ -5,6 +5,8 @@
  */
 var mongoose = require('mongoose'),
     Schema = mongoose.Schema,
+    Friend = mongoose.model('Friend'),
+    Location = mongoose.model('Location'),
     crypto = require('crypto');
 
 /**
@@ -18,7 +20,7 @@ var validateLocalStrategyProperty = function(property) {
  * A Validation function for local strategy password
  */
 var validateLocalStrategyPassword = function(password) {
-  return (this.provider !== 'local' || (password && password.length > 6));
+  return (this.provider !== 'local' || (password && password.length >= 6));
 };
 
 /**
@@ -82,15 +84,6 @@ var UserSchema = new Schema({
   },
 
   /*********************************************************************/
-  /* the deleted users won't be deleted from the database  */
-  /*********************************************************************/
-
-  active: {
-    type: Boolean,
-    default: true // false for the deleted users
-  },
-
-  /*********************************************************************/
   /* dates */
   /*********************************************************************/
 
@@ -140,16 +133,81 @@ var UserSchema = new Schema({
   additionalProvidersData: {},
 
   /*********************************************************************/
-  /* TODO: currently not used */
+  /* Friends */
   /*********************************************************************/
 
-  roles: {
-    type: [{
-      type: String,
-      enum: ['user', 'admin', 'master']
-    }],
-    default: ['user']
-  },
+  friends: [ Friend.schema ],
+
+  /*********************************************************************/
+  /* Locations */
+  /*********************************************************************/
+
+  locations: [ Location.schema ],
+
+  /*********************************************************************/
+  /* Group list */
+  /*********************************************************************/
+
+  groups: [ Schema.ObjectId ],
+
+  /*********************************************************************/
+  /* Device list */
+  /*********************************************************************/
+
+  devices: [
+    {
+      // device unique id
+      id: {
+        type: String,
+        default: ''
+      },
+      // mobile/desktop
+      type: {
+        type: String,
+        default: 'mobile'
+      },
+      brand: {
+        type: String,
+        default: ''
+      },
+      model: {
+        type: String,
+        default: ''
+      },
+      // ios, android, windows, etc
+      platform: {
+        type: String,
+        default: 'ios'
+      },
+      // 10.12(ios), 7(android)
+      platformVersion: {
+        type: String,
+        default: ''
+      },
+      // iso
+      lang: {
+        type: String,
+        default: 'en'
+      },
+      // iso
+      country: {
+        type: String,
+        default: 'US'
+      },
+      created: {
+        type: Date,
+        default: Date.now
+      },
+      simulator: {
+        type: Boolean,
+        default: true,
+      },
+      login: {
+        type: Date,
+        default: '',
+      }
+    }
+  ]
 
 });
 
@@ -185,7 +243,7 @@ UserSchema.set('toJSON', {
  * Hook a pre save method to hash the password
  */
 UserSchema.pre('save', function(next) {
-  if (this.password && this.password.length > 6 && this.password.length < 24) {
+  if (this.password && this.password.length >= 6 && this.password.length < 24) {
     this.salt = new Buffer(crypto.randomBytes(16).toString('base64'), 'base64');
     this.password = this.hashPassword(this.password);
   }
