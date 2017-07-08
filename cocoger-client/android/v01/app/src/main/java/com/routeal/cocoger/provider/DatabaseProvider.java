@@ -21,17 +21,21 @@ import java.util.List;
 public class DatabaseProvider extends ContentProvider {
     private ProviderHelper mDbHelper;
 
-    private static final int ADDRESSES = 1;
-    private static final int ADDRESSES_ID = 2;
-    private static final int MESSAGES = 3;
-    private static final int MESSAGE_ID = 4;
-    private static final int CONTENTS = 5;
-    private static final int CONTENTS_ID = 6;
+    private static final int IMAGES = 1;
+    private static final int IMAGES_ID = 2;
+    private static final int ADDRESSES = 3;
+    private static final int ADDRESSES_ID = 4;
+    private static final int MESSAGES = 5;
+    private static final int MESSAGE_ID = 6;
+    private static final int CONTENTS = 7;
+    private static final int CONTENTS_ID = 8;
 
     private static final UriMatcher mUriMatcher;
 
     static {
         mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+        mUriMatcher.addURI(DB.AUTHORITY, DB.Images.PATH, IMAGES);
+        mUriMatcher.addURI(DB.AUTHORITY, DB.Images.PATH + "/#", IMAGES_ID);
         mUriMatcher.addURI(DB.AUTHORITY, DB.Addresses.PATH, ADDRESSES);
         mUriMatcher.addURI(DB.AUTHORITY, DB.Addresses.PATH + "/#", ADDRESSES_ID);
         mUriMatcher.addURI(DB.AUTHORITY, DB.Messages.PATH, MESSAGES);
@@ -51,6 +55,12 @@ public class DatabaseProvider extends ContentProvider {
         int match = mUriMatcher.match(uri);
         String mime = null;
         switch (match) {
+            case IMAGES:
+                mime = DB.Images.CONTENT_TYPE;
+                break;
+            case IMAGES_ID:
+                mime = DB.Images.CONTENT_ITEM_TYPE;
+                break;
             case ADDRESSES:
                 mime = DB.Addresses.CONTENT_TYPE;
                 break;
@@ -89,6 +99,14 @@ public class DatabaseProvider extends ContentProvider {
         List<String> pathSegments = uri.getPathSegments();
 
         switch (mUriMatcher.match(uri)) {
+            case IMAGES:
+                tableName = DB.Images.TABLE;
+                break;
+            case IMAGES_ID:
+                tableName = DB.Images.TABLE;
+                innerSelection = DB.Images._ID + " = ? ";
+                innerSelectionArgs = new String[]{pathSegments.get(2)};
+                break;
             case ADDRESSES:
                 tableName = DB.Addresses.TABLE;
                 break;
@@ -152,6 +170,15 @@ public class DatabaseProvider extends ContentProvider {
         Uri insertedUri = null;
 
         switch (mUriMatcher.match(uri)) {
+            case IMAGES: {
+                SQLiteDatabase db = mDbHelper.getWritableDatabase();
+                long id = db.insert(DB.Images.TABLE, null, values);
+                insertedUri = ContentUris.withAppendedId(uri, id);
+
+                ContentResolver resolver = getContext().getContentResolver();
+                resolver.notifyChange(DB.Images.CONTENT_URI, null);
+                break;
+            }
             case ADDRESSES: {
                 SQLiteDatabase db = mDbHelper.getWritableDatabase();
                 long id = db.insert(DB.Addresses.TABLE, null, values);
@@ -225,6 +252,12 @@ public class DatabaseProvider extends ContentProvider {
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
         switch (mUriMatcher.match(uri)) {
+            case IMAGES_ID: {
+                affected = db.delete(DB.Images.TABLE, DB.Images._ID + "= ?",
+                        new String[]{String.valueOf(id)});
+                break;
+            }
+
             case MESSAGE_ID: {
                 ContentResolver resolver = getContext().getContentResolver();
 

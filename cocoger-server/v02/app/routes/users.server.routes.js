@@ -9,7 +9,9 @@ module.exports = function(app) {
   // User Routes
   var users = require('../../app/controllers/users.server.controller');
 
-  var auth_callback = passport.authenticate('jwt', {session: false});
+  ////////// Username/Password/JWT //////////
+
+  var jwt_auth = passport.authenticate('jwt', {session: false});
 
   // for testing
   app.route('/test').get(users.test);
@@ -17,15 +19,21 @@ module.exports = function(app) {
   // sign up with email, password, ...
   app.route('/auth/signup').post(users.signup);
 
-  // sign in with email and password and return a jwt token
+  // login with email and password and return a jwt token
   app.route('/auth/login').post(users.login);
 
   // disable the current jwt token
-  app.route('/auth/logout').get(auth_callback, users.logout);
+  app.route('/auth/logout').get(jwt_auth, users.logout);
 
   // get a user info which is indentified by the jwt token
-  app.route('/users/me').get(auth_callback, users.me);
+  app.route('/users/me').get(jwt_auth, users.me);
 
+  ////////// Facebook/AccessToken //////////
+
+  var fb_auth = passport.authenticate('facebook-token', {session: false});
+
+  // login with facebook accesstoken
+  app.route('/auth/facebook/login').post(fb_auth, users.facebook_login);
 
   /** web interface **/
 
@@ -40,10 +48,12 @@ module.exports = function(app) {
   app.route('/auth/reset/:token').post(users.reset);
 
   // Setting the facebook oauth routes from the web
+  /*
   app.route('/auth/facebook').get(passport.authenticate('facebook', {
     scope: ['public_profile', 'email', 'user_friends']
   }));
   app.route('/auth/facebook/callback').get(users.oauthCallback('facebook'));
+  */
 
   //app.route('/users/feedback').post();
 
@@ -55,7 +65,7 @@ module.exports = function(app) {
   app.route('/m/users/provider').get(passport.authenticate('jwt', {session: false}), users.provider);
 
   // Setting the facebook auth from the mobile clients with the token (session-less)
-  app.route('/m/auth/facebook').post(users.oauthToken('facebook-token'));
+  //app.route('/m/auth/facebook').post(users.oauthToken('facebook-token'));
 
   // Finish by binding the user middleware
   // app.param('userId', users.userByID);

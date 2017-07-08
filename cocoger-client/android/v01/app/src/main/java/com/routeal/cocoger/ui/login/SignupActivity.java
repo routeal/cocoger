@@ -5,24 +5,18 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.support.annotation.IntegerRes;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.github.johnpersano.supertoasts.library.Style;
-import com.github.johnpersano.supertoasts.library.SuperActivityToast;
-import com.github.johnpersano.supertoasts.library.utils.PaletteUtils;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.User;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -155,7 +149,7 @@ public class SignupActivity extends AppCompatActivity {
         user.setEmail(email);
         user.setPassword(password);
 
-        Call<User> login = MainApplication.getRestClient().getService().signup(user);
+        Call<User> login = MainApplication.getRestClient().service().signup(user);
 
         login.enqueue(new Callback<User>() {
             @Override
@@ -183,13 +177,7 @@ public class SignupActivity extends AppCompatActivity {
     }
 
     private void onSignupFailed(String message) {
-        SuperActivityToast.create(this)
-                .setText(message)
-                .setFrame(Style.FRAME_STANDARD)
-                .setDuration(Style.DURATION_MEDIUM)
-                .setColor(PaletteUtils.getSolidColor(PaletteUtils.MATERIAL_RED))
-                .setAnimations(Style.ANIMATIONS_POP)
-                .show();
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         signupButton.setEnabled(true);
     }
 

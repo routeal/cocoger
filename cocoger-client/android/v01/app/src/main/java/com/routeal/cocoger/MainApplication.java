@@ -36,6 +36,7 @@ public class MainApplication extends Application {
         mPreferences = getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE);
 
         String server_url = "";
+        boolean enable_server_debug = false;
 
         try {
             JsonReader reader =
@@ -45,6 +46,8 @@ public class MainApplication extends Application {
                 String name = reader.nextName();
                 if (name.equals("server_url")) {
                     server_url = reader.nextString();
+                } if (name.equals("enable_server_debug")) {
+                    enable_server_debug = reader.nextBoolean();
                 } else {
                     reader.skipValue();
                 }
@@ -57,7 +60,7 @@ public class MainApplication extends Application {
             Toast.makeText(mContext, "Empty Server URL", Toast.LENGTH_SHORT).show();
         }
 
-        mRestClient = new RestClient(server_url);
+        mRestClient = new RestClient(server_url, enable_server_debug);
     }
 
     public static Context getContext() {
@@ -104,5 +107,17 @@ public class MainApplication extends Application {
 
     public static long getLong(String key, long value) {
         return mInstance.mPreferences.getLong(key, value);
+    }
+
+    public static void putBool(String key, boolean value) {
+        mInstance.mPreferences.edit().putBoolean(key, value).apply();
+    }
+
+    public static boolean getBool(String key) {
+        return mInstance.mPreferences.getBoolean(key, false);
+    }
+
+    public static boolean getBool(String key, boolean value) {
+        return mInstance.mPreferences.getBoolean(key, value);
     }
 }

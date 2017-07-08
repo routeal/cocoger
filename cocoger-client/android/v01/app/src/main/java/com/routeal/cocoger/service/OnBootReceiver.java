@@ -9,6 +9,6 @@ import android.content.Context;
 public class OnBootReceiver extends BaseOnBootReceiver {
     @Override
     protected void onDeviceBoot(Context context) {
-        new MailSyncService().startResident(context);
+        new LocationService().startResident(context);
     }
 }

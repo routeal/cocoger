@@ -25,4 +25,8 @@
     <string name="search_view_hint">Search here</string>
     <string name="about_app">About</string>
     <string name="open_source_libraries">Open Source Libraries</string>
+    <string name="location_denied_title">Denied to access this device\'s location?</string>
+    <string name="location_denied_content">Permission is required.  Try again or exit the app.</string>
+    <string name="exit">Exit</string>
+    <string name="try_again">Try again</string>
 </resources>

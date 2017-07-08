@@ -1,4 +1,4 @@
 {
-  "server_url" : "http://192.168.9.107:3000",
-  "p1" : "p1"
+  "server_url" : "http://10.0.0.145:3000",
+  "enable_server_debug": true
 }

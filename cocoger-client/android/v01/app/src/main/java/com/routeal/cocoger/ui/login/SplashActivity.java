@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
+import com.routeal.cocoger.MainApplication;
+import com.routeal.cocoger.service.LocationService;
 import com.routeal.cocoger.ui.main.SlidingPanelSearchMapsActivity;
 
 /**
@@ -15,6 +17,9 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // ensure that the service is started
+        new LocationService().startResident(MainApplication.getContext());
 
         startMain();
         finish();
@@ -48,7 +53,8 @@ public class SplashActivity extends AppCompatActivity {
     }
 
     private void startMain() {
-        Intent intent = new Intent(SplashActivity.this, SlidingPanelSearchMapsActivity.class);
+        //Intent intent = new Intent(SplashActivity.this, SlidingPanelSearchMapsActivity.class);
+        Intent intent = new Intent(SplashActivity.this, FacebookLoginActivity.class);
         startActivity(intent);
         finish();
     }

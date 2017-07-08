@@ -1,19 +1,21 @@
+// generated from http://www.jsonschema2pojo.org/
+
 package com.routeal.cocoger.model;
 
 import java.io.Serializable;
 
 public class Device implements Serializable {
 
-    private String id;
-    private String type;
-    private String brand;
-    private String model;
-    private String platform;
-    private String platformVersion;
-    private String lang;
-    private String country;
-    private String simulator;
-    private final static long serialVersionUID = -4875232561461015233L;
+    private String id; // device unique id
+    private String type; // device type - 'android', 'ios', 'windows'
+    private String brand; // device brand - needed???
+    private String model; // device model - needed???
+    private String platform; // system
+    private String platformVersion; // system version
+    private String lang;  // user language
+    private String country; // country - need more clarification
+    private String simulator; // emulator or not
+    private String token; // device token to be used for notification
 
     public String getId() {
         return id;
@@ -87,4 +89,7 @@ public class Device implements Serializable {
         this.simulator = simulator;
     }
 
+    public void setToken(String token) { this.token = token; }
+
+    public String getToken() { return token; }
 }

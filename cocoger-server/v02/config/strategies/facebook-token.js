@@ -4,10 +4,11 @@
  * Module dependencies.
  */
 var passport = require('passport'),
-    url = require('url'),
     FacebookTokenStrategy = require('passport-facebook-token'),
-    config = require('../config'),
-    users = require('../../app/controllers/users.server.controller');
+    User = require('mongoose').model('User'),
+    config = require('../config');
+    //url = require('url'),
+//users = require('../../app/controllers/users.server.controller');
 
 module.exports = function() {
   // Use facebook strategy
@@ -16,36 +17,37 @@ module.exports = function() {
     {
       clientID: config.facebook.clientID,
       clientSecret: config.facebook.clientSecret,
+      /*
       profileFields: [
-	'id', 'name', 'link', 'gender', 'locale', 'timezone', // public_profile
+	'id', 'cover', 'name', 'age_range', 'link', 'gender', 'locale', 'picture', 'timezone', // public_profile
+        'updated_time', 'verified',
 	'emails', // email
-	'friends' // user_friends
+	//'friends' // user_friends
       ]
+      */
     },
     function(accessToken, refreshToken, profile, done) {
-      console.log(profile);
-
-      // Set the provider data and include tokens
-      var providerData = profile._json;
-      providerData.accessToken = accessToken;
-      providerData.refreshToken = refreshToken;
-
-      // Create the user OAuth profile
-      var providerUserProfile = {
-	name: profile.name.givenName,
-	gender: profile.gender,
-	//lastName: profile.name.familyName,
-	//displayName: profile.displayName,
-	email: profile.emails[0].value,
-	photo: profile.photos[0].value,
-	//username: profile.username,
-	provider: 'facebook',
-	providerIdentifierField: 'id',
-	providerData: providerData
-      };
-
-      // Save the user OAuth profile
-      users.saveOAuthUserProfile(null, providerUserProfile, done);
+      User.findOne({providerId: profile.id}, function (err, user) {
+        console.log(profile);
+        if (err) {
+          return done(err);
+        }
+        if (!user) {
+          var user = new User({
+            provider: profile.provider,
+            providerId: profile.id
+          });
+          user.save(function(err, user) {
+            if (err) {
+              console.log(err);
+            }
+            return done(err, user);
+          });
+        } else {
+          console.log("user found");
+          return done(err, user);
+        }
+      });
     }
   ));
 

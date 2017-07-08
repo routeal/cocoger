@@ -11,7 +11,6 @@ public class User implements Serializable {
     private int gender;
     private String authToken;
     private Device device;
-    private final static long serialVersionUID = -685834417317395448L;
 
     public String getEmail() {
         return email;

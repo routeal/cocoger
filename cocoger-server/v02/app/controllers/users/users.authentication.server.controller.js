@@ -60,7 +60,7 @@ exports.signup = function(req, res) {
 };
 
 /**
- * Mobile Signin - password authentication, token generation
+ * Login - password authentication, token(jwt) generation
  *
  * {
  *  "email":"a@b.com",
@@ -82,6 +82,9 @@ exports.signup = function(req, res) {
  * Authenticated with email and password with the local passport
  * strategy.  After that, the device information needs to be created
  * or updated if it already exists.  One user can have multiple devices.
+ *
+ * Since there are multiple devices, the User object can have an array
+ * of devices.
  *
  * A Json Web Token will be returned with:
  * {
@@ -128,8 +131,16 @@ exports.login = function(req, res, next) {
   })(req, res, next);
 };
 
+exports.facebook_login = function(req, res) {
+  console.log(req);
+  console.log(req.body);
+  console.log(req.user);
+  res.json(req.user || null);
+};
+
+
 /**
- * Logout
+ * Logout from the login device
  */
 exports.logout = function(req, res) {
   User.findById(req.user._id, function(err, user) {

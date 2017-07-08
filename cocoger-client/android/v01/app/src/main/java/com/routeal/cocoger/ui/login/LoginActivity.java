@@ -11,16 +11,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.afollestad.materialdialogs.MaterialDialog;
-import com.github.johnpersano.supertoasts.library.Style;
-import com.github.johnpersano.supertoasts.library.SuperActivityToast;
-import com.github.johnpersano.supertoasts.library.SuperToast;
-import com.github.johnpersano.supertoasts.library.utils.PaletteUtils;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.Device;
-import com.routeal.cocoger.model.Test;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.ui.main.MapsActivity;
 
@@ -111,7 +106,7 @@ public class LoginActivity extends AppCompatActivity {
         user.setPassword(password);
         user.setDevice(device);
 
-        Call<User> login = MainApplication.getRestClient().getService().login(user);
+        Call<User> login = MainApplication.getRestClient().service().login(user);
 
         login.enqueue(new Callback<User>() {
             @Override
@@ -150,13 +145,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void onLoginFailed(String message) {
-        SuperActivityToast.create(this)
-                .setText(message)
-                .setFrame(Style.FRAME_STANDARD)
-                .setDuration(Style.DURATION_MEDIUM)
-                .setColor(PaletteUtils.getSolidColor(PaletteUtils.MATERIAL_RED))
-                .setAnimations(Style.ANIMATIONS_POP)
-                .show();
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         loginButton.setEnabled(true);
     }
 

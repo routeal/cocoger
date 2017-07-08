@@ -1,5 +1,10 @@
 package com.routeal.cocoger.net;
 
+import com.facebook.AccessToken;
+import com.routeal.cocoger.MainApplication;
+
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -10,15 +15,38 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class RestClient {
     private RestService service;
 
-    public RestClient(String serverUrl) {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(serverUrl)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        service = retrofit.create(RestService.class);
+    public RestClient(String serverUrl, boolean enable_server_debug) {
+        if (enable_server_debug) {
+            // For logging
+            HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+            logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .addInterceptor(logging)
+                    .build();
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(serverUrl)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .client(client)
+                    .build();
+            service = retrofit.create(RestService.class);
+        } else {
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(serverUrl)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+            service = retrofit.create(RestService.class);
+        }
     }
 
-    public RestService getService() {
-        return service;
+    public static String token() {
+        AccessToken accessToken = AccessToken.getCurrentAccessToken();
+        if (accessToken == null || accessToken.isExpired()) {
+            return null;
+        }
+        return "Bearer " + accessToken.getToken();
+    }
+
+    public static RestService service() {
+        return MainApplication.getRestClient().service;
     }
 }

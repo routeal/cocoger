@@ -10,7 +10,7 @@ import java.util.List;
  */
 
 public final class DB {
-    static final String VENDER_NAME = "kotonoha_tech.moriomail";
+    static final String VENDER_NAME = "routeal.cocoger";
     static final String ORG_NAME = "com";
 
     // unique name to avoid conflicts with other providers
@@ -77,6 +77,77 @@ public final class DB {
      * formats and freely convert between formats using the built-in
      * date and time functions.
      */
+
+
+    public static class CacheColumns extends DBColumns {
+        static final String URI_TAG     = "cache";
+    }
+
+    public static class ImageColumns extends CacheColumns {
+        public static final String NAME	= "name";
+        public static final String DATA = "data";
+        static final String NAME_TYPE   = "TEXT";
+        static final String DATA_TYPE   = "BLOB";
+    }
+
+    public static final class Images extends ImageColumns implements BaseColumns {
+        public static final String TABLE = "images";
+        public static final String PATH = URI_TAG + "/" + TABLE;
+        public static final String CONTENT_TYPE = MIME_TYPE + TABLE;
+        public static final String CONTENT_ITEM_TYPE = MIME_ITEM_TYPE + TABLE;
+        public static final Uri CONTENT_URI =
+            Uri.parse("content://" + DB.AUTHORITY + "/" + URI_TAG + "/" + TABLE);
+
+        static final String CREATE_STATEMENT = "CREATE TABLE " + TABLE +
+                "(" + " " + _ID + " " + _ID_TYPE +
+                "," + " " + NAME + " " + NAME_TYPE +
+                "," + " " + DATA + " " + DATA_TYPE +
+                ");";
+    }
+
+    static class GpsColumns extends DBColumns {
+        static final String URI_TAG     = "gps";
+    }
+
+    public static class LocationsColumns extends GpsColumns {
+        public static final String CREATED = "created";
+        public static final String LATITUDE = "latitude";
+        public static final String LONGITUDE = "longitude";
+        public static final String ZIP = "zip";
+        public static final String COUNTRY = "country";
+        public static final String STATE = "state";
+        public static final String COUNTY = "county";
+        public static final String CITY = "city";
+        public static final String TOWN = "town";
+        public static final String STREET = "street";
+
+        static final String CREATED_TYPE   = "INTEGER";
+        static final String LATITUDE_TYPE   = "REAL";
+        static final String LONGITUDE_TYPE   = "REAL";
+        static final String ZIP_TYPE   = "TEXT";
+        static final String COUNTRY_TYPE   = "TEXT";
+        static final String STATE_TYPE   = "TEXT";
+        static final String COUNTY_TYPE   = "TEXT";
+        static final String CITY_TYPE   = "TEXT";
+        static final String TOWN_TYPE   = "TEXT";
+        static final String STREET_TYPE   = "TEXT";
+    }
+
+    public static final class Locations extends LocationsColumns implements BaseColumns {
+        public static final String TABLE = "locations";
+        public static final String PATH = URI_TAG + "/" + TABLE;
+        public static final String CONTENT_TYPE = MIME_TYPE + TABLE;
+        public static final String CONTENT_ITEM_TYPE = MIME_ITEM_TYPE + TABLE;
+        public static final Uri CONTENT_URI =
+            Uri.parse("content://" + DB.AUTHORITY + "/" + URI_TAG + "/" + TABLE);
+
+        static final String CREATE_STATEMENT = "CREATE TABLE " + TABLE +
+                "(" + " " + _ID + " " + _ID_TYPE +
+                "," + " " + CREATED + " " + CREATED_TYPE +
+                "," + " " + LATITUDE + " " + LATITUDE_TYPE +
+                "," + " " + LONGITUDE + " " + LONGITUDE_TYPE +
+                ");";
+    }
 
     public static class MailColumns extends DBColumns {
         static final String URI_TAG = "mail";

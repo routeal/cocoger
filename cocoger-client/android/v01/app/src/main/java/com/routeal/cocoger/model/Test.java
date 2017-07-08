@@ -6,7 +6,6 @@ public class Test implements Serializable
 {
 
     private String message;
-    private final static long serialVersionUID = -7853824101840047248L;
 
     /**
      * No args constructor for use in serialization

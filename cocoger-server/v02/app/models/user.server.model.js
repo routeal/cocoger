@@ -36,30 +36,32 @@ var UserSchema = new Schema({
     type: String,
     trim: true,
     unique: 'testing error message',
-    required: 'Please fill in a email',
     validate: [validateLocalStrategyProperty, 'Please fill in your email'],
-    match: [/.+\@.+\..+/, 'Please fill a valid email address']
+    match: [/.+\@.+\..+/, 'Please fill a valid email address'],
+    default: '',
   },
-  name: {
+  firstName: {
     type: String,
     default: '',
     trim: true
   },
+  lastName: {
+    type: String,
+    default: '',
+    trim: true
+  },
+  // remove
   bod: {
     type: Number,
     default: 1980,
   },
   gender: {
-    type: Number,
-    default: 0,
-  },
-  photoName: {
     type: String,
-    default: 'alien'
+    default: '',
   },
-  photoType: {
-    type: Number,
-    default: 0
+  photo: {
+    type: String,
+    default: ''
   },
 
   /*********************************************************************/
@@ -100,6 +102,8 @@ var UserSchema = new Schema({
   /* password management */
   /*********************************************************************/
 
+  // remove
+
   password: {
     type: String,
     default: '',
@@ -120,17 +124,16 @@ var UserSchema = new Schema({
   /* passport provider */
   /*********************************************************************/
 
-  // passport provider
+  // default passport provider is facebook
   provider: {
     type: String,
-    required: 'Provider is required'
+    default: 'facebook',
   },
-  providerData: {},
-  providerIdentifierField: {
+  providerId: {
     type: String,
-    default: 'id',
+    unique: 'provider id should be unique',
+    required: 'provider id must be filled in'
   },
-  additionalProvidersData: {},
 
   /*********************************************************************/
   /* Friends */
@@ -214,27 +217,19 @@ var UserSchema = new Schema({
 UserSchema.set('toJSON', {
   transform: function(doc, ret, options) {
     var retJson = {
-      /* authToken */
-      bod : ret.bod,
-      created: ret.created,
-      /* deviceToken */
       email: ret.email,
+      firstName: ret.firstName,
+      lastName: ret.lastName,
       gender: ret.gender,
-      id: ret._id,
-      name: ret.name,
-      photoName: ret.photoName,
-      photoType: ret.photoType,
-      /* providerID */
-      /* providerToken */
-      updated: ret.updated, /* translate to revised */
-      /* location: ret.location, */
-      /* device: ret.device, */
+      photo: ret.photo,
+      created: ret.created,
+      updated: ret.updated,
       myColor: ret.myColor,
       boyColor: ret.boyColor,
       girlColor: ret.girlColor,
       frameColor: ret.frameColor,
-      provider: ret.provider,
     };
+    console.log(retJson);
     return retJson;
   }
 });

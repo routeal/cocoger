@@ -1,5 +1,6 @@
 package com.routeal.cocoger.net;
 
+import com.routeal.cocoger.model.Device;
 import com.routeal.cocoger.model.Test;
 import com.routeal.cocoger.model.User;
 
@@ -32,4 +33,7 @@ public interface RestService {
 
     @POST("/auth/signup")
     Call<User> signup(@Body User user);
+
+    @POST("/auth/facebook/login")
+    Call<User> login(@Header("Authorization") String token, @Body Device device);
 }
