@@ -27,15 +27,21 @@ module.exports = function() {
       */
     },
     function(accessToken, refreshToken, profile, done) {
-      User.findOne({providerId: profile.id}, function (err, user) {
-        console.log(profile);
+      var providerIdentifierField = 'providerData.id';
+      var providerSearchQuery = {};
+      providerSearchQuery.provider = profile.provider;
+      providerSearchQuery[providerIdentifierField] = profile.id;
+
+      User.findOne(providerSearchQuery, function (err, user) {
+        //console.log(profile);
         if (err) {
           return done(err);
         }
         if (!user) {
+          // create a user with the minimum information
           var user = new User({
             provider: profile.provider,
-            providerId: profile.id
+            providerData: profile._json
           });
           user.save(function(err, user) {
             if (err) {
@@ -44,7 +50,7 @@ module.exports = function() {
             return done(err, user);
           });
         } else {
-          console.log("user found");
+          //console.log("user found");
           return done(err, user);
         }
       });

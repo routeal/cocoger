@@ -7,7 +7,8 @@ var mongoose = require('mongoose'),
     Schema = mongoose.Schema,
     Friend = mongoose.model('Friend'),
     Location = mongoose.model('Location'),
-    crypto = require('crypto');
+    crypto = require('crypto'),
+    validator = require('validator');
 
 /**
  * A Validation function for local strategy properties
@@ -15,6 +16,14 @@ var mongoose = require('mongoose'),
 var validateLocalStrategyProperty = function(property) {
   return ((this.provider !== 'local' && !this.updated) || property.length);
 };
+
+/**
+ * A Validation function for local strategy email
+ */
+var validateLocalStrategyEmail = function (email) {
+  return ((this.provider !== 'local' && !this.updated) || validator.isEmail(email, { require_tld: false }));
+};
+
 
 /**
  * A Validation function for local strategy password
@@ -34,34 +43,47 @@ var UserSchema = new Schema({
 
   email: {
     type: String,
+    index: {
+      unique: true,
+      sparse: true
+    },
     trim: true,
-    unique: 'testing error message',
-    validate: [validateLocalStrategyProperty, 'Please fill in your email'],
-    match: [/.+\@.+\..+/, 'Please fill a valid email address'],
     default: '',
+    validate: [validateLocalStrategyEmail, 'Please fill a valid email address']
   },
   firstName: {
     type: String,
+    trim: true,
     default: '',
-    trim: true
+    validate: [validateLocalStrategyProperty, 'Please fill in your first name']
   },
   lastName: {
     type: String,
+    trim: true,
     default: '',
-    trim: true
+    validate: [validateLocalStrategyProperty, 'Please fill in your last name']
+
   },
-  // remove
-  bod: {
-    type: Number,
-    default: 1980,
+  name: {
+    type: String,
+    trim: true,
+    default: ''
   },
   gender: {
     type: String,
     default: '',
   },
-  photo: {
+  picture: {
     type: String,
     default: ''
+  },
+  locale: {
+    type: String,
+    default: '',
+  },
+  timezone: {
+    type: String,
+    default: '',
   },
 
   /*********************************************************************/
@@ -94,20 +116,34 @@ var UserSchema = new Schema({
     default: Date.now
   },
   updated: {
-    type: Date,
-    default: Date.now
+    type: Date
   },
 
   /*********************************************************************/
-  /* password management */
+  /* passport provider */
   /*********************************************************************/
 
-  // remove
+  // default passport provider is facebook
+  provider: {
+    type: String,
+    required: 'Provider is required'
+  },
+  providerData: {},
+  additionalProvidersData: {},
+
+  //providerId: {
+  //  type: String,
+  //  unique: 'provider id should be unique',
+  //  required: 'provider id must be filled in'
+  //},
+
+  /*********************************************************************/
+  /* password management for the local provider */
+  /*********************************************************************/
 
   password: {
     type: String,
     default: '',
-    validate: [validateLocalStrategyPassword, 'Password should be longer']
   },
   salt: {
     type: String
@@ -121,18 +157,16 @@ var UserSchema = new Schema({
   },
 
   /*********************************************************************/
-  /* passport provider */
+  /* roles */
   /*********************************************************************/
 
-  // default passport provider is facebook
-  provider: {
-    type: String,
-    default: 'facebook',
-  },
-  providerId: {
-    type: String,
-    unique: 'provider id should be unique',
-    required: 'provider id must be filled in'
+  roles: {
+    type: [{
+      type: String,
+      enum: ['user', 'admin']
+    }],
+    default: ['user'],
+    required: 'Please provide at least one role'
   },
 
   /*********************************************************************/
@@ -169,6 +203,11 @@ var UserSchema = new Schema({
         type: String,
         default: 'mobile'
       },
+      // ios, android, windows, etc
+      platform: {
+        type: String,
+        default: ''
+      },
       brand: {
         type: String,
         default: ''
@@ -177,37 +216,23 @@ var UserSchema = new Schema({
         type: String,
         default: ''
       },
-      // ios, android, windows, etc
-      platform: {
-        type: String,
-        default: 'ios'
-      },
       // 10.12(ios), 7(android)
-      platformVersion: {
+      version: {
         type: String,
         default: ''
-      },
-      // iso
-      lang: {
-        type: String,
-        default: 'en'
-      },
-      // iso
-      country: {
-        type: String,
-        default: 'US'
-      },
-      created: {
-        type: Date,
-        default: Date.now
       },
       simulator: {
         type: Boolean,
         default: true,
       },
-      login: {
-        type: Date,
-        default: '',
+      token: {
+        type: String,
+        default: ''
+      },
+      // UNAVAILABLE = 0, BACKGROUND = 1, FOREGROUND = 2
+      status: {
+        type: Number,
+        default: 2,
       }
     }
   ]
@@ -220,16 +245,18 @@ UserSchema.set('toJSON', {
       email: ret.email,
       firstName: ret.firstName,
       lastName: ret.lastName,
+      name: ret.name,
       gender: ret.gender,
-      photo: ret.photo,
-      created: ret.created,
+      picture: ret.picture,
+      locale: ret.locale,
+      timezone: ret.timezone,
       updated: ret.updated,
       myColor: ret.myColor,
       boyColor: ret.boyColor,
       girlColor: ret.girlColor,
       frameColor: ret.frameColor,
     };
-    console.log(retJson);
+    //console.log(retJson);
     return retJson;
   }
 });
@@ -238,10 +265,11 @@ UserSchema.set('toJSON', {
  * Hook a pre save method to hash the password
  */
 UserSchema.pre('save', function(next) {
-  if (this.password && this.password.length >= 6 && this.password.length < 24) {
-    this.salt = new Buffer(crypto.randomBytes(16).toString('base64'), 'base64');
+  if (this.password && this.isModified('password')) {
+    this.salt = crypto.randomBytes(16).toString('base64');
     this.password = this.hashPassword(this.password);
   }
+  /*
   if (!this.photoName) {
     if (this.gender === 0) {
       this.photoName = 'boy';
@@ -249,6 +277,22 @@ UserSchema.pre('save', function(next) {
       this.photoName = 'girl';
     }
   }
+  */
+  next();
+});
+
+/**
+ * Hook a pre validate method to test the local password
+ */
+UserSchema.pre('validate', function (next) {
+  if (this.provider === 'local' && this.password && this.isModified('password')) {
+    var result = owasp.test(this.password);
+    if (result.errors.length) {
+      var error = result.errors.join(' ');
+      this.invalidate('password', error);
+    }
+  }
+
   next();
 });
 

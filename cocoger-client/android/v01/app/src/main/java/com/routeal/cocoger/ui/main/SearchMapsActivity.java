@@ -1,5 +1,7 @@
 package com.routeal.cocoger.ui.main;
 
+import android.app.ProgressDialog;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -21,13 +23,27 @@ import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.SearchSuggestionsAdapter;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.arlib.floatingsearchview.util.Util;
+import com.facebook.AccessToken;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.HttpMethod;
+import com.facebook.login.LoginManager;
 import com.mikepenz.aboutlibraries.Libs;
 import com.mikepenz.aboutlibraries.LibsBuilder;
+import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.net.RestClient;
+import com.routeal.cocoger.ui.login.FacebookLoginActivity;
+import com.routeal.cocoger.util.Utils;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class SearchMapsActivity extends MapsActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -44,11 +60,77 @@ public class SearchMapsActivity extends MapsActivity
         setupFloatingSearch();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.addDrawerListener(new DrawerLayout.DrawerListener() {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                ImageView imageView = (ImageView) findViewById(R.id.my_picture);
+                Picasso.with(getApplicationContext())
+                        .load(MainApplication.getUser().getPicture())
+                        .resize(128, 128)
+                        .into(imageView);
+
+                TextView textView = (TextView) findViewById(R.id.my_display_name);
+                textView.setText(MainApplication.getUser().getName());
+
+                textView = (TextView) findViewById(R.id.my_email);
+                textView.setText(MainApplication.getUser().getEmail());
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+
+            }
+
+            @Override
+            public void onDrawerStateChanged(int newState) {
+
+            }
+        });
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
         mSearchView.attachNavigationDrawerToMenuButton(drawer);
+
+    }
+
+    void logoutFacebook() {
+        final ProgressDialog dialog = Utils.spinBusyCurosr(this);
+
+        Call<Void> logout = RestClient.service().logout(RestClient.token(), MainApplication.getDevice());
+
+        logout.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                dialog.dismiss();
+
+                // logout anyway
+                LoginManager.getInstance().logOut();
+
+                // start the login screen
+                Intent intent = new Intent(getApplicationContext(), FacebookLoginActivity.class);
+                startActivity(intent);
+                finish();
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+            }
+        });
+
+    }
+
+    void showOpensource() {
+        new LibsBuilder()
+                //provide a style (optional) (LIGHT, DARK, LIGHT_DARK_TOOLBAR)
+                .withActivityStyle(Libs.ActivityStyle.LIGHT_DARK_TOOLBAR)
+                //start the activity
+                .start(this);
     }
 
     @Override
@@ -62,16 +144,10 @@ public class SearchMapsActivity extends MapsActivity
 
         } else if (id == R.id.nav_slideshow) {
 
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-            new LibsBuilder()
-                //provide a style (optional) (LIGHT, DARK, LIGHT_DARK_TOOLBAR)
-                .withActivityStyle(Libs.ActivityStyle.LIGHT_DARK_TOOLBAR)
-                //start the activity
-                .start(this);
+        } else if (id == R.id.nav_logout) {
+            logoutFacebook();
+        } else if (id == R.id.nav_open_source) {
+            showOpensource();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

@@ -26,7 +26,7 @@ public interface RestService {
     Call<User> me(@Header("Authorization") String token);
 
     @GET("/auth/logout")
-    Call<User> logout(@Header("Authorization") String token);
+    Call<User> logout2(@Header("Authorization") String token);
 
     @POST("/auth/login")
     Call<User> login(@Body User user);
@@ -34,6 +34,9 @@ public interface RestService {
     @POST("/auth/signup")
     Call<User> signup(@Body User user);
 
-    @POST("/auth/facebook/login")
-    Call<User> login(@Header("Authorization") String token, @Body Device device);
+    @POST("/auth/login")
+    Call<User> login(@Header("Authorization") String token, @Body User user);
+
+    @POST("/auth/logout")
+    Call<Void> logout(@Header("Authorization") String token, @Body Device device);
 }

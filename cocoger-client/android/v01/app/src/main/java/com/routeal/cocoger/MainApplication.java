@@ -3,10 +3,14 @@ package com.routeal.cocoger;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.util.JsonReader;
 import android.widget.Toast;
 
+import com.routeal.cocoger.model.Device;
+import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.net.RestClient;
+import com.routeal.cocoger.util.Utils;
 
 import java.io.InputStreamReader;
 
@@ -60,12 +64,25 @@ public class MainApplication extends Application {
             Toast.makeText(mContext, "Empty Server URL", Toast.LENGTH_SHORT).show();
         }
 
-        mRestClient = new RestClient(server_url, enable_server_debug);
+        mRestClient = new RestClient(server_url, true /*enable_server_debug*/);
+
+        mDevice = new Device();
+        mDevice.setId(Utils.getDeviceUniqueID());
+        mDevice.setBrand(Build.BRAND);
+        mDevice.setModel(Build.MODEL);
+        mDevice.setVersion(Build.VERSION.RELEASE);
+        mDevice.setSimulator(Utils.isEmulator());
+        mDevice.setToken(""); // empty for now
+        mDevice.setStatus(Device.FOREGROUND);
+
+        mUser = new User();
     }
 
     public static Context getContext() {
         return MainApplication.mContext;
     }
+
+    public static Application getInstance() { return mInstance; }
 
     public static String getApplicationName() {
         return mInstance.getString(R.string.app_name);
@@ -119,5 +136,21 @@ public class MainApplication extends Application {
 
     public static boolean getBool(String key, boolean value) {
         return mInstance.mPreferences.getBoolean(key, value);
+    }
+
+    private static User mUser;
+
+    public static User getUser() {
+        return mUser;
+    }
+
+    public static void setUser(User user) {
+        mUser = user;
+    }
+
+    private static Device mDevice;
+
+    public static Device getDevice() {
+        return mDevice;
     }
 }

@@ -6,6 +6,7 @@
     <string name="reenter_password">Same Password</string>
     <string name="forgot_password">Forgot password?</string>
     <string name="login">Login</string>
+    <string name="logout">Logout</string>
     <string name="signup">Sign Up</string>
     <string name="name">Nick Name</string>
     <string name="year_birth">Year-ish of Birth</string>
@@ -29,4 +30,14 @@
     <string name="location_denied_content">Permission is required.  Try again or exit the app.</string>
     <string name="exit">Exit</string>
     <string name="try_again">Try again</string>
+    <string name="signup_note">
+        <![CDATA[
+        <html>
+        By signing up, I agree to Cocoger\'s
+        <a href="https://www.asahi.com">Terms of Service</a>
+        and
+        <a href="https://www.google.com">Privacy Policy</a>.
+        </html>
+        ]]>
+    </string>
 </resources>

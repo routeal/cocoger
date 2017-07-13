@@ -8,6 +8,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapShader;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Bundle;
@@ -20,7 +25,6 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.Log;
 import android.view.View;
-import android.widget.EditText;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
@@ -34,13 +38,15 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.service.LocationService;
+import com.routeal.cocoger.util.PicassoMarker;
 import com.routeal.cocoger.util.Utils;
-
-import butterknife.Bind;
-import butterknife.ButterKnife;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Transformation;
 
 public class MapsActivity extends FragmentActivity
         implements OnMapReadyCallback,
@@ -48,7 +54,7 @@ public class MapsActivity extends FragmentActivity
         GoogleApiClient.OnConnectionFailedListener {
 
     private final static String TAG = "MapsActivity";
-    private final static String LocationPermission = "locationPermission";
+    private final static String LOCATION_PERMISSION = "locationPermission";
     private final static String KEY_CAMERA_POSITION = "camera_position";
     private final static String KEY_LOCATION = "location";
 
@@ -71,8 +77,7 @@ public class MapsActivity extends FragmentActivity
 
     private ProgressDialog busyCursor;
 
-    @Bind(R.id.my_location)
-    FloatingActionButton myLocationButton;
+    private Marker myMarker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,22 +91,21 @@ public class MapsActivity extends FragmentActivity
 
         setContentView(R.layout.activity_maps);
 
-        ButterKnife.bind(this);
+        // registers the receiver to receive the location updates from the service
+        LocalBroadcastManager.getInstance(this).registerReceiver(mLastLocationReceiver,
+                new IntentFilter(LocationService.LAST_LOCATION_UPDATE));
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(mLastLocationReceiver, new IntentFilter(LocationService.LAST_LOCATION_UPDATE));
-
+        // sets up the 'my' location button
         Drawable drawable = ContextCompat.getDrawable(this, R.drawable.ic_my_location_white_36dp);
         drawable.mutate();
         DrawableCompat.setTint(drawable, ContextCompat.getColor(this, R.color.gray));
-
+        FloatingActionButton myLocationButton = (FloatingActionButton) findViewById(R.id.my_location);
         myLocationButton.setImageDrawable(drawable);
-
         myLocationButton.setOnClickListener(myLocationButtonListener);
 
-        if (MainApplication.getBool(LocationPermission)) {
-            busyCursor = Utils.spinBusyCurosr(this);
+        // when the permission is already granted,
+        if (MainApplication.getBool(LOCATION_PERMISSION)) {
             buildMap();
-            LocationService.setForegroundMode();
         } else {
 
             // First, check that the permission is granted.
@@ -174,8 +178,6 @@ public class MapsActivity extends FragmentActivity
      * Connects with Google API client
      */
     private void connectGoogleApiClient() {
-        busyCursor = Utils.spinBusyCurosr(this);
-
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addOnConnectionFailedListener(this)
                 .addConnectionCallbacks(this)
@@ -196,9 +198,6 @@ public class MapsActivity extends FragmentActivity
 
     @Override
     public void onConnectionSuspended(int i) {
-        if (busyCursor != null) {
-            busyCursor.dismiss();
-        }
     }
 
     /**
@@ -206,7 +205,6 @@ public class MapsActivity extends FragmentActivity
      */
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        busyCursor.dismiss();
         if (connectionResult.hasResolution()) {
             try {
                 // Start an Activity that tries to resolve the error
@@ -238,6 +236,8 @@ public class MapsActivity extends FragmentActivity
     }
 
     private void buildMap() {
+        busyCursor = Utils.spinBusyCurosr(this);
+
         // Build the map.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -258,17 +258,24 @@ public class MapsActivity extends FragmentActivity
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        if (MainApplication.getBool(LocationPermission)) {
-            mLastKnownLocation = LocationService.getLastLocation();
-            if (mLastKnownLocation != null) {
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                        new LatLng(mLastKnownLocation.getLatitude(),
-                                mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+        if (MainApplication.getBool(LOCATION_PERMISSION)) {
+            if (mLastKnownLocation == null) {
+                mLastKnownLocation = LocationService.getLastLocation();
             }
-        } else {
-            // Get the current location of the device and set the position of the map.
-            getDeviceLocation();
+            if (mCameraPosition != null) {
+                mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
+            } else if (mLastKnownLocation != null) {
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(getLatLng(mLastKnownLocation), DEFAULT_ZOOM));
+            }
+            if (mLastKnownLocation != null) {
+                setupMyLocationMarker(mLastKnownLocation);
+                busyCursor.dismiss();
+            }
+            return;
         }
+
+        // Get the current location of the device and set the position of the map.
+        getDeviceLocation();
     }
 
     /**
@@ -300,18 +307,12 @@ public class MapsActivity extends FragmentActivity
             mLastKnownLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         }
 
-        // Set the map's camera position to the current location of the device.
-        if (mCameraPosition != null) {
-            mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
-        } else if (mLastKnownLocation != null) {
-            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                    new LatLng(mLastKnownLocation.getLatitude(),
-                            mLastKnownLocation.getLongitude()), DEFAULT_ZOOM));
+        if (mLastKnownLocation != null) {
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(getLatLng(mLastKnownLocation), DEFAULT_ZOOM));
+            setupMyLocationMarker(mLastKnownLocation);
         }
 
-        LocationService.setForegroundMode();
-
-        MainApplication.putBool(LocationPermission, true);
+        MainApplication.putBool(LOCATION_PERMISSION, true);
 
         if (mGoogleApiClient != null) {
             mGoogleApiClient.disconnect();
@@ -327,18 +328,37 @@ public class MapsActivity extends FragmentActivity
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent == null) return;
-            Location location = (Location) intent.getParcelableExtra("location");
+            Location location = intent.getParcelableExtra("location");
             if (location != null) {
+                // first time only
                 if (mLastKnownLocation == null) {
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(getLatLng(location), DEFAULT_ZOOM));
+                    setupMyLocationMarker(location);
                     busyCursor.dismiss();
-
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                            new LatLng(location.getLatitude(), location.getLongitude()), DEFAULT_ZOOM));
+                } else {
+                    if (myMarker != null) {
+                        myMarker.setPosition(getLatLng(location));
+                    }
                 }
                 mLastKnownLocation = location;
             }
         }
     };
+
+    private LatLng getLatLng(Location location) {
+        return new LatLng(location.getLatitude(), location.getLongitude());
+    }
+
+    private void setupMyLocationMarker(Location location) {
+        // my location marker
+        MarkerOptions options = new MarkerOptions().position(getLatLng(location));
+        myMarker = mMap.addMarker(options);
+        PicassoMarker pm = new PicassoMarker(myMarker);
+        Picasso.with(getApplicationContext())
+                .load(MainApplication.getUser().getPicture())
+                .transform(new CircleTransform())
+                .into(pm);
+    }
 
     /**
      * Saves the state of the map when the activity is paused.
@@ -355,19 +375,58 @@ public class MapsActivity extends FragmentActivity
     @Override
     protected void onStart() {
         super.onStart();
-        LocationService.setForegroundMode();
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        LocationService.setBackgroundMode();
     }
 
     private View.OnClickListener myLocationButtonListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-
+            mMap.moveCamera(CameraUpdateFactory.newLatLng(
+                    new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude())));
         }
     };
+
+    class CircleTransform implements Transformation {
+        @Override
+        public Bitmap transform(Bitmap source) {
+            int size = 128;
+
+            Bitmap squaredBitmap = Bitmap.createScaledBitmap(source, 128, 128, false);
+            if (squaredBitmap != source) {
+                source.recycle();
+            }
+
+            Bitmap bitmap = Bitmap.createBitmap(size, size, source.getConfig());
+
+            Paint paintBorder = new Paint();
+            paintBorder.setAntiAlias(true);
+            paintBorder.setShadowLayer(4.0f, 0.0f, 2.0f, Color.BLACK);
+
+            Canvas canvas = new Canvas(bitmap);
+            Paint paint = new Paint();
+            BitmapShader shader = new BitmapShader(squaredBitmap,
+                    BitmapShader.TileMode.CLAMP, BitmapShader.TileMode.CLAMP);
+            paint.setShader(shader);
+            paint.setAntiAlias(true);
+            paint.setDither(true);
+
+            float r = size / 2f;
+            canvas.drawCircle(r, r, r, paintBorder);
+            canvas.drawCircle(r, r, r-4.0f, paint);
+
+            squaredBitmap.recycle();
+
+            return bitmap;
+        }
+
+        @Override
+        public String key() {
+            return "circle";
+        }
+    }
+
 }
