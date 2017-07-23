@@ -9,6 +9,7 @@ import android.util.Log;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.net.RestClient;
+import com.routeal.cocoger.provider.DB;
 import com.routeal.cocoger.provider.DBUtil;
 import com.routeal.cocoger.service.LocationService;
 import com.routeal.cocoger.ui.main.SlidingUpPanelMapActivity;
@@ -65,8 +66,9 @@ public class SplashActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(Call<User> call, Response<User> response) {
                     Log.d(TAG, "Response: " + response.body().toString());
-                    DBUtil.saveUser(response.body());
-                    User user = DBUtil.getUser();
+                    User user = response.body();
+                    DBUtil.deleteUser();
+                    DBUtil.saveUser(user);
                     Log.d(TAG, "User: " + user.toString());
                     startMain();
                 }

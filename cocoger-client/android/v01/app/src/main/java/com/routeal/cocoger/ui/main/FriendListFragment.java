@@ -1,5 +1,7 @@
 package com.routeal.cocoger.ui.main;
 
+import android.content.Context;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -11,12 +13,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.Friend;
+import com.routeal.cocoger.provider.DB;
 import com.routeal.cocoger.util.CircleTransform;
+import com.routeal.cocoger.util.CursorRecyclerViewAdapter;
 import com.routeal.cocoger.util.SnappingSeekBar;
+import com.sothree.slidinguppanel.ScrollableViewHelper;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -30,6 +37,11 @@ import static com.facebook.FacebookSdk.getApplicationContext;
 
 public class FriendListFragment extends Fragment {
     private final static String TAG = "FriendListFragment";
+
+    //private SimpleCursorAdapter adapter;
+
+    private FriendListAdapter mAdapter;
+    private List<Friend> friendList = new ArrayList<>();
 
     class FriendListAdapter extends RecyclerView.Adapter<FriendListAdapter.ViewHolder> {
 
@@ -76,8 +88,49 @@ public class FriendListFragment extends Fragment {
         }
     }
 
-    public FriendListFragment() {
-        // Required empty public constructor
+    class FriendListAdapter2 extends CursorRecyclerViewAdapter<FriendListAdapter2.ViewHolder> {
+        private static final String[] mFrom = new String[]{
+                DB.Friends.PICTURE,
+                DB.Friends.NAME,
+        };
+
+        private static final int[] mTo = new int[]{
+                R.id.picture,
+                R.id.name
+        };
+
+        class ViewHolder extends RecyclerView.ViewHolder {
+            public ImageView image;
+            public TextView name;
+            public SnappingSeekBar seekbar;
+
+            public ViewHolder(View view) {
+                super(view);
+                image = (ImageView) view.findViewById(R.id.picture);
+                name = (TextView) view.findViewById(R.id.name);
+                seekbar = (SnappingSeekBar) view.findViewById(R.id.seekbar);
+            }
+        }
+
+        public FriendListAdapter2(Context context, Cursor cursor) {
+            super(context, cursor);
+        }
+
+        @Override
+        public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.listview_friend, parent, false);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(ViewHolder viewHolder, Cursor cursor) {
+        }
+    }
+
+    private SlidingUpPanelLayout mSlidingUpPanelLayout;
+
+    public FriendListFragment(SlidingUpPanelLayout layout) {
+        mSlidingUpPanelLayout = layout;
     }
 
     @Override
@@ -85,21 +138,20 @@ public class FriendListFragment extends Fragment {
         super.onCreate(savedInstanceState);
     }
 
-    private FriendListAdapter mAdapter;
-    private List<Friend> friendList = new ArrayList<>();
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_friend_list, container, false);
 
-        RecyclerView rv = (RecyclerView) view.findViewById(R.id.recycler_view);
+        RecyclerView rv = (RecyclerView) view.findViewById(R.id.list);
 
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
         rv.setLayoutManager(mLayoutManager);
         rv.setItemAnimator(new DefaultItemAnimator());
         rv.addItemDecoration(new DividerItemDecoration(getActivity(),
                 DividerItemDecoration.VERTICAL));
+
+        mSlidingUpPanelLayout.setScrollableView(rv);
 
         mAdapter = new FriendListAdapter(friendList);
         rv.setAdapter(mAdapter);
@@ -113,6 +165,61 @@ public class FriendListFragment extends Fragment {
     private void prepareData() {
         Friend f = new Friend();
         f.setName("Hiroshi Watanabe");
+        f.setPicture("https://scontent.xx.fbcdn.net/v/t1.0-1/p50x50/12239505_1621359888117408_5802586652468635863_n.jpg?oh=c668dc917adb3dd1c952c261197bc222&oe=5A0EAEA4");
+        friendList.add(f);
+
+        f = new Friend();
+        f.setName("Pure Leaf");
+        f.setPicture("https://scontent.xx.fbcdn.net/v/t1.0-1/p50x50/12239505_1621359888117408_5802586652468635863_n.jpg?oh=c668dc917adb3dd1c952c261197bc222&oe=5A0EAEA4");
+        friendList.add(f);
+
+        f = new Friend();
+        f.setName("Pure Leaf");
+        f.setPicture("https://scontent.xx.fbcdn.net/v/t1.0-1/p50x50/12239505_1621359888117408_5802586652468635863_n.jpg?oh=c668dc917adb3dd1c952c261197bc222&oe=5A0EAEA4");
+        friendList.add(f);
+
+        f = new Friend();
+        f.setName("Pure Leaf");
+        f.setPicture("https://scontent.xx.fbcdn.net/v/t1.0-1/p50x50/12239505_1621359888117408_5802586652468635863_n.jpg?oh=c668dc917adb3dd1c952c261197bc222&oe=5A0EAEA4");
+        friendList.add(f);
+
+        f = new Friend();
+        f.setName("Pure Leaf");
+        f.setPicture("https://scontent.xx.fbcdn.net/v/t1.0-1/p50x50/12239505_1621359888117408_5802586652468635863_n.jpg?oh=c668dc917adb3dd1c952c261197bc222&oe=5A0EAEA4");
+        friendList.add(f);
+
+        f = new Friend();
+        f.setName("Pure Leaf");
+        f.setPicture("https://scontent.xx.fbcdn.net/v/t1.0-1/p50x50/12239505_1621359888117408_5802586652468635863_n.jpg?oh=c668dc917adb3dd1c952c261197bc222&oe=5A0EAEA4");
+        friendList.add(f);
+
+        f = new Friend();
+        f.setName("Pure Leaf");
+        f.setPicture("https://scontent.xx.fbcdn.net/v/t1.0-1/p50x50/12239505_1621359888117408_5802586652468635863_n.jpg?oh=c668dc917adb3dd1c952c261197bc222&oe=5A0EAEA4");
+        friendList.add(f);
+
+        f = new Friend();
+        f.setName("Pure Leaf");
+        f.setPicture("https://scontent.xx.fbcdn.net/v/t1.0-1/p50x50/12239505_1621359888117408_5802586652468635863_n.jpg?oh=c668dc917adb3dd1c952c261197bc222&oe=5A0EAEA4");
+        friendList.add(f);
+
+        f = new Friend();
+        f.setName("Pure Leaf");
+        f.setPicture("https://scontent.xx.fbcdn.net/v/t1.0-1/p50x50/12239505_1621359888117408_5802586652468635863_n.jpg?oh=c668dc917adb3dd1c952c261197bc222&oe=5A0EAEA4");
+        friendList.add(f);
+
+        f = new Friend();
+        f.setName("Pure Leaf");
+        f.setPicture("https://scontent.xx.fbcdn.net/v/t1.0-1/p50x50/12239505_1621359888117408_5802586652468635863_n.jpg?oh=c668dc917adb3dd1c952c261197bc222&oe=5A0EAEA4");
+        friendList.add(f);
+
+        f = new Friend();
+        f.setName("Pure Leaf");
+        f.setPicture("https://scontent.xx.fbcdn.net/v/t1.0-1/p50x50/12239505_1621359888117408_5802586652468635863_n.jpg?oh=c668dc917adb3dd1c952c261197bc222&oe=5A0EAEA4");
+        friendList.add(f);
+
+        f = new Friend();
+        f.setName("Pure Leaf");
         f.setPicture("https://scontent.xx.fbcdn.net/v/t1.0-1/p50x50/12239505_1621359888117408_5802586652468635863_n.jpg?oh=c668dc917adb3dd1c952c261197bc222&oe=5A0EAEA4");
         friendList.add(f);
 

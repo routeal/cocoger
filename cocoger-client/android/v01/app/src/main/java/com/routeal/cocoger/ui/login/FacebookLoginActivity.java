@@ -105,7 +105,7 @@ public class FacebookLoginActivity extends AppCompatActivity {
             public void onCompleted(JSONObject object, GraphResponse response) {
                 if (object != null) {
                     try {
-                        User user = DBUtil.getUser();
+                        User user = new User();
                         if (!object.isNull("name")) {
                             user.setName(object.getString("name"));
                         }
@@ -136,6 +136,8 @@ public class FacebookLoginActivity extends AppCompatActivity {
                         if (!object.isNull("email")) {
                             user.setEmail(object.getString("email"));
                         }
+                        DBUtil.deleteUser();
+                        DBUtil.saveUser(user);
                     } catch (JSONException e) {
                     }
                 }
@@ -153,6 +155,7 @@ public class FacebookLoginActivity extends AppCompatActivity {
             public void onCompleted(JSONArray jsonArray, GraphResponse response) {
                 try {
                     if (jsonArray != null && jsonArray.length() > 0) {
+                        DBUtil.deleteFriends();
                         for (int i = 0; i < jsonArray.length(); i++) {
                             Friend friend = new Friend();
                             JSONObject object = jsonArray.getJSONObject(i);

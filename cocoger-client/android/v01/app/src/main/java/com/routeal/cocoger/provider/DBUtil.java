@@ -22,12 +22,12 @@ public class DBUtil {
     private final static String TAG = "DBUtil";
 
     public static User getUser() {
+        User user = new User();
         Cursor cursor = null;
         try {
             ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
             cursor = contentResolver.query(DB.Users.CONTENT_URI, null, null, null, null);
             if (cursor != null && cursor.moveToFirst()) {
-                User user = new User();
                 int index = cursor.getColumnIndex(DB.Users.EMAIL);
                 user.setEmail(cursor.getString(index));
                 index = cursor.getColumnIndex(DB.Users.FIRSTNAME);
@@ -46,19 +46,16 @@ public class DBUtil {
                 user.setTimezone(cursor.getString(index));
                 index = cursor.getColumnIndex(DB.Users.UPDATED);
                 user.setUpdated(cursor.getString(index));
-                return user;
             }
         } finally {
             if (cursor != null) {
                 cursor.close();
             }
         }
-        return null;
+        return user;
     }
 
     public static void saveUser(User user) {
-        deleteUser();
-
         ContentValues values = new ContentValues();
         values.put(DB.Users.EMAIL, user.getEmail());
         values.put(DB.Users.FIRSTNAME, user.getFirstName());
