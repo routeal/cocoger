@@ -103,6 +103,7 @@ public class SnappingSeekBar extends RelativeLayout implements SeekBar.OnSeekBar
     private float mTextSize;
     private float mIndicatorSize;
     private float mDensity;
+    private boolean mEnabled;
     private Drawable mProgressDrawable;
     private Drawable mThumbDrawable;
     private OnItemSelectionListener mOnItemSelectionListener;
@@ -130,6 +131,7 @@ public class SnappingSeekBar extends RelativeLayout implements SeekBar.OnSeekBar
         mTextIndicatorTopMargin = 35 * mDensity;
         mTextSize = 12 * mDensity;
         mIndicatorSize = 11.3f * mDensity;
+        mEnabled = true;
     }
 
     private void initViewsAfterLayoutPrepared() {
@@ -157,6 +159,7 @@ public class SnappingSeekBar extends RelativeLayout implements SeekBar.OnSeekBar
             initIndicatorAttributes(typedArray);
             initTextAttributes(typedArray);
             initColors(typedArray);
+            initOthers(typedArray);
         } finally {
             typedArray.recycle();
         }
@@ -215,6 +218,10 @@ public class SnappingSeekBar extends RelativeLayout implements SeekBar.OnSeekBar
         mTextIndicatorColor = typedArray.getColor(R.styleable.SnappingSeekBar_textIndicatorColor, Color.WHITE);
     }
 
+    private void initOthers(final TypedArray typedArray) {
+        mEnabled = typedArray.getBoolean(R.styleable.SnappingSeekBar_enabled, true);
+    }
+
     public void initViews() {
         initSeekBar();
         initIndicators();
@@ -225,6 +232,7 @@ public class SnappingSeekBar extends RelativeLayout implements SeekBar.OnSeekBar
         mSeekBar = new ReversedSeekBar(mContext);
         mSeekBar.setOnSeekBarChangeListener(this);
         mSeekBar.setLayoutParams(params);
+        mSeekBar.setEnabled(mEnabled);
         setDrawablesToSeekBar();
         addView(mSeekBar, params);
     }
@@ -452,6 +460,13 @@ public class SnappingSeekBar extends RelativeLayout implements SeekBar.OnSeekBar
 
     public void setIndicatorSize(final int indicatorSize) {
         mIndicatorSize = mDensity * indicatorSize;
+    }
+
+    public void setEnabled(boolean enabled) {
+        mEnabled = enabled;
+        if (mSeekBar != null) {
+            mSeekBar.setEnabled(mEnabled);
+        }
     }
 
     public interface OnItemSelectionListener {

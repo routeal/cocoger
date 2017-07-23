@@ -80,47 +80,13 @@ module.exports.getGlobbedFiles = function(globPatterns, removeRoot) {
  * Location Ranges
  */
 
-var FullLocationRange = {
-  'street'  : 3,
-  'town'    : 6,
-  'city'    : 9,
-  'county'  : 12,
-  'state'   : 15,
-  'country' : 18,
-  'none'    : 21,
-};
-
-var JapanLocationRange = {
-  'street'  : 3,
-  'town'    : 6,
-  'city'    : 9,
-  'state'   : 15,
-  'country' : 18,
-};
-
-var UsLocationRange = {
-  'street'  : 3,
-  'town'    : 6,
-  'city'    : 9,
-  'county'  : 12,
-  'state'   : 15,
-  'country' : 18,
-};
-
-var locationRange = JapanLocationRange;
-
-module.exports.LocationRange = FullLocationRange;
-
-module.exports.getLocationRange = function(location) {
-
-  if (!location) {
-    return FullLocationRange;
-  }
-  else if (location.toLowerCase() === 'ja') {
-    return JapanLocationRange;
-  }
-  else if (location.toLowerCase() === 'us') {
-    return UsLocationRange;
-  }
-  return JapanLocationRange;
+module.exports.LocationRange = {
+  'none'            : 0,
+  'countryName'     : 1,
+  'adminArea'       : 2,
+  'subAdminArea'    : 4,
+  'locality'        : 8,
+  'subLocality'     : 16,
+  'thoroughfare'    : 32,
+  'subThoroughfare' : 64
 };

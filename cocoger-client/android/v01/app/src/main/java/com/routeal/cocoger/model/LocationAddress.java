@@ -6,16 +6,28 @@ import java.io.Serializable;
 
 public class LocationAddress implements Serializable {
 
+    private long id;
+    private long time;
     private double latitude;
     private double longitude;
-    private long created;
-    private String zip;
-    private String country;
-    private String state;
-    private String county;
-    private String city;
-    private String town;
-    private String street;
+    private double altitude;
+    private float speed;
+    private String postalCode;
+    private String countryName;
+    private String adminArea;
+    private String subAdminArea;
+    private String locality;
+    private String subLocality;
+    private String thoroughfare;
+    private String subThoroughfare;
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
 
     public double getLatitude() {
         return latitude;
@@ -33,68 +45,91 @@ public class LocationAddress implements Serializable {
         this.longitude = longitude;
     }
 
-    public long getCreated() {
-        return created;
+    public double getAltitude() {
+        return altitude;
     }
 
-    public void setCreated(long created) {
-        this.created = created;
+    public void setAltitude(double altitude) {
+        this.altitude = altitude;
     }
 
-    public String getZip() {
-        return zip;
+    public float getSpeed() {
+        return speed;
     }
 
-    public void setZip(String zip) {
-        this.zip = zip;
+    public void setSpeed(float speed) {
+        this.speed = speed;
     }
 
-    public String getCountry() {
-        return country;
+    public long getTime() {
+        return time;
     }
 
-    public void setCountry(String country) {
-        this.country = country;
+    public void setTime(long time) {
+        this.time = time;
     }
 
-    public String getState() {
-        return state;
+    public String getPostalCode() {
+        return postalCode;
     }
 
-    public void setState(String state) {
-        this.state = state;
+    public void setPostalCode(String postalCode) {
+        this.postalCode = postalCode;
     }
 
-    public String getCounty() {
-        return county;
+    public String getCountryName() {
+        return countryName;
     }
 
-    public void setCounty(String county) {
-        this.county = county;
+    public void setCountryName(String countryName) {
+        this.countryName = countryName;
     }
 
-    public String getCity() {
-        return city;
+    public String getAdminArea() {
+        return adminArea;
     }
 
-    public void setCity(String city) {
-        this.city = city;
+    public void setAdminArea(String adminArea) {
+        this.adminArea = adminArea;
     }
 
-    public String getTown() {
-        return town;
+    public String getSubAdminArea() {
+        return subAdminArea;
     }
 
-    public void setTown(String town) {
-        this.town = town;
+    public void setSubAdminArea(String subAdminArea) {
+        this.subAdminArea = subAdminArea;
     }
 
-    public String getStreet() {
-        return street;
+    public String getlocality() {
+        return locality;
     }
 
-    public void setStreet(String street) {
-        this.street = street;
+    public void setlocality(String locality) {
+        this.locality = locality;
     }
 
+    public String getSubLocality() {
+        return subLocality;
+    }
+
+    public void setSubLocality(String subLocality) {
+        this.subLocality = subLocality;
+    }
+
+    public String getThoroughfare() {
+        return thoroughfare;
+    }
+
+    public void setThoroughfare(String thoroughfare) {
+        this.thoroughfare = thoroughfare;
+    }
+
+    public String getSubThoroughfare() {
+        return subThoroughfare;
+    }
+
+    public void setSubThoroughfare(String subThoroughfare) {
+        this.subThoroughfare = subThoroughfare;
+    }
 }

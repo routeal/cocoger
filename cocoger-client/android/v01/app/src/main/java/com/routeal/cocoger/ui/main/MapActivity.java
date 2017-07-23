@@ -8,12 +8,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapShader;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
+import android.location.Address;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -42,18 +38,19 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.provider.DBUtil;
 import com.routeal.cocoger.service.LocationService;
+import com.routeal.cocoger.util.CircleTransform;
 import com.routeal.cocoger.util.PicassoMarker;
 import com.routeal.cocoger.util.Utils;
 import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Transformation;
 
-public class MapsActivity extends FragmentActivity
+public class MapActivity extends FragmentActivity
         implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
-    private final static String TAG = "MapsActivity";
+    private final static String TAG = "MapActivity";
     private final static String LOCATION_PERMISSION = "locationPermission";
     private final static String KEY_CAMERA_POSITION = "camera_position";
     private final static String KEY_LOCATION = "location";
@@ -78,6 +75,11 @@ public class MapsActivity extends FragmentActivity
     private ProgressDialog busyCursor;
 
     private Marker myMarker;
+
+    // drawing target
+    private PicassoMarker myMarkerTarget;
+
+    private Address mAddress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +106,7 @@ public class MapsActivity extends FragmentActivity
         myLocationButton.setOnClickListener(myLocationButtonListener);
 
         // when the permission is already granted,
-        if (MainApplication.getBool(LOCATION_PERMISSION)) {
+        if (MainApplication.isLocationPermitted()) {
             buildMap();
         } else {
 
@@ -236,7 +238,7 @@ public class MapsActivity extends FragmentActivity
     }
 
     private void buildMap() {
-        busyCursor = Utils.spinBusyCurosr(this);
+        busyCursor = Utils.spinBusyCursor(this);
 
         // Build the map.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -258,7 +260,7 @@ public class MapsActivity extends FragmentActivity
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        if (MainApplication.getBool(LOCATION_PERMISSION)) {
+        if (MainApplication.isLocationPermitted()) {
             if (mLastKnownLocation == null) {
                 mLastKnownLocation = LocationService.getLastLocation();
             }
@@ -312,7 +314,7 @@ public class MapsActivity extends FragmentActivity
             setupMyLocationMarker(mLastKnownLocation);
         }
 
-        MainApplication.putBool(LOCATION_PERMISSION, true);
+        MainApplication.permitLocation(true);
 
         if (mGoogleApiClient != null) {
             mGoogleApiClient.disconnect();
@@ -342,6 +344,8 @@ public class MapsActivity extends FragmentActivity
                 }
                 mLastKnownLocation = location;
             }
+
+            mAddress = intent.getParcelableExtra("address");
         }
     };
 
@@ -353,11 +357,11 @@ public class MapsActivity extends FragmentActivity
         // my location marker
         MarkerOptions options = new MarkerOptions().position(getLatLng(location));
         myMarker = mMap.addMarker(options);
-        PicassoMarker pm = new PicassoMarker(myMarker);
+        myMarkerTarget = new PicassoMarker(myMarker);
         Picasso.with(getApplicationContext())
-                .load(MainApplication.getUser().getPicture())
+                .load(DBUtil.getUser().getPicture())
                 .transform(new CircleTransform())
-                .into(pm);
+                .into(myMarkerTarget);
     }
 
     /**
@@ -390,43 +394,7 @@ public class MapsActivity extends FragmentActivity
         }
     };
 
-    class CircleTransform implements Transformation {
-        @Override
-        public Bitmap transform(Bitmap source) {
-            int size = 128;
-
-            Bitmap squaredBitmap = Bitmap.createScaledBitmap(source, 128, 128, false);
-            if (squaredBitmap != source) {
-                source.recycle();
-            }
-
-            Bitmap bitmap = Bitmap.createBitmap(size, size, source.getConfig());
-
-            Paint paintBorder = new Paint();
-            paintBorder.setAntiAlias(true);
-            paintBorder.setShadowLayer(4.0f, 0.0f, 2.0f, Color.BLACK);
-
-            Canvas canvas = new Canvas(bitmap);
-            Paint paint = new Paint();
-            BitmapShader shader = new BitmapShader(squaredBitmap,
-                    BitmapShader.TileMode.CLAMP, BitmapShader.TileMode.CLAMP);
-            paint.setShader(shader);
-            paint.setAntiAlias(true);
-            paint.setDither(true);
-
-            float r = size / 2f;
-            canvas.drawCircle(r, r, r, paintBorder);
-            canvas.drawCircle(r, r, r-4.0f, paint);
-
-            squaredBitmap.recycle();
-
-            return bitmap;
-        }
-
-        @Override
-        public String key() {
-            return "circle";
-        }
+    public Address getAddress() {
+        return mAddress;
     }
-
 }

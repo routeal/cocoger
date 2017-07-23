@@ -10,22 +10,23 @@ public class Device implements Serializable {
     public final static int BACKGROUND = 1;
     public final static int FOREGROUND = 2;
 
-    private String id; // device unique id
+    private String deviceId; // device unique id
     private String type = "mobile"; // device type - 'mobile', 'desktop', 'settop'
     private String platform = "android"; // platform - 'android', 'ios', 'windows'
     private String brand; // device brand - needed???
     private String model; // device model - needed???
-    private String version; // system version
+    private String platformVersion; // system version
+    private String appVersion; // app version
     private boolean simulator; // emulator or not
     private String token; // device token to be used for notification
     private int status; // unavailable, background, foreground
 
-    public String getId() {
-        return id;
+    public String getDeviceId() {
+        return deviceId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 
     public int getStatus() {
@@ -68,12 +69,20 @@ public class Device implements Serializable {
         this.model = model;
     }
 
-    public String getVersion() {
-        return version;
+    public String getPlatformVersion() {
+        return platformVersion;
     }
 
-    public void setVersion(String version) {
-        this.version = version;
+    public void setPlatformVersion(String platformVersion) {
+        this.platformVersion = platformVersion;
+    }
+
+    public String getAppVersion() {
+        return appVersion;
+    }
+
+    public void setAppVersion(String appVersion) {
+        this.appVersion = appVersion;
     }
 
     public boolean getSimulator() {
@@ -89,7 +98,9 @@ public class Device implements Serializable {
     public String getToken() { return token; }
 
     public String toString() {
-        return String.format("id=%s, type=%s, platform=%s, brand=%s, model=%s, version=%s, simulator=%s, token=%s",
-                             id, type, platform, brand, model, version, simulator, token);
+        return String.format("deviceid=%s, type=%s, platform=%s, brand=%s, model=%s, " +
+                        "platformVersion=%s, simulator=%s, token=%s appVersion=%s",
+                deviceId, type, platform, brand, model,
+                platformVersion, simulator, token, appVersion);
     }
 }

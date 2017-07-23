@@ -6,7 +6,6 @@
 var _ = require('lodash'),
     errorHandler = require('../errors.server.controller'),
     mongoose = require('mongoose'),
-    Device = mongoose.model('Device'),
     User = mongoose.model('User');
 
 exports.login = function(req, res) {
@@ -27,54 +26,50 @@ exports.login = function(req, res) {
   // by default, will not save the user object again
   var save = false;
 
+  // convenient function to assign new values to the user
+  function saveUser(to, from) {
+    to.email = from.email;
+    to.firstName = from.firstName;
+    to.lastName = from.lastName;
+    to.name = from.name;
+    to.gender = from.gender;
+    to.picture = from.picture;
+    to.locale = from.locale;
+    to.timezone = from.timezone;
+    to.updated = new Date(from.updated);
+  }
+
+  console.log("new user device:" + dev_user.device.deviceId);
+
+  // in the first time, user.email is empty
   if (user.email) {
-    var index = _.findIndex(user.devices, {id: dev_user.device.id});
+    console.log("existing user device:" + user.devices);
+    var index = _.findIndex(user.devices, {deviceId: dev_user.device.deviceId});
     if (index < 0) {
       console.log("login: new device found");
       user.devices.push(dev_user.device);
       save = true;
     } else {
-      var dev = user.devices[index]; // device in the database
-      var new_dev = dev_user.device; // device in the device
       //console.log(dev);
       //console.log(new_dev);
-      if (dev.token != new_dev.token || dev.status != new_dev.status) {
+      if (user.devices[index].status != dev_user.device.status) {
         console.log("login: new value found in device");
-        // FIXME:
-        //_.extend(user.devices[index], dev_user.device);
-        _.extend(dev, new_dev);
+        _.extend(user.devices[index], dev_user.device);
         save = true;
       }
-      var updated = new Date(dev_user.updated);
-      if (updated.getTime() > user.updated.getTime()) {
+      if (dev_user.updated > user.updated.getTime()) {
         console.log("login: user updated changed");
-        user.email = dev_user.email;
-        user.name = dev_user.name;
-        user.firstName = dev_user.firstName;
-        user.lastName = dev_user.lastName;
-        user.gender = dev_user.gender;
-        user.picture = dev_user.picture;
-        user.timezone = dev_user.timezone;
-        user.locale = dev_user.locale;
-        user.updated = updated;
+        saveUser(user, dev_user);
         save = true;
       }
     }
   } else {
-    // when the user is created by the facebook stragegy, most info
-    // other than providers are empty.
+    // set both user and device
     console.log("login: initial login");
-    save = true;
+    console.log(dev_user);
     user.devices.push(dev_user.device);
-    user.email = dev_user.email;
-    user.name = dev_user.name;
-    user.firstName = dev_user.firstName;
-    user.lastName = dev_user.lastName;
-    user.gender = dev_user.gender;
-    user.picture = dev_user.picture;
-    user.timezone = dev_user.timezone;
-    user.locale = dev_user.locale;
-    user.updated = new Date(dev_user.updated);
+    saveUser(user, dev_user);
+    save = true;
     //console.log(user);
   }
 

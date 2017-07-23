@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="vertical"
+    android:paddingBottom="10dp"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingTop="10dp">
+
+    <ImageView
+        android:id="@+id/picture"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:padding="2dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:src="@drawable/ic_face_black_48dp" />
+
+    <TextView
+        android:id="@+id/name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/picture"
+        android:gravity="center_vertical"
+        android:layout_alignTop="@+id/picture"
+        android:layout_alignBottom="@+id/picture"
+        android:textColor="@color/black"
+        android:paddingLeft="8dp"
+        android:text="@string/name"
+        android:textSize="16dp"
+        android:textStyle="bold" />
+
+    <com.routeal.cocoger.util.SnappingSeekBar
+        android:id="@+id/seekbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/picture"
+        android:layout_alignParentLeft="true"
+        app:enabled="false"
+        app:progressColor="@color/teal500"
+        app:thumbnailColor="@color/teal300"
+        app:indicatorColor="@color/teal500"
+        app:textIndicatorColor="@color/navy"
+        app:itemsArrayId="@array/seek_bar_with_different_colors_items"/>
+
+</RelativeLayout>

@@ -21,27 +21,23 @@ import java.util.List;
 public class DatabaseProvider extends ContentProvider {
     private ProviderHelper mDbHelper;
 
-    private static final int IMAGES = 1;
-    private static final int IMAGES_ID = 2;
-    private static final int ADDRESSES = 3;
-    private static final int ADDRESSES_ID = 4;
-    private static final int MESSAGES = 5;
-    private static final int MESSAGE_ID = 6;
-    private static final int CONTENTS = 7;
-    private static final int CONTENTS_ID = 8;
+    private static final int USERS = 1;
+    private static final int USERS_ID = 2;
+    private static final int FRIENDS = 3;
+    private static final int FRIENDS_ID = 4;
+    private static final int LOCATIONS = 5;
+    private static final int LOCATIONS_ID = 6;
 
     private static final UriMatcher mUriMatcher;
 
     static {
         mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-        mUriMatcher.addURI(DB.AUTHORITY, DB.Images.PATH, IMAGES);
-        mUriMatcher.addURI(DB.AUTHORITY, DB.Images.PATH + "/#", IMAGES_ID);
-        mUriMatcher.addURI(DB.AUTHORITY, DB.Addresses.PATH, ADDRESSES);
-        mUriMatcher.addURI(DB.AUTHORITY, DB.Addresses.PATH + "/#", ADDRESSES_ID);
-        mUriMatcher.addURI(DB.AUTHORITY, DB.Messages.PATH, MESSAGES);
-        mUriMatcher.addURI(DB.AUTHORITY, DB.Messages.PATH + "/#", MESSAGE_ID);
-        mUriMatcher.addURI(DB.AUTHORITY, DB.Contents.PATH, CONTENTS);
-        mUriMatcher.addURI(DB.AUTHORITY, DB.Contents.PATH + "/#", CONTENTS_ID);
+        mUriMatcher.addURI(DB.AUTHORITY, DB.Users.PATH, USERS);
+        mUriMatcher.addURI(DB.AUTHORITY, DB.Users.PATH + "/#", USERS_ID);
+        mUriMatcher.addURI(DB.AUTHORITY, DB.Friends.PATH, FRIENDS);
+        mUriMatcher.addURI(DB.AUTHORITY, DB.Friends.PATH + "/#", FRIENDS_ID);
+        mUriMatcher.addURI(DB.AUTHORITY, DB.Locations.PATH, LOCATIONS);
+        mUriMatcher.addURI(DB.AUTHORITY, DB.Locations.PATH + "/#", LOCATIONS_ID);
     }
 
     @Override
@@ -55,29 +51,23 @@ public class DatabaseProvider extends ContentProvider {
         int match = mUriMatcher.match(uri);
         String mime = null;
         switch (match) {
-            case IMAGES:
-                mime = DB.Images.CONTENT_TYPE;
+            case USERS:
+                mime = DB.Users.CONTENT_TYPE;
                 break;
-            case IMAGES_ID:
-                mime = DB.Images.CONTENT_ITEM_TYPE;
+            case USERS_ID:
+                mime = DB.Users.CONTENT_ITEM_TYPE;
                 break;
-            case ADDRESSES:
-                mime = DB.Addresses.CONTENT_TYPE;
+            case FRIENDS:
+                mime = DB.Friends.CONTENT_TYPE;
                 break;
-            case ADDRESSES_ID:
-                mime = DB.Addresses.CONTENT_ITEM_TYPE;
+            case FRIENDS_ID:
+                mime = DB.Friends.CONTENT_ITEM_TYPE;
                 break;
-            case MESSAGES:
-                mime = DB.Messages.CONTENT_TYPE;
+            case LOCATIONS:
+                mime = DB.Locations.CONTENT_TYPE;
                 break;
-            case MESSAGE_ID:
-                mime = DB.Messages.CONTENT_ITEM_TYPE;
-                break;
-            case CONTENTS:
-                mime = DB.Contents.CONTENT_TYPE;
-                break;
-            case CONTENTS_ID:
-                mime = DB.Contents.CONTENT_ITEM_TYPE;
+            case LOCATIONS_ID:
+                mime = DB.Locations.CONTENT_ITEM_TYPE;
                 break;
             default:
                 break;
@@ -99,37 +89,29 @@ public class DatabaseProvider extends ContentProvider {
         List<String> pathSegments = uri.getPathSegments();
 
         switch (mUriMatcher.match(uri)) {
-            case IMAGES:
-                tableName = DB.Images.TABLE;
+            case USERS:
+                tableName = DB.Users.TABLE;
                 break;
-            case IMAGES_ID:
-                tableName = DB.Images.TABLE;
-                innerSelection = DB.Images._ID + " = ? ";
-                innerSelectionArgs = new String[]{pathSegments.get(2)};
+            case USERS_ID:
+                tableName = DB.Users.TABLE;
+                innerSelection = DB.Users._ID + " = ? ";
+                innerSelectionArgs = new String[]{pathSegments.get(1)};
                 break;
-            case ADDRESSES:
-                tableName = DB.Addresses.TABLE;
+            case FRIENDS:
+                tableName = DB.Friends.TABLE;
                 break;
-            case ADDRESSES_ID:
-                tableName = DB.Addresses.TABLE;
-                innerSelection = DB.Addresses.MESSAGE_OWNER + " = ? ";
-                innerSelectionArgs = new String[]{pathSegments.get(2)};
+            case FRIENDS_ID:
+                tableName = DB.Friends.TABLE;
+                innerSelection = DB.Friends._ID + " = ? ";
+                innerSelectionArgs = new String[]{pathSegments.get(1)};
                 break;
-            case MESSAGES:
-                tableName = DB.Messages.TABLE;
+            case LOCATIONS:
+                tableName = DB.Locations.TABLE;
                 break;
-            case MESSAGE_ID:
-                tableName = DB.Messages.TABLE;
-                innerSelection = DB.Messages._ID + " = ? ";
-                innerSelectionArgs = new String[]{pathSegments.get(2)};
-                break;
-            case CONTENTS:
-                tableName = DB.Contents.TABLE;
-                break;
-            case CONTENTS_ID:
-                tableName = DB.Contents.TABLE;
-                innerSelection = DB.Contents.MESSAGE_OWNER + " = ? ";
-                innerSelectionArgs = new String[]{pathSegments.get(2)};
+            case LOCATIONS_ID:
+                tableName = DB.Locations.TABLE;
+                innerSelection = DB.Locations._ID + " = ? ";
+                innerSelectionArgs = new String[]{pathSegments.get(1)};
                 break;
             default:
                 return null;
@@ -170,40 +152,31 @@ public class DatabaseProvider extends ContentProvider {
         Uri insertedUri = null;
 
         switch (mUriMatcher.match(uri)) {
-            case IMAGES: {
+            case LOCATIONS: {
                 SQLiteDatabase db = mDbHelper.getWritableDatabase();
-                long id = db.insert(DB.Images.TABLE, null, values);
+                long id = db.insert(DB.Locations.TABLE, null, values);
                 insertedUri = ContentUris.withAppendedId(uri, id);
 
                 ContentResolver resolver = getContext().getContentResolver();
-                resolver.notifyChange(DB.Images.CONTENT_URI, null);
+                resolver.notifyChange(DB.Locations.CONTENT_URI, null);
                 break;
             }
-            case ADDRESSES: {
+            case USERS: {
                 SQLiteDatabase db = mDbHelper.getWritableDatabase();
-                long id = db.insert(DB.Addresses.TABLE, null, values);
+                long id = db.insert(DB.Users.TABLE, null, values);
                 insertedUri = ContentUris.withAppendedId(uri, id);
 
                 ContentResolver resolver = getContext().getContentResolver();
-                resolver.notifyChange(DB.Addresses.CONTENT_URI, null);
+                resolver.notifyChange(DB.Users.CONTENT_URI, null);
                 break;
             }
-            case MESSAGES: {
+            case FRIENDS: {
                 SQLiteDatabase db = mDbHelper.getWritableDatabase();
-                long id = db.insert(DB.Messages.TABLE, null, values);
+                long id = db.insert(DB.Friends.TABLE, null, values);
                 insertedUri = ContentUris.withAppendedId(uri, id);
 
                 ContentResolver resolver = getContext().getContentResolver();
-                resolver.notifyChange(DB.Messages.CONTENT_URI, null);
-                break;
-            }
-            case CONTENTS: {
-                SQLiteDatabase db = mDbHelper.getWritableDatabase();
-                long id = db.insert(DB.Contents.TABLE, null, values);
-                insertedUri = ContentUris.withAppendedId(uri, id);
-
-                ContentResolver resolver = getContext().getContentResolver();
-                resolver.notifyChange(DB.Contents.CONTENT_URI, null);
+                resolver.notifyChange(DB.Friends.CONTENT_URI, null);
                 break;
             }
             default:
@@ -217,26 +190,28 @@ public class DatabaseProvider extends ContentProvider {
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         int updates = -1;
         switch (mUriMatcher.match(uri)) {
-            case CONTENTS_ID: {
+            case USERS_ID: {
                 long id = new Long(uri.getLastPathSegment()).longValue();
-                String whereclause = DB.Contents._ID + " = " + id;
+                String whereclause = DB.Users._ID + " = " + id;
                 SQLiteDatabase db = mDbHelper.getWritableDatabase();
-                updates = db.update(DB.Contents.TABLE, values, whereclause, null);
+                updates = db.update(DB.Users.TABLE, values, whereclause, null);
 
                 ContentResolver resolver = getContext().getContentResolver();
-                Uri notifyUri = ContentUris.withAppendedId(DB.Contents.CONTENT_URI, id);
+                Uri notifyUri = ContentUris.withAppendedId(DB.Users.CONTENT_URI, id);
                 resolver.notifyChange(notifyUri, null);
+                resolver.notifyChange(DB.Users.CONTENT_URI, null);
                 break;
             }
-            case MESSAGE_ID: {
+            case FRIENDS_ID: {
                 long id = new Long(uri.getLastPathSegment()).longValue();
-                String whereclause = DB.Messages._ID + " = " + id;
+                String whereclause = DB.Friends._ID + " = " + id;
                 SQLiteDatabase db = mDbHelper.getWritableDatabase();
-                updates = db.update(DB.Messages.TABLE, values, whereclause, null);
+                updates = db.update(DB.Friends.TABLE, values, whereclause, null);
 
                 ContentResolver resolver = getContext().getContentResolver();
-                Uri notifyUri = ContentUris.withAppendedId(DB.Messages.CONTENT_URI, id);
+                Uri notifyUri = ContentUris.withAppendedId(DB.Friends.CONTENT_URI, id);
                 resolver.notifyChange(notifyUri, null);
+                resolver.notifyChange(DB.Friends.CONTENT_URI, null);
                 break;
             }
             default:
@@ -248,83 +223,63 @@ public class DatabaseProvider extends ContentProvider {
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         int affected = 0;
-        long id = new Long(uri.getLastPathSegment()).longValue();
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
         switch (mUriMatcher.match(uri)) {
-            case IMAGES_ID: {
-                affected = db.delete(DB.Images.TABLE, DB.Images._ID + "= ?",
-                        new String[]{String.valueOf(id)});
-                break;
-            }
-
-            case MESSAGE_ID: {
+            case USERS: {
+                affected = db.delete(DB.Users.TABLE, selection, selectionArgs);
                 ContentResolver resolver = getContext().getContentResolver();
-
-                // delete the addresses owned by the message id
-                uri = ContentUris.withAppendedId(DB.Addresses.CONTENT_URI, id);
-                resolver.delete(uri, null, null);
-
-                // delete the contents owned by the message id
-                uri = ContentUris.withAppendedId(DB.Contents.CONTENT_URI, id);
-                resolver.delete(uri, null, null);
-
-                // delete the specified message row
-                try {
-                    db.beginTransaction();
-                    affected += db.delete(DB.Messages.TABLE, DB.Messages._ID + "= ?",
-                            new String[]{String.valueOf(id)});
-                    db.setTransactionSuccessful();
-                } finally {
-                    if (db.inTransaction()) {
-                        db.endTransaction();
-                    }
-                }
-
-                resolver.notifyChange(DB.Messages.CONTENT_URI, null);
-                resolver.notifyChange(ContentUris.withAppendedId(DB.Messages.CONTENT_URI, id), null);
+                resolver.notifyChange(DB.Users.CONTENT_URI, null);
                 break;
             }
-            case ADDRESSES_ID: {
-                affected = db.delete(DB.Addresses.TABLE, DB.Addresses.MESSAGE_OWNER + "= ?",
+
+            case USERS_ID: {
+                long id  = new Long(uri.getLastPathSegment()).longValue();
+                affected = db.delete(DB.Users.TABLE, DB.Users._ID + "= ?",
+                        new String[] { String.valueOf(id) });
+                ContentResolver resolver = getContext().getContentResolver();
+                Uri notifyUri = ContentUris.withAppendedId(DB.Users.CONTENT_URI, id);
+                resolver.notifyChange(notifyUri, null);
+                resolver.notifyChange(DB.Users.CONTENT_URI, null);
+                break;
+            }
+
+            case FRIENDS: {
+                affected = db.delete(DB.Users.TABLE, selection, selectionArgs);
+                ContentResolver resolver = getContext().getContentResolver();
+                resolver.notifyChange(DB.Friends.CONTENT_URI, null);
+                break;
+            }
+
+            case FRIENDS_ID: {
+                long id  = new Long(uri.getLastPathSegment()).longValue();
+                affected = db.delete(DB.Users.TABLE, DB.Friends._ID + "= ?",
+                        new String[] { String.valueOf(id) });
+                ContentResolver resolver = getContext().getContentResolver();
+                Uri notifyUri = ContentUris.withAppendedId(DB.Friends.CONTENT_URI, id);
+                resolver.notifyChange(notifyUri, null);
+                resolver.notifyChange(DB.Friends.CONTENT_URI, null);
+                break;
+            }
+
+            case LOCATIONS: {
+                affected = db.delete(DB.Locations.TABLE, selection, selectionArgs);
+                ContentResolver resolver = getContext().getContentResolver();
+                resolver.notifyChange(DB.Locations.CONTENT_URI, null);
+                break;
+            }
+
+            case LOCATIONS_ID: {
+                long id = new Long(uri.getLastPathSegment()).longValue();
+                affected = db.delete(DB.Locations.TABLE, DB.Locations._ID + "= ?",
                         new String[]{String.valueOf(id)});
+                ContentResolver resolver = getContext().getContentResolver();
+                Uri notifyUri = ContentUris.withAppendedId(DB.Locations.CONTENT_URI, id);
+                resolver.notifyChange(notifyUri, null);
+                resolver.notifyChange(DB.Locations.CONTENT_URI, null);
                 break;
             }
-            case CONTENTS_ID: {
-                // find the messages where the content owns as a rfc822 message
-                Cursor cursor = null;
-                try {
-                    ContentResolver resolver = getContext().getContentResolver();
 
-                    db.beginTransaction();
-
-                    selection = DB.Messages.MESSAGE_OWNER + " = ?";
-                    selectionArgs = new String[]{String.valueOf(id)};
-
-                    cursor = resolver.query(DB.Contents.CONTENT_URI, null,
-                            selection, selectionArgs, null);
-
-                    if (cursor.moveToFirst()) {
-                        do {
-                            int index = cursor.getColumnIndex(DB.Messages.MESSAGE_OWNER);
-                            long messageId = cursor.getLong(index);
-                            uri = ContentUris.withAppendedId(DB.Messages.CONTENT_URI, messageId);
-                            resolver.delete(uri, null, null);
-                        } while (cursor.moveToNext());
-                    }
-                } finally {
-                    if (cursor != null) {
-                        cursor.close();
-                    }
-                    if (db.inTransaction()) {
-                        db.endTransaction();
-                    }
-                }
-
-                affected = db.delete(DB.Contents.TABLE, DB.Contents.MESSAGE_OWNER + "= ?",
-                        new String[]{String.valueOf(id)});
-                break;
-            }
             default:
                 break;
         }

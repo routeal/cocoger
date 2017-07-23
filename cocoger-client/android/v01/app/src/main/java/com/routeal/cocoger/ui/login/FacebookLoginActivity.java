@@ -22,9 +22,11 @@ import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.net.RestClient;
-import com.routeal.cocoger.ui.main.SlidingPanelSearchMapsActivity;
+import com.routeal.cocoger.provider.DBUtil;
+import com.routeal.cocoger.ui.main.SlidingUpPanelMapActivity;
 import com.routeal.cocoger.util.Utils;
 
 import org.json.JSONArray;
@@ -73,7 +75,7 @@ public class FacebookLoginActivity extends AppCompatActivity {
         loginButton.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
             @Override
             public void onSuccess(LoginResult loginResult) {
-                dialog = Utils.spinBusyCurosr(FacebookLoginActivity.this);
+                dialog = Utils.spinBusyCursor(FacebookLoginActivity.this);
                 getUserInfo();
             }
 
@@ -103,7 +105,7 @@ public class FacebookLoginActivity extends AppCompatActivity {
             public void onCompleted(JSONObject object, GraphResponse response) {
                 if (object != null) {
                     try {
-                        User user = MainApplication.getUser();
+                        User user = DBUtil.getUser();
                         if (!object.isNull("name")) {
                             user.setName(object.getString("name"));
                         }
@@ -149,31 +151,62 @@ public class FacebookLoginActivity extends AppCompatActivity {
         request = GraphRequest.newMyFriendsRequest(AccessToken.getCurrentAccessToken(), new GraphRequest.GraphJSONArrayCallback() {
             @Override
             public void onCompleted(JSONArray jsonArray, GraphResponse response) {
-                // Application code for users friends
-                System.out.println("getFriendsData onCompleted : jsonArray " + jsonArray);
-                System.out.println("getFriendsData onCompleted : response " + response);
                 try {
-                    JSONObject jsonObject = response.getJSONObject();
-                    System.out.println("getFriendsData onCompleted : jsonObject " + jsonObject);
-                    JSONObject summary = jsonObject.getJSONObject("summary");
-                    System.out.println("getFriendsData onCompleted : summary total_count - " + summary.getString("total_count"));
+                    if (jsonArray != null && jsonArray.length() > 0) {
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            Friend friend = new Friend();
+                            JSONObject object = jsonArray.getJSONObject(i);
+                            if (!object.isNull("id")) {
+                                friend.setProviderId(object.getString("id"));
+                            }
+                            if (!object.isNull("name")) {
+                                friend.setName(object.getString("name"));
+                            }
+                            if (!object.isNull("first_name")) {
+                                friend.setFirstName(object.getString("first_name"));
+                            }
+                            if (!object.isNull("locale")) {
+                                friend.setLocale(object.getString("locale"));
+                            }
+                            if (!object.isNull("last_name")) {
+                                friend.setLastName(object.getString("last_name"));
+                            }
+                            if (!object.isNull("updated_time")) {
+                                friend.setUpdated(object.getString("updated_time"));
+                            }
+                            if (!object.isNull("picture")) {
+                                JSONObject picture = object.getJSONObject("picture");
+                                if (picture != null) {
+                                    JSONObject data = picture.getJSONObject("data");
+                                    if (!data.isNull("url")) {
+                                        friend.setPicture(data.getString("url"));
+                                    }
+                                }
+                            }
+                            DBUtil.saveFriend(friend);
+                        }
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         });
 
+        parameters = new Bundle();
+        permissions = "id,name,first_name,last_name,gender,locale,picture,timezone,updated_time,email";
+        parameters.putString("fields", permissions);
+        request.setParameters(parameters);
         batch.add(request);
 
         batch.addCallback(new GraphRequestBatch.Callback() {
             @Override
             public void onBatchCompleted(GraphRequestBatch graphRequests) {
-                if (MainApplication.getUser().getEmail().isEmpty()) {
+                if (DBUtil.getUser().getEmail().isEmpty()) {
                     dialog.dismiss();
                     // FIXME: if the email is empty, it means that the
                     // fb login failed. don't know what to do
                 } else {
-                    login();
+                    loginToServer();
                 }
             }
         });
@@ -182,9 +215,11 @@ public class FacebookLoginActivity extends AppCompatActivity {
     }
 
     // login the user to the server
-    void login() {
-        User user = MainApplication.getUser();
-        user.setDevice(MainApplication.getDevice());
+    private void loginToServer() {
+        final User user = DBUtil.getUser();
+
+        // set the device info for login
+        user.setDevice(Utils.getDevice());
 
         Log.d(TAG, "user: " + user.toString());
 
@@ -196,8 +231,12 @@ public class FacebookLoginActivity extends AppCompatActivity {
                 dialog.dismiss();
                 if (response.isSuccessful()) {
                     Log.d(TAG, "Login succeeded: " + response.body().toString());
+
+                    // save the user into the database
+                    DBUtil.saveUser(user);
+
                     Intent intent = new Intent(getApplicationContext(),
-                            SlidingPanelSearchMapsActivity.class);
+                            SlidingUpPanelMapActivity.class);
                     startActivity(intent);
                     finish();
                 } else {
@@ -211,7 +250,6 @@ public class FacebookLoginActivity extends AppCompatActivity {
                 Log.d(TAG, "Login failure:" + t.getLocalizedMessage());
             }
         });
-
     }
 
 }

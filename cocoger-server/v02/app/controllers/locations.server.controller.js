@@ -14,6 +14,7 @@ var mongoose = require('mongoose'),
     config = require('../../config/config'),
     apn = require('../utils/apn.wrapper'),
     logger = require('winston'),
+    async = require('async'),
     _ = require('lodash');
 
 var getLastLocation = function(id, done) {
@@ -69,24 +70,27 @@ var saveLocation = function(s, p, done) {
 
 var detectMovement = function(c /*current_location*/, p /*previous_location*/, m /* moved */) {
   var move = config.LocationRange.none;
-  if (c.country !== p.country) {
-    logger.info('move: %s', 'country');
-    move = config.LocationRange.country;
-  } else if (c.state !== p.state) {
-    logger.info('move: %s', 'state');
-    move = config.LocationRange.state;
-  } else if (c.county !== p.county) {
-    logger.info('move: %s', 'county');
-    move = config.LocationRange.county;
-  } else if (c.city !== p.city) {
-    logger.info('move: %s', 'city');
-    move = config.LocationRange.city;
-  } else if (c.town !== p.town) {
-    logger.info('move: %s', 'town');
-    move = config.LocationRange.town;
-  } else /* if (c.street !== p.street) */ {
-    logger.info('move: %s', 'street');
-    move = config.LocationRange.street;
+  if (c.countryName !== p.countryName) {
+    logger.info('move: %s', 'countryName');
+    move = config.LocationRange.countryName;
+  } else if (c.adminArea !== p.adminArea) {
+    logger.info('move: %s', 'adminArea');
+    move = config.LocationRange.adminArea;
+  } else if (c.subAdminArea !== p.subAdminArea) {
+    logger.info('move: %s', 'subAdminArea');
+    move = config.LocationRange.subAdminArea;
+  } else if (c.locality !== p.locality) {
+    logger.info('move: %s', 'locality');
+    move = config.LocationRange.locality;
+  } else if (c.subLocality !== p.subLocality) {
+    logger.info('move: %s', 'subLocality');
+    move = config.LocationRange.subLocality;
+  } else if (c.thoroughfare !== p.thoroughfare) {
+    logger.info('move: %s', 'thoroughfare');
+    move = config.LocationRange.thoroughfare;
+  } else if (c.subThoroughfare !== p.subThoroughfare) {
+    logger.info('move: %s', 'subThoroughfare');
+    move = config.LocationRange.subThoroughfare;
   }
   m(move);
 };
@@ -339,3 +343,140 @@ exports.byFriendID = function(req, res, next, id) {
   req.friendId = id;
   next();
 };
+
+
+
+
+
+/**
+ * Set a list of locations to the database, use the last(most recent)
+ * location to detect a move from which region to which region.  Then,
+ * notify the move to all the friends and groups.
+ */
+exports.set = function(req, res) {
+  var user = req.user;
+  if (!user) {
+    res.status(401).send({message: 'User is not logged in'});
+    return;
+  }
+
+  // will be sorted
+  var sortedLocations = req.body;
+  if (!sortedLocations || sortedLocations.length == 0) {
+    res.status(401).send({message: 'empty body'});
+    return;
+  }
+
+  // recent location
+  var recentLocation = undefined;
+
+  // most of the time, the size is 1
+  if (sortedLocations.length == 1) {
+    recentLocation = sortedLocations[0];
+  } else {
+    // Sort the locations in ascending order by time to find the most recent one
+    sortedLocations = _(sortedLocations)
+        .keys()
+        .sortBy(function(key) {
+          return sortedLocations[key].time;
+        })
+        .value();
+
+    // recent location
+    recentLocation = sortedLocations[sortedLocations.length-1];
+  }
+
+  // last location
+  var userLastLocationId = user.lastLocationId;
+
+  async.waterfall(
+    [
+      // get the last known location object
+      function(callback) {
+        if (userLastLocationId) {
+          Location.findById(userLastLocationId, function(err, lastLocation) {
+            callback(err, lastLocation);
+          });
+        } else {
+          callback(null, null);
+        }
+      },
+      // detect the move and notify it to the friends
+      function(lastLocation, callback) {
+        if (lastLocation) {
+          console.log("last location:" + lastLocation);
+          detectMovement(recentLocation, lastLocation, function(move) {
+            if (move == config.LocationRange.none) {
+              // no movement at all from the last known location, so do not save
+              console.log("no location save - detect no movement");
+              callback(null, null);
+            } else {
+              /*
+              notifyMovement(user, recentLocation, move, function(err) {
+                if (err) {
+                  callback(err);
+                } else {
+                  callback(null);
+                }
+              });
+              */
+              callback(null, sortedLocations);
+            }
+          });
+        } else {
+          callback(null, sortedLocations);
+        }
+      },
+      // save the locations
+      function(locations, callback) {
+        if (locations) {
+          _.map(locations, function(x) {
+            x.user = user._id;
+            return x
+          });
+          Location.create(locations, function(err, loc) {
+            if (err) {
+              callback(err);
+            } else {
+              var lastone = loc[locations.length-1];
+              user.lastLocationId = lastone._id;
+              user.save(function(err, user) {
+                if (err) {
+                  callback(err);
+                } else {
+                  callback(null);
+                }
+              });
+            }
+          });
+        } else {
+          callback(null);
+        }
+      }
+    ],
+    function (err) {
+      if (err) {
+	res.status(400).send({message: errorHandler.getErrorMessage(err)});
+      } else {
+        res.json();
+      }
+    }
+  );
+};
+
+exports.get = function(req, res) {
+  var timestamp;
+  if (typeof req.query.timestamp !== 'undefined') {
+    timestamp = moment.unix(req.query.timestamp);
+  } else {
+    timestamp = moment.utc();
+  }
+  listLocation(req.user, timestamp, req.query.timezone, function(err, locations) {
+    if (err) {
+      res.status(400).send({message: errorHandler.getErrorMessage(err)});
+    } else {
+      res.json(locations);
+    }
+  });
+};
+

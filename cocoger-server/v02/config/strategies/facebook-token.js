@@ -16,15 +16,7 @@ module.exports = function() {
   passport.use(new FacebookTokenStrategy(
     {
       clientID: config.facebook.clientID,
-      clientSecret: config.facebook.clientSecret,
-      /*
-      profileFields: [
-	'id', 'cover', 'name', 'age_range', 'link', 'gender', 'locale', 'picture', 'timezone', // public_profile
-        'updated_time', 'verified',
-	'emails', // email
-	//'friends' // user_friends
-      ]
-      */
+      clientSecret: config.facebook.clientSecret
     },
     function(accessToken, refreshToken, profile, done) {
       var providerIdentifierField = 'providerData.id';

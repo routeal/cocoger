@@ -40,4 +40,11 @@
         </html>
         ]]>
     </string>
+    <string-array name="seek_bar_with_different_colors_items">
+        <item>street</item>
+        <item>town</item>
+        <item>city</item>
+        <item>county</item>
+        <item>country</item>
+    </string-array>
 </resources>

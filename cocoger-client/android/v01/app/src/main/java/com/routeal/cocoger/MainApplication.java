@@ -7,12 +7,16 @@ import android.os.Build;
 import android.util.JsonReader;
 import android.widget.Toast;
 
+import com.facebook.stetho.Stetho;
 import com.routeal.cocoger.model.Device;
+import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.net.RestClient;
 import com.routeal.cocoger.util.Utils;
 
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by nabe on 6/11/17.
@@ -20,6 +24,8 @@ import java.io.InputStreamReader;
 
 public class MainApplication extends Application {
     private final static String JSON_FILENAME = "cocoger.json";
+
+    private final static String LOCATION_PERMISSION = "locationPermission";
 
     private SharedPreferences mPreferences;
 
@@ -29,6 +35,8 @@ public class MainApplication extends Application {
 
     private static RestClient mRestClient;
 
+    private static String mAppVersion = "0.01";
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -36,6 +44,8 @@ public class MainApplication extends Application {
         mInstance = this;
 
         mContext = getApplicationContext();
+
+        Stetho.initializeWithDefaults(mContext);
 
         mPreferences = getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE);
 
@@ -52,6 +62,8 @@ public class MainApplication extends Application {
                     server_url = reader.nextString();
                 } if (name.equals("enable_server_debug")) {
                     enable_server_debug = reader.nextBoolean();
+                } if (name.equals("app_version")) {
+                    mAppVersion = reader.nextString();
                 } else {
                     reader.skipValue();
                 }
@@ -66,16 +78,6 @@ public class MainApplication extends Application {
 
         mRestClient = new RestClient(server_url, true /*enable_server_debug*/);
 
-        mDevice = new Device();
-        mDevice.setId(Utils.getDeviceUniqueID());
-        mDevice.setBrand(Build.BRAND);
-        mDevice.setModel(Build.MODEL);
-        mDevice.setVersion(Build.VERSION.RELEASE);
-        mDevice.setSimulator(Utils.isEmulator());
-        mDevice.setToken(""); // empty for now
-        mDevice.setStatus(Device.FOREGROUND);
-
-        mUser = new User();
     }
 
     public static Context getContext() {
@@ -88,8 +90,21 @@ public class MainApplication extends Application {
         return mInstance.getString(R.string.app_name);
     }
 
+    public static String getApplicationVersion() {
+        return mAppVersion;
+    }
+
     public static RestClient getRestClient() { return mRestClient; }
 
+    public static boolean isLocationPermitted() {
+        return mInstance.mPreferences.getBoolean(LOCATION_PERMISSION, false);
+    }
+
+    public static void permitLocation(boolean permit) {
+        mInstance.mPreferences.edit().putBoolean(LOCATION_PERMISSION, permit).apply();
+    }
+
+    /*
     public static void putString(String key, String value) {
         mInstance.mPreferences.edit().putString(key, value).apply();
     }
@@ -137,20 +152,5 @@ public class MainApplication extends Application {
     public static boolean getBool(String key, boolean value) {
         return mInstance.mPreferences.getBoolean(key, value);
     }
-
-    private static User mUser;
-
-    public static User getUser() {
-        return mUser;
-    }
-
-    public static void setUser(User user) {
-        mUser = user;
-    }
-
-    private static Device mDevice;
-
-    public static Device getDevice() {
-        return mDevice;
-    }
+    */
 }

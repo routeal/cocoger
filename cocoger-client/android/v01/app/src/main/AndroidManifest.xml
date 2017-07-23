@@ -53,11 +53,14 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".ui.main.MapsActivity" />
+        <!--
+        <activity android:name=".ui.main.MapActivity" />
 
-        <activity android:name=".ui.main.SearchMapsActivity" />
+        <activity android:name=".ui.main.SearchMapActivity" />
+        -->
 
-        <activity android:name=".ui.main.SlidingPanelSearchMapsActivity" />
+        <activity android:name=".ui.main.SlidingUpPanelMapActivity"
+            />
 
         <receiver android:name=".service.OnBootReceiver">
             <intent-filter>
@@ -68,7 +71,7 @@
         <service android:name=".service.LocationService" />
 
         <provider
-            android:name=".provider.DatabaseProvider"
+            android:name="com.routeal.cocoger.provider.DatabaseProvider"
             android:authorities="com.routeal.cocoger.provider"
             android:exported="false" />
 

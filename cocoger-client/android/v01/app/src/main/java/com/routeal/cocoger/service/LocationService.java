@@ -1,15 +1,11 @@
 package com.routeal.cocoger.service;
 
-import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.net.Uri;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -21,14 +17,17 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.model.LocationAddress;
-import com.routeal.cocoger.provider.DB;
+import com.routeal.cocoger.net.RestClient;
+import com.routeal.cocoger.provider.DBUtil;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.PriorityQueue;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 /**
  * Created by hwatanabe on 4/11/17.
@@ -36,8 +35,6 @@ import java.util.PriorityQueue;
 
 public class LocationService extends BasePeriodicService
         implements LocationListener {
-
-    public static final String LAST_LOCATION_UPDATE = "last_location_update";
 
     enum LocationMode {
         NONE,
@@ -47,13 +44,21 @@ public class LocationService extends BasePeriodicService
 
     private static final String TAG = "LocationService";
 
-    private final static String LocationPermission = "locationPermission";
+    public static final String LAST_LOCATION_UPDATE = "last_location_update";
 
-    private final static long backgroundInterval = 20000;
+    private final static long BACKGROUND_INTERVAL = 20000;
 
-    private final static long foregroundInterval = 2000;
+    private final static long FOREGROUND_INTERVAL = 2000;
 
-    public static LocationService activeService;
+    private final static int MAX_LOCATION_UPDATE_NUMBER = 20;
+
+    private final static int PASTLOCATION_QUEUE_SIZE = 3;
+
+    private final static float FOREGROUND_MIN_MOVEMENT = 2.0f;
+
+    private final static float BACKGROUND_MIN_MOVEMENT = 10.0f;
+
+    public static LocationService mActiveService;
 
     private static LocationRequest mLocationRequest;
 
@@ -63,7 +68,7 @@ public class LocationService extends BasePeriodicService
 
     private static Location mLastKnownLocation;
 
-    private static long interval = backgroundInterval;
+    private static long mServiceInterval = BACKGROUND_INTERVAL;
 
     private GoogleApiClient mGoogleApiClient;
 
@@ -88,17 +93,17 @@ public class LocationService extends BasePeriodicService
 
     public static void setForegroundMode() {
         mRequestedLocationMode = LocationMode.FOREGROUND;
-        interval = foregroundInterval;
-        if (activeService != null) {
-            activeService.execTask();
+        mServiceInterval = FOREGROUND_INTERVAL;
+        if (mActiveService != null) {
+            mActiveService.execTask();
         }
     }
 
     public static void setBackgroundMode() {
         mRequestedLocationMode = LocationMode.BACKGROUND;
-        interval = backgroundInterval;
-        if (activeService != null) {
-            activeService.execTask();
+        mServiceInterval = BACKGROUND_INTERVAL;
+        if (mActiveService != null) {
+            mActiveService.execTask();
         }
     }
 
@@ -111,7 +116,7 @@ public class LocationService extends BasePeriodicService
         }
 
         if (mGoogleApiClient == null) {
-            mGoogleApiClient = new GoogleApiClient.Builder(activeService)
+            mGoogleApiClient = new GoogleApiClient.Builder(mActiveService)
                     .addApi(LocationServices.API)
                     .addApi(Places.GEO_DATA_API)
                     .addApi(Places.PLACE_DETECTION_API)
@@ -129,8 +134,6 @@ public class LocationService extends BasePeriodicService
             return;
         }
 
-        Log.d(TAG, "startLocationUpdate");
-
         if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -144,6 +147,8 @@ public class LocationService extends BasePeriodicService
         }
 
         if (mLocationMode == mRequestedLocationMode) return;
+
+        Log.d(TAG, "startLocationUpdate");
 
         if (mRequestedLocationMode.equals(LocationMode.BACKGROUND)) {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
@@ -167,27 +172,25 @@ public class LocationService extends BasePeriodicService
 
     @Override
     protected long getIntervalTime() {
-        return interval;
+        return mServiceInterval;
     }
 
     @Override
     protected void execTask() {
-        activeService = this;
+        mActiveService = this;
 
-        //
-        // background processing here
-        //
-        Log.d(TAG, "execTask");
+        if (MainApplication.isLocationPermitted()) {
+            Log.d(TAG, "Permission granted already");
 
-        if (MainApplication.getBool(LocationPermission)) {
             // start to connect with google api client
             connect();
+
             // start to get a location update
             startLocationUpdate();
-        }
 
-        // upload the locations in the db
-        uploadLocations();
+            // upload locations if any in the database
+            uploadLocations();
+        }
 
         makeNextPlan();
     }
@@ -198,8 +201,8 @@ public class LocationService extends BasePeriodicService
     }
 
     public static void stopResidentIfActive(Context context) {
-        if (activeService != null) {
-            activeService.stopResident(context);
+        if (mActiveService != null) {
+            mActiveService.stopResident(context);
         }
     }
 
@@ -218,16 +221,16 @@ public class LocationService extends BasePeriodicService
 
             if (mLocationMode == LocationMode.FOREGROUND) {
                 queue.add(new PastLocation(distance, location));
-                if (queue.size() == 10) {
-                    Log.d(TAG, "distance: " + queue.poll().distance);
-                    if (queue.poll().distance > 5) {
+                if (queue.size() == PASTLOCATION_QUEUE_SIZE) {
+                    Log.d(TAG, "foreground distance: " + queue.poll().distance);
+                    if (queue.poll().distance > FOREGROUND_MIN_MOVEMENT) {
                         saveLocation(queue.poll().location);
                     }
                     queue.clear();
                 }
             } else if (mLocationMode == LocationMode.BACKGROUND) {
-                Log.d(TAG, "distance: " + distance);
-                if (distance >= 10.0) {
+                Log.d(TAG, "background distance: " + distance);
+                if (distance >= BACKGROUND_MIN_MOVEMENT) {
                     saveLocation(location);
                 }
             }
@@ -241,64 +244,54 @@ public class LocationService extends BasePeriodicService
     }
 
     private void saveLocation(Location location) {
+        Address address = null;
+        try {
+            List<Address> addresses = mGeocoder.getFromLocation(
+                    location.getLatitude(),
+                    location.getLongitude(),
+                    1);
+            // FIXME: first address always works best???
+            address = addresses.get(0);
+        } catch (Exception e) {
+        }
+
+        if (address == null) {
+            Log.d(TAG, "No address for " + location.toString());
+            return;
+        }
+
+        Log.d(TAG, "saveLocation");
+
         mLastKnownLocation = location;
 
-        List<Address> addresses = null;
-        try {
-            addresses = mGeocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
-        } catch (IOException e) {
-
-        }
-
-        if (addresses != null && addresses.size() > 0) {
-            Address address = addresses.get(0);
-            Log.d(TAG, "address: " + address.toString());
-        }
-
-        // notify the location to the activity
+        // notify both location address to the activity
         Intent intent = new Intent(LAST_LOCATION_UPDATE);
         intent.putExtra("location", location);
+        intent.putExtra("address", address);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
-        // save the location into the database
-        ContentValues values = new ContentValues();
-        values.put(DB.Locations.CREATED, System.currentTimeMillis());
-        values.put(DB.Locations.LATITUDE, location.getLatitude());
-        values.put(DB.Locations.LONGITUDE, location.getLongitude());
-        ContentResolver contentResolver = this.getContentResolver();
-        contentResolver.insert(DB.Locations.CONTENT_URI, values);
+        // save both location and address into the database
+        DBUtil.saveLocation(location, address);
     }
 
     private void uploadLocations() {
-        List<LocationAddress> locations = new ArrayList<LocationAddress>();
+        final List<LocationAddress> locations = DBUtil.getLocations(MAX_LOCATION_UPDATE_NUMBER);
 
-        Cursor cursor = null;
-        try {
-            Uri uri = DB.Locations.CONTENT_URI;
-            ContentResolver contentResolver = this.getContentResolver();
-            cursor = contentResolver.query(uri, null, null, null, null);
-            if (cursor != null) {
-                int index;
-                cursor.moveToFirst();
-                do {
-                    LocationAddress loc = new LocationAddress();
-                    locations.add(loc);
-                    index = cursor.getColumnIndex(DB.Locations.LATITUDE);
-                    loc.setLatitude(cursor.getDouble(index));
-                    index = cursor.getColumnIndex(DB.Locations.LONGITUDE);
-                    loc.setLongitude(cursor.getDouble(index));
-                } while (cursor.moveToNext());
+        if (locations.isEmpty()) return;
+
+        Call<Void> upload = RestClient.service().setLocations(RestClient.token(), locations);
+
+        upload.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                // on success, remove the locations in the database
+                DBUtil.deleteLocations(locations);
             }
-        } catch (Exception e) {
-            Log.e(TAG, "Error to retrieve locations", e);
-        } finally {
-            if (cursor != null) {
-                cursor.close();
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
             }
-        }
-
-        if (locations.size() == 0) return;
-
+        });
     }
 
 }

@@ -4,91 +4,92 @@
  * Module dependencies.
  */
 var mongoose = require('mongoose'),
-	Schema = mongoose.Schema;
+    Schema = mongoose.Schema;
 
 /**
- * Location Schema  -  should use GeoJSON????
+ * Location Schema
  */
 var LocationSchema = new Schema({
-	coordinates	: {
-		type	: [Number],
-		index	: '2dsphere'
-	},
-	accuracy	: Number,
-	altitude	: Number,
-	speed		: Number,
-	type		: Number,
-	timezone	: {
-		type	: String,
-		default : 'Asia/Tokyo',
-	},
-	// Integer value representing the number of milliseconds since
-	// 1 January 1970 00:00:00 UTC (Unix Epoch).
-	created		: {
-		type	: Date,
-		default : Date.now
-	},
-	user		: {
-		type	: Schema.ObjectId,
-		ref	: 'User'
-	},
-	device		: {
-		type	: Schema.ObjectId,
-		ref	: 'Device'
-	},
-	zip		: {
-		type	: String,
-		default : '',
-	},
-	country		: {
-		type	: String,
-		default : '',
-	},
-	state		: {
-		type	: String,
-		default : '',
-	},
-	county		: {
-		type	: String,
-		default : '',
-	},
-	city		: {
-		type	: String,
-		default : '',
-	},
-	town		: {
-		type	: String,
-		default : '',
-	},
-	street		: {
-		type	: String,
-		default : '',
-	}
+  user		: {
+    type	: Schema.ObjectId,
+    ref	        : 'User'
+  },
+  coordinates   : {
+    type        : [Number],
+    index       : '2dsphere'
+  },
+  altitude      : {
+    type        : Number,
+    default     : 0
+  },
+  speed         : {
+    type        : Number,
+    default     : 0
+  },
+  time          : {
+    type        : Date,
+    default     : undefined
+  },
+  postalCode    : {
+    type        : String,
+    default     : ''
+  },
+  countryName   : {
+    type        : String,
+    default     : ''
+  },
+  adminArea     : {
+    type        : String,
+    default     : ''
+  },
+  subAdminArea  : {
+    type        : String,
+    default     : ''
+  },
+  locality      : {
+    type        : String,
+    default     : ''
+  },
+  subLocality   : {
+    type        : String,
+    default     : ''
+  },
+  thoroughfare  : {
+    type        : String,
+    default     : ''
+  },
+  subThoroughfare: {
+    type        : String,
+    default     : ''
+  }
 });
 
 LocationSchema.set('toJSON', {
-	transform: function(doc, ret, options) {
-		var retJson = {
-			latitude	: ret.coordinates[1],
-			longitude	: ret.coordinates[0],
-			altitude	: ret.altitude,
-			speed		: ret.speed,
-			accuracy	: ret.accuracy,
-			type		: ret.type,
-			timezone	: ret.timezone,
-			created		: ret.created,
-			user		: ret.user,
-			device		: ret.device,
-			zip		: ret.zip,
-			country		: ret.country,
-			state		: ret.state,
-			county		: ret.county,
-			city		: ret.city,
-			town		: ret.town,
-			street		: ret.street,
-		};
-		return retJson;
-	}
+  transform: function(doc, ret, options) {
+    var retJson = {
+      latitude        : ret.coordinates[1],
+      longitude       : ret.coordinates[0],
+      altitude        : ret.altitude,
+      speed           : ret.speed,
+      time            : ret.time, // FIXME: integer
+      postalCode      : ret.postalCode,
+      countryName     : ret.countryName,
+      adminArea       : ret.adminArea,
+      subAdminArea    : ret.subAdminArea,
+      locality        : ret.locality,
+      subLocality     : ret.subLocality,
+      thoroughfare    : ret.thoroughfare,
+      subThoroughfare : ret.subThoroughfare
+    };
+    return retJson;
+  }
 });
+
+LocationSchema.pre('save', function (next, req, callback) {
+  console.log(req);
+  //this.user = req.user._id;
+  next(callback);
+});
+
 
 mongoose.model('Location', LocationSchema);

@@ -3,6 +3,7 @@ package com.routeal.cocoger.ui.main;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Color;
+import android.location.Address;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -23,16 +24,13 @@ import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.SearchSuggestionsAdapter;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.arlib.floatingsearchview.util.Util;
-import com.facebook.AccessToken;
-import com.facebook.GraphRequest;
-import com.facebook.GraphResponse;
-import com.facebook.HttpMethod;
 import com.facebook.login.LoginManager;
 import com.mikepenz.aboutlibraries.Libs;
 import com.mikepenz.aboutlibraries.LibsBuilder;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.net.RestClient;
+import com.routeal.cocoger.provider.DBUtil;
 import com.routeal.cocoger.ui.login.FacebookLoginActivity;
 import com.routeal.cocoger.util.Utils;
 import com.squareup.picasso.Picasso;
@@ -45,9 +43,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class SearchMapsActivity extends MapsActivity
+public class SearchMapActivity extends MapActivity
         implements NavigationView.OnNavigationItemSelectedListener {
-    private final static String TAG = "SearchMapsActivity";
+    private final static String TAG = "SearchMapActivity";
 
     private FloatingSearchView mSearchView;
 
@@ -70,15 +68,21 @@ public class SearchMapsActivity extends MapsActivity
             public void onDrawerOpened(View drawerView) {
                 ImageView imageView = (ImageView) findViewById(R.id.my_picture);
                 Picasso.with(getApplicationContext())
-                        .load(MainApplication.getUser().getPicture())
+                        .load(DBUtil.getUser().getPicture())
                         .resize(128, 128)
                         .into(imageView);
 
                 TextView textView = (TextView) findViewById(R.id.my_display_name);
-                textView.setText(MainApplication.getUser().getName());
+                textView.setText(DBUtil.getUser().getName());
 
                 textView = (TextView) findViewById(R.id.my_email);
-                textView.setText(MainApplication.getUser().getEmail());
+                textView.setText(DBUtil.getUser().getEmail());
+
+                Address addr = getAddress();
+                if (addr != null) {
+                    textView = (TextView) findViewById(R.id.my_address);
+                    textView.setText(addr.toString());
+                }
             }
 
             @Override
@@ -99,33 +103,43 @@ public class SearchMapsActivity extends MapsActivity
 
     }
 
-    void logoutFacebook() {
-        final ProgressDialog dialog = Utils.spinBusyCurosr(this);
+    private void logoutImpl() {
+        // logout anyway
+        LoginManager.getInstance().logOut();
 
-        Call<Void> logout = RestClient.service().logout(RestClient.token(), MainApplication.getDevice());
+        // cleanup the databases
+        DBUtil.deleteUser();
+        DBUtil.deleteLocations();
+
+        // cleanup the app config
+        MainApplication.permitLocation(false);
+
+        // start the login screen
+        Intent intent = new Intent(getApplicationContext(), FacebookLoginActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
+    private void logoutFacebook() {
+        final ProgressDialog dialog = Utils.spinBusyCursor(this);
+
+        Call<Void> logout = RestClient.service().logout(RestClient.token(), Utils.getDevice());
 
         logout.enqueue(new Callback<Void>() {
             @Override
             public void onResponse(Call<Void> call, Response<Void> response) {
                 dialog.dismiss();
-
-                // logout anyway
-                LoginManager.getInstance().logOut();
-
-                // start the login screen
-                Intent intent = new Intent(getApplicationContext(), FacebookLoginActivity.class);
-                startActivity(intent);
-                finish();
+                logoutImpl();
             }
-
             @Override
             public void onFailure(Call<Void> call, Throwable t) {
+                dialog.dismiss();
+                logoutImpl();
             }
         });
-
     }
 
-    void showOpensource() {
+    private void showOpensourceLibraries() {
         new LibsBuilder()
                 //provide a style (optional) (LIGHT, DARK, LIGHT_DARK_TOOLBAR)
                 .withActivityStyle(Libs.ActivityStyle.LIGHT_DARK_TOOLBAR)
@@ -147,7 +161,7 @@ public class SearchMapsActivity extends MapsActivity
         } else if (id == R.id.nav_logout) {
             logoutFacebook();
         } else if (id == R.id.nav_open_source) {
-            showOpensource();
+            showOpensourceLibraries();
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

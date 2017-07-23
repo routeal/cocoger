@@ -14,5 +14,6 @@
         <attr name="textStyle" format="reference"/>
         <attr name="textIndicatorTopMargin" format="dimension"/>
         <attr name="textSize" format="dimension"/>
+        <attr name="enabled" format="boolean"/>
     </declare-styleable>
 </resources>

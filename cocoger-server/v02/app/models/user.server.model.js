@@ -5,8 +5,8 @@
  */
 var mongoose = require('mongoose'),
     Schema = mongoose.Schema,
-    Friend = mongoose.model('Friend'),
     Location = mongoose.model('Location'),
+    Device = mongoose.model('Device'),
     crypto = require('crypto'),
     validator = require('validator');
 
@@ -49,20 +49,19 @@ var UserSchema = new Schema({
     },
     trim: true,
     default: '',
-    validate: [validateLocalStrategyEmail, 'Please fill a valid email address']
+    //validate: [validateLocalStrategyEmail, 'Please fill a valid email address']
   },
   firstName: {
     type: String,
     trim: true,
     default: '',
-    validate: [validateLocalStrategyProperty, 'Please fill in your first name']
+    //validate: [validateLocalStrategyProperty, 'Please fill in your first name']
   },
   lastName: {
     type: String,
     trim: true,
     default: '',
-    validate: [validateLocalStrategyProperty, 'Please fill in your last name']
-
+    //validate: [validateLocalStrategyProperty, 'Please fill in your last name']
   },
   name: {
     type: String,
@@ -116,7 +115,8 @@ var UserSchema = new Schema({
     default: Date.now
   },
   updated: {
-    type: Date
+    type: Date,
+    default: Date.now
   },
 
   /*********************************************************************/
@@ -130,12 +130,6 @@ var UserSchema = new Schema({
   },
   providerData: {},
   additionalProvidersData: {},
-
-  //providerId: {
-  //  type: String,
-  //  unique: 'provider id should be unique',
-  //  required: 'provider id must be filled in'
-  //},
 
   /*********************************************************************/
   /* password management for the local provider */
@@ -173,72 +167,61 @@ var UserSchema = new Schema({
   /* Friends */
   /*********************************************************************/
 
-  friends: [ Friend.schema ],
+  friends: [
+    {
+      user: {
+	type: Schema.ObjectId,
+	ref: 'User'
+      },
+      range: {
+	type: Number,
+	default: 0
+      },
+      status: {
+	type: Number, // 0=requested, 1=approved, 2=reject, 3=rejected
+	default: 0
+      },
+      approved: {
+	type: Date,
+	default: undefined
+      }
+    }
+  ],
 
   /*********************************************************************/
-  /* Locations */
+  /* Location */
   /*********************************************************************/
 
-  locations: [ Location.schema ],
+  lastLocationId: {
+    type: Schema.ObjectId,
+    ref: 'Location',
+    default: undefined
+  },
+
+  // Note: location data are saved independently in the database since
+  // they could become a huge array of the location data
 
   /*********************************************************************/
   /* Group list */
   /*********************************************************************/
 
-  groups: [ Schema.ObjectId ],
+  groups: [
+    {
+      type: Schema.ObjectId,
+      ref: 'Group'
+    }
+  ],
 
   /*********************************************************************/
   /* Device list */
   /*********************************************************************/
 
-  devices: [
-    {
-      // device unique id
-      id: {
-        type: String,
-        default: ''
-      },
-      // mobile/desktop
-      type: {
-        type: String,
-        default: 'mobile'
-      },
-      // ios, android, windows, etc
-      platform: {
-        type: String,
-        default: ''
-      },
-      brand: {
-        type: String,
-        default: ''
-      },
-      model: {
-        type: String,
-        default: ''
-      },
-      // 10.12(ios), 7(android)
-      version: {
-        type: String,
-        default: ''
-      },
-      simulator: {
-        type: Boolean,
-        default: true,
-      },
-      token: {
-        type: String,
-        default: ''
-      },
-      // UNAVAILABLE = 0, BACKGROUND = 1, FOREGROUND = 2
-      status: {
-        type: Number,
-        default: 2,
-      }
-    }
-  ]
+  devices: [ Device.schema ],
 
 });
 
+// FIXME: send the last location, a list of the friends, and a list of
+// the groups
 UserSchema.set('toJSON', {
   transform: function(doc, ret, options) {
     var retJson = {

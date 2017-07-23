@@ -9,16 +9,18 @@ import android.provider.Settings;
 
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.model.Device;
 
 /**
  * Created by nabe on 7/3/17.
  */
 
 public class Utils {
-    public static ProgressDialog spinBusyCurosr(Activity activity) {
+
+    public static ProgressDialog spinBusyCursor(Activity activity) {
         ProgressDialog dialog = ProgressDialog.show(activity, null, null, false, true);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        dialog.setContentView(R.layout.progress_bar);
+        dialog.setContentView(R.layout.progressbar_spinner);
         return dialog;
     }
 
@@ -57,5 +59,29 @@ public class Utils {
         }
 
         return rating > 4;
+    }
+
+    public static int getColorWithAlpha(int color, float ratio) {
+        int newColor = 0;
+        int alpha = Math.round(Color.alpha(color) * ratio);
+        int r = Color.red(color);
+        int g = Color.green(color);
+        int b = Color.blue(color);
+        newColor = Color.argb(alpha, r, g, b);
+        return newColor;
+    }
+
+    // For now, the device is saved into the memory
+    public static Device getDevice() {
+        Device mDevice = new Device();
+        mDevice.setDeviceId(Utils.getDeviceUniqueID());
+        mDevice.setBrand(Build.BRAND);
+        mDevice.setModel(Build.MODEL);
+        mDevice.setPlatformVersion(Build.VERSION.RELEASE);
+        mDevice.setSimulator(Utils.isEmulator());
+        mDevice.setToken(""); // empty for now
+        mDevice.setStatus(Device.FOREGROUND);
+        mDevice.setAppVersion(MainApplication.getApplicationVersion());
+        return mDevice;
     }
 }

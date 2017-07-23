@@ -9,9 +9,11 @@ import android.util.Log;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.net.RestClient;
+import com.routeal.cocoger.provider.DBUtil;
 import com.routeal.cocoger.service.LocationService;
-import com.routeal.cocoger.ui.main.SlidingPanelSearchMapsActivity;
+import com.routeal.cocoger.ui.main.SlidingUpPanelMapActivity;
 import com.routeal.cocoger.util.AppVisibilityDetector;
+import com.routeal.cocoger.util.Utils;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -53,8 +55,8 @@ public class SplashActivity extends AppCompatActivity {
         if (RestClient.token() == null) {
             startLogin();
         } else {
-            User user = MainApplication.getUser();
-            user.setDevice(MainApplication.getDevice());
+            User user = DBUtil.getUser();
+            user.setDevice(Utils.getDevice());
 
             // login to the server in the background and starts the main(map) screen
             Call<User> login = RestClient.service().login(RestClient.token(), user);
@@ -63,21 +65,26 @@ public class SplashActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(Call<User> call, Response<User> response) {
                     Log.d(TAG, "Response: " + response.body().toString());
-                    MainApplication.setUser(response.body());
-                    User user = MainApplication.getUser();
+                    DBUtil.saveUser(response.body());
+                    User user = DBUtil.getUser();
                     Log.d(TAG, "User: " + user.toString());
                     startMain();
                 }
 
                 @Override
                 public void onFailure(Call<User> call, Throwable t) {
+                    /*
+                    User user = DBUtil.getUser();
+                    Log.d(TAG, "User: " + user.toString());
+                    */
+                    startMain();
                 }
             });
         }
     }
 
     private void startMain() {
-        Intent intent = new Intent(getApplicationContext(), SlidingPanelSearchMapsActivity.class);
+        Intent intent = new Intent(getApplicationContext(), SlidingUpPanelMapActivity.class);
         startActivity(intent);
         finish();
     }
