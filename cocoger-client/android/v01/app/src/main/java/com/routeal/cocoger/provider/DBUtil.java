@@ -72,23 +72,8 @@ public class DBUtil {
     }
 
     public static void deleteUser() {
-        Cursor cursor = null;
-        try {
-            ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
-            cursor = contentResolver.query(DB.Users.CONTENT_URI, null, null, null, null);
-            if (cursor != null && cursor.moveToFirst()) {
-                do {
-                    int index = cursor.getColumnIndex(DB.Users._ID);
-                    long id = cursor.getLong(index);
-                    Uri uri = ContentUris.withAppendedId(DB.Users.CONTENT_URI, id);
-                    contentResolver.delete(uri, null, null);
-                } while (cursor.moveToNext());
-            }
-        } finally {
-            if (cursor != null) {
-                cursor.close();
-            }
-        }
+        ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
+        contentResolver.delete(DB.Users.CONTENT_URI, null, null);
     }
 
     public static void saveLocation(Location location, Address address) {
@@ -208,5 +193,7 @@ public class DBUtil {
     }
 
     public static void deleteFriends() {
+        ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
+        contentResolver.delete(DB.Friends.CONTENT_URI, null, null);
     }
 }

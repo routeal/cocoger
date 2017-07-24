@@ -48,7 +48,8 @@ import com.squareup.picasso.Picasso;
 public class MapActivity extends FragmentActivity
         implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener {
+        GoogleApiClient.OnConnectionFailedListener,
+        GoogleMap.OnInfoWindowClickListener {
 
     private final static String TAG = "MapActivity";
     private final static String LOCATION_PERMISSION = "locationPermission";
@@ -260,6 +261,8 @@ public class MapActivity extends FragmentActivity
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        mMap.setOnInfoWindowClickListener(this);
+
         if (MainApplication.isLocationPermitted()) {
             if (mLastKnownLocation == null) {
                 mLastKnownLocation = LocationService.getLastLocation();
@@ -396,5 +399,10 @@ public class MapActivity extends FragmentActivity
 
     public Address getAddress() {
         return mAddress;
+    }
+
+    @Override
+    public void onInfoWindowClick(Marker marker) {
+
     }
 }

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <android.support.v7.widget.AppCompatTextView
+        android:id="@+id/name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true" />
+
+    <android.support.v7.widget.AppCompatImageView
+        android:id="@+id/street_snapshot"
+        android:layout_width="128dp"
+        android:layout_height="128dp"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/name"
+        android:contentDescription="@string/street_view"
+        style="@android:style/Widget.Material.Button.Borderless"/>
+
+    <android.support.v7.widget.AppCompatTextView
+        android:id="@+id/current_address"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/name"
+        android:layout_toRightOf="@+id/street_snapshot" />
+
+    <android.support.v7.widget.AppCompatEditText
+        android:id="@+id/post_facebook"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/street_snapshot"
+        android:layout_alignParentRight="true"
+        android:layout_toRightOf="@+id/street_snapshot"
+        android:clickable="true"
+        android:maxLines="1"
+        android:enabled="false" />
+
+    <LinearLayout
+        android:layout_below="@+id/street_snapshot"
+        android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal">
+
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/search_nearby"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/search_nearby"/>
+
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/save_to_map"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/save_to_map"/>
+
+    </LinearLayout>
+
+</RelativeLayout>

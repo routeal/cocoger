@@ -429,7 +429,7 @@ exports.set = function(req, res) {
       },
       // save the locations
       function(locations, callback) {
-        if (locations) {
+        if (locations && user) {
           _.map(locations, function(x) {
             x.user = user._id;
             return x

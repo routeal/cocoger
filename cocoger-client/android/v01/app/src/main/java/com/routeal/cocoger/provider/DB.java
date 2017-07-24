@@ -158,6 +158,7 @@ public final class DB {
         public static final String TIMEZONE = "timezone";
         public static final String UPDATED = "updated";
         public static final String STATUS = "status";
+        public static final String RANGE = "range";
         public static final String APPROVED = "approved";
 
         static final String PROVIDERID_TYPE = "TEXT";
@@ -170,6 +171,7 @@ public final class DB {
         static final String TIMEZONE_TYPE = "TEXT";
         static final String UPDATED_TYPE = "TEXT";
         static final String STATUS_TYPE = "INTEGER";
+        static final String RANGE_TYPE = "INTEGER";
         static final String APPROVED_TYPE = "TEXT";
     }
 
@@ -193,6 +195,7 @@ public final class DB {
                 "," + " " + TIMEZONE + " " + TIMEZONE_TYPE +
                 "," + " " + UPDATED + " " + UPDATED_TYPE +
                 "," + " " + STATUS + " " + STATUS_TYPE +
+                "," + " " + RANGE + " " + RANGE_TYPE +
                 "," + " " + APPROVED + " " + APPROVED_TYPE +
                 ");";
     }

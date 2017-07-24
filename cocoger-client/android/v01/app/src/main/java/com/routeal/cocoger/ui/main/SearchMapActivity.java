@@ -109,6 +109,7 @@ public class SearchMapActivity extends MapActivity
 
         // cleanup the databases
         DBUtil.deleteUser();
+        DBUtil.deleteFriends();
         DBUtil.deleteLocations();
 
         // cleanup the app config

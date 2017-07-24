@@ -4,6 +4,27 @@ import java.io.Serializable;
 
 public class Friend implements Serializable {
 
+    public enum Range {
+        NONE(0),
+        COUNTRY(1),
+        ADMINAREA(2),
+        SUBADMINAREA(4),
+        LOCALITY(8),
+        SUBLOCALITY(16),
+        THOROUGHFARE(32),
+        SUBTHOROUGHFARE(64);
+
+        private final int range;
+
+        private Range(int range) {
+            this.range = range;
+        }
+
+        public int toInt() {
+            return range;
+        }
+    }
+
     private String providerId;
     private String firstName;
     private String lastName;
@@ -14,6 +35,7 @@ public class Friend implements Serializable {
     private String timezone;
     private String updated;
     private int status;
+    private int range = Range.COUNTRY.toInt();
     private String approved;
 
     public String getProviderId() {
@@ -94,6 +116,14 @@ public class Friend implements Serializable {
 
     public void setStatus(int status) {
         this.status = status;
+    }
+
+    public int getRange() {
+        return range;
+    }
+
+    public void setRange(int range) {
+        this.range = range;
     }
 
     public String getApproved() {

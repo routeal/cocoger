@@ -236,6 +236,7 @@ public class FacebookLoginActivity extends AppCompatActivity {
                     Log.d(TAG, "Login succeeded: " + response.body().toString());
 
                     // save the user into the database
+                    DBUtil.deleteUser();
                     DBUtil.saveUser(user);
 
                     Intent intent = new Intent(getApplicationContext(),

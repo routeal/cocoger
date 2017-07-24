@@ -24,7 +24,7 @@ var FriendSchema = new Schema({
 	},
 	range: {
 		type: Number,
-		default: 0
+		default: 1
 	},
 	name: {
 		type: String,

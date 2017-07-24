@@ -50,9 +50,12 @@ public class SlidingUpPanelMapActivity extends SearchMapActivity {
             }
         });
 
+        FriendListFragment friendFragment = new FriendListFragment();
+        friendFragment.setSlidingUpPanelLayout(mLayout);
+
         ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
-        adapter.addFragment(new FriendListFragment(mLayout), null);
+        adapter.addFragment(friendFragment, null);
         adapter.addFragment(new GroupListFragment(), null);
         viewPager.setAdapter(adapter);
 

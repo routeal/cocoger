@@ -30,6 +30,8 @@
     <string name="location_denied_content">Permission is required.  Try again or exit the app.</string>
     <string name="exit">Exit</string>
     <string name="try_again">Try again</string>
+    <string name="no_friend">Friends waiting for your invitation!!!</string>
+    <string name="invite_friend">Invite Friends</string>
     <string name="signup_note">
         <![CDATA[
         <html>
@@ -47,4 +49,7 @@
         <item>county</item>
         <item>country</item>
     </string-array>
+    <string name="street_view">street view</string>
+    <string name="search_nearby">Search nearby</string>
+    <string name="save_to_map">Save to map</string>
 </resources>

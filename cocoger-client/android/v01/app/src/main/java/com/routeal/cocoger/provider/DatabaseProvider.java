@@ -245,7 +245,7 @@ public class DatabaseProvider extends ContentProvider {
             }
 
             case FRIENDS: {
-                affected = db.delete(DB.Users.TABLE, selection, selectionArgs);
+                affected = db.delete(DB.Friends.TABLE, selection, selectionArgs);
                 ContentResolver resolver = getContext().getContentResolver();
                 resolver.notifyChange(DB.Friends.CONTENT_URI, null);
                 break;
@@ -253,7 +253,7 @@ public class DatabaseProvider extends ContentProvider {
 
             case FRIENDS_ID: {
                 long id  = new Long(uri.getLastPathSegment()).longValue();
-                affected = db.delete(DB.Users.TABLE, DB.Friends._ID + "= ?",
+                affected = db.delete(DB.Friends.TABLE, DB.Friends._ID + "= ?",
                         new String[] { String.valueOf(id) });
                 ContentResolver resolver = getContext().getContentResolver();
                 Uri notifyUri = ContentUris.withAppendedId(DB.Friends.CONTENT_URI, id);
