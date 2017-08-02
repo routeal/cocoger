@@ -243,6 +243,13 @@ public class LocationService extends BasePeriodicService
         return mLastKnownLocation;
     }
 
+    public static GoogleApiClient getGoogleApiClient() {
+        if (mActiveService != null) {
+            return mActiveService.mGoogleApiClient;
+        }
+        return null;
+    }
+
     private void saveLocation(Location location) {
         Address address = null;
         try {

@@ -11,33 +11,56 @@ import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.support.v7.widget.AppCompatButton;
+import android.support.v7.widget.AppCompatImageView;
+import android.support.v7.widget.AppCompatTextView;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
+import com.appolica.interactiveinfowindow.InfoWindow;
+import com.appolica.interactiveinfowindow.InfoWindowManager;
+import com.appolica.interactiveinfowindow.fragment.MapInfoWindowFragment;
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.share.Sharer;
+import com.facebook.share.model.ShareLinkContent;
+import com.facebook.share.widget.ShareDialog;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.PlaceLikelihood;
+import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.provider.DBUtil;
 import com.routeal.cocoger.service.LocationService;
 import com.routeal.cocoger.util.CircleTransform;
@@ -49,10 +72,10 @@ public class MapActivity extends FragmentActivity
         implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        GoogleMap.OnInfoWindowClickListener {
+        GoogleMap.OnMarkerClickListener,
+        InfoWindowManager.WindowShowListener {
 
     private final static String TAG = "MapActivity";
-    private final static String LOCATION_PERMISSION = "locationPermission";
     private final static String KEY_CAMERA_POSITION = "camera_position";
     private final static String KEY_LOCATION = "location";
 
@@ -82,9 +105,23 @@ public class MapActivity extends FragmentActivity
 
     private Address mAddress;
 
+    private InfoWindow.MarkerSpecification markerSpec;
+
+    private MyInfoFragment myInfoFragment;
+
+    private InfoWindowManager infoWindowManager;
+
+    private CallbackManager callbackManager;
+
+    private ShareDialog shareDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        int offsetX = (int) getResources().getDimension(R.dimen.marker_offset_x);
+        int offsetY = (int) getResources().getDimension(R.dimen.marker_offset_y);
+        markerSpec = new InfoWindow.MarkerSpecification(offsetX, offsetY);
 
         // Retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
@@ -231,21 +268,30 @@ public class MapActivity extends FragmentActivity
             case CONNECTION_FAILURE_RESOLUTION_REQUEST:
                 if (resultCode == Activity.RESULT_OK) {
                     connectGoogleApiClient();
+                    return;
                 } else {
                     // TODO: ERROR dialog
                 }
                 break;
         }
+
+        // facebook sharing
+        callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
     private void buildMap() {
         busyCursor = Utils.spinBusyCursor(this);
 
-        // Build the map.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
-        mapView = mapFragment.getView();
+        MapInfoWindowFragment mapInfoWindowFragment =
+                (MapInfoWindowFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapInfoWindowFragment.getMapAsync(this);
+        mapView = mapInfoWindowFragment.getView();
+        infoWindowManager = mapInfoWindowFragment.infoWindowManager();
+        infoWindowManager.setHideOnFling(true);
+
+        callbackManager = CallbackManager.Factory.create();
+        shareDialog = new ShareDialog(this);
+        shareDialog.registerCallback(callbackManager, shareCallback);
     }
 
     /**
@@ -261,7 +307,7 @@ public class MapActivity extends FragmentActivity
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        mMap.setOnInfoWindowClickListener(this);
+        mMap.setOnMarkerClickListener(this);
 
         if (MainApplication.isLocationPermitted()) {
             if (mLastKnownLocation == null) {
@@ -270,7 +316,8 @@ public class MapActivity extends FragmentActivity
             if (mCameraPosition != null) {
                 mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
             } else if (mLastKnownLocation != null) {
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(getLatLng(mLastKnownLocation), DEFAULT_ZOOM));
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                        Utils.getLatLng(mLastKnownLocation), DEFAULT_ZOOM));
             }
             if (mLastKnownLocation != null) {
                 setupMyLocationMarker(mLastKnownLocation);
@@ -313,7 +360,8 @@ public class MapActivity extends FragmentActivity
         }
 
         if (mLastKnownLocation != null) {
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(getLatLng(mLastKnownLocation), DEFAULT_ZOOM));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                    Utils.getLatLng(mLastKnownLocation), DEFAULT_ZOOM));
             setupMyLocationMarker(mLastKnownLocation);
         }
 
@@ -337,12 +385,13 @@ public class MapActivity extends FragmentActivity
             if (location != null) {
                 // first time only
                 if (mLastKnownLocation == null) {
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(getLatLng(location), DEFAULT_ZOOM));
+                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                            Utils.getLatLng(location), DEFAULT_ZOOM));
                     setupMyLocationMarker(location);
                     busyCursor.dismiss();
                 } else {
                     if (myMarker != null) {
-                        myMarker.setPosition(getLatLng(location));
+                        myMarker.setPosition(Utils.getLatLng(location));
                     }
                 }
                 mLastKnownLocation = location;
@@ -352,19 +401,18 @@ public class MapActivity extends FragmentActivity
         }
     };
 
-    private LatLng getLatLng(Location location) {
-        return new LatLng(location.getLatitude(), location.getLongitude());
-    }
-
     private void setupMyLocationMarker(Location location) {
         // my location marker
-        MarkerOptions options = new MarkerOptions().position(getLatLng(location));
+        MarkerOptions options = new MarkerOptions().position(Utils.getLatLng(location));
         myMarker = mMap.addMarker(options);
         myMarkerTarget = new PicassoMarker(myMarker);
         Picasso.with(getApplicationContext())
                 .load(DBUtil.getUser().getPicture())
                 .transform(new CircleTransform())
                 .into(myMarkerTarget);
+
+        myInfoFragment = new MyInfoFragment();
+        myInfoFragment.setMapActivity(this);
     }
 
     /**
@@ -379,21 +427,12 @@ public class MapActivity extends FragmentActivity
         }
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
-
     private View.OnClickListener myLocationButtonListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             mMap.moveCamera(CameraUpdateFactory.newLatLng(
-                    new LatLng(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude())));
+                    new LatLng(mLastKnownLocation.getLatitude(),
+                            mLastKnownLocation.getLongitude())));
         }
     };
 
@@ -401,8 +440,170 @@ public class MapActivity extends FragmentActivity
         return mAddress;
     }
 
+    public Location getLocation() { return mLastKnownLocation; }
+
     @Override
-    public void onInfoWindowClick(Marker marker) {
+    public boolean onMarkerClick(Marker marker) {
+        if (marker.getId().compareTo(myMarker.getId()) == 0) {
+            InfoWindow infoWindow = new InfoWindow(myMarker, markerSpec, myInfoFragment);
+            infoWindowManager.toggle(infoWindow);
+        }
+        return true;
+    }
+
+    @Override
+    public void onWindowShowStarted(@NonNull InfoWindow infoWindow) {
+    }
+
+    @Override
+    public void onWindowShown(@NonNull InfoWindow infoWindow) {
 
     }
+
+    @Override
+    public void onWindowHideStarted(@NonNull InfoWindow infoWindow) {
+
+    }
+
+    @Override
+    public void onWindowHidden(@NonNull InfoWindow infoWindow) {
+    }
+
+    public static class MyInfoFragment extends Fragment implements View.OnClickListener {
+        private MapActivity mapActivity;
+        private AppCompatTextView name;
+        private AppCompatImageView street_snapshot;
+        private AppCompatTextView current_address;
+        private AppCompatButton post_facebook;
+        private AppCompatButton more_info;
+        private AppCompatButton save_to_map;
+
+        @Nullable
+        @Override
+        public View onCreateView(LayoutInflater inflater,
+                                 @Nullable ViewGroup container,
+                                 @Nullable Bundle savedInstanceState) {
+            Log.d(TAG, "MyInfoFragment: onCreateView");
+
+            View view = inflater.inflate(R.layout.infowindow_me, container, false);
+            name = (AppCompatTextView) view.findViewById(R.id.name);
+            street_snapshot = (AppCompatImageView) view.findViewById(R.id.street_snapshot);
+            current_address = (AppCompatTextView) view.findViewById(R.id.current_address);
+            post_facebook = (AppCompatButton) view.findViewById(R.id.post_facebook);
+            more_info = (AppCompatButton) view.findViewById(R.id.more_info);
+            save_to_map = (AppCompatButton) view.findViewById(R.id.save_to_map);
+            street_snapshot.setOnClickListener(this);
+            post_facebook.setOnClickListener(this);
+            more_info.setOnClickListener(this);
+            save_to_map.setOnClickListener(this);
+            return view;
+        }
+
+        @SuppressWarnings({"MissingPermission"})
+        @Override
+        public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+            super.onViewCreated(view, savedInstanceState);
+
+            Log.d(TAG, "MyInfoFragment: onViewCreated");
+
+            String url = String.format(getResources().getString(R.string.street_view_image_url),
+                    mapActivity.getLocation().getLatitude(),
+                    mapActivity.getLocation().getLongitude());
+
+            Picasso.with(getContext())
+                    .load(url)
+                    .resize(96, 96)
+                    .into(street_snapshot);
+
+            User user = DBUtil.getUser();
+            if (user != null) {
+                name.setText(user.getName());
+            }
+
+            if (mapActivity.getAddress() != null) {
+                String address = mapActivity.getAddress().getAddressLine(0);
+                if (address != null) {
+                    current_address.setText(address);
+                }
+            }
+
+            GoogleApiClient mGoogleApiClient = LocationService.getGoogleApiClient();
+
+            if (mGoogleApiClient != null) {
+                PendingResult<PlaceLikelihoodBuffer> result =
+                        Places.PlaceDetectionApi.getCurrentPlace(mGoogleApiClient, null);
+                result.setResultCallback(new ResultCallback<PlaceLikelihoodBuffer>() {
+                    @Override
+                    public void onResult(@NonNull PlaceLikelihoodBuffer placeLikelihoods) {
+                        for (PlaceLikelihood placeLikelihood : placeLikelihoods) {
+                            Log.i(TAG, String.format("Place '%s' has likelihood: %g",
+                                    placeLikelihood.getPlace().getName(),
+                                    placeLikelihood.getLikelihood()));
+                            if (placeLikelihood.getLikelihood() >= 0.9 &&
+                                    placeLikelihood.getPlace().getWebsiteUri() != null &&
+                                    placeLikelihood.getPlace().getPhoneNumber() != null) {
+                                setPlace(placeLikelihood.getPlace());
+                                break;
+                            }
+                        }
+                        placeLikelihoods.release();
+                    }
+                });
+            }
+        }
+
+        // replace this in the info window
+        void setPlace(Place place) {
+        }
+
+        @Override
+        public void onClick(View v) {
+            switch (v.getId()) {
+                case R.id.street_snapshot:
+                    Intent intent = new Intent(getContext(), StreetViewActivity.class);
+                    intent.putExtra("location", Utils.getLatLng(mapActivity.getLocation()));
+                    startActivity(intent);
+                    break;
+                case R.id.post_facebook:
+                    if (ShareDialog.canShow(ShareLinkContent.class)) {
+                        String url = String.format(getResources().getString(R.string.google_map_url),
+                                mapActivity.getLocation().getLatitude(),
+                                mapActivity.getLocation().getLongitude());
+                        ShareLinkContent linkContent = new ShareLinkContent.Builder()
+                                .setContentUrl(Uri.parse(url))
+                                .build();
+                        mapActivity.shareDialog.show(linkContent);
+                    }
+                    break;
+                case R.id.more_info:
+                    Toast.makeText(getContext(), "moreinfo", Toast.LENGTH_SHORT).show();
+                    break;
+                case R.id.save_to_map:
+                    Toast.makeText(getContext(), "savetomap", Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+
+        void setMapActivity(MapActivity mapActivity) { this.mapActivity = mapActivity; }
+    }
+
+    private FacebookCallback<Sharer.Result> shareCallback = new FacebookCallback<Sharer.Result>() {
+        @Override
+        public void onCancel() {
+        }
+
+        @Override
+        public void onError(FacebookException error) {
+            Toast.makeText(getApplicationContext(),
+                    String.format("Error: %s", error.toString()), Toast.LENGTH_SHORT).show();
+
+        }
+
+        @Override
+        public void onSuccess(Sharer.Result result) {
+            Toast.makeText(getApplicationContext(),
+                    "Successfully posted to facebook", Toast.LENGTH_SHORT).show();
+        }
+    };
+
 }

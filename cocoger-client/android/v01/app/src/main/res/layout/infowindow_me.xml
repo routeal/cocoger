@@ -1,64 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
+    android:layout_width="240dp"
     android:layout_height="wrap_content"
+    android:padding="4dp"
     android:orientation="vertical">
 
     <android.support.v7.widget.AppCompatTextView
         android:id="@+id/name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true" />
+        android:gravity="center"
+        android:layout_alignParentTop="true"
+        android:layout_marginBottom="4dp"
+        android:textAppearance="@android:style/TextAppearance.Material.Title" />
 
     <android.support.v7.widget.AppCompatImageView
         android:id="@+id/street_snapshot"
-        android:layout_width="128dp"
-        android:layout_height="128dp"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/name"
         android:contentDescription="@string/street_view"
-        style="@android:style/Widget.Material.Button.Borderless"/>
+        style="@android:style/Widget.Material.Button.Borderless.Colored"/>
 
     <android.support.v7.widget.AppCompatTextView
         android:id="@+id/current_address"
+        android:gravity="center"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/name"
-        android:layout_toRightOf="@+id/street_snapshot" />
+        android:layout_toRightOf="@+id/street_snapshot"
+        android:layout_above="@+id/post_facebook"
+        android:textAppearance="@android:style/TextAppearance.Material.Caption" />
 
-    <android.support.v7.widget.AppCompatEditText
+    <android.support.v7.widget.AppCompatButton
         android:id="@+id/post_facebook"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/street_snapshot"
-        android:layout_alignParentRight="true"
         android:layout_toRightOf="@+id/street_snapshot"
-        android:clickable="true"
-        android:maxLines="1"
-        android:enabled="false" />
+        android:layout_alignParentRight="true"
+        android:text="@string/post_facebook"
+        style="@android:style/Widget.Material.Light.Button.Borderless.Small"/>
+
+    <!--
+    <android.support.v7.widget.AppCompatImageView
+        android:id="@+id/image_post_facebook"
+        android:layout_marginRight="8dp"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_alignTop="@+id/post_facebook"
+        android:layout_alignBottom="@+id/post_facebook"
+        android:layout_alignParentRight="true"
+        android:layout_toRightOf="@+id/post_facebook"
+        android:layout_centerVertical="true"
+        android:src="@drawable/messenger_button_blue_bg_round"
+        style="@android:style/Widget.Material.Button.Borderless.Colored"/>
+    -->
 
     <LinearLayout
         android:layout_below="@+id/street_snapshot"
-        android:layout_alignParentBottom="true"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_horizontal">
 
         <android.support.v7.widget.AppCompatButton
-            android:id="@+id/search_nearby"
+            android:id="@+id/more_info"
             android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/search_nearby"/>
+            android:text="@string/more_info"
+            style="@android:style/Widget.Material.Button.Borderless.Colored"/>
 
         <android.support.v7.widget.AppCompatButton
             android:id="@+id/save_to_map"
             android:layout_weight="1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/save_to_map"/>
+            android:text="@string/save_to_map"
+            style="@android:style/Widget.Material.Button.Borderless.Colored"/>
 
     </LinearLayout>
 

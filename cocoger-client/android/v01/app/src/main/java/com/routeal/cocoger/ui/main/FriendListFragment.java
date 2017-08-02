@@ -1,5 +1,6 @@
 package com.routeal.cocoger.ui.main;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -7,13 +8,23 @@ import android.support.v4.app.ListFragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.AppCompatButton;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.facebook.CallbackManager;
+import com.facebook.FacebookCallback;
+import com.facebook.FacebookException;
+import com.facebook.share.model.AppInviteContent;
+import com.facebook.share.widget.AppInviteDialog;
+import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.provider.DB;
 import com.routeal.cocoger.util.CircleTransform;
@@ -51,12 +62,56 @@ public class FriendListFragment extends ListFragment implements LoaderManager.Lo
         mSlidingUpPanelLayout = layout;
     }
 
+    private AppInviteDialog appInviteDialog;
+
+    private CallbackManager callbackManager;
+
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
         View headerView = getActivity().getLayoutInflater().inflate(R.layout.listview_header_friend, null);
         getListView().addHeaderView(headerView);
+
+        FacebookCallback<AppInviteDialog.Result> appInviteCallback =
+                new FacebookCallback<AppInviteDialog.Result>() {
+                    @Override
+                    public void onSuccess(AppInviteDialog.Result result) {
+                        Log.d(TAG, "Success!");
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        Log.d(TAG, "Canceled");
+                    }
+
+                    @Override
+                    public void onError(FacebookException error) {
+                        Log.d(TAG, String.format("Error: %s", error.toString()));
+                    }
+                };
+
+        callbackManager = CallbackManager.Factory.create();
+
+        appInviteDialog = new AppInviteDialog(this);
+        appInviteDialog.registerCallback(callbackManager, appInviteCallback);
+
+        AppCompatButton button = (AppCompatButton) headerView.findViewById(R.id.invite);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                AppInviteContent content = new AppInviteContent.Builder()
+                        .setApplinkUrl("https://d3uu10x6fsg06w.cloudfront.net/hosting-rps/applink.html")
+                        .setPreviewImageUrl("https://d3uu10x6fsg06w.cloudfront.net/hosting-rps/rps-preview-image.jpg")
+                        .build();
+                if (AppInviteDialog.canShow()) {
+                    appInviteDialog.show(getActivity(), content);
+                } else {
+                    Toast.makeText(getContext(), getResources().getString(R.string.appinvite_error),
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     @Override
@@ -136,5 +191,9 @@ public class FriendListFragment extends ListFragment implements LoaderManager.Lo
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
+
+        Intent intent = new Intent(getActivity(), FriendConfigActivity.class);
+        //intent.putExtra("id", id);
+        startActivityForResult(intent, hashCode() % 1000);
     }
 }

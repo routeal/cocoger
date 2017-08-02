@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <!--
          The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
@@ -61,6 +63,12 @@
 
         <activity android:name=".ui.main.SlidingUpPanelMapActivity"
             />
+
+        <activity android:name=".ui.main.FriendConfigActivity"
+            android:theme="@style/AppTheme"/>
+
+        <activity android:name=".ui.main.StreetViewActivity"
+            android:theme="@style/AppTheme"/>
 
         <receiver android:name=".service.OnBootReceiver">
             <intent-filter>

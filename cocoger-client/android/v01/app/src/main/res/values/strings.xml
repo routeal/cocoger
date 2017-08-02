@@ -52,4 +52,9 @@
     <string name="street_view">street view</string>
     <string name="search_nearby">Search nearby</string>
     <string name="save_to_map">Save to map</string>
+    <string name="post_facebook">What\'s on your mind?"</string>
+    <string name="street_view_image_url" formatted="false">https://maps.googleapis.com/maps/api/streetview?size=96x96&amp;location=%f,%f</string>
+    <string name="more_info">More Info</string>
+    <string name="google_map_url" formatted="false">https://maps.google.com/maps?q=%f,%f</string>
+    <string name="appinvite_error">Cannot present App Invite Dialog.</string>
 </resources>

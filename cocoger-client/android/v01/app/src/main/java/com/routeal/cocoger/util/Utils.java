@@ -2,14 +2,27 @@ package com.routeal.cocoger.util;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.location.Location;
 import android.os.Build;
+import android.os.Environment;
 import android.provider.Settings;
+import android.view.View;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.Device;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
+
+import java.io.File;
+import java.io.FileOutputStream;
 
 /**
  * Created by nabe on 7/3/17.
@@ -84,4 +97,61 @@ public class Utils {
         mDevice.setAppVersion(MainApplication.getApplicationVersion());
         return mDevice;
     }
+
+    public static LatLng getLatLng(Location location) {
+        return new LatLng(location.getLatitude(), location.getLongitude());
+    }
+
+    public static Bitmap takeScreenshot(View view) {
+        view.setDrawingCacheEnabled(true);
+        Bitmap bitmap = Bitmap.createBitmap(view.getDrawingCache());
+        view.setDrawingCacheEnabled(false);
+        return bitmap;
+    }
+
+    public static String saveBitmap(Bitmap bitmap) {
+        String filename = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) +
+                File.pathSeparator + "screenshot_" + System.currentTimeMillis() + ".png";
+        File file = new File(filename);
+        try {
+            FileOutputStream fos = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 20, fos);
+            fos.flush();
+            fos.close();
+        } catch (Exception e) {
+            return null;
+        }
+        return filename;
+    }
+
+    public interface ImageDownloadListener {
+        void onDownloaded(String result);
+    }
+
+    public static void downloadImage(Context context, String url, final ImageDownloadListener listener) {
+        Picasso.with(context)
+                .load(url)
+                .into(new Target() {
+                    @Override
+                    public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                        String filename = saveBitmap(bitmap);
+                        if (filename != null) {
+                            listener.onDownloaded(filename);
+                        } else {
+                            listener.onDownloaded(null);
+                        }
+                    }
+
+                    @Override
+                    public void onBitmapFailed(Drawable errorDrawable) {
+                        listener.onDownloaded(null);
+                    }
+
+                    @Override
+                    public void onPrepareLoad(Drawable placeHolderDrawable) {
+
+                    }
+                });
+    }
+
 }

@@ -59,6 +59,10 @@ public class SplashActivity extends AppCompatActivity {
             User user = DBUtil.getUser();
             user.setDevice(Utils.getDevice());
 
+            startMain();
+            return;
+/*
+
             // login to the server in the background and starts the main(map) screen
             Call<User> login = RestClient.service().login(RestClient.token(), user);
 
@@ -75,13 +79,10 @@ public class SplashActivity extends AppCompatActivity {
 
                 @Override
                 public void onFailure(Call<User> call, Throwable t) {
-                    /*
-                    User user = DBUtil.getUser();
-                    Log.d(TAG, "User: " + user.toString());
-                    */
                     startMain();
                 }
             });
+  */
         }
     }
 
