@@ -36,12 +36,6 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.appolica.interactiveinfowindow.InfoWindow;
 import com.appolica.interactiveinfowindow.InfoWindowManager;
 import com.appolica.interactiveinfowindow.fragment.MapInfoWindowFragment;
-import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
-import com.facebook.share.Sharer;
-import com.facebook.share.model.ShareLinkContent;
-import com.facebook.share.widget.ShareDialog;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
@@ -63,6 +57,7 @@ import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.provider.DBUtil;
 import com.routeal.cocoger.service.LocationService;
+import com.routeal.cocoger.util.AppVisibilityDetector;
 import com.routeal.cocoger.util.CircleTransform;
 import com.routeal.cocoger.util.PicassoMarker;
 import com.routeal.cocoger.util.Utils;
@@ -111,10 +106,6 @@ public class MapActivity extends FragmentActivity
 
     private InfoWindowManager infoWindowManager;
 
-    private CallbackManager callbackManager;
-
-    private ShareDialog shareDialog;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -128,6 +119,21 @@ public class MapActivity extends FragmentActivity
             mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
         }
+
+        // set two different modes to the service either when the device is foreground or background
+        AppVisibilityDetector.init(MainApplication.getInstance(), new AppVisibilityDetector.AppVisibilityCallback() {
+            @Override
+            public void onAppGotoForeground() {
+                //app is from background to foreground
+                LocationService.setForegroundMode();
+            }
+
+            @Override
+            public void onAppGotoBackground() {
+                //app is from foreground to background
+                LocationService.setBackgroundMode();
+            }
+        });
 
         setContentView(R.layout.activity_maps);
 
@@ -274,9 +280,6 @@ public class MapActivity extends FragmentActivity
                 }
                 break;
         }
-
-        // facebook sharing
-        callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
     private void buildMap() {
@@ -288,10 +291,6 @@ public class MapActivity extends FragmentActivity
         mapView = mapInfoWindowFragment.getView();
         infoWindowManager = mapInfoWindowFragment.infoWindowManager();
         infoWindowManager.setHideOnFling(true);
-
-        callbackManager = CallbackManager.Factory.create();
-        shareDialog = new ShareDialog(this);
-        shareDialog.registerCallback(callbackManager, shareCallback);
     }
 
     /**
@@ -565,15 +564,6 @@ public class MapActivity extends FragmentActivity
                     startActivity(intent);
                     break;
                 case R.id.post_facebook:
-                    if (ShareDialog.canShow(ShareLinkContent.class)) {
-                        String url = String.format(getResources().getString(R.string.google_map_url),
-                                mapActivity.getLocation().getLatitude(),
-                                mapActivity.getLocation().getLongitude());
-                        ShareLinkContent linkContent = new ShareLinkContent.Builder()
-                                .setContentUrl(Uri.parse(url))
-                                .build();
-                        mapActivity.shareDialog.show(linkContent);
-                    }
                     break;
                 case R.id.more_info:
                     Toast.makeText(getContext(), "moreinfo", Toast.LENGTH_SHORT).show();
@@ -586,24 +576,5 @@ public class MapActivity extends FragmentActivity
 
         void setMapActivity(MapActivity mapActivity) { this.mapActivity = mapActivity; }
     }
-
-    private FacebookCallback<Sharer.Result> shareCallback = new FacebookCallback<Sharer.Result>() {
-        @Override
-        public void onCancel() {
-        }
-
-        @Override
-        public void onError(FacebookException error) {
-            Toast.makeText(getApplicationContext(),
-                    String.format("Error: %s", error.toString()), Toast.LENGTH_SHORT).show();
-
-        }
-
-        @Override
-        public void onSuccess(Sharer.Result result) {
-            Toast.makeText(getApplicationContext(),
-                    "Successfully posted to facebook", Toast.LENGTH_SHORT).show();
-        }
-    };
 
 }

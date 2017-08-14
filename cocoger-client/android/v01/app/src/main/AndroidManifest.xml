@@ -61,6 +61,21 @@
         <activity android:name=".ui.main.SearchMapActivity" />
         -->
 
+        <activity android:name=".ui.login.LoginActivity"
+            android:windowSoftInputMode="stateHidden"
+            android:theme="@style/LoginTheme"/>
+
+        <activity android:name=".ui.login.ResetPasswordActivity"
+            android:windowSoftInputMode="stateHidden"
+            android:theme="@style/LoginTheme"/>
+
+        <activity android:name=".ui.login.SignupActivity"
+            android:windowSoftInputMode="stateHidden"
+            android:theme="@style/LoginTheme"/>
+
+        <activity android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
+            android:theme="@style/Base.Theme.AppCompat"/> <!-- optional (needed if default theme has no action bar) -->
+
         <activity android:name=".ui.main.SlidingUpPanelMapActivity"
             />
 
@@ -102,9 +117,6 @@
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".ui.login.FacebookLoginActivity"
-            android:theme="@style/LoginTheme"/>
 
     </application>
 

@@ -95,6 +95,7 @@ public class Utils {
         mDevice.setToken(""); // empty for now
         mDevice.setStatus(Device.FOREGROUND);
         mDevice.setAppVersion(MainApplication.getApplicationVersion());
+        mDevice.setTimestamp(System.currentTimeMillis());
         return mDevice;
     }
 

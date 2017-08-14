@@ -28,43 +28,74 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    testCompile 'junit:junit:4.12'
 
-    compile 'com.android.support:appcompat-v7:25.3.1'
-    compile 'com.android.support:design:25.3.1'
-    compile 'com.android.support:recyclerview-v7:25.3.1'
-
-    compile 'com.google.android.gms:play-services-maps:10.2.1'
-    compile 'com.google.android.gms:play-services-places:10.2.1'
-    compile 'com.google.android.gms:play-services-location:10.2.1'
-
-    // Android SDK
-    compile 'com.facebook.android:facebook-android-sdk:4.+'
-    // Audience Network SDK. Only versions 4.6.0 and above are available
-    //compile 'com.facebook.android:audience-network-sdk:4.+'
-    // Account Kit
-    //compile 'com.facebook.android:account-kit-sdk:4.+'
-
-    compile 'com.squareup.retrofit2:retrofit:2.3.0'
-    compile 'com.squareup.retrofit2:converter-gson:2.3.0'
-    compile 'com.squareup.okhttp3:logging-interceptor:3.+'
-    compile 'com.squareup.picasso:picasso:2.5.2'
-
-
-    // better remove following libraries
-
-    compile 'com.afollestad.material-dialogs:core:0.9.4.5'
     compile('com.mikepenz:aboutlibraries:5.9.6@aar') {
         transitive = true
     }
-    compile 'com.github.arimorty:floatingsearchview:2.1.1'
-    compile 'com.sothree.slidinguppanel:library:3.3.1'
 
+    // play service
+    compile 'com.google.android.gms:play-services-maps:11.0.2'
+    compile 'com.google.android.gms:play-services-places:11.0.2'
+    compile 'com.google.android.gms:play-services-location:11.0.2'
+
+    // firebase
+    compile 'com.google.firebase:firebase-core:11.0.2'
+    compile 'com.google.firebase:firebase-auth:11.0.2'
+    compile 'com.google.firebase:firebase-storage:11.0.2'
+    compile 'com.google.firebase:firebase-database:11.0.2'
+
+    // firebase: geofire
+    compile 'com.firebase:geofire-android:2.1.1'
+
+    // FirebaseUI Database only
+    compile 'com.firebaseui:firebase-ui-database:2.1.1'
+
+    // FirebaseUI depedencies
+    //compile 'android.arch.lifecycle:runtime:1.0.0-alpha5'
+    //compile 'android.arch.lifecycle:extensions:1.0.0-alpha5'
+    //annotationProcessor 'android.arch.lifecycle:compiler:1.0.0-alpha5'
+
+    // android support
+    //compile 'com.android.support:appcompat-v7:25.4.0'
+    //compile 'com.android.support:design:25.4.0'
+    //compile 'com.android.support:recyclerview-v7:25.4.0'
+    //compile 'com.android.support:support-v4:25.4.0'
+
+    //compile "com.android.support:support-core-utils:25.4.0"
+
+
+    // FirebaseUI Auth only
+    //compile 'com.firebaseui:firebase-ui-auth:2.2.0'
+
+    // FirebaseUI Storage only
+    //compile 'com.firebaseui:firebase-ui-storage:2.2.0'
+
+    // info window
     compile 'com.appolica:interactive-info-window:v1.0.6'
 
+    // sliding up panel
+    compile 'com.sothree.slidinguppanel:library:3.3.1'
 
-    // For debug
-    compile 'com.facebook.stetho:stetho:1.5.0'
-    compile 'com.facebook.stetho:stetho-okhttp3:1.5.0'
-    compile 'org.jetbrains:annotations-java5:15.0'
+    // picasso
+    compile 'com.squareup.picasso:picasso:2.5.2'
+
+    // need???
+    compile 'com.squareup.retrofit2:retrofit:2.3.0'
+    compile 'com.squareup.retrofit2:converter-gson:2.3.0'
+    compile 'com.squareup.okhttp3:logging-interceptor:3.8.0'
+
+    // will remove in the future
+    compile 'com.afollestad.material-dialogs:core:0.9.4.5'
+
+    compile 'com.github.arimorty:floatingsearchview:2.1.1'
+
+    compile 'com.theartofdev.edmodo:android-image-cropper:2.4.+'
+
+    compile 'com.github.franmontiel:FullScreenDialog:1.0.1'
+
+    testCompile 'junit:junit:4.12'
 }
+
+
+
+apply plugin: 'com.google.gms.google-services'

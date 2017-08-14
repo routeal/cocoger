@@ -7,7 +7,6 @@ import android.os.Build;
 import android.util.JsonReader;
 import android.widget.Toast;
 
-import com.facebook.stetho.Stetho;
 import com.routeal.cocoger.model.Device;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.User;
@@ -23,6 +22,9 @@ import java.util.List;
  */
 
 public class MainApplication extends Application {
+
+    private final static String LOGIN_EMAIL = "login_email";
+
     private final static String JSON_FILENAME = "cocoger.json";
 
     private final static String LOCATION_PERMISSION = "locationPermission";
@@ -44,8 +46,6 @@ public class MainApplication extends Application {
         mInstance = this;
 
         mContext = getApplicationContext();
-
-        Stetho.initializeWithDefaults(mContext);
 
         mPreferences = getSharedPreferences(getPackageName() + "_preferences", MODE_PRIVATE);
 
@@ -102,6 +102,14 @@ public class MainApplication extends Application {
 
     public static void permitLocation(boolean permit) {
         mInstance.mPreferences.edit().putBoolean(LOCATION_PERMISSION, permit).apply();
+    }
+
+    public static void setLoginEmail(String value) {
+        mInstance.mPreferences.edit().putString(LOGIN_EMAIL, value).apply();
+    }
+
+    public static String getLoginEmail() {
+        return mInstance.mPreferences.getString(LOGIN_EMAIL, null);
     }
 
     /*

@@ -105,6 +105,7 @@ public final class DB {
     }
 
     public static class UsersColumns extends CacheColumns {
+        public static final String BIRTHYEAR = "birthYear";
         public static final String EMAIL = "email";
         public static final String FIRSTNAME = "firstName";
         public static final String LASTNAME = "lastName";
@@ -114,6 +115,8 @@ public final class DB {
         public static final String LOCALE = "locale";
         public static final String TIMEZONE = "timezone";
         public static final String UPDATED = "updated";
+        public static final String CREATED = "created";
+        static final String BIRTHYEAR_TYPE = "TEXT";
         static final String EMAIL_TYPE = "TEXT";
         static final String FIRSTNAME_TYPE = "TEXT";
         static final String LASTNAME_TYPE = "TEXT";
@@ -122,7 +125,8 @@ public final class DB {
         static final String PICTURE_TYPE = "TEXT";
         static final String LOCALE_TYPE = "TEXT";
         static final String TIMEZONE_TYPE = "TEXT";
-        static final String UPDATED_TYPE = "TEXT";
+        static final String UPDATED_TYPE = "INTEGER";
+        static final String CREATED_TYPE = "INTEGER";
     }
 
     public static final class Users extends UsersColumns implements BaseColumns {
@@ -135,6 +139,7 @@ public final class DB {
 
         static final String CREATE_STATEMENT = "CREATE TABLE " + TABLE +
                 "(" + " " + _ID + " " + _ID_TYPE +
+                "," + " " + BIRTHYEAR + " " + BIRTHYEAR_TYPE +
                 "," + " " + EMAIL + " " + EMAIL_TYPE +
                 "," + " " + FIRSTNAME + " " + FIRSTNAME_TYPE +
                 "," + " " + LASTNAME + " " + LASTNAME_TYPE +
@@ -144,6 +149,7 @@ public final class DB {
                 "," + " " + LOCALE + " " + LOCALE_TYPE +
                 "," + " " + TIMEZONE + " " + TIMEZONE_TYPE +
                 "," + " " + UPDATED + " " + UPDATED_TYPE +
+                "," + " " + CREATED + " " + CREATED_TYPE +
                 ");";
     }
 
@@ -201,6 +207,7 @@ public final class DB {
     }
 
     public static class LocationsColumns extends CacheColumns {
+        public static final String UID = "uid";
         public static final String TIME = "time";
         public static final String LATITUDE = "latitude";
         public static final String LONGITUDE = "longitude";
@@ -215,6 +222,7 @@ public final class DB {
         public static final String THOROUGHFARE = "thoroughfare";
         public static final String SUBTHOROUGHFARE = "subThoroughfare";
 
+        static final String UID_TYPE = "TEXT";
         static final String TIME_TYPE = "INTEGER";
         static final String LATITUDE_TYPE = "REAL";
         static final String LONGITUDE_TYPE = "REAL";
@@ -240,6 +248,7 @@ public final class DB {
 
         static final String CREATE_STATEMENT = "CREATE TABLE " + TABLE +
                 "(" + " " + _ID + " " + _ID_TYPE +
+                "," + " " + UID + " " + UID_TYPE +
                 "," + " " + TIME + " " + TIME_TYPE +
                 "," + " " + LATITUDE + " " + LATITUDE_TYPE +
                 "," + " " + LONGITUDE + " " + LONGITUDE_TYPE +

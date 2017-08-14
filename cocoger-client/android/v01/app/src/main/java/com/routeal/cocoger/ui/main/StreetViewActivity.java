@@ -6,9 +6,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.FragmentActivity;
 
-import com.facebook.messenger.MessengerThreadParams;
-import com.facebook.messenger.MessengerUtils;
-import com.facebook.messenger.ShareToMessengerParams;
 import com.google.android.gms.maps.OnStreetViewPanoramaReadyCallback;
 import com.google.android.gms.maps.StreetViewPanorama;
 import com.google.android.gms.maps.StreetViewPanoramaFragment;
@@ -27,7 +24,6 @@ public class StreetViewActivity extends FragmentActivity
 
     private LatLng mLocation;
     private StreetViewPanorama mPanorama;
-    private MessengerThreadParams mThreadParams;
     private boolean mPicking;
 
     @Override
@@ -41,7 +37,7 @@ public class StreetViewActivity extends FragmentActivity
 
         Intent intent = getIntent();
         if (Intent.ACTION_PICK.equals(intent.getAction())) {
-            mThreadParams = MessengerUtils.getMessengerThreadParamsForIntent(intent);
+            //mThreadParams = MessengerUtils.getMessengerThreadParamsForIntent(intent);
             mPicking = true;
 
             // Note, if mThreadParams is non-null, it means the activity was launched from Messenger.
@@ -70,6 +66,7 @@ public class StreetViewActivity extends FragmentActivity
     void sendFacebook(String filename) {
         // doesn't work with this uri, if it's replaced with the FS sample uri, it works fine.
         Uri uri = Uri.fromFile(new File(filename));
+/*
         ShareToMessengerParams shareToMessengerParams =
                 ShareToMessengerParams.newBuilder(uri, "image/png")
                         .setMetaData("{ \"image\" : \"streetview\" }")
@@ -79,6 +76,7 @@ public class StreetViewActivity extends FragmentActivity
         } else {
             MessengerUtils.shareToMessenger(StreetViewActivity.this, 1, shareToMessengerParams);
         }
+*/
     }
 
     void sendImage() {

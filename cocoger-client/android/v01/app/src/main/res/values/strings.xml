@@ -31,7 +31,8 @@
     <string name="exit">Exit</string>
     <string name="try_again">Try again</string>
     <string name="no_friend">Friends waiting for your invitation!!!</string>
-    <string name="invite_friend">Invite Friends</string>
+    <string name="invite_friend">Invite App</string>
+    <string name="add_friend">Add Friends</string>
     <string name="signup_note">
         <![CDATA[
         <html>
@@ -57,4 +58,19 @@
     <string name="more_info">More Info</string>
     <string name="google_map_url" formatted="false">https://maps.google.com/maps?q=%f,%f</string>
     <string name="appinvite_error">Cannot present App Invite Dialog.</string>
+    <string name="picture">Picture</string>
+    <string name="no_picture">No profile picture</string>
+    <string name="min_name">Minimum 4 characters</string>
+    <string name="min_password">Minimum 6 numbers</string>
+    <string name="no_year_birth">Select one of the years</string>
+    <string name="invalid_email">Invalid email address</string>
+    <string name="no_gender">"Select one of the genders</string>
+    <string name="no_password">Empty password</string>
+    <string name="no_password_match">Password not match</string>
+    <string name="signup_failed">Sorry, sign up failed.  Please try again later.</string>
+    <string name="login_failed">Sorry, login failed.  Please try again later.</string>
+    <string name="verification_email_sent">Sign up successful.  Verification email sent.</string>
+    <string name="password_reset_email_sent">Password reset email sent</string>
+    <string name="search">Search</string>
+    <string name="search_users">Search friends with prefix string</string>
 </resources>

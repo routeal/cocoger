@@ -28,7 +28,10 @@ public class DBUtil {
             ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
             cursor = contentResolver.query(DB.Users.CONTENT_URI, null, null, null, null);
             if (cursor != null && cursor.moveToFirst()) {
-                int index = cursor.getColumnIndex(DB.Users.EMAIL);
+                int index;
+                index = cursor.getColumnIndex(DB.Users.BIRTHYEAR);
+                user.setBirthYear(cursor.getString(index));
+                index = cursor.getColumnIndex(DB.Users.EMAIL);
                 user.setEmail(cursor.getString(index));
                 index = cursor.getColumnIndex(DB.Users.FIRSTNAME);
                 user.setFirstName(cursor.getString(index));
@@ -45,7 +48,9 @@ public class DBUtil {
                 index = cursor.getColumnIndex(DB.Users.TIMEZONE);
                 user.setTimezone(cursor.getString(index));
                 index = cursor.getColumnIndex(DB.Users.UPDATED);
-                user.setUpdated(cursor.getString(index));
+                user.setUpdated(cursor.getLong(index));
+                index = cursor.getColumnIndex(DB.Users.CREATED);
+                user.setCreated(cursor.getLong(index));
             }
         } finally {
             if (cursor != null) {
@@ -57,6 +62,7 @@ public class DBUtil {
 
     public static void saveUser(User user) {
         ContentValues values = new ContentValues();
+        values.put(DB.Users.BIRTHYEAR, user.getBirthYear());
         values.put(DB.Users.EMAIL, user.getEmail());
         values.put(DB.Users.FIRSTNAME, user.getFirstName());
         values.put(DB.Users.LASTNAME, user.getLastName());
@@ -66,6 +72,7 @@ public class DBUtil {
         values.put(DB.Users.LOCALE, user.getLocale());
         values.put(DB.Users.TIMEZONE, user.getTimezone());
         values.put(DB.Users.UPDATED, user.getUpdated());
+        values.put(DB.Users.CREATED, user.getCreated());
 
         ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
         contentResolver.insert(DB.Users.CONTENT_URI, values);
@@ -111,7 +118,7 @@ public class DBUtil {
                     LocationAddress la = new LocationAddress();
                     locations.add(la);
                     index = cursor.getColumnIndex(DB.Locations.TIME);
-                    la.setTime(cursor.getLong(index));
+                    la.setTimestamp(cursor.getLong(index));
                     index = cursor.getColumnIndex(DB.Locations.LATITUDE);
                     la.setLatitude(cursor.getDouble(index));
                     index = cursor.getColumnIndex(DB.Locations.LONGITUDE);
@@ -138,6 +145,8 @@ public class DBUtil {
                     la.setSubThoroughfare(cursor.getString(index));
                     index = cursor.getColumnIndex(DB.Locations._ID);
                     la.setId(cursor.getLong(index));
+                    index = cursor.getColumnIndex(DB.Locations.UID);
+                    la.setUid(cursor.getString(index));
                     if (num++ == max) {
                         break;
                     }

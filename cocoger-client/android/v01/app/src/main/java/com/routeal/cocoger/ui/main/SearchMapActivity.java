@@ -24,14 +24,14 @@ import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.SearchSuggestionsAdapter;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.arlib.floatingsearchview.util.Util;
-import com.facebook.login.LoginManager;
+import com.google.firebase.auth.FirebaseAuth;
 import com.mikepenz.aboutlibraries.Libs;
 import com.mikepenz.aboutlibraries.LibsBuilder;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.net.RestClient;
 import com.routeal.cocoger.provider.DBUtil;
-import com.routeal.cocoger.ui.login.FacebookLoginActivity;
+import com.routeal.cocoger.ui.login.LoginActivity;
 import com.routeal.cocoger.util.Utils;
 import com.squareup.picasso.Picasso;
 
@@ -103,9 +103,11 @@ public class SearchMapActivity extends MapActivity
 
     }
 
-    private void logoutImpl() {
+    private void logout() {
+        ProgressDialog dialog = Utils.spinBusyCursor(this);
+
         // logout anyway
-        LoginManager.getInstance().logOut();
+        FirebaseAuth.getInstance().signOut();
 
         // cleanup the databases
         DBUtil.deleteUser();
@@ -115,13 +117,16 @@ public class SearchMapActivity extends MapActivity
         // cleanup the app config
         MainApplication.permitLocation(false);
 
+        dialog.dismiss();
+
         // start the login screen
-        Intent intent = new Intent(getApplicationContext(), FacebookLoginActivity.class);
+        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
         startActivity(intent);
         finish();
     }
 
-    private void logoutFacebook() {
+/*
+    private void logout() {
         final ProgressDialog dialog = Utils.spinBusyCursor(this);
 
         Call<Void> logout = RestClient.service().logout(RestClient.token(), Utils.getDevice());
@@ -139,6 +144,7 @@ public class SearchMapActivity extends MapActivity
             }
         });
     }
+*/
 
     private void showOpensourceLibraries() {
         new LibsBuilder()
@@ -160,7 +166,7 @@ public class SearchMapActivity extends MapActivity
         } else if (id == R.id.nav_slideshow) {
 
         } else if (id == R.id.nav_logout) {
-            logoutFacebook();
+            logout();
         } else if (id == R.id.nav_open_source) {
             showOpensourceLibraries();
         }

@@ -3,6 +3,7 @@
 package com.routeal.cocoger.model;
 
 import java.io.Serializable;
+import java.util.Date;
 
 public class Device implements Serializable {
 
@@ -10,6 +11,7 @@ public class Device implements Serializable {
     public final static int BACKGROUND = 1;
     public final static int FOREGROUND = 2;
 
+    private String uid;
     private String deviceId; // device unique id
     private String type = "mobile"; // device type - 'mobile', 'desktop', 'settop'
     private String platform = "android"; // platform - 'android', 'ios', 'windows'
@@ -20,6 +22,11 @@ public class Device implements Serializable {
     private boolean simulator; // emulator or not
     private String token; // device token to be used for notification
     private int status; // unavailable, background, foreground
+    private long timestamp; // last used
+
+    public String getUid() { return uid; }
+
+    public void setUid(String uid) { this.uid = uid; }
 
     public String getDeviceId() {
         return deviceId;
@@ -96,6 +103,10 @@ public class Device implements Serializable {
     public void setToken(String token) { this.token = token; }
 
     public String getToken() { return token; }
+
+    public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
+
+    public long getTimestamp() { return timestamp; }
 
     public String toString() {
         return String.format("deviceid=%s, type=%s, platform=%s, brand=%s, model=%s, " +

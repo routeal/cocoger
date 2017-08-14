@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "573577906713",
+    "firebase_url": "https://routealfirebaseproject.firebaseio.com",
+    "project_id": "routealfirebaseproject",
+    "storage_bucket": "routealfirebaseproject.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:573577906713:android:22878e02cee8a490",
+        "android_client_info": {
+          "package_name": "com.routeal.cocoger"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "573577906713-6gvd6pv2ml2j21thmn239a3c7ggi0cja.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.routeal.cocoger",
+            "certificate_hash": "0092b735976848a9df9b8ee90b8ecc6c4b392dad"
+          }
+        },
+        {
+          "client_id": "573577906713-un4tpc68adh4ufmv6n7intqio091rsq2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQNdh-1Tyg15HqCIyET5GunnA0aRe1J9c"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "573577906713-un4tpc68adh4ufmv6n7intqio091rsq2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

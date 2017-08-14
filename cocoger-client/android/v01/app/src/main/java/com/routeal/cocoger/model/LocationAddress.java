@@ -1,5 +1,3 @@
-// http://www.jsonschema2pojo.org/
-
 package com.routeal.cocoger.model;
 
 import java.io.Serializable;
@@ -7,11 +5,13 @@ import java.io.Serializable;
 public class LocationAddress implements Serializable {
 
     private long id;
-    private long time;
+    private String uid;
+    private long timestamp;
     private double latitude;
     private double longitude;
     private double altitude;
     private float speed;
+    private String description;
     private String postalCode;
     private String countryName;
     private String adminArea;
@@ -20,13 +20,18 @@ public class LocationAddress implements Serializable {
     private String subLocality;
     private String thoroughfare;
     private String subThoroughfare;
+    private String placeId;
 
-    public long getId() {
-        return id;
+    public long getId() { return id; }
+
+    public void setId(long id) { this.id = id; }
+
+    public String getUid() {
+        return uid;
     }
 
-    public void setId(long id) {
-        this.id = id;
+    public void setUid(String uid) {
+        this.uid = uid;
     }
 
     public double getLatitude() {
@@ -61,12 +66,12 @@ public class LocationAddress implements Serializable {
         this.speed = speed;
     }
 
-    public long getTime() {
-        return time;
+    public long getTimestamp() {
+        return timestamp;
     }
 
-    public void setTime(long time) {
-        this.time = time;
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 
     public String getPostalCode() {

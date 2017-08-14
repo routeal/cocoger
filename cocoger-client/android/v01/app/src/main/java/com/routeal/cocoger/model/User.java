@@ -1,50 +1,72 @@
 package com.routeal.cocoger.model;
 
 import java.io.Serializable;
+import java.util.Map;
 
 public class User implements Serializable {
 
+    private String birthYear;
     private String email;
     private String firstName;
     private String lastName;
     private String name;
+    private String searchedName;
     private String gender;
     private String picture;
     private String locale;
     private String timezone;
-    private String updated;
-    private Device device;
+    private long updated;
+    private long created;
+    private Map<String, String> devices;
 
-    public String getEmail() {
-        return email;
-    }
+    public User() {}
 
     public void setEmail(String email) {
         this.email = email;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String displayName) {
-        this.name = displayName;
-    }
-
-    public String getFirstName() {
-        return firstName;
+    public String getEmail() {
+        return email;
     }
 
     public void setFirstName(String firstName) {
         this.firstName = firstName;
     }
 
-    public String getLastName() {
-        return lastName;
+    public String getFirstName() {
+        return firstName;
     }
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getSearchedName() {
+        return searchedName;
+    }
+
+    public void setSearchedName(String searchedName) {
+        this.searchedName = searchedName;
+    }
+
+    public String getBirthYear() {
+        return birthYear;
+    }
+
+    public void setBirthYear(String birthYear) {
+        this.birthYear = birthYear;
     }
 
     public String getLocale() {
@@ -71,12 +93,20 @@ public class User implements Serializable {
         this.timezone = timezone;
     }
 
-    public String getUpdated() {
+    public long getUpdated() {
         return updated;
     }
 
-    public void setUpdated(String updated) {
+    public void setUpdated(long updated) {
         this.updated = updated;
+    }
+
+    public long getCreated() {
+        return created;
+    }
+
+    public void setCreated(long created) {
+        this.created = created;
     }
 
     public String getGender() {
@@ -87,19 +117,19 @@ public class User implements Serializable {
         this.gender = gender;
     }
 
-    public Device getDevice() {
-        return device;
+    public void setDevices(Map<String, String> devices) {
+        this.devices = devices;
     }
 
-    public void setDevice(Device device) {
-        this.device = device;
+    public Map<String, String> getDevices() {
+        return devices;
     }
 
     public String toString() {
         return String.format(
                 "email=%s, firstName=%s, lastName=%s, name=%s, locale=%s, picture=%s, " +
-                "gender=%s, timezone=%s, updated=%s, device=[%s]",
+                        "birth_year=%s, gender=%s, timezone=%s, updated=%s",
                 email, firstName, lastName, name, locale, picture,
-                gender, timezone, updated, ((device == null) ? "" : device.toString()));
+                birthYear, gender, timezone, updated);
     }
 }

@@ -10,19 +10,28 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.firebase.geofire.GeoLocation;
+import com.firebase.geofire.core.GeoHash;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.net.RestClient;
 import com.routeal.cocoger.provider.DBUtil;
 
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.PriorityQueue;
 
 import retrofit2.Call;
@@ -89,7 +98,8 @@ public class LocationService extends BasePeriodicService
         }
     }
 
-    private static PriorityQueue<PastLocation> queue = new PriorityQueue<>(10, new LocationAscendingOrder());
+    private static PriorityQueue<PastLocation> queue =
+        new PriorityQueue<>(10, new LocationAscendingOrder());
 
     public static void setForegroundMode() {
         mRequestedLocationMode = LocationMode.FOREGROUND;
@@ -143,7 +153,8 @@ public class LocationService extends BasePeriodicService
         }
 
         if (mLastKnownLocation != null) {
-            mLastKnownLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            mLastKnownLocation =
+                LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         }
 
         if (mLocationMode == mRequestedLocationMode) return;
@@ -155,7 +166,8 @@ public class LocationService extends BasePeriodicService
             mLocationRequest = LocationRequest.create()
                     .setSmallestDisplacement(10) // when 10 meter moved
                     .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
+                                                                     mLocationRequest, this);
             mLocationMode = LocationMode.BACKGROUND;
             Log.d(TAG, "start background LocationUpdate");
         } else {
@@ -164,7 +176,8 @@ public class LocationService extends BasePeriodicService
                     .setInterval(2000)
                     .setFastestInterval(1000)
                     .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
+                                                                     mLocationRequest, this);
             mLocationMode = LocationMode.FOREGROUND;
             Log.d(TAG, "start foreground LocationUpdate");
         }
@@ -251,6 +264,10 @@ public class LocationService extends BasePeriodicService
     }
 
     private void saveLocation(Location location) {
+        mLastKnownLocation = location;
+
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) return;
+
         Address address = null;
         try {
             List<Address> addresses = mGeocoder.getFromLocation(
@@ -269,16 +286,55 @@ public class LocationService extends BasePeriodicService
 
         Log.d(TAG, "saveLocation");
 
-        mLastKnownLocation = location;
-
         // notify both location address to the activity
         Intent intent = new Intent(LAST_LOCATION_UPDATE);
         intent.putExtra("location", location);
         intent.putExtra("address", address);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (firebaseUser == null) return;
+
+        String uid = firebaseUser.getUid();
+
+        LocationAddress detail = new LocationAddress();
+
+        detail.setTimestamp(location.getTime());
+        detail.setLatitude(location.getLatitude());
+        detail.setLongitude(location.getLongitude());
+        detail.setAltitude(location.getAltitude());
+        detail.setSpeed(location.getSpeed());
+        detail.setPostalCode(address.getPostalCode());
+        detail.setCountryName(address.getCountryName());
+        detail.setAdminArea(address.getAdminArea());
+        detail.setSubAdminArea(address.getSubAdminArea());
+        detail.setlocality(address.getLocality());
+        detail.setSubLocality(address.getSubLocality());
+        detail.setThoroughfare(address.getThoroughfare());
+        detail.setSubThoroughfare(address.getSubThoroughfare());
+
+        // top level database reference
+        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
+
+        // location key
+        String locId = dbRef.child("locations").push().getKey();
+
+        GeoHash geoHash = new GeoHash(new GeoLocation(location.getLatitude(), location.getLongitude()));
+        Map<String, Object> updates = new HashMap<>();
+        // location detail
+        updates.put("locations/" + locId, detail);
+        // geo location
+        updates.put("geo_locations/" + locId + "/g", geoHash.getGeoHashString());
+        // geo location
+        updates.put("geo_locations/" + locId + "/l", Arrays.asList(location.getLatitude(), location.getLongitude()));
+        // user locations
+        updates.put("users/" + uid + "/locations/" + locId, detail.getTimestamp());
+
+        dbRef.updateChildren(updates);
+
         // save both location and address into the database
-        DBUtil.saveLocation(location, address);
+        //DBUtil.saveLocation(location, address);
     }
 
     private void uploadLocations() {
@@ -286,6 +342,9 @@ public class LocationService extends BasePeriodicService
 
         if (locations.isEmpty()) return;
 
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) return;
+
+/*
         Call<Void> upload = RestClient.service().setLocations(RestClient.token(), locations);
 
         upload.enqueue(new Callback<Void>() {
@@ -299,6 +358,7 @@ public class LocationService extends BasePeriodicService
             public void onFailure(Call<Void> call, Throwable t) {
             }
         });
+*/
     }
 
 }

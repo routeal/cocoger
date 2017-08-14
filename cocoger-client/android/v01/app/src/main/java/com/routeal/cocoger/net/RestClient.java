@@ -1,6 +1,5 @@
 package com.routeal.cocoger.net;
 
-import com.facebook.AccessToken;
 import com.routeal.cocoger.MainApplication;
 
 import okhttp3.OkHttpClient;
@@ -36,14 +35,6 @@ public class RestClient {
                     .build();
             service = retrofit.create(RestService.class);
         }
-    }
-
-    public static String token() {
-        AccessToken accessToken = AccessToken.getCurrentAccessToken();
-        if (accessToken == null || accessToken.isExpired()) {
-            return null;
-        }
-        return "Bearer " + accessToken.getToken();
     }
 
     public static RestService service() {
