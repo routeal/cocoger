@@ -406,7 +406,7 @@ public class MapActivity extends FragmentActivity
         myMarker = mMap.addMarker(options);
         myMarkerTarget = new PicassoMarker(myMarker);
         Picasso.with(getApplicationContext())
-                .load(DBUtil.getUser().getPicture())
+                .load(MainApplication.getUser().getPicture())
                 .transform(new CircleTransform())
                 .into(myMarkerTarget);
 
@@ -514,7 +514,7 @@ public class MapActivity extends FragmentActivity
                     .resize(96, 96)
                     .into(street_snapshot);
 
-            User user = DBUtil.getUser();
+            User user = MainApplication.getUser();
             if (user != null) {
                 name.setText(user.getName());
             }

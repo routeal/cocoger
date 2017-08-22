@@ -6,9 +6,11 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.core.GeoHash;
@@ -17,14 +19,21 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.routeal.cocoger.MainApplication;
+import com.routeal.cocoger.R;
+import com.routeal.cocoger.model.Device;
 import com.routeal.cocoger.model.LocationAddress;
-import com.routeal.cocoger.net.RestClient;
-import com.routeal.cocoger.provider.DBUtil;
+import com.routeal.cocoger.model.User;
+import com.routeal.cocoger.util.Utils;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -33,10 +42,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.PriorityQueue;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 /**
  * Created by hwatanabe on 4/11/17.
@@ -81,6 +86,8 @@ public class LocationService extends BasePeriodicService
 
     private GoogleApiClient mGoogleApiClient;
 
+    private Geocoder mGeocoder;
+
     class PastLocation {
         float distance;
         Location location;
@@ -99,7 +106,7 @@ public class LocationService extends BasePeriodicService
     }
 
     private static PriorityQueue<PastLocation> queue =
-        new PriorityQueue<>(10, new LocationAscendingOrder());
+            new PriorityQueue<>(10, new LocationAscendingOrder());
 
     public static void setForegroundMode() {
         mRequestedLocationMode = LocationMode.FOREGROUND;
@@ -117,10 +124,27 @@ public class LocationService extends BasePeriodicService
         }
     }
 
-    private Geocoder mGeocoder;
+    public LocationService() {
+        super();
 
-    // connect in background, called in the background
-    private void connect() {
+        // setting up a listener when the user is authenticated
+        FirebaseAuth.getInstance().addAuthStateListener(new FirebaseAuth.AuthStateListener() {
+            @Override
+            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+                FirebaseUser user = firebaseAuth.getCurrentUser();
+                if (user != null) {
+                    Log.d(TAG, "FB authenticated");
+                    userAuthenticated(user);
+                } else {
+                    Log.d(TAG, "FB invalidated");
+                    userInvalidated();
+                }
+            }
+        });
+    }
+
+    // connectGoogleApi in background, called in the background
+    private void connectGoogleApi() {
         if (mGeocoder == null) {
             mGeocoder = new Geocoder(this, Locale.ENGLISH);
         }
@@ -154,7 +178,7 @@ public class LocationService extends BasePeriodicService
 
         if (mLastKnownLocation != null) {
             mLastKnownLocation =
-                LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                    LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         }
 
         if (mLocationMode == mRequestedLocationMode) return;
@@ -167,7 +191,7 @@ public class LocationService extends BasePeriodicService
                     .setSmallestDisplacement(10) // when 10 meter moved
                     .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
-                                                                     mLocationRequest, this);
+                    mLocationRequest, this);
             mLocationMode = LocationMode.BACKGROUND;
             Log.d(TAG, "start background LocationUpdate");
         } else {
@@ -177,7 +201,7 @@ public class LocationService extends BasePeriodicService
                     .setFastestInterval(1000)
                     .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
-                                                                     mLocationRequest, this);
+                    mLocationRequest, this);
             mLocationMode = LocationMode.FOREGROUND;
             Log.d(TAG, "start foreground LocationUpdate");
         }
@@ -196,13 +220,10 @@ public class LocationService extends BasePeriodicService
             Log.d(TAG, "Permission granted already");
 
             // start to connect with google api client
-            connect();
+            connectGoogleApi();
 
             // start to get a location update
             startLocationUpdate();
-
-            // upload locations if any in the database
-            uploadLocations();
         }
 
         makeNextPlan();
@@ -266,8 +287,6 @@ public class LocationService extends BasePeriodicService
     private void saveLocation(Location location) {
         mLastKnownLocation = location;
 
-        if (FirebaseAuth.getInstance().getCurrentUser() == null) return;
-
         Address address = null;
         try {
             List<Address> addresses = mGeocoder.getFromLocation(
@@ -292,73 +311,192 @@ public class LocationService extends BasePeriodicService
         intent.putExtra("address", address);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
 
-        if (firebaseUser == null) return;
+        if (fUser == null) return;
 
-        String uid = firebaseUser.getUid();
+        String uid = fUser.getUid();
 
-        LocationAddress detail = new LocationAddress();
+        LocationAddress loc = new LocationAddress();
 
-        detail.setTimestamp(location.getTime());
-        detail.setLatitude(location.getLatitude());
-        detail.setLongitude(location.getLongitude());
-        detail.setAltitude(location.getAltitude());
-        detail.setSpeed(location.getSpeed());
-        detail.setPostalCode(address.getPostalCode());
-        detail.setCountryName(address.getCountryName());
-        detail.setAdminArea(address.getAdminArea());
-        detail.setSubAdminArea(address.getSubAdminArea());
-        detail.setlocality(address.getLocality());
-        detail.setSubLocality(address.getSubLocality());
-        detail.setThoroughfare(address.getThoroughfare());
-        detail.setSubThoroughfare(address.getSubThoroughfare());
+        loc.setTimestamp(location.getTime());
+        loc.setLatitude(location.getLatitude());
+        loc.setLongitude(location.getLongitude());
+        loc.setAltitude(location.getAltitude());
+        loc.setSpeed(location.getSpeed());
+        loc.setPostalCode(address.getPostalCode());
+        loc.setCountryName(address.getCountryName());
+        loc.setAdminArea(address.getAdminArea());
+        loc.setSubAdminArea(address.getSubAdminArea());
+        loc.setlocality(address.getLocality());
+        loc.setSubLocality(address.getSubLocality());
+        loc.setThoroughfare(address.getThoroughfare());
+        loc.setSubThoroughfare(address.getSubThoroughfare());
 
         // top level database reference
-        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference();
 
         // location key
-        String locId = dbRef.child("locations").push().getKey();
+        String locId = db.child("locations").push().getKey();
 
         GeoHash geoHash = new GeoHash(new GeoLocation(location.getLatitude(), location.getLongitude()));
         Map<String, Object> updates = new HashMap<>();
         // location detail
-        updates.put("locations/" + locId, detail);
+        updates.put("locations/" + locId, loc);
         // geo location
         updates.put("geo_locations/" + locId + "/g", geoHash.getGeoHashString());
         // geo location
         updates.put("geo_locations/" + locId + "/l", Arrays.asList(location.getLatitude(), location.getLongitude()));
         // user locations
-        updates.put("users/" + uid + "/locations/" + locId, detail.getTimestamp());
+        updates.put("users/" + uid + "/locations/" + locId, loc.getTimestamp());
 
-        dbRef.updateChildren(updates);
-
-        // save both location and address into the database
-        //DBUtil.saveLocation(location, address);
+        db.updateChildren(updates);
     }
 
-    private void uploadLocations() {
-        final List<LocationAddress> locations = DBUtil.getLocations(MAX_LOCATION_UPDATE_NUMBER);
+    // called when the user is authenticated
+    private void userAuthenticated(FirebaseUser fbUser) {
+        String uid = fbUser.getUid();
 
-        if (locations.isEmpty()) return;
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
 
-        if (FirebaseAuth.getInstance().getCurrentUser() == null) return;
-
-/*
-        Call<Void> upload = RestClient.service().setLocations(RestClient.token(), locations);
-
-        upload.enqueue(new Callback<Void>() {
+        // called whenever the user database is updated
+        userRef.child(uid).addValueEventListener(new ValueEventListener() {
             @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                // on success, remove the locations in the database
-                DBUtil.deleteLocations(locations);
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.d(TAG, "User database changed");
+
+                User newUser = dataSnapshot.getValue(User.class);
+
+                User currentUser = MainApplication.getUser();
+
+                if (newUser != null) {
+                    if (currentUser != null) {
+                        updateUser(newUser, currentUser);
+                    } else {
+                        initUser(dataSnapshot.getKey(), newUser);
+                    }
+                } else {
+                    if (MainApplication.getLoginEmail() == null) {
+                        // no user in the database yet, but the user
+                        // object is set to MainApplication
+                        createUser(currentUser);
+                    }
+                }
             }
 
             @Override
-            public void onFailure(Call<Void> call, Throwable t) {
+            public void onCancelled(DatabaseError databaseError) {
+
             }
         });
+    }
+
+    private void createUser(User user) {
+        Log.d(TAG, "createUser:" + user.toString());
+
+        // first (must be first), save the email address to the local preference
+        MainApplication.setLoginEmail(user.getEmail());
+
+        // Send email verification to the signup email address
+        sendEmailVerification();
+
+        FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
+        String uid = fbUser.getUid();
+
+        FirebaseDatabase db = FirebaseDatabase.getInstance();
+
+        // save the device info
+        Device device = Utils.getDevice();
+        device.setUid(uid);
+        DatabaseReference devRef = db.getReference().child("devices");
+        String key = devRef.push().getKey();
+        devRef.child(key).setValue(device);
+
+        // save the user info to the remote database
+        DatabaseReference userRef = db.getReference().child("users");
+        userRef.child(uid).setValue(user);
+
+        // add the device key to the user info
+        Map<String, String> devices = new HashMap<>();
+        devices.put(key, device.getDeviceId());
+        userRef.child(uid).child("devices").setValue(devices);
+    }
+
+    private void initUser(String uid, User user) {
+        Log.d(TAG, "initUser: uid=" + uid);
+
+        // save the user in the memory
+        MainApplication.setUser(user);
+
+        // save the email address to the local preference
+        MainApplication.setLoginEmail(user.getEmail());
+
+        // the current device
+        Device currentDevice = Utils.getDevice();
+
+        String devKey = null;
+
+        // get the device key to match the device id in the user database
+        Map<String, String> devList = user.getDevices();
+        if (devList != null && !devList.isEmpty()) {
+            for (Map.Entry<String, String> entry : devList.entrySet()) {
+                // the values is a device id
+                if (entry.getValue().equals(currentDevice.getDeviceId())) {
+                    devKey = entry.getKey();
+                }
+            }
+        }
+
+        DatabaseReference devRef = FirebaseDatabase.getInstance().getReference().child("devices");
+
+        if (devKey != null) {
+            // update the timestamp of the device
+            devRef.child(devKey).child("timestamp").setValue(currentDevice.getTimestamp());
+        } else {
+            // set the uid to the device before save
+            currentDevice.setUid(uid);
+
+            // add it as a new device
+            String newKey = devRef.push().getKey();
+            devRef.child(newKey).setValue(currentDevice);
+
+            // also add it to the user database under 'devices'
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
+            userRef.child(uid).child("devices").child(newKey).setValue(currentDevice.getDeviceId());
+        }
+    }
+
+    private void updateUser(User newUser, User oldUser) {
+        Log.d(TAG, "updateUser");
+
+/*
+        if (newUser.getPicture() != oldUser.getPicture()) {
+            Log.d(TAG, "updateUser=picture");
+
+            FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
+            String uid = fbUser.getUid();
+
+            FirebaseDatabase db = FirebaseDatabase.getInstance();
+
+            DatabaseReference userRef = db.getReference().child("users");
+            userRef.child(uid).setValue(newUser);
+        }
 */
     }
 
+    private void sendEmailVerification() {
+        FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
+        fbUser.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()) {
+                    Log.d(TAG, "sendEmailVerification");
+                }
+            }
+        });
+    }
+
+    private void userInvalidated() {
+        MainApplication.setUser(null);
+    }
 }

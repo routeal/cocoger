@@ -61,15 +61,7 @@
         <activity android:name=".ui.main.SearchMapActivity" />
         -->
 
-        <activity android:name=".ui.login.LoginActivity"
-            android:windowSoftInputMode="stateHidden"
-            android:theme="@style/LoginTheme"/>
-
-        <activity android:name=".ui.login.ResetPasswordActivity"
-            android:windowSoftInputMode="stateHidden"
-            android:theme="@style/LoginTheme"/>
-
-        <activity android:name=".ui.login.SignupActivity"
+        <activity android:name=".ui.login.SetupActivity"
             android:windowSoftInputMode="stateHidden"
             android:theme="@style/LoginTheme"/>
 
@@ -78,6 +70,10 @@
 
         <activity android:name=".ui.main.SlidingUpPanelMapActivity"
             />
+
+        <activity android:name=".ui.login.LoginActivity"
+            android:windowSoftInputMode="adjustPan"
+            android:theme="@style/LoginTheme"/>
 
         <activity android:name=".ui.main.FriendConfigActivity"
             android:theme="@style/AppTheme"/>
@@ -97,26 +93,6 @@
             android:name="com.routeal.cocoger.provider.DatabaseProvider"
             android:authorities="com.routeal.cocoger.provider"
             android:exported="false" />
-
-        <meta-data
-            android:name="com.facebook.sdk.ApplicationId"
-            android:value="@string/facebook_app_id" />
-
-        <activity android:name="com.facebook.FacebookActivity"
-            android:configChanges=
-                "keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-            android:label="@string/app_name" />
-
-        <activity
-            android:name="com.facebook.CustomTabActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="@string/fb_login_protocol_scheme" />
-            </intent-filter>
-        </activity>
 
     </application>
 

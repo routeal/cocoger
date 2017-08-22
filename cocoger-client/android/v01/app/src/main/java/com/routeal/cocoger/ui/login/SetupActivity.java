@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -30,22 +31,17 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
-import com.routeal.cocoger.model.Device;
 import com.routeal.cocoger.model.User;
-import com.routeal.cocoger.provider.DBUtil;
 import com.routeal.cocoger.ui.main.SlidingUpPanelMapActivity;
-import com.routeal.cocoger.util.Utils;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.TimeZone;
 
-public class SignupActivity extends AppCompatActivity {
-    private static final String TAG = "SignupActivity";
+public class SetupActivity extends AppCompatActivity {
+    private static final String TAG = "SetupActivity";
 
     private final int MIN_NAME_LENGTH = 4;
 
@@ -59,26 +55,14 @@ public class SignupActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_signup);
+        setContentView(R.layout.activity_setup);
 
         // execute to sign up
-        Button signupButton = (Button) findViewById(R.id.btn_signup);
-        signupButton.setOnClickListener(new View.OnClickListener() {
+        Button startButton = (Button) findViewById(R.id.btn_start_app);
+        startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                executeSignup();
-            }
-        });
-
-        // switch to login screen
-        TextView loginLink = (TextView) findViewById(R.id.link_login);
-        loginLink.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                startActivity(intent);
-                finish();
-                overridePendingTransition(R.anim.push_right_out, R.anim.push_right_in);
+                startApp();
             }
         });
 
@@ -112,7 +96,7 @@ public class SignupActivity extends AppCompatActivity {
                         .setRequestedSize(512, 512)
                         .setFixAspectRatio(true)
                         .setAspectRatio(100, 100)
-                        .start(SignupActivity.this);
+                        .start(SetupActivity.this);
             }
         });
     }
@@ -149,19 +133,13 @@ public class SignupActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void executeSignup() {
+    private void startApp() {
         EditText nameText = (EditText) findViewById(R.id.input_name);
         String name = nameText.getText().toString();
         EditText yearBirthText = (EditText) findViewById(R.id.input_year_birth);
         String yearBirth = yearBirthText.getText().toString();
         EditText genderText = (EditText) findViewById(R.id.input_gender);
         String gender = genderText.getText().toString();
-        EditText emailText = (EditText) findViewById(R.id.input_email);
-        String email = emailText.getText().toString();
-        EditText passwordText = (EditText) findViewById(R.id.input_password);
-        String password = passwordText.getText().toString();
-        EditText reEnterPasswordText = (EditText) findViewById(R.id.input_reEnterPassword);
-        String reEnterPassword = reEnterPasswordText.getText().toString();
         EditText pictureText = (EditText) findViewById(R.id.input_picture);
 
         boolean valid = true;
@@ -180,35 +158,11 @@ public class SignupActivity extends AppCompatActivity {
             yearBirthText.setError(null);
         }
 
-        if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            emailText.setError(getResources().getString(R.string.invalid_email));
-            valid = false;
-        } else {
-            emailText.setError(null);
-        }
-
         if (gender.isEmpty()) {
             genderText.setError(getResources().getString(R.string.no_gender));
             valid = false;
         } else {
             genderText.setError(null);
-        }
-
-        if (password.isEmpty()) {
-            passwordText.setError(getResources().getString(R.string.no_password));
-            valid = false;
-        } else if (password.length() < MIN_PASSWORD_LENGTH) {
-            passwordText.setError(getResources().getString(R.string.min_password));
-            valid = false;
-        } else {
-            passwordText.setError(null);
-        }
-
-        if (reEnterPassword.isEmpty() || !(reEnterPassword.equals(password))) {
-            reEnterPasswordText.setError(getResources().getString(R.string.no_password_match));
-            valid = false;
-        } else {
-            reEnterPasswordText.setError(null);
         }
 
         if (mProfilePictureUri == null) {
@@ -222,7 +176,6 @@ public class SignupActivity extends AppCompatActivity {
 
         mUser.setName(name);
         mUser.setSearchedName(name.toLowerCase());
-        mUser.setEmail(email);
         mUser.setGender(gender.toLowerCase());
         mUser.setBirthYear(yearBirth.toLowerCase());
         mUser.setCreated(System.currentTimeMillis());
@@ -236,19 +189,26 @@ public class SignupActivity extends AppCompatActivity {
         Button signupButton = (Button) findViewById(R.id.btn_signup);
         signupButton.setEnabled(false);
 
+        // save the user in the memory
+        MainApplication.setUser(mUser);
+
+/*
         FirebaseAuth.getInstance()
-                .createUserWithEmailAndPassword(email, password).addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                .createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
                     onSignupSuccess(task.getResult().getUser());
                     dialog.dismiss();
                 } else {
+                    Log.d(TAG, task.getException().getLocalizedMessage());
                     dialog.dismiss();
                     onSignupFailed(getResources().getString(R.string.signup_failed));
                 }
             }
         });
+*/
     }
 
     @Override
@@ -277,12 +237,13 @@ public class SignupActivity extends AppCompatActivity {
         }
     }
 
-    private void onSignupSuccess(final FirebaseUser firebaseUser) {
-        // Send email verification to the signup email address
-        sendEmailVerification();
+    private void onSignupSuccess(final FirebaseUser fbUser) {
+        Toast.makeText(getApplicationContext(),
+                getResources().getString(R.string.signup_success),
+                Toast.LENGTH_LONG).show();
 
         // Save the profile picture to the server
-        String refName = "users/" + firebaseUser.getUid() + "/image/profile.jpg";
+        String refName = "users/" + fbUser.getUid() + "/image/profile.jpg";
 
         StorageReference mStorageRef = FirebaseStorage.getInstance().getReference();
 
@@ -294,8 +255,19 @@ public class SignupActivity extends AppCompatActivity {
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                         @SuppressWarnings("VisibleForTests")
                         Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                        mUser.setPicture(downloadUrl.toString());
-                        saveUserInfo(firebaseUser);
+                        String picture = downloadUrl.toString();
+                        mUser.setPicture(picture);
+
+                        FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
+                        String uid = fbUser.getUid();
+
+                        FirebaseDatabase db = FirebaseDatabase.getInstance();
+                        DatabaseReference userRef = db.getReference().child("users");
+                        userRef.child(uid).child("picture").setValue(picture);
+
+                        Intent intent = new Intent(getApplicationContext(), SlidingUpPanelMapActivity.class);
+                        startActivity(intent);
+                        finish();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -312,51 +284,29 @@ public class SignupActivity extends AppCompatActivity {
         signupButton.setEnabled(true);
     }
 
-    private void sendEmailVerification() {
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            user.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
-                @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                    if (task.isSuccessful()) {
-                        Toast.makeText(getApplicationContext(),
-                                getResources().getString(R.string.verification_email_sent),
-                                Toast.LENGTH_LONG).show();
-                    }
-                }
-            });
-        }
+
+/*
+    private PendingIntent getEmailHintIntent() {
+        GoogleApiClient client = new GoogleApiClient.Builder(this)
+                .addApi(Auth.CREDENTIALS_API)
+                .enableAutoManage(this, GoogleApiHelper.getSafeAutoManageId(),
+                        new GoogleApiClient.OnConnectionFailedListener() {
+                            @Override
+                            public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+                                Log.e(TAG, "Client connection failed: " + connectionResult.getErrorMessage());
+                            }
+                        })
+                .build();
+
+        HintRequest hintRequest = new HintRequest.Builder()
+                .setHintPickerConfig(new CredentialPickerConfig.Builder()
+                        .setShowCancelButton(true)
+                        .build())
+                .setEmailAddressIdentifierSupported(true)
+                .build();
+
+        return Auth.CredentialsApi.getHintPickerIntent(client, hintRequest);
     }
+*/
 
-    private void saveUserInfo(FirebaseUser firebaseUser) {
-        FirebaseDatabase db = FirebaseDatabase.getInstance();
-        String uid = firebaseUser.getUid();
-
-        // save the device info
-        Device device = Utils.getDevice();
-        device.setUid(uid);
-        DatabaseReference devRef = db.getReference().child("devices");
-        String mKey = devRef.push().getKey();
-        devRef.child(mKey).setValue(device);
-
-        // save the user info to the remote database
-        DatabaseReference userRef = db.getReference().child("users");
-        userRef.child(uid).setValue(mUser);
-
-        // add the device key to the user info
-        Map<String, String> devices = new HashMap<>();
-        devices.put(mKey, device.getDeviceId());
-        userRef.child(uid).child("devices").setValue(devices);
-
-        // save the user info to the local database
-        DBUtil.deleteUser();
-        DBUtil.saveUser(mUser);
-
-        // save the email address to the local preference
-        MainApplication.setLoginEmail(mUser.getEmail());
-
-        Intent intent = new Intent(getApplicationContext(), SlidingUpPanelMapActivity.class);
-        startActivity(intent);
-        finish();
-    }
 }

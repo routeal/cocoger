@@ -29,7 +29,6 @@ import com.mikepenz.aboutlibraries.Libs;
 import com.mikepenz.aboutlibraries.LibsBuilder;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
-import com.routeal.cocoger.net.RestClient;
 import com.routeal.cocoger.provider.DBUtil;
 import com.routeal.cocoger.ui.login.LoginActivity;
 import com.routeal.cocoger.util.Utils;
@@ -38,10 +37,6 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class SearchMapActivity extends MapActivity
         implements NavigationView.OnNavigationItemSelectedListener {

@@ -127,9 +127,10 @@ public class User implements Serializable {
 
     public String toString() {
         return String.format(
-                "email=%s, firstName=%s, lastName=%s, name=%s, locale=%s, picture=%s, " +
-                        "birth_year=%s, gender=%s, timezone=%s, updated=%s",
-                email, firstName, lastName, name, locale, picture,
-                birthYear, gender, timezone, updated);
+                "email=%s, firstName=%s, lastName=%s, name=%s, searchedName=%s, " +
+                "gender=%s, locale=%s, timezone=%s, birth_year=%s, gender=%s, " +
+                "timezone=%s, updated=%s picture=%s",
+                email, firstName, lastName, name, searchedName, gender, locale,
+                timezone, birthYear, gender, timezone, updated, picture);
     }
 }

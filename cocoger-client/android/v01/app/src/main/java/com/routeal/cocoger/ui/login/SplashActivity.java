@@ -32,11 +32,14 @@ public class SplashActivity extends AppCompatActivity {
         if (mAuth.getCurrentUser() != null) {
             intent = new Intent(getApplicationContext(), SlidingUpPanelMapActivity.class);
         } else {
+            intent = new Intent(getApplicationContext(), LoginActivity.class);
+            /*
             if (MainApplication.getLoginEmail() != null) {
                 intent = new Intent(getApplicationContext(), LoginActivity.class);
             } else {
-                intent = new Intent(getApplicationContext(), SignupActivity.class);
+                intent = new Intent(getApplicationContext(), SetupActivity.class);
             }
+            */
         }
 
         startActivity(intent);

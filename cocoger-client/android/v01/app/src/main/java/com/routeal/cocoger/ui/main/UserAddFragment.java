@@ -1,6 +1,6 @@
 package com.routeal.cocoger.ui.main;
 
-import android.content.DialogInterface;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -19,11 +20,15 @@ import android.widget.TextView;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.franmontiel.fullscreendialog.FullScreenDialogContent;
 import com.franmontiel.fullscreendialog.FullScreenDialogController;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.User;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by nabe on 8/13/17.
@@ -68,6 +73,11 @@ public class UserAddFragment extends Fragment
         recyclerView.setLayoutManager(layoutManager);
     }
 
+    private void hideKeyboard(View view) {
+        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
     @Override
     public boolean onConfirmClick(FullScreenDialogController dialogController) {
         final boolean isRequested = updateDatabaseForFriendRequest();
@@ -80,22 +90,36 @@ public class UserAddFragment extends Fragment
                     .show();
         }
 
+        EditText searchText = (EditText) getView().findViewById(R.id.search_text);
+        hideKeyboard(searchText);
+
         return false;
     }
 
     private boolean updateDatabaseForFriendRequest() {
-        /*
         RecyclerView recyclerView = (RecyclerView) getView().findViewById(R.id.user_list);
 
         FirebaseRecyclerAdapter<User, UserViewHolder> adapter =
                 (FirebaseRecyclerAdapter<User, UserViewHolder>) recyclerView.getAdapter();
 
-        for (int i = 0; i < adapter.getItemCount(); i++) {
-            DatabaseReference ref = adapter.getRef(i);
-        }
+        FirebaseDatabase db = FirebaseDatabase.getInstance();
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
-        return false;
-        */
+        DatabaseReference userRef = db.getReference().child("users");
+
+        for (int i = 0; i < adapter.getItemCount(); i++) {
+            // add friends to myself
+            String key = adapter.getRef(i).getKey();
+            Map<String, Boolean> friend = new HashMap<>();
+            friend.put(key, false);
+            userRef.child(uid).child("friends").setValue(friend);
+
+            // add myself to friend
+            friend.clear();
+            friend.put(uid, false);
+            DatabaseReference ref = adapter.getRef(i);
+            ref.child("friends").setValue(friend);
+        }
 
         return true;
     }
@@ -112,6 +136,7 @@ public class UserAddFragment extends Fragment
         if (!text.isEmpty()) {
             searchUser(text);
             searchText.setText("");
+            hideKeyboard(searchText);
         }
     }
 
@@ -136,7 +161,7 @@ public class UserAddFragment extends Fragment
         Query query = userRef
                 .orderByChild("name")
                 .startAt(text)
-                .endAt(text+"~");
+                .endAt(text + "~");
 
         FirebaseRecyclerAdapter<User, UserViewHolder> adapter =
                 new FirebaseRecyclerAdapter<User, UserViewHolder>(
@@ -152,8 +177,12 @@ public class UserAddFragment extends Fragment
 
                     @Override
                     public void onDataChanged() {
-                        TextView emptyListMessage = (TextView) getView().findViewById(R.id.empty_list_text);
-                        emptyListMessage.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
+                        // NOTE: this gets called when new people are added to the friends
+                        View view = getView();
+                        if (view != null) {
+                            TextView emptyListMessage = (TextView) view.findViewById(R.id.empty_list_text);
+                            emptyListMessage.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
+                        }
                     }
                 };
 
