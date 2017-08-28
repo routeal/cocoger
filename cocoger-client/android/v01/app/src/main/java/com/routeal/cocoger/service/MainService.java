@@ -1,16 +1,22 @@
 package com.routeal.cocoger.service;
 
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.core.GeoHash;
@@ -33,7 +39,11 @@ import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.Device;
 import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.model.User;
+import com.routeal.cocoger.ui.main.SlidingUpPanelMapActivity;
+import com.routeal.cocoger.util.CircleTransform;
 import com.routeal.cocoger.util.Utils;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -42,12 +52,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Random;
 
 /**
  * Created by hwatanabe on 4/11/17.
  */
 
-public class LocationService extends BasePeriodicService
+public class MainService extends BasePeriodicService
         implements LocationListener {
 
     enum LocationMode {
@@ -56,15 +67,19 @@ public class LocationService extends BasePeriodicService
         FOREGROUND
     }
 
-    private static final String TAG = "LocationService";
+    private static final String TAG = "MainService";
 
     public static final String LAST_LOCATION_UPDATE = "last_location_update";
+
+    public static final String USER_AVAILABLE = "user_available";
+
+    public static final String ACTION_FRIEND_REQUEST_ACCEPTED = "FRIEND_REQUEST_ACCEPTED";
+
+    public static final String ACTION_FRIEND_REQUEST_DECLINED = "FRIEND_REQUEST_DECLINED";
 
     private final static long BACKGROUND_INTERVAL = 20000;
 
     private final static long FOREGROUND_INTERVAL = 2000;
-
-    private final static int MAX_LOCATION_UPDATE_NUMBER = 20;
 
     private final static int PASTLOCATION_QUEUE_SIZE = 3;
 
@@ -72,7 +87,7 @@ public class LocationService extends BasePeriodicService
 
     private final static float BACKGROUND_MIN_MOVEMENT = 10.0f;
 
-    public static LocationService mActiveService;
+    public static MainService mActiveService;
 
     private static LocationRequest mLocationRequest;
 
@@ -124,8 +139,16 @@ public class LocationService extends BasePeriodicService
         }
     }
 
-    public LocationService() {
+    public static boolean instantiated = false;
+
+    // FIXME: MainService gets called twice for some reason.
+    // Needs fix.  instantiated is just a work around.
+    public MainService() {
         super();
+
+        if (instantiated) return;
+
+        instantiated = true;
 
         // setting up a listener when the user is authenticated
         FirebaseAuth.getInstance().addAuthStateListener(new FirebaseAuth.AuthStateListener() {
@@ -133,10 +156,10 @@ public class LocationService extends BasePeriodicService
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
-                    Log.d(TAG, "FB authenticated");
+                    Log.d(TAG, "Firebase authenticated");
                     userAuthenticated(user);
                 } else {
-                    Log.d(TAG, "FB invalidated");
+                    Log.d(TAG, "Firebase invalidated");
                     userInvalidated();
                 }
             }
@@ -217,7 +240,7 @@ public class LocationService extends BasePeriodicService
         mActiveService = this;
 
         if (MainApplication.isLocationPermitted()) {
-            Log.d(TAG, "Permission granted already");
+            // Log.d(TAG, "Permission granted already");
 
             // start to connect with google api client
             connectGoogleApi();
@@ -369,17 +392,15 @@ public class LocationService extends BasePeriodicService
 
                 User currentUser = MainApplication.getUser();
 
-                if (newUser != null) {
+                if (newUser == null) {
+                    if (currentUser == null) {
+                        signupUser(dataSnapshot.getKey());
+                    }
+                } else {
                     if (currentUser != null) {
                         updateUser(newUser, currentUser);
                     } else {
-                        initUser(dataSnapshot.getKey(), newUser);
-                    }
-                } else {
-                    if (MainApplication.getLoginEmail() == null) {
-                        // no user in the database yet, but the user
-                        // object is set to MainApplication
-                        createUser(currentUser);
+                        loginUser(dataSnapshot.getKey(), newUser);
                     }
                 }
             }
@@ -391,45 +412,16 @@ public class LocationService extends BasePeriodicService
         });
     }
 
-    private void createUser(User user) {
-        Log.d(TAG, "createUser:" + user.toString());
-
-        // first (must be first), save the email address to the local preference
-        MainApplication.setLoginEmail(user.getEmail());
-
-        // Send email verification to the signup email address
-        sendEmailVerification();
-
-        FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
-        String uid = fbUser.getUid();
-
-        FirebaseDatabase db = FirebaseDatabase.getInstance();
-
-        // save the device info
-        Device device = Utils.getDevice();
-        device.setUid(uid);
-        DatabaseReference devRef = db.getReference().child("devices");
-        String key = devRef.push().getKey();
-        devRef.child(key).setValue(device);
-
-        // save the user info to the remote database
-        DatabaseReference userRef = db.getReference().child("users");
-        userRef.child(uid).setValue(user);
-
-        // add the device key to the user info
-        Map<String, String> devices = new HashMap<>();
-        devices.put(key, device.getDeviceId());
-        userRef.child(uid).child("devices").setValue(devices);
-    }
-
-    private void initUser(String uid, User user) {
-        Log.d(TAG, "initUser: uid=" + uid);
+    private void loginUser(String uid, User user) {
+        Log.d(TAG, "loginUser:" + user.toString());
 
         // save the user in the memory
         MainApplication.setUser(user);
 
-        // save the email address to the local preference
-        MainApplication.setLoginEmail(user.getEmail());
+        if (MainApplication.getContext() != null) {
+            Intent intent = new Intent(USER_AVAILABLE);
+            LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+        }
 
         // the current device
         Device currentDevice = Utils.getDevice();
@@ -466,22 +458,65 @@ public class LocationService extends BasePeriodicService
         }
     }
 
+    private void signupUser(String uid) {
+        Log.d(TAG, "signupUser: uid=" + uid);
+
+        FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (fUser == null) {
+            Log.e(TAG, "no current user from FirebaseUser in signupUser");
+            return;
+        }
+
+        User user = new User();
+        user.setDisplayName(fUser.getDisplayName());
+        user.setEmail(fUser.getEmail());
+
+        // save the user in the memory
+        MainApplication.setUser(user);
+
+        FirebaseDatabase db = FirebaseDatabase.getInstance();
+
+        // save the device info
+        Device device = Utils.getDevice();
+        device.setUid(uid);
+        DatabaseReference devRef = db.getReference().child("devices");
+        String key = devRef.push().getKey();
+        devRef.child(key).setValue(device);
+
+        // save the user info to the remote database
+        DatabaseReference userRef = db.getReference().child("users");
+        userRef.child(uid).setValue(user);
+
+        // add the device key to the user info
+        Map<String, String> devices = new HashMap<>();
+        devices.put(key, device.getDeviceId());
+        userRef.child(uid).child("devices").setValue(devices);
+
+        // Send an email verification
+        sendEmailVerification();
+    }
+
     private void updateUser(User newUser, User oldUser) {
         Log.d(TAG, "updateUser");
 
-/*
-        if (newUser.getPicture() != oldUser.getPicture()) {
-            Log.d(TAG, "updateUser=picture");
-
-            FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
-            String uid = fbUser.getUid();
-
-            FirebaseDatabase db = FirebaseDatabase.getInstance();
-
-            DatabaseReference userRef = db.getReference().child("users");
-            userRef.child(uid).setValue(newUser);
+        Map<String, Long> invitees = newUser.getInvitees();
+        if (invitees != null && !invitees.isEmpty()) {
+            for (Map.Entry<String, Long> entry : invitees.entrySet()) {
+                if (entry.getValue() > 0) {
+                    if (oldUser.getInvitees() == null ||
+                            oldUser.getInvitees().get(entry.getKey()) == null) {
+                        Log.d(TAG, "received new friends request");
+                        //oldUser.setInvitees(invitees);
+                        sendInviteNotification(entry.getKey());
+                    } else {
+                        Log.d(TAG, "received old friends request");
+                    }
+                }
+            }
         }
-*/
+
+        MainApplication.setUser(newUser);
     }
 
     private void sendEmailVerification() {
@@ -499,4 +534,81 @@ public class LocationService extends BasePeriodicService
     private void userInvalidated() {
         MainApplication.setUser(null);
     }
+
+    private void sendInviteNotification(final String invite) {
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
+
+        userRef.child(invite).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // notification id
+                int nid = new Random().nextInt();
+
+                User inviteUser = dataSnapshot.getValue(User.class);
+
+                Context context = MainApplication.getContext();
+
+                // accept starts the main activity with the friend view
+                Intent acceptIntent = new Intent(context, SlidingUpPanelMapActivity.class);
+                acceptIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+                        | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                acceptIntent.setAction(ACTION_FRIEND_REQUEST_ACCEPTED);
+                acceptIntent.putExtra("friend_invite", invite);
+                acceptIntent.putExtra("notification_id", nid);
+                PendingIntent pendingAcceptIntent = PendingIntent.getActivity(context, 1, acceptIntent, 0);
+                NotificationCompat.Action acceptAction = new NotificationCompat.Action.Builder(
+                        R.drawable.ic_contacts_black_18dp,
+                        "Accept", pendingAcceptIntent).build();
+
+                Intent declineIntent = new Intent(context, OnBootReceiver.class);
+                declineIntent.setAction(ACTION_FRIEND_REQUEST_DECLINED);
+                declineIntent.putExtra("friend_invite", invite);
+                declineIntent.putExtra("notification_id", nid);
+                PendingIntent pendingDeclineIntent = PendingIntent.getBroadcast(context, 1, declineIntent, 0);
+                NotificationCompat.Action declineAction = new NotificationCompat.Action.Builder(
+                        R.drawable.ic_contacts_black_18dp,
+                        "Decline", pendingDeclineIntent).build();
+
+                String content = "You received a friend request from " + inviteUser.getDisplayName() + ".";
+
+                final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
+                        .setSmallIcon(R.drawable.ic_person_pin_circle_white_48dp)
+                        .setContentTitle(inviteUser.getDisplayName())
+                        .setContentText(content)
+                        .setAutoCancel(true)
+                        .addAction(acceptAction)
+                        .addAction(declineAction);
+
+                // seems not working, use notificationmanager's cancel method
+                Notification notification = mBuilder.build();
+                notification.flags |= Notification.FLAG_AUTO_CANCEL;
+
+                Picasso.with(MainApplication.getContext()).load(inviteUser.getPicture()).transform(new CircleTransform()).into(new Target() {
+                    @Override
+                    public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                        mBuilder.setLargeIcon(bitmap);
+                    }
+                    @Override
+                    public void onBitmapFailed(Drawable errorDrawable) {
+                    }
+                    @Override
+                    public void onPrepareLoad(Drawable placeHolderDrawable) {
+                    }
+                });
+
+                NotificationManager mNotificationManager =
+                        (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
+
+                mNotificationManager.notify(nid, notification);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+    }
+
 }

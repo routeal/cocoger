@@ -57,7 +57,7 @@
         android:layout_alignTop="@+id/picture"
         android:layout_alignBottom="@+id/picture"
         android:textColor="@color/black"
-        android:text="Japan"
+        android:text="xxJapanxx"
         android:textSize="16dp" />
 
 </RelativeLayout>

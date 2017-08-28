@@ -6,8 +6,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
-import com.routeal.cocoger.MainApplication;
-import com.routeal.cocoger.service.LocationService;
+import com.routeal.cocoger.service.MainService;
 import com.routeal.cocoger.ui.main.SlidingUpPanelMapActivity;
 
 /**
@@ -21,28 +20,25 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         // ensure that the service is started
-        new LocationService().startResident(MainApplication.getContext());
+        if (!MainService.instantiated) {
+            new MainService().startResident(getApplicationContext());
+        }
 
         // set it in the foreground mode
-        LocationService.setForegroundMode();
+        MainService.setForegroundMode();
 
         FirebaseAuth mAuth = FirebaseAuth.getInstance();
 
-        Intent intent = null;
+        Intent intent;
+
         if (mAuth.getCurrentUser() != null) {
             intent = new Intent(getApplicationContext(), SlidingUpPanelMapActivity.class);
         } else {
             intent = new Intent(getApplicationContext(), LoginActivity.class);
-            /*
-            if (MainApplication.getLoginEmail() != null) {
-                intent = new Intent(getApplicationContext(), LoginActivity.class);
-            } else {
-                intent = new Intent(getApplicationContext(), SetupActivity.class);
-            }
-            */
         }
 
         startActivity(intent);
+
         finish();
     }
 }

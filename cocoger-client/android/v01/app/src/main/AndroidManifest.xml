@@ -87,7 +87,14 @@
             </intent-filter>
         </receiver>
 
-        <service android:name=".service.LocationService" />
+        <receiver android:name=".service.MainReceiver">
+            <intent-filter>
+                <action android:name="FRIEND_REQUEST_ACCEPTED" />
+                <action android:name="FRIEND_REQUEST_DECLINED" />
+            </intent-filter>
+        </receiver>
+
+        <service android:name=".service.MainService" />
 
         <provider
             android:name="com.routeal.cocoger.provider.DatabaseProvider"

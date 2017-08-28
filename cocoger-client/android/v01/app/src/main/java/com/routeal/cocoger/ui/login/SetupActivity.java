@@ -9,19 +9,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
@@ -42,12 +37,6 @@ import java.util.TimeZone;
 
 public class SetupActivity extends AppCompatActivity {
     private static final String TAG = "SetupActivity";
-
-    private final int MIN_NAME_LENGTH = 4;
-
-    private final int MIN_PASSWORD_LENGTH = 6;
-
-    private User mUser = new User();
 
     private Uri mProfilePictureUri;
 
@@ -134,23 +123,10 @@ public class SetupActivity extends AppCompatActivity {
     }
 
     private void startApp() {
-        EditText nameText = (EditText) findViewById(R.id.input_name);
-        String name = nameText.getText().toString();
-        EditText yearBirthText = (EditText) findViewById(R.id.input_year_birth);
-        String yearBirth = yearBirthText.getText().toString();
-        EditText genderText = (EditText) findViewById(R.id.input_gender);
-        String gender = genderText.getText().toString();
-        EditText pictureText = (EditText) findViewById(R.id.input_picture);
-
         boolean valid = true;
 
-        if (name.isEmpty() || name.length() < MIN_NAME_LENGTH) {
-            nameText.setError(getResources().getString(R.string.min_name));
-            valid = false;
-        } else {
-            nameText.setError(null);
-        }
-
+        EditText yearBirthText = (EditText) findViewById(R.id.input_year_birth);
+        String yearBirth = yearBirthText.getText().toString();
         if (yearBirth.isEmpty()) {
             yearBirthText.setError(getResources().getString(R.string.no_year_birth));
             valid = false;
@@ -158,6 +134,8 @@ public class SetupActivity extends AppCompatActivity {
             yearBirthText.setError(null);
         }
 
+        EditText genderText = (EditText) findViewById(R.id.input_gender);
+        String gender = genderText.getText().toString();
         if (gender.isEmpty()) {
             genderText.setError(getResources().getString(R.string.no_gender));
             valid = false;
@@ -165,6 +143,7 @@ public class SetupActivity extends AppCompatActivity {
             genderText.setError(null);
         }
 
+        EditText pictureText = (EditText) findViewById(R.id.input_picture);
         if (mProfilePictureUri == null) {
             pictureText.setError(getResources().getString(R.string.no_picture));
             valid = false;
@@ -174,47 +153,71 @@ public class SetupActivity extends AppCompatActivity {
 
         if (!valid) return;
 
-        mUser.setName(name);
-        mUser.setSearchedName(name.toLowerCase());
-        mUser.setGender(gender.toLowerCase());
-        mUser.setBirthYear(yearBirth.toLowerCase());
-        mUser.setCreated(System.currentTimeMillis());
-        mUser.setLocale(getResources().getConfiguration().locale.getDisplayLanguage());
-        mUser.setTimezone(TimeZone.getDefault().getID());
-
+        // show the busy cursor
         final ProgressDialog dialog = ProgressDialog.show(this, null, null, false, true);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         dialog.setContentView(R.layout.progressbar_spinner);
 
-        Button signupButton = (Button) findViewById(R.id.btn_signup);
-        signupButton.setEnabled(false);
+        // get the user in the memory
+        final User user = MainApplication.getUser();
+        /// get the displayname from the firebase user
+        FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
+        user.setDisplayName(fbUser.getDisplayName());
+        String displayName = user.getDisplayName();
+        if (displayName != null) {
+            user.setSearchedName(displayName.toLowerCase());
+        }
+        user.setGender(gender.toLowerCase());
+        user.setBirthYear(yearBirth.toLowerCase());
+        user.setCreated(System.currentTimeMillis());
+        user.setLocale(getResources().getConfiguration().locale.getDisplayLanguage());
+        user.setTimezone(TimeZone.getDefault().getID());
 
-        // save the user in the memory
-        MainApplication.setUser(mUser);
+        // save the profile picture to the server
+        final String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String refName = "users/" + uid + "/image/profile.jpg";
+        StorageReference mStorageRef = FirebaseStorage.getInstance().getReference();
+        StorageReference profileRef = mStorageRef.child(refName);
+        profileRef.putFile(mProfilePictureUri)
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        @SuppressWarnings("VisibleForTests")
+                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                        String picture = downloadUrl.toString();
+                        user.setPicture(picture);
 
-/*
-        FirebaseAuth.getInstance()
-                .createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-            @Override
-            public void onComplete(@NonNull Task<AuthResult> task) {
-                if (task.isSuccessful()) {
-                    onSignupSuccess(task.getResult().getUser());
-                    dialog.dismiss();
-                } else {
-                    Log.d(TAG, task.getException().getLocalizedMessage());
-                    dialog.dismiss();
-                    onSignupFailed(getResources().getString(R.string.signup_failed));
-                }
-            }
-        });
-*/
+                        // update the user in the firebase database
+                        FirebaseDatabase db = FirebaseDatabase.getInstance();
+                        DatabaseReference userRef = db.getReference().child("users").child(uid);
+                        userRef.child("picture").setValue(user.getPicture());
+                        userRef.child("searchedName").setValue(user.getSearchedName());
+                        userRef.child("gender").setValue(user.getGender());
+                        userRef.child("birthYear").setValue(user.getBirthYear());
+                        userRef.child("created").setValue(user.getCreated());
+                        userRef.child("locale").setValue(user.getLocale());
+                        userRef.child("timezone").setValue(user.getTimezone());
+
+                        // start the main map
+                        Intent intent = new Intent(getApplicationContext(), SlidingUpPanelMapActivity.class);
+                        startActivity(intent);
+                        finish();
+
+                        dialog.dismiss();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // TODO: what to do???
+                        dialog.dismiss();
+                    }
+                });
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
         // handle result of CropImageActivity
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             CropImage.ActivityResult result = CropImage.getActivityResult(data);
@@ -236,77 +239,4 @@ public class SetupActivity extends AppCompatActivity {
             }
         }
     }
-
-    private void onSignupSuccess(final FirebaseUser fbUser) {
-        Toast.makeText(getApplicationContext(),
-                getResources().getString(R.string.signup_success),
-                Toast.LENGTH_LONG).show();
-
-        // Save the profile picture to the server
-        String refName = "users/" + fbUser.getUid() + "/image/profile.jpg";
-
-        StorageReference mStorageRef = FirebaseStorage.getInstance().getReference();
-
-        StorageReference profileRef = mStorageRef.child(refName);
-
-        profileRef.putFile(mProfilePictureUri)
-                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        @SuppressWarnings("VisibleForTests")
-                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                        String picture = downloadUrl.toString();
-                        mUser.setPicture(picture);
-
-                        FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
-                        String uid = fbUser.getUid();
-
-                        FirebaseDatabase db = FirebaseDatabase.getInstance();
-                        DatabaseReference userRef = db.getReference().child("users");
-                        userRef.child(uid).child("picture").setValue(picture);
-
-                        Intent intent = new Intent(getApplicationContext(), SlidingUpPanelMapActivity.class);
-                        startActivity(intent);
-                        finish();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        // TODO: what to do???
-                    }
-                });
-    }
-
-    private void onSignupFailed(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-        Button signupButton = (Button) findViewById(R.id.btn_signup);
-        signupButton.setEnabled(true);
-    }
-
-
-/*
-    private PendingIntent getEmailHintIntent() {
-        GoogleApiClient client = new GoogleApiClient.Builder(this)
-                .addApi(Auth.CREDENTIALS_API)
-                .enableAutoManage(this, GoogleApiHelper.getSafeAutoManageId(),
-                        new GoogleApiClient.OnConnectionFailedListener() {
-                            @Override
-                            public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-                                Log.e(TAG, "Client connection failed: " + connectionResult.getErrorMessage());
-                            }
-                        })
-                .build();
-
-        HintRequest hintRequest = new HintRequest.Builder()
-                .setHintPickerConfig(new CredentialPickerConfig.Builder()
-                        .setShowCancelButton(true)
-                        .build())
-                .setEmailAddressIdentifierSupported(true)
-                .build();
-
-        return Auth.CredentialsApi.getHintPickerIntent(client, hintRequest);
-    }
-*/
-
 }

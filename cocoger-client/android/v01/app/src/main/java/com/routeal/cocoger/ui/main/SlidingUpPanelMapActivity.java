@@ -1,5 +1,7 @@
 package com.routeal.cocoger.ui.main;
 
+import android.app.NotificationManager;
+import android.app.Service;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -10,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.service.MainService;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState;
@@ -63,6 +66,25 @@ public class SlidingUpPanelMapActivity extends SearchMapActivity {
         tabLayout.setupWithViewPager(viewPager);
         for (int i = 0; i < tabIcons.length; i++) {
             tabLayout.getTabAt(i).setIcon(tabIcons[i]);
+        }
+
+        String action = getIntent().getAction();
+        if (action != null && action.equals(MainService.ACTION_FRIEND_REQUEST_ACCEPTED)) {
+            Bundle extras = getIntent().getExtras();
+            if (extras != null) {
+                String invite = extras.getString("friend_invite");
+                int nid = extras.getInt("notification_id");
+
+                if (nid > 0) {
+                    NotificationManager mNotificationManager =
+                            (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
+                    mNotificationManager.cancel(nid);
+                }
+
+                viewPager.setCurrentItem(0);
+
+                mLayout.setPanelState(PanelState.EXPANDED);
+            }
         }
     }
 

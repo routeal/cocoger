@@ -31,6 +31,7 @@ import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.provider.DBUtil;
 import com.routeal.cocoger.ui.login.LoginActivity;
+import com.routeal.cocoger.util.CircleTransform;
 import com.routeal.cocoger.util.Utils;
 import com.squareup.picasso.Picasso;
 
@@ -63,21 +64,16 @@ public class SearchMapActivity extends MapActivity
             public void onDrawerOpened(View drawerView) {
                 ImageView imageView = (ImageView) findViewById(R.id.my_picture);
                 Picasso.with(getApplicationContext())
-                        .load(DBUtil.getUser().getPicture())
+                        .load(MainApplication.getUser().getPicture())
+                        .transform(new CircleTransform())
                         .resize(128, 128)
                         .into(imageView);
 
                 TextView textView = (TextView) findViewById(R.id.my_display_name);
-                textView.setText(DBUtil.getUser().getName());
+                textView.setText(MainApplication.getUser().getDisplayName());
 
                 textView = (TextView) findViewById(R.id.my_email);
-                textView.setText(DBUtil.getUser().getEmail());
-
-                Address addr = getAddress();
-                if (addr != null) {
-                    textView = (TextView) findViewById(R.id.my_address);
-                    textView.setText(addr.toString());
-                }
+                textView.setText(MainApplication.getUser().getEmail());
             }
 
             @Override

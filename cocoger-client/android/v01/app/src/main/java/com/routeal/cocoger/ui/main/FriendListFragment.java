@@ -1,10 +1,7 @@
 package com.routeal.cocoger.ui.main;
 
-import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -44,7 +41,7 @@ public class FriendListFragment extends Fragment {
                 dialogFragment = new FullScreenDialogFragment.Builder(getActivity())
                         .setTitle("People")
                         .setConfirmButton("Request Friend")
-                        .setContent(UserAddFragment.class, new Bundle())
+                        .setContent(AddFriendFragment.class, new Bundle())
                         .build();
                 dialogFragment.show(getActivity().getSupportFragmentManager(), "user-dialog");
             }

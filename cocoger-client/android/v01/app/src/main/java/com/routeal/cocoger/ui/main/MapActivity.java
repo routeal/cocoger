@@ -11,7 +11,6 @@ import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -55,8 +54,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.User;
-import com.routeal.cocoger.provider.DBUtil;
-import com.routeal.cocoger.service.LocationService;
+import com.routeal.cocoger.service.MainService;
 import com.routeal.cocoger.util.AppVisibilityDetector;
 import com.routeal.cocoger.util.CircleTransform;
 import com.routeal.cocoger.util.PicassoMarker;
@@ -125,21 +123,23 @@ public class MapActivity extends FragmentActivity
             @Override
             public void onAppGotoForeground() {
                 //app is from background to foreground
-                LocationService.setForegroundMode();
+                MainService.setForegroundMode();
             }
 
             @Override
             public void onAppGotoBackground() {
                 //app is from foreground to background
-                LocationService.setBackgroundMode();
+                MainService.setBackgroundMode();
             }
         });
 
         setContentView(R.layout.activity_maps);
 
         // registers the receiver to receive the location updates from the service
-        LocalBroadcastManager.getInstance(this).registerReceiver(mLastLocationReceiver,
-                new IntentFilter(LocationService.LAST_LOCATION_UPDATE));
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(MainService.LAST_LOCATION_UPDATE);
+        filter.addAction(MainService.USER_AVAILABLE);
+        LocalBroadcastManager.getInstance(this).registerReceiver(mLocalLocationReceiver, filter);
 
         // sets up the 'my' location button
         Drawable drawable = ContextCompat.getDrawable(this, R.drawable.ic_my_location_white_36dp);
@@ -310,7 +310,7 @@ public class MapActivity extends FragmentActivity
 
         if (MainApplication.isLocationPermitted()) {
             if (mLastKnownLocation == null) {
-                mLastKnownLocation = LocationService.getLastLocation();
+                mLastKnownLocation = MainService.getLastLocation();
             }
             if (mCameraPosition != null) {
                 mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
@@ -376,27 +376,36 @@ public class MapActivity extends FragmentActivity
     /**
      * Receives location updates from the location service
      */
-    private BroadcastReceiver mLastLocationReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver mLocalLocationReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent == null) return;
-            Location location = intent.getParcelableExtra("location");
-            if (location != null) {
-                // first time only
-                if (mLastKnownLocation == null) {
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                            Utils.getLatLng(location), DEFAULT_ZOOM));
-                    setupMyLocationMarker(location);
-                    busyCursor.dismiss();
-                } else {
-                    if (myMarker != null) {
-                        myMarker.setPosition(Utils.getLatLng(location));
-                    }
-                }
-                mLastKnownLocation = location;
-            }
+            if (intent.getAction().equals(MainService.LAST_LOCATION_UPDATE)) {
+                Location location = intent.getParcelableExtra("location");
 
-            mAddress = intent.getParcelableExtra("address");
+                if (location != null) {
+                    // first time only
+                    if (mLastKnownLocation == null) {
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                                Utils.getLatLng(location), DEFAULT_ZOOM));
+                        setupMyLocationMarker(location);
+                        busyCursor.dismiss();
+                    } else {
+                        if (myMarker != null) {
+                            myMarker.setPosition(Utils.getLatLng(location));
+                        }
+                    }
+                    mLastKnownLocation = location;
+                }
+
+                mAddress = intent.getParcelableExtra("address");
+            } else if (intent.getAction().equals(MainService.USER_AVAILABLE)) {
+                if (MainApplication.getUser() != null && myMarkerTarget != null) {
+                    Picasso.with(getApplicationContext())
+                            .load(MainApplication.getUser().getPicture())
+                            .transform(new CircleTransform())
+                            .into(myMarkerTarget);
+                }
+            }
         }
     };
 
@@ -405,11 +414,14 @@ public class MapActivity extends FragmentActivity
         MarkerOptions options = new MarkerOptions().position(Utils.getLatLng(location));
         myMarker = mMap.addMarker(options);
         myMarkerTarget = new PicassoMarker(myMarker);
-        Picasso.with(getApplicationContext())
-                .load(MainApplication.getUser().getPicture())
-                .transform(new CircleTransform())
-                .into(myMarkerTarget);
-
+        // sometimes the user won't be available when the process comes here faster than
+        // etting the user from the firebase database
+        if (MainApplication.getUser() != null) {
+            Picasso.with(getApplicationContext())
+                    .load(MainApplication.getUser().getPicture())
+                    .transform(new CircleTransform())
+                    .into(myMarkerTarget);
+        }
         myInfoFragment = new MyInfoFragment();
         myInfoFragment.setMapActivity(this);
     }
@@ -439,7 +451,9 @@ public class MapActivity extends FragmentActivity
         return mAddress;
     }
 
-    public Location getLocation() { return mLastKnownLocation; }
+    public Location getLocation() {
+        return mLastKnownLocation;
+    }
 
     @Override
     public boolean onMarkerClick(Marker marker) {
@@ -516,7 +530,7 @@ public class MapActivity extends FragmentActivity
 
             User user = MainApplication.getUser();
             if (user != null) {
-                name.setText(user.getName());
+                name.setText(user.getDisplayName());
             }
 
             if (mapActivity.getAddress() != null) {
@@ -526,7 +540,7 @@ public class MapActivity extends FragmentActivity
                 }
             }
 
-            GoogleApiClient mGoogleApiClient = LocationService.getGoogleApiClient();
+            GoogleApiClient mGoogleApiClient = MainService.getGoogleApiClient();
 
             if (mGoogleApiClient != null) {
                 PendingResult<PlaceLikelihoodBuffer> result =
@@ -574,7 +588,9 @@ public class MapActivity extends FragmentActivity
             }
         }
 
-        void setMapActivity(MapActivity mapActivity) { this.mapActivity = mapActivity; }
+        void setMapActivity(MapActivity mapActivity) {
+            this.mapActivity = mapActivity;
+        }
     }
 
 }

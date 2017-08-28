@@ -106,6 +106,7 @@ public class MainApplication extends Application {
         mInstance.mPreferences.edit().putBoolean(LOCATION_PERMISSION, permit).apply();
     }
 
+    /*
     public static void setLoginEmail(String value) {
         mInstance.mPreferences.edit().putString(LOGIN_EMAIL, value).apply();
     }
@@ -113,6 +114,7 @@ public class MainApplication extends Application {
     public static String getLoginEmail() {
         return mInstance.mPreferences.getString(LOGIN_EMAIL, null);
     }
+*/
 
     public static User getUser() {
         return mUser;

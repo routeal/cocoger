@@ -53,6 +53,6 @@
         android:layout_below="@+id/header"
         android:clipToPadding="false"
         android:padding="16dp"
-        tools:listitem="@layout/listview_add_users" />
+        tools:listitem="@layout/listview_add_friend" />
 
 </RelativeLayout>

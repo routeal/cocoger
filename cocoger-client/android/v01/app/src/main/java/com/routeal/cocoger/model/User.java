@@ -9,7 +9,7 @@ public class User implements Serializable {
     private String email;
     private String firstName;
     private String lastName;
-    private String name;
+    private String displayName;
     private String searchedName;
     private String gender;
     private String picture;
@@ -18,6 +18,9 @@ public class User implements Serializable {
     private long updated;
     private long created;
     private Map<String, String> devices;
+    private Map<String, Long> friends;
+    private Map<String, Long> invites;
+    private Map<String, Long> invitees;
 
     public User() {}
 
@@ -45,12 +48,12 @@ public class User implements Serializable {
         return lastName;
     }
 
-    public String getName() {
-        return name;
+    public String getDisplayName() {
+        return displayName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public String getSearchedName() {
@@ -125,12 +128,32 @@ public class User implements Serializable {
         return devices;
     }
 
+    public Map<String, Long> getFriends() {
+        return friends;
+    }
+
+    public Map<String, Long> getInvites() {
+        return invites;
+    }
+
+    public void setInvites(Map<String, Long> invites) {
+        this.invites = invites;
+    }
+
+    public Map<String, Long> getInvitees() {
+        return invitees;
+    }
+
+    public void setInvitees(Map<String, Long> invitees) {
+        this.invitees = invitees;
+    }
+
     public String toString() {
         return String.format(
-                "email=%s, firstName=%s, lastName=%s, name=%s, searchedName=%s, " +
+                "email=%s, firstName=%s, lastName=%s, displayName=%s, searchedName=%s, " +
                 "gender=%s, locale=%s, timezone=%s, birth_year=%s, gender=%s, " +
                 "timezone=%s, updated=%s picture=%s",
-                email, firstName, lastName, name, searchedName, gender, locale,
+                email, firstName, lastName, displayName, searchedName, gender, locale,
                 timezone, birthYear, gender, timezone, updated, picture);
     }
 }

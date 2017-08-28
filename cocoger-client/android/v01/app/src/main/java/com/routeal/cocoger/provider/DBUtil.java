@@ -38,7 +38,7 @@ public class DBUtil {
                 index = cursor.getColumnIndex(DB.Users.LASTNAME);
                 user.setLastName(cursor.getString(index));
                 index = cursor.getColumnIndex(DB.Users.NAME);
-                user.setName(cursor.getString(index));
+                user.setDisplayName(cursor.getString(index));
                 index = cursor.getColumnIndex(DB.Users.GENDER);
                 user.setGender(cursor.getString(index));
                 index = cursor.getColumnIndex(DB.Users.PICTURE);
@@ -66,7 +66,7 @@ public class DBUtil {
         values.put(DB.Users.EMAIL, user.getEmail());
         values.put(DB.Users.FIRSTNAME, user.getFirstName());
         values.put(DB.Users.LASTNAME, user.getLastName());
-        values.put(DB.Users.NAME, user.getName());
+        values.put(DB.Users.NAME, user.getDisplayName());
         values.put(DB.Users.GENDER, user.getGender());
         values.put(DB.Users.PICTURE, user.getPicture());
         values.put(DB.Users.LOCALE, user.getLocale());

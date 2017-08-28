@@ -67,8 +67,6 @@
     <string name="no_gender">"Select one of the genders</string>
     <string name="no_password">Empty password</string>
     <string name="no_password_match">Password not match</string>
-    <string name="signup_failed">Sorry, sign up failed.  Please try again later.</string>
-    <string name="login_failed">Sorry, login failed.  Please try again later.</string>
     <string name="verification_email_sent">Sign up successful.  Verification email sent.</string>
     <string name="password_reset_email_sent">Password reset email sent</string>
     <string name="search">Search</string>

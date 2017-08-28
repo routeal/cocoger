@@ -77,11 +77,12 @@ public class LoginActivity extends FragmentActivity
 
     private class LoginPagerAdapter extends FragmentPagerAdapter {
 
-        LoginFragment login;
-        PasswordFragment password;
+        LoginFragment login = new LoginFragment();
+        PasswordFragment password = new PasswordFragment();
 
         LoginPagerAdapter(FragmentManager fm) {
             super(fm);
+            password.setLoginFragment(login);
         }
 
         @Override
@@ -89,16 +90,10 @@ public class LoginActivity extends FragmentActivity
             Fragment fragment;
             switch (position) {
                 case 1:
-                    if (password == null) {
-                        password = new PasswordFragment();
-                    }
                     fragment = password;
                     break;
                 case 0:
                 default:
-                    if (login == null) {
-                        login = new LoginFragment();
-                    }
                     fragment = login;
                     break;
             }

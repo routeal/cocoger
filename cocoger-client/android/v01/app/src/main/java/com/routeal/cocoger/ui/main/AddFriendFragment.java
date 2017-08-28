@@ -34,7 +34,7 @@ import java.util.Map;
  * Created by nabe on 8/13/17.
  */
 
-public class UserAddFragment extends Fragment
+public class AddFriendFragment extends Fragment
         implements FullScreenDialogContent,
         View.OnClickListener,
         TextView.OnEditorActionListener {
@@ -45,7 +45,7 @@ public class UserAddFragment extends Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_add_users, container, false);
+        return inflater.inflate(R.layout.fragment_add_friend, container, false);
     }
 
     @Override
@@ -99,8 +99,8 @@ public class UserAddFragment extends Fragment
     private boolean updateDatabaseForFriendRequest() {
         RecyclerView recyclerView = (RecyclerView) getView().findViewById(R.id.user_list);
 
-        FirebaseRecyclerAdapter<User, UserViewHolder> adapter =
-                (FirebaseRecyclerAdapter<User, UserViewHolder>) recyclerView.getAdapter();
+        FirebaseRecyclerAdapter<User, AddFriendViewHolder> adapter =
+                (FirebaseRecyclerAdapter<User, AddFriendViewHolder>) recyclerView.getAdapter();
 
         FirebaseDatabase db = FirebaseDatabase.getInstance();
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -108,17 +108,28 @@ public class UserAddFragment extends Fragment
         DatabaseReference userRef = db.getReference().child("users");
 
         for (int i = 0; i < adapter.getItemCount(); i++) {
-            // add friends to myself
-            String key = adapter.getRef(i).getKey();
-            Map<String, Boolean> friend = new HashMap<>();
-            friend.put(key, false);
-            userRef.child(uid).child("friends").setValue(friend);
+            DatabaseReference friendRef = adapter.getRef(i);
+            if (friendRef.getKey() == uid) {
+                // trying to add myself to friends
+                continue;
+            }
+
+            // set the timestamp when the friend request is added.
+            // When the requested user approved, the timestamp will be changed to true.
+            long timestamp = System.currentTimeMillis();
+
+            Map<String, Long> friend = new HashMap<>();
 
             // add myself to friend
             friend.clear();
-            friend.put(uid, false);
-            DatabaseReference ref = adapter.getRef(i);
-            ref.child("friends").setValue(friend);
+            friend.put(uid, timestamp);
+            friendRef.child("invitees").setValue(friend);
+
+            // add friends to myself
+            String key = adapter.getRef(i).getKey();
+            friend.clear();
+            friend.put(key, timestamp);
+            userRef.child(uid).child("invites").setValue(friend);
         }
 
         return true;
@@ -159,20 +170,20 @@ public class UserAddFragment extends Fragment
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
 
         Query query = userRef
-                .orderByChild("name")
+                .orderByChild("searchedName")
                 .startAt(text)
                 .endAt(text + "~");
 
-        FirebaseRecyclerAdapter<User, UserViewHolder> adapter =
-                new FirebaseRecyclerAdapter<User, UserViewHolder>(
+        FirebaseRecyclerAdapter<User, AddFriendViewHolder> adapter =
+                new FirebaseRecyclerAdapter<User, AddFriendViewHolder>(
                         User.class,
-                        R.layout.listview_add_users,
-                        UserViewHolder.class,
+                        R.layout.listview_add_friend,
+                        AddFriendViewHolder.class,
                         query) {
 
                     @Override
-                    public void populateViewHolder(UserViewHolder holder, User user, int position) {
-                        holder.bind(user);
+                    public void populateViewHolder(AddFriendViewHolder holder, User user, int position) {
+                        holder.bind(user, getRef(position).getKey());
                     }
 
                     @Override

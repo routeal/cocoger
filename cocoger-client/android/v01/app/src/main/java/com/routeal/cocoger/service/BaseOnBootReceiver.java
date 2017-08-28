@@ -12,7 +12,9 @@ public abstract class BaseOnBootReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(final Context context, Intent intent) {
 
-        if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
+        String action = intent.getAction();
+
+        if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
