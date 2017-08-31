@@ -68,15 +68,12 @@
         <activity android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat"/> <!-- optional (needed if default theme has no action bar) -->
 
-        <activity android:name=".ui.main.SlidingUpPanelMapActivity"
+        <activity android:name=".ui.main.PanelMapActivity"
             />
 
         <activity android:name=".ui.login.LoginActivity"
             android:windowSoftInputMode="adjustPan"
             android:theme="@style/LoginTheme"/>
-
-        <activity android:name=".ui.main.FriendConfigActivity"
-            android:theme="@style/AppTheme"/>
 
         <activity android:name=".ui.main.StreetViewActivity"
             android:theme="@style/AppTheme"/>
@@ -96,10 +93,12 @@
 
         <service android:name=".service.MainService" />
 
+<!--
         <provider
             android:name="com.routeal.cocoger.provider.DatabaseProvider"
             android:authorities="com.routeal.cocoger.provider"
             android:exported="false" />
+-->
 
     </application>
 

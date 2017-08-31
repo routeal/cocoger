@@ -109,7 +109,7 @@ public class AddFriendFragment extends Fragment
 
         for (int i = 0; i < adapter.getItemCount(); i++) {
             DatabaseReference friendRef = adapter.getRef(i);
-            if (friendRef.getKey() == uid) {
+            if (friendRef.getKey().equals(uid)) {
                 // trying to add myself to friends
                 continue;
             }

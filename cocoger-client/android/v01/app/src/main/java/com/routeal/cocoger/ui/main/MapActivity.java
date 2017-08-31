@@ -135,12 +135,6 @@ public class MapActivity extends FragmentActivity
 
         setContentView(R.layout.activity_maps);
 
-        // registers the receiver to receive the location updates from the service
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(MainService.LAST_LOCATION_UPDATE);
-        filter.addAction(MainService.USER_AVAILABLE);
-        LocalBroadcastManager.getInstance(this).registerReceiver(mLocalLocationReceiver, filter);
-
         // sets up the 'my' location button
         Drawable drawable = ContextCompat.getDrawable(this, R.drawable.ic_my_location_white_36dp);
         drawable.mutate();
@@ -162,6 +156,13 @@ public class MapActivity extends FragmentActivity
 
             checkPermission();
         }
+
+        // registers the receiver to receive the location updates from the service
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(MainService.LAST_LOCATION_UPDATE);
+        filter.addAction(MainService.USER_AVAILABLE);
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(mLocalLocationReceiver, filter);
     }
 
     private void checkPermission() {

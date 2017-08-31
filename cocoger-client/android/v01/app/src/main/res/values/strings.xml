@@ -43,12 +43,21 @@
         </html>
         ]]>
     </string>
-    <string-array name="seek_bar_with_different_colors_items">
-        <item>street</item>
-        <item>town</item>
+    <string-array name="range_items">
+        <item>current</item>
         <item>city</item>
         <item>county</item>
+        <item>state</item>
         <item>country</item>
+        <item>none</item>
+    </string-array>
+    <string-array name="range_map">
+        <item>none=NONE</item>
+        <item>country=COUNTRY</item>
+        <item>state=ADMINAREA</item>
+        <item>county=SUBADMINAREA</item>
+        <item>city=LOCALITY</item>
+        <item>current=CURRENT</item>
     </string-array>
     <string name="street_view">street view</string>
     <string name="search_nearby">Search nearby</string>
@@ -73,4 +82,11 @@
     <string name="search_users">Search friends with prefix string</string>
     <string name="display_name">Display name</string>
     <string name="start_app">Start App</string>
+    <string name="notice">Notice</string>
+    <string name="notice_narrow_range_change">Narrowing range needs to be approved by your friend.  Do you want to send the request?</string>
+    <string name="notice_broad_range_change">Do you really want to change the range?  Once it is changed broader, you can\'t change it narrower back without your friend\'s approval.</string>
+    <string name="range_changed_narrow">The request has been sent successfully.  Once your friend approves it, the range will be changed.</string>
+    <string name="range_changed_broad">The range has been changed successfully.</string>
+    <string name="term_services">Terms of Services</string>
+    <string name="privacy_policy">Privacy Policy</string>
 </resources>

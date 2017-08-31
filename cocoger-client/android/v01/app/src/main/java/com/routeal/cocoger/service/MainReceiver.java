@@ -25,6 +25,8 @@ public class MainReceiver extends BroadcastReceiver {
 
         if (action.equals(MainService.ACTION_FRIEND_REQUEST_DECLINED)) {
             Log.d(TAG, action);
+
+            // delete the invite and invitee from the database
             FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
             String invitee = fbUser.getUid();
             String invite = intent.getStringExtra("friend_invite");
@@ -39,5 +41,23 @@ public class MainReceiver extends BroadcastReceiver {
                     (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
             mNotificationManager.cancel(nid);
         }
+        else if (action.equals(MainService.ACTION_RANGE_REQUEST_DECLINED)) {
+            Log.d(TAG, action);
+
+            // delete the invite and invitee from the database
+            FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
+            String invitee = fbUser.getUid();
+            String invite = intent.getStringExtra("range_request");
+
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
+
+            userRef.child(invitee).child("friends").child(invite).child("request").removeValue();
+
+            int nid = intent.getIntExtra("notification_id", 0);
+            NotificationManager mNotificationManager =
+                    (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
+            mNotificationManager.cancel(nid);
+        }
+
     }
 }

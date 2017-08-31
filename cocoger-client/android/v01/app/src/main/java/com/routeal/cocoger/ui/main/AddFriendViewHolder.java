@@ -9,6 +9,7 @@ import android.widget.TextView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.util.CircleTransform;
 import com.squareup.picasso.Picasso;
@@ -65,7 +66,7 @@ public class AddFriendViewHolder extends RecyclerView.ViewHolder {
         }
 
         // check to see already being friend
-        Map<String, Long> friends = me.getFriends();
+        Map<String, Friend> friends = me.getFriends();
         if (friends != null && friends.containsKey(key)) {
             // already being friend
             mCheckbox.setChecked(true);

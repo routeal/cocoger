@@ -16,7 +16,7 @@
             android:title="Slideshow" />
         <item
             android:id="@+id/nav_logout"
-            android:icon="@drawable/ic_fb_white_58"
+            android:icon="@drawable/ic_person_pin_circle_white_48dp"
             android:title="@string/logout" />
     </group>
 
@@ -26,6 +26,14 @@
                 android:id="@+id/nav_open_source"
                 android:icon="@drawable/ic_opensource_48"
                 android:title="@string/open_source_libraries" />
+            <item
+                android:id="@+id/term_services"
+                android:icon="@drawable/ic_opensource_48"
+                android:title="@string/term_services" />
+            <item
+                android:id="@+id/privacy_policy"
+                android:icon="@drawable/ic_opensource_48"
+                android:title="@string/privacy_policy" />
         </menu>
     </item>
 

@@ -4,26 +4,48 @@ import java.io.Serializable;
 
 public class Friend implements Serializable {
 
-    public enum Range {
-        NONE(0),
-        COUNTRY(1),
-        ADMINAREA(2),
-        SUBADMINAREA(4),
-        LOCALITY(8),
-        SUBLOCALITY(16),
-        THOROUGHFARE(32),
-        SUBTHOROUGHFARE(64);
+    private int range;
+    private long created;
+    private String name;
+    private String picture;
+    private RangeRequest request;
 
-        private final int range;
-
-        private Range(int range) {
-            this.range = range;
-        }
-
-        public int toInt() {
-            return range;
-        }
+    public void setRange(int range) {
+        this.range = range;
     }
+
+    public int getRange() {
+        return range;
+    }
+
+    public void setCreated(long created) {
+        this.created = created;
+    }
+
+    public long getCreated() {
+        return created;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public String getDisplayName() {
+        return name;
+    }
+
+    public void setDisplayName(String name) {
+        this.name = name;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
+
+    public RangeRequest getRangeRequest() {
+        return request;
+    }
+/*
 
     private String providerId;
     private String firstName;
@@ -141,4 +163,5 @@ public class Friend implements Serializable {
                 providerId, firstName, lastName, name, locale, picture,
                 gender, timezone, updated);
     }
+*/
 }

@@ -7,7 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.routeal.cocoger.service.MainService;
-import com.routeal.cocoger.ui.main.SlidingUpPanelMapActivity;
+import com.routeal.cocoger.ui.main.PanelMapActivity;
 
 /**
  * Created by nabe on 6/11/17.
@@ -32,7 +32,7 @@ public class SplashActivity extends AppCompatActivity {
         Intent intent;
 
         if (mAuth.getCurrentUser() != null) {
-            intent = new Intent(getApplicationContext(), SlidingUpPanelMapActivity.class);
+            intent = new Intent(getApplicationContext(), PanelMapActivity.class);
         } else {
             intent = new Intent(getApplicationContext(), LoginActivity.class);
         }

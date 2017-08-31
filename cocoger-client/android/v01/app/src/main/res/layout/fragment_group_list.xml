@@ -3,7 +3,7 @@
 xmlns:tools="http://schemas.android.com/tools"
 android:layout_width="match_parent"
 android:layout_height="match_parent"
-tools:context="com.routeal.cocoger.ui.main.SlidingUpPanelMapActivity">
+tools:context="com.routeal.cocoger.ui.main.PanelMapActivity">
 
 <TextView
     android:layout_width="wrap_content"

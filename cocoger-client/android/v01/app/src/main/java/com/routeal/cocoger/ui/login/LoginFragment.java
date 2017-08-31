@@ -32,7 +32,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -42,7 +41,7 @@ import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.Device;
 import com.routeal.cocoger.model.User;
-import com.routeal.cocoger.ui.main.SlidingUpPanelMapActivity;
+import com.routeal.cocoger.ui.main.PanelMapActivity;
 import com.routeal.cocoger.util.Utils;
 
 import java.util.Map;
@@ -62,10 +61,13 @@ public class LoginFragment extends Fragment {
 
     private Credential mLastCredential;
     private TextInputEditText mEmailText;
-    private TextInputEditText mDisplayName;
+    //private TextInputEditText mDisplayName;
     private TextInputEditText mPassword;
     private Button mLoginButton;
     private Button mSignupButton;
+
+    private String mDisplayName;
+
 
     @Nullable
     @Override
@@ -73,7 +75,7 @@ public class LoginFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_login, container, false);
 
         mEmailText = (TextInputEditText) v.findViewById(R.id.input_email);
-        mDisplayName = (TextInputEditText) v.findViewById(R.id.display_name);
+        //mDisplayName = (TextInputEditText) v.findViewById(R.id.display_name);
         mPassword = (TextInputEditText) v.findViewById(R.id.input_password);
 
         TextView textView = (TextView) v.findViewById(R.id.term_privacy);
@@ -113,7 +115,8 @@ public class LoginFragment extends Fragment {
                     mLastCredential = data.getParcelableExtra(Credential.EXTRA_KEY);
                     if (mLastCredential != null) {
                         mEmailText.setText(mLastCredential.getId());
-                        mDisplayName.setText(mLastCredential.getName());
+                        //mDisplayName.setText(mLastCredential.getName());
+                        mDisplayName = mLastCredential.getName();
                     }
                 }
                 break;
@@ -177,7 +180,7 @@ public class LoginFragment extends Fragment {
                         if (task.isSuccessful()) {
                             //onLoginSucceeded(task.getResult().getUser());
 
-                            Intent intent = new Intent(getContext(), SlidingUpPanelMapActivity.class);
+                            Intent intent = new Intent(getContext(), PanelMapActivity.class);
                             startActivity(intent);
                             getActivity().finish();
                         } else {
@@ -207,13 +210,18 @@ public class LoginFragment extends Fragment {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             // save the display name
+                            /*
                             String name = mDisplayName.getText().toString();
                             UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
                                     .setDisplayName(name).build();
                             task.getResult().getUser().updateProfile(profileUpdates);
+                            */
 
                             // start the setup
                             Intent intent = new Intent(getActivity(), SetupActivity.class);
+                            if (mDisplayName != null && !mDisplayName.isEmpty()) {
+                                intent.putExtra("displayName", mDisplayName);
+                            }
                             startActivity(intent);
                             getActivity().finish();
                         } else {
@@ -275,7 +283,7 @@ public class LoginFragment extends Fragment {
                     userRef.child(uid).child("devices").child(newKey).setValue(currentDevice.getDeviceId());
                 }
 
-                Intent intent = new Intent(getContext(), SlidingUpPanelMapActivity.class);
+                Intent intent = new Intent(getContext(), PanelMapActivity.class);
                 startActivity(intent);
                 getActivity().finish();
             }

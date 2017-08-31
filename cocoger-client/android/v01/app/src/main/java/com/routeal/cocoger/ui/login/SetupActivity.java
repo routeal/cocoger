@@ -2,12 +2,15 @@ package com.routeal.cocoger.ui.login;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -27,7 +30,7 @@ import com.google.firebase.storage.UploadTask;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.User;
-import com.routeal.cocoger.ui.main.SlidingUpPanelMapActivity;
+import com.routeal.cocoger.ui.main.PanelMapActivity;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
@@ -45,6 +48,14 @@ public class SetupActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_setup);
+
+        Intent intent = getIntent();
+        String defaultDisplayName = intent.getStringExtra("displayName");
+
+        if (defaultDisplayName != null && !defaultDisplayName.isEmpty()) {
+            TextInputEditText displayName = (TextInputEditText) findViewById(R.id.display_name);
+            displayName.setText(defaultDisplayName);
+        }
 
         // execute to sign up
         Button startButton = (Button) findViewById(R.id.btn_start_app);
@@ -82,7 +93,7 @@ public class SetupActivity extends AppCompatActivity {
                         .setGuidelines(CropImageView.Guidelines.ON)
                         .setActivityTitle(getResources().getString(R.string.picture))
                         .setCropShape(CropImageView.CropShape.RECTANGLE)
-                        .setRequestedSize(512, 512)
+                        .setRequestedSize(128, 128)
                         .setFixAspectRatio(true)
                         .setAspectRatio(100, 100)
                         .start(SetupActivity.this);
@@ -125,6 +136,15 @@ public class SetupActivity extends AppCompatActivity {
     private void startApp() {
         boolean valid = true;
 
+        TextInputEditText displayNameText = (TextInputEditText) findViewById(R.id.display_name);
+        String displayName = displayNameText.getText().toString();
+        if (displayName.isEmpty()) {
+            displayNameText.setError("No name entered");
+            valid = false;
+        } else {
+            displayNameText.setError(null);
+        }
+
         EditText yearBirthText = (EditText) findViewById(R.id.input_year_birth);
         String yearBirth = yearBirthText.getText().toString();
         if (yearBirth.isEmpty()) {
@@ -160,11 +180,9 @@ public class SetupActivity extends AppCompatActivity {
 
         // get the user in the memory
         final User user = MainApplication.getUser();
-        /// get the displayname from the firebase user
-        FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
-        user.setDisplayName(fbUser.getDisplayName());
-        String displayName = user.getDisplayName();
-        if (displayName != null) {
+
+        user.setDisplayName(displayName);
+        if (!displayName.isEmpty()) {
             user.setSearchedName(displayName.toLowerCase());
         }
         user.setGender(gender.toLowerCase());
@@ -174,7 +192,8 @@ public class SetupActivity extends AppCompatActivity {
         user.setTimezone(TimeZone.getDefault().getID());
 
         // save the profile picture to the server
-        final String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
+        final String uid = fbUser.getUid();
         String refName = "users/" + uid + "/image/profile.jpg";
         StorageReference mStorageRef = FirebaseStorage.getInstance().getReference();
         StorageReference profileRef = mStorageRef.child(refName);
@@ -191,6 +210,7 @@ public class SetupActivity extends AppCompatActivity {
                         FirebaseDatabase db = FirebaseDatabase.getInstance();
                         DatabaseReference userRef = db.getReference().child("users").child(uid);
                         userRef.child("picture").setValue(user.getPicture());
+                        userRef.child("displayName").setValue(user.getDisplayName());
                         userRef.child("searchedName").setValue(user.getSearchedName());
                         userRef.child("gender").setValue(user.getGender());
                         userRef.child("birthYear").setValue(user.getBirthYear());
@@ -199,7 +219,7 @@ public class SetupActivity extends AppCompatActivity {
                         userRef.child("timezone").setValue(user.getTimezone());
 
                         // start the main map
-                        Intent intent = new Intent(getApplicationContext(), SlidingUpPanelMapActivity.class);
+                        Intent intent = new Intent(getApplicationContext(), PanelMapActivity.class);
                         startActivity(intent);
                         finish();
 
@@ -227,6 +247,9 @@ public class SetupActivity extends AppCompatActivity {
                     mProfilePictureUri = result.getUri();
                     InputStream inputStream = getContentResolver().openInputStream(mProfilePictureUri);
                     drawable = Drawable.createFromStream(inputStream, result.getUri().toString());
+                    //drawable.setBounds(0, 0, 512, 512);
+                    Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
+                    drawable = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, 128, 128, true));
                 } catch (FileNotFoundException e) {
                 }
                 if (drawable != null) {

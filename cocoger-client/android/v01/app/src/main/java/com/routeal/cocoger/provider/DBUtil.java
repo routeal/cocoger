@@ -180,6 +180,7 @@ public class DBUtil {
         return null;
     }
 
+/*
     public static void saveFriend(Friend friend) {
         ContentValues values = new ContentValues();
         values.put(DB.Friends.PROVIDERID, friend.getProviderId());
@@ -197,6 +198,7 @@ public class DBUtil {
         ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
         contentResolver.insert(DB.Friends.CONTENT_URI, values);
     }
+*/
 
     public static void saveFriends(List<Friend> friends) {
     }

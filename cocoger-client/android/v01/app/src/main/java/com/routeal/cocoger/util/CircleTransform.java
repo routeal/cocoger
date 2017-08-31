@@ -14,6 +14,7 @@ import com.squareup.picasso.Transformation;
 
 public class CircleTransform implements Transformation {
     int size = 128;
+
     boolean hasBorder = false;
 
     public CircleTransform() {}

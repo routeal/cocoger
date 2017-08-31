@@ -18,7 +18,7 @@ public class User implements Serializable {
     private long updated;
     private long created;
     private Map<String, String> devices;
-    private Map<String, Long> friends;
+    private Map<String, Friend> friends;
     private Map<String, Long> invites;
     private Map<String, Long> invitees;
 
@@ -128,7 +128,7 @@ public class User implements Serializable {
         return devices;
     }
 
-    public Map<String, Long> getFriends() {
+    public Map<String, Friend> getFriends() {
         return friends;
     }
 

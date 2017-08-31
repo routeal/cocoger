@@ -62,18 +62,17 @@ public class SearchMapActivity extends MapActivity
 
             @Override
             public void onDrawerOpened(View drawerView) {
-                ImageView imageView = (ImageView) findViewById(R.id.my_picture);
-                Picasso.with(getApplicationContext())
-                        .load(MainApplication.getUser().getPicture())
-                        .transform(new CircleTransform())
-                        .resize(128, 128)
-                        .into(imageView);
-
                 TextView textView = (TextView) findViewById(R.id.my_display_name);
                 textView.setText(MainApplication.getUser().getDisplayName());
 
                 textView = (TextView) findViewById(R.id.my_email);
                 textView.setText(MainApplication.getUser().getEmail());
+
+                ImageView imageView = (ImageView) findViewById(R.id.my_picture);
+                Picasso.with(getApplicationContext())
+                        .load(MainApplication.getUser().getPicture())
+                        .transform(new CircleTransform())
+                        .into(imageView);
             }
 
             @Override
@@ -101,9 +100,11 @@ public class SearchMapActivity extends MapActivity
         FirebaseAuth.getInstance().signOut();
 
         // cleanup the databases
+        /*
         DBUtil.deleteUser();
         DBUtil.deleteFriends();
         DBUtil.deleteLocations();
+*/
 
         // cleanup the app config
         MainApplication.permitLocation(false);

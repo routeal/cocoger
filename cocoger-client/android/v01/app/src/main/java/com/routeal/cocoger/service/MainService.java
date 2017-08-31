@@ -37,10 +37,12 @@ import com.google.firebase.database.ValueEventListener;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.Device;
+import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.model.User;
-import com.routeal.cocoger.ui.main.SlidingUpPanelMapActivity;
+import com.routeal.cocoger.ui.main.PanelMapActivity;
 import com.routeal.cocoger.util.CircleTransform;
+import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Utils;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
@@ -76,6 +78,10 @@ public class MainService extends BasePeriodicService
     public static final String ACTION_FRIEND_REQUEST_ACCEPTED = "FRIEND_REQUEST_ACCEPTED";
 
     public static final String ACTION_FRIEND_REQUEST_DECLINED = "FRIEND_REQUEST_DECLINED";
+
+    public static final String ACTION_RANGE_REQUEST_ACCEPTED = "RANGE_REQUEST_ACCEPTED";
+
+    public static final String ACTION_RANGE_REQUEST_DECLINED = "RANGE_REQUEST_DECLINED";
 
     private final static long BACKGROUND_INTERVAL = 20000;
 
@@ -516,6 +522,94 @@ public class MainService extends BasePeriodicService
             }
         }
 
+        Map<String, Friend> newFriends = newUser.getFriends();
+        Map<String, Friend> oldFriends = oldUser.getFriends();
+
+        // added new friends
+        if (newFriends.size() > oldFriends.size()) {
+        }
+        // deleted friends
+        else if (newFriends.size() < oldFriends.size()) {
+        }
+        // range request
+        else {
+            for (Map.Entry<String, Friend> entry : newFriends.entrySet()) {
+                String friendUid = entry.getKey();
+                Friend newFriend = entry.getValue();
+                Friend oldFriend = oldFriends.get(friendUid);
+                int requestedRange = newFriend.getRangeRequest().getRange();
+                int currentRange = newFriend.getRange();
+                // new range request found
+                if (newFriend.getRangeRequest() != null && oldFriend.getRangeRequest() == null) {
+                    // send the notification
+
+                    // notification id
+                    int nid = new Random().nextInt();
+
+                    Context context = MainApplication.getContext();
+
+                    // accept starts the main activity with the friend view
+                    Intent acceptIntent = new Intent(context, PanelMapActivity.class);
+                    acceptIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                            | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+                            | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                    acceptIntent.setAction(ACTION_RANGE_REQUEST_ACCEPTED);
+                    acceptIntent.putExtra("range_request", friendUid);
+                    acceptIntent.putExtra("notification_id", nid);
+                    PendingIntent pendingAcceptIntent = PendingIntent.getActivity(context, 1, acceptIntent, 0);
+                    NotificationCompat.Action acceptAction = new NotificationCompat.Action.Builder(
+                            R.drawable.ic_contacts_black_18dp,
+                            "Accept", pendingAcceptIntent).build();
+
+                    Intent declineIntent = new Intent(context, OnBootReceiver.class);
+                    declineIntent.setAction(ACTION_RANGE_REQUEST_DECLINED);
+                    declineIntent.putExtra("range_request", friendUid);
+                    declineIntent.putExtra("notification_id", nid);
+                    PendingIntent pendingDeclineIntent = PendingIntent.getBroadcast(context, 1, declineIntent, 0);
+                    NotificationCompat.Action declineAction = new NotificationCompat.Action.Builder(
+                            R.drawable.ic_contacts_black_18dp,
+                            "Decline", pendingDeclineIntent).build();
+
+                    String to = LocationRange.toString(requestedRange);
+                    String from = LocationRange.toString(currentRange);
+                    String content = "You received a range request to " + to + " from " + from;
+
+                    final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
+                            .setSmallIcon(R.drawable.ic_person_pin_circle_white_48dp)
+                            .setContentTitle(newFriend.getDisplayName())
+                            .setContentText(content)
+                            .setAutoCancel(true)
+                            .addAction(acceptAction)
+                            .addAction(declineAction);
+
+                    // seems not working, use notificationmanager's cancel method
+                    Notification notification = mBuilder.build();
+                    notification.flags |= Notification.FLAG_AUTO_CANCEL;
+
+                    Picasso.with(MainApplication.getContext()).load(newFriend.getPicture()).transform(new CircleTransform()).into(new Target() {
+                        @Override
+                        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                            mBuilder.setLargeIcon(bitmap);
+                        }
+                        @Override
+                        public void onBitmapFailed(Drawable errorDrawable) {
+                        }
+                        @Override
+                        public void onPrepareLoad(Drawable placeHolderDrawable) {
+                        }
+                    });
+
+                    NotificationManager mNotificationManager =
+                            (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
+
+                    mNotificationManager.notify(nid, notification);
+                }
+                // range request is neither approved or declined
+                else if (newFriend.getRangeRequest() != null && oldFriend.getRangeRequest() != null) {
+                }
+            }
+        }
+
         MainApplication.setUser(newUser);
     }
 
@@ -549,7 +643,7 @@ public class MainService extends BasePeriodicService
                 Context context = MainApplication.getContext();
 
                 // accept starts the main activity with the friend view
-                Intent acceptIntent = new Intent(context, SlidingUpPanelMapActivity.class);
+                Intent acceptIntent = new Intent(context, PanelMapActivity.class);
                 acceptIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
                         | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
                         | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
