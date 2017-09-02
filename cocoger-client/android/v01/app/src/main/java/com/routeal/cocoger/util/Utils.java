@@ -155,4 +155,11 @@ public class Utils {
                 });
     }
 
+
+    public static ProgressDialog getBusySpinner(Context context) {
+        ProgressDialog dialog = ProgressDialog.show(context, null, null, false, true);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        dialog.setContentView(R.layout.progressbar_spinner);
+        return dialog;
+    }
 }

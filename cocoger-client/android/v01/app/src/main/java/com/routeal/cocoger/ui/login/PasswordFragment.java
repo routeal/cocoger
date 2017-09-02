@@ -1,5 +1,6 @@
 package com.routeal.cocoger.ui.login;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -16,6 +17,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.fb.FB;
 
 /**
  * Created by nabe on 8/21/17.
@@ -28,7 +30,9 @@ public class PasswordFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_password, container, false);
         mEmailText = (TextInputEditText) v.findViewById(R.id.input_email);
         AppCompatButton resetButton = (AppCompatButton) v.findViewById(R.id.btn_reset_password);
@@ -58,7 +62,7 @@ public class PasswordFragment extends Fragment {
     private void resetPassword() {
         Log.d(TAG, "resetPassword");
 
-        String email = mEmailText.getText().toString();
+        final String email = mEmailText.getText().toString();
 
         if (email.isEmpty() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             mEmailText.setError(getResources().getString(R.string.invalid_email));
@@ -67,21 +71,24 @@ public class PasswordFragment extends Fragment {
             mEmailText.setError(null);
         }
 
-        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FB.resetPassword(email, new FB.ResetPasswordListener() {
+            void wrapup(String msg) {
+                Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
 
-        auth.sendPasswordResetEmail(email)
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        String message;
-                        if (task.isSuccessful()) {
-                            message = getResources().getString(R.string.password_reset_email_sent);
-                        } else {
-                            message = task.getException().getLocalizedMessage();
-                        }
-                        Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
-                        getActivity().finish();
-                    }
-                });
+                Intent intent = new Intent(getContext(), LoginActivity.class);
+                startActivity(intent);
+            }
+
+            @Override
+            public void onSuccess() {
+                String message = getResources().getString(R.string.password_reset_email_sent);
+                wrapup(message);
+            }
+
+            @Override
+            public void onFail(String err) {
+                wrapup(err);
+            }
+        });
     }
 }

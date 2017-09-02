@@ -3,13 +3,10 @@ package com.routeal.cocoger.ui.login;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -18,19 +15,12 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
+import com.routeal.cocoger.util.Utils;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
@@ -174,13 +164,10 @@ public class SetupActivity extends AppCompatActivity {
         if (!valid) return;
 
         // show the busy cursor
-        final ProgressDialog dialog = ProgressDialog.show(this, null, null, false, true);
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        dialog.setContentView(R.layout.progressbar_spinner);
+        final ProgressDialog dialog = Utils.getBusySpinner(this);
 
         // get the user in the memory
         final User user = MainApplication.getUser();
-
         user.setDisplayName(displayName);
         if (!displayName.isEmpty()) {
             user.setSearchedName(displayName.toLowerCase());
@@ -191,48 +178,28 @@ public class SetupActivity extends AppCompatActivity {
         user.setLocale(getResources().getConfiguration().locale.getDisplayLanguage());
         user.setTimezone(TimeZone.getDefault().getID());
 
-        // save the profile picture to the server
-        FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
-        final String uid = fbUser.getUid();
-        String refName = "users/" + uid + "/image/profile.jpg";
-        StorageReference mStorageRef = FirebaseStorage.getInstance().getReference();
-        StorageReference profileRef = mStorageRef.child(refName);
-        profileRef.putFile(mProfilePictureUri)
-                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        @SuppressWarnings("VisibleForTests")
-                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                        String picture = downloadUrl.toString();
-                        user.setPicture(picture);
+        FB.uploadImageFile(mProfilePictureUri, "profile.jpg", new FB.UploadImageListener() {
+            @Override
+            public void onSuccess(String url) {
+                dialog.dismiss();
 
-                        // update the user in the firebase database
-                        FirebaseDatabase db = FirebaseDatabase.getInstance();
-                        DatabaseReference userRef = db.getReference().child("users").child(uid);
-                        userRef.child("picture").setValue(user.getPicture());
-                        userRef.child("displayName").setValue(user.getDisplayName());
-                        userRef.child("searchedName").setValue(user.getSearchedName());
-                        userRef.child("gender").setValue(user.getGender());
-                        userRef.child("birthYear").setValue(user.getBirthYear());
-                        userRef.child("created").setValue(user.getCreated());
-                        userRef.child("locale").setValue(user.getLocale());
-                        userRef.child("timezone").setValue(user.getTimezone());
+                // set the url to the user
+                user.setPicture(url);
 
-                        // start the main map
-                        Intent intent = new Intent(getApplicationContext(), PanelMapActivity.class);
-                        startActivity(intent);
-                        finish();
+                // save the user to the database
+                FB.initUser(user);
 
-                        dialog.dismiss();
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        // TODO: what to do???
-                        dialog.dismiss();
-                    }
-                });
+                // start the main map
+                Intent intent = new Intent(getApplicationContext(), PanelMapActivity.class);
+                startActivity(intent);
+                finish();
+            }
+
+            @Override
+            public void onFail(String err) {
+                dialog.dismiss();
+            }
+        });
     }
 
     @Override
@@ -258,7 +225,7 @@ public class SetupActivity extends AppCompatActivity {
                     editText.setText(" ");
                 }
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
-                Toast.makeText(this, "Cropping failed: " + result.getError(), Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Cropping onFail: " + result.getError(), Toast.LENGTH_LONG).show();
             }
         }
     }

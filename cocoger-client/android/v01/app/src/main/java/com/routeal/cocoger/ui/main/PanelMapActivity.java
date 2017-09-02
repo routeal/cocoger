@@ -175,42 +175,16 @@ public class PanelMapActivity extends SearchMapActivity {
         else if (action.equals(MainService.ACTION_RANGE_REQUEST_ACCEPTED)) {
             // delete the invite and invitee from the database
             FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
-            final String invitee = fbUser.getUid();
-            final String invite = extras.getString("friend_invite");
+            String responder = fbUser.getUid(); // myself
+            String requester = extras.getString("range_requester");
+            int range = extras.getInt("range");
 
-            final DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
-            userRef.child(invitee).child("invitees").child(invite).removeValue();
-            userRef.child(invite).child("invites").child(invitee).removeValue();
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
 
-            final long timestamp = System.currentTimeMillis();
-            final int defaultLocationChange = LocationRange.SUBADMINAREA.toInt();
+            userRef.child(responder).child("friends").child(requester).child("range").setValue(range);
+            userRef.child(responder).child("friends").child(requester).child("rangeRequest").removeValue();
 
-            // invitee - me invited by invite, get the information of the invite
-            userRef.child(invite).addListenerForSingleValueEvent(
-                    new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            User inviteUser = dataSnapshot.getValue(User.class);
-                            Friend friend = new Friend();
-                            friend.setCreated(timestamp);
-                            friend.setRange(defaultLocationChange);
-                            friend.setDisplayName(inviteUser.getDisplayName());
-                            friend.setPicture(inviteUser.getPicture());
-                            userRef.child(invitee).child("friends").child(invite).setValue(friend);
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                        }
-                    });
-
-            // invite - me added to invite
-            Friend myInfo = new Friend();
-            myInfo.setCreated(timestamp);
-            myInfo.setRange(defaultLocationChange);
-            myInfo.setDisplayName(MainApplication.getUser().getDisplayName());
-            myInfo.setPicture(MainApplication.getUser().getPicture());
-            userRef.child(invite).child("friends").child(invitee).setValue(myInfo);
+            userRef.child(requester).child("friends").child(responder).child("range").setValue(range);
 
             // remove the notification
             int nid = extras.getInt("notification_id");

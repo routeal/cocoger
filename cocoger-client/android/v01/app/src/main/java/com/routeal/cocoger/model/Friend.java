@@ -6,9 +6,9 @@ public class Friend implements Serializable {
 
     private int range;
     private long created;
-    private String name;
+    private String displayName;
     private String picture;
-    private RangeRequest request;
+    private RangeRequest rangeRequest;
 
     public void setRange(int range) {
         this.range = range;
@@ -31,19 +31,23 @@ public class Friend implements Serializable {
     }
 
     public String getDisplayName() {
-        return name;
+        return displayName;
     }
 
-    public void setDisplayName(String name) {
-        this.name = name;
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public void setPicture(String picture) {
         this.picture = picture;
     }
 
+    public void setRangeRequest(RangeRequest request) {
+        this.rangeRequest = request;
+    }
+
     public RangeRequest getRangeRequest() {
-        return request;
+        return rangeRequest;
     }
 /*
 

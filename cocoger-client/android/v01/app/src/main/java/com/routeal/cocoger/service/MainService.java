@@ -36,6 +36,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Device;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.LocationAddress;
@@ -156,6 +157,9 @@ public class MainService extends BasePeriodicService
 
         instantiated = true;
 
+        FB.monitorAuthentication();
+
+        /*
         // setting up a listener when the user is authenticated
         FirebaseAuth.getInstance().addAuthStateListener(new FirebaseAuth.AuthStateListener() {
             @Override
@@ -170,6 +174,7 @@ public class MainService extends BasePeriodicService
                 }
             }
         });
+        */
     }
 
     // connectGoogleApi in background, called in the background
@@ -392,7 +397,7 @@ public class MainService extends BasePeriodicService
         userRef.child(uid).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Log.d(TAG, "User database changed");
+                Log.d(TAG, "User database changed:" + dataSnapshot.toString());
 
                 User newUser = dataSnapshot.getValue(User.class);
 
@@ -525,6 +530,11 @@ public class MainService extends BasePeriodicService
         Map<String, Friend> newFriends = newUser.getFriends();
         Map<String, Friend> oldFriends = oldUser.getFriends();
 
+        if (newFriends == null || oldFriends == null) {
+            MainApplication.setUser(newUser);
+            return;
+        }
+
         // added new friends
         if (newFriends.size() > oldFriends.size()) {
         }
@@ -532,80 +542,93 @@ public class MainService extends BasePeriodicService
         else if (newFriends.size() < oldFriends.size()) {
         }
         // range request
-        else {
+        else if (newFriends.size() > 0) {
             for (Map.Entry<String, Friend> entry : newFriends.entrySet()) {
                 String friendUid = entry.getKey();
                 Friend newFriend = entry.getValue();
                 Friend oldFriend = oldFriends.get(friendUid);
-                int requestedRange = newFriend.getRangeRequest().getRange();
-                int currentRange = newFriend.getRange();
-                // new range request found
-                if (newFriend.getRangeRequest() != null && oldFriend.getRangeRequest() == null) {
-                    // send the notification
 
-                    // notification id
-                    int nid = new Random().nextInt();
+                // possible new range request
+                if (newFriend.getRangeRequest() != null) {
+                    int requestedRange = newFriend.getRangeRequest().getRange();
+                    int currentRange = newFriend.getRange();
 
-                    Context context = MainApplication.getContext();
+                    // new range request found
+                    if (oldFriend.getRangeRequest() == null) {
+                        // send the notification
 
-                    // accept starts the main activity with the friend view
-                    Intent acceptIntent = new Intent(context, PanelMapActivity.class);
-                    acceptIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-                            | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
-                            | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-                    acceptIntent.setAction(ACTION_RANGE_REQUEST_ACCEPTED);
-                    acceptIntent.putExtra("range_request", friendUid);
-                    acceptIntent.putExtra("notification_id", nid);
-                    PendingIntent pendingAcceptIntent = PendingIntent.getActivity(context, 1, acceptIntent, 0);
-                    NotificationCompat.Action acceptAction = new NotificationCompat.Action.Builder(
-                            R.drawable.ic_contacts_black_18dp,
-                            "Accept", pendingAcceptIntent).build();
+                        // notification id
+                        int nid = new Random().nextInt();
 
-                    Intent declineIntent = new Intent(context, OnBootReceiver.class);
-                    declineIntent.setAction(ACTION_RANGE_REQUEST_DECLINED);
-                    declineIntent.putExtra("range_request", friendUid);
-                    declineIntent.putExtra("notification_id", nid);
-                    PendingIntent pendingDeclineIntent = PendingIntent.getBroadcast(context, 1, declineIntent, 0);
-                    NotificationCompat.Action declineAction = new NotificationCompat.Action.Builder(
-                            R.drawable.ic_contacts_black_18dp,
-                            "Decline", pendingDeclineIntent).build();
+                        Context context = MainApplication.getContext();
 
-                    String to = LocationRange.toString(requestedRange);
-                    String from = LocationRange.toString(currentRange);
-                    String content = "You received a range request to " + to + " from " + from;
+                        // accept starts the main activity with the friend view
+                        Intent acceptIntent = new Intent(context, PanelMapActivity.class);
+                        acceptIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                                | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+                                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                        acceptIntent.setAction(ACTION_RANGE_REQUEST_ACCEPTED);
+                        acceptIntent.putExtra("range_requester", friendUid);
+                        acceptIntent.putExtra("range", requestedRange);
+                        acceptIntent.putExtra("notification_id", nid);
+                        PendingIntent pendingAcceptIntent = PendingIntent.getActivity(context, 1, acceptIntent, 0);
+                        NotificationCompat.Action acceptAction = new NotificationCompat.Action.Builder(
+                                R.drawable.ic_contacts_black_18dp,
+                                "Accept", pendingAcceptIntent).build();
 
-                    final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
-                            .setSmallIcon(R.drawable.ic_person_pin_circle_white_48dp)
-                            .setContentTitle(newFriend.getDisplayName())
-                            .setContentText(content)
-                            .setAutoCancel(true)
-                            .addAction(acceptAction)
-                            .addAction(declineAction);
+                        Intent declineIntent = new Intent(context, OnBootReceiver.class);
+                        declineIntent.setAction(ACTION_RANGE_REQUEST_DECLINED);
+                        declineIntent.putExtra("range_requester", friendUid);
+                        declineIntent.putExtra("notification_id", nid);
+                        PendingIntent pendingDeclineIntent = PendingIntent.getBroadcast(context, 1, declineIntent, 0);
+                        NotificationCompat.Action declineAction = new NotificationCompat.Action.Builder(
+                                R.drawable.ic_contacts_black_18dp,
+                                "Decline", pendingDeclineIntent).build();
 
-                    // seems not working, use notificationmanager's cancel method
-                    Notification notification = mBuilder.build();
-                    notification.flags |= Notification.FLAG_AUTO_CANCEL;
+                        String to = LocationRange.toString(requestedRange);
+                        String from = LocationRange.toString(currentRange);
+                        String content = "You received a range request to " + to + " from " + from;
 
-                    Picasso.with(MainApplication.getContext()).load(newFriend.getPicture()).transform(new CircleTransform()).into(new Target() {
-                        @Override
-                        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                            mBuilder.setLargeIcon(bitmap);
-                        }
-                        @Override
-                        public void onBitmapFailed(Drawable errorDrawable) {
-                        }
-                        @Override
-                        public void onPrepareLoad(Drawable placeHolderDrawable) {
-                        }
-                    });
+                        final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
+                                .setSmallIcon(R.drawable.ic_person_pin_circle_white_48dp)
+                                .setContentTitle(newFriend.getDisplayName())
+                                .setContentText(content)
+                                .setAutoCancel(true)
+                                .addAction(acceptAction)
+                                .addAction(declineAction);
 
-                    NotificationManager mNotificationManager =
-                            (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
+                        // seems not working, use notificationmanager's cancel method
+                        Notification notification = mBuilder.build();
+                        notification.flags |= Notification.FLAG_AUTO_CANCEL;
 
-                    mNotificationManager.notify(nid, notification);
+                        Picasso.with(MainApplication.getContext()).load(newFriend.getPicture()).transform(new CircleTransform()).into(new Target() {
+                            @Override
+                            public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                                mBuilder.setLargeIcon(bitmap);
+                            }
+
+                            @Override
+                            public void onBitmapFailed(Drawable errorDrawable) {
+                            }
+
+                            @Override
+                            public void onPrepareLoad(Drawable placeHolderDrawable) {
+                            }
+                        });
+
+                        NotificationManager mNotificationManager =
+                                (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
+
+                        mNotificationManager.notify(nid, notification);
+                    }
+                    // existing range request, show the notification if the timestamp is old
+                    else {
+
+                    }
                 }
-                // range request is neither approved or declined
-                else if (newFriend.getRangeRequest() != null && oldFriend.getRangeRequest() != null) {
+                // the range has been update, notify the map to change the marker location
+                else if (newFriend.getRange() != oldFriend.getRange()) {
+
                 }
             }
         }
@@ -683,9 +706,11 @@ public class MainService extends BasePeriodicService
                     public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
                         mBuilder.setLargeIcon(bitmap);
                     }
+
                     @Override
                     public void onBitmapFailed(Drawable errorDrawable) {
                     }
+
                     @Override
                     public void onPrepareLoad(Drawable placeHolderDrawable) {
                     }

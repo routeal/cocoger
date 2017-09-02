@@ -1,12 +1,10 @@
 package com.routeal.cocoger.model;
 
-import java.io.Serializable;
-
 /**
  * Created by nabe on 8/30/17.
  */
 
-public class RangeRequest implements Serializable {
+public class RangeRequest {
     private long created;
     private int range;
 

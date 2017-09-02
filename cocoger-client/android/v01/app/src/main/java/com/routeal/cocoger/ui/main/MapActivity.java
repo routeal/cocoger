@@ -263,7 +263,7 @@ public class MapActivity extends FragmentActivity
         } else {
             // Refer to the reference doc for ConnectionResult to see what error codes might
             // be returned in onConnectionFailed.
-            Log.d(TAG, "Play services connection failed: ConnectionResult.getErrorCode() = "
+            Log.d(TAG, "Play services connection onFail: ConnectionResult.getErrorCode() = "
                     + connectionResult.getErrorCode());
             // TODO: ERROR dialog
         }

@@ -77,7 +77,7 @@
     <string name="no_password">Empty password</string>
     <string name="no_password_match">Password not match</string>
     <string name="verification_email_sent">Sign up successful.  Verification email sent.</string>
-    <string name="password_reset_email_sent">Password reset email sent</string>
+    <string name="password_reset_email_sent">Password reset email has been sent successfully.</string>
     <string name="search">Search</string>
     <string name="search_users">Search friends with prefix string</string>
     <string name="display_name">Display name</string>

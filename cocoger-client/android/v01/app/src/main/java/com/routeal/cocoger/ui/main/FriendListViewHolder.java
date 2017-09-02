@@ -152,7 +152,7 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
         rangeRequest.setRange(range);
 
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
-        userRef.child(fid).child("friends").child(uid).child("request").setValue(rangeRequest);
+        userRef.child(fid).child("friends").child(uid).child("rangeRequest").setValue(rangeRequest);
     }
 
 }

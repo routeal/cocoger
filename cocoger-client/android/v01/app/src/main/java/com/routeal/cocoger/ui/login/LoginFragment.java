@@ -4,8 +4,6 @@ import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.IntentSender;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -27,24 +25,11 @@ import com.google.android.gms.auth.api.credentials.CredentialPickerConfig;
 import com.google.android.gms.auth.api.credentials.HintRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
-import com.routeal.cocoger.model.Device;
-import com.routeal.cocoger.model.User;
+import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 import com.routeal.cocoger.util.Utils;
 
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -71,7 +56,9 @@ public class LoginFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_login, container, false);
 
         mEmailText = (TextInputEditText) v.findViewById(R.id.input_email);
@@ -141,8 +128,10 @@ public class LoginFragment extends Fragment {
                 .enableAutoManage(getActivity(), SAFE_ID.getAndIncrement(),
                         new GoogleApiClient.OnConnectionFailedListener() {
                             @Override
-                            public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-                                Log.e(TAG, "Client connection failed: " + connectionResult.getErrorMessage());
+                            public void onConnectionFailed(
+                                    @NonNull ConnectionResult connectionResult) {
+                                Log.e(TAG, "Client connection onFail: " +
+                                        connectionResult.getErrorMessage());
                             }
                         })
                 .build();
@@ -169,27 +158,23 @@ public class LoginFragment extends Fragment {
         String email = mEmailText.getText().toString();
         String password = mPassword.getText().toString();
 
-        final ProgressDialog dialog = ProgressDialog.show(getContext(), null, null, false, true);
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        dialog.setContentView(R.layout.progressbar_spinner);
+        final ProgressDialog dialog = Utils.getBusySpinner(getContext());
 
-        FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(getActivity(), new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            //onLoginSucceeded(task.getResult().getUser());
+        FB.signIn(getActivity(), email, password, new FB.SignInListener() {
+            @Override
+            public void OnSuccess() {
+                dialog.dismiss();
+                Intent intent = new Intent(getContext(), PanelMapActivity.class);
+                startActivity(intent);
+                getActivity().finish();
+            }
 
-                            Intent intent = new Intent(getContext(), PanelMapActivity.class);
-                            startActivity(intent);
-                            getActivity().finish();
-                        } else {
-                            onFailed(task.getException().getLocalizedMessage());
-                        }
-                        dialog.dismiss();
-                    }
-                });
-
+            @Override
+            public void onFail(String err) {
+                dialog.dismiss();
+                onFailed(err);
+            }
+        });
     }
 
     private void signup(View view) {
@@ -199,38 +184,27 @@ public class LoginFragment extends Fragment {
         String email = mEmailText.getText().toString();
         String password = mPassword.getText().toString();
 
-        final ProgressDialog dialog = ProgressDialog.show(getContext(), null, null, false, true);
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        dialog.setContentView(R.layout.progressbar_spinner);
+        final ProgressDialog dialog = Utils.getBusySpinner(getContext());
 
-        FirebaseAuth.getInstance()
-                .createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(getActivity(), new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // save the display name
-                            /*
-                            String name = mDisplayName.getText().toString();
-                            UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
-                                    .setDisplayName(name).build();
-                            task.getResult().getUser().updateProfile(profileUpdates);
-                            */
+        FB.createUser(getActivity(), email, password, new FB.CreateUserListener() {
+            @Override
+            public void onSuccess() {
+                dialog.dismiss();
+                // start the setup
+                Intent intent = new Intent(getActivity(), SetupActivity.class);
+                if (mDisplayName != null && !mDisplayName.isEmpty()) {
+                    intent.putExtra("displayName", mDisplayName);
+                }
+                startActivity(intent);
+                getActivity().finish();
+            }
 
-                            // start the setup
-                            Intent intent = new Intent(getActivity(), SetupActivity.class);
-                            if (mDisplayName != null && !mDisplayName.isEmpty()) {
-                                intent.putExtra("displayName", mDisplayName);
-                            }
-                            startActivity(intent);
-                            getActivity().finish();
-                        } else {
-                            onFailed(task.getException().getLocalizedMessage());
-                        }
-                        dialog.dismiss();
-                    }
-                });
-
+            @Override
+            public void onFail(String err) {
+                dialog.dismiss();
+                onFailed(err);
+            }
+        });
     }
 
     private void onFailed(String message) {
@@ -238,60 +212,4 @@ public class LoginFragment extends Fragment {
         mLoginButton.setEnabled(true);
         mSignupButton.setEnabled(true);
     }
-
-    private void onLoginSucceeded(FirebaseUser fbUser) {
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
-        userRef.child(fbUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                User user = dataSnapshot.getValue(User.class);
-                MainApplication.setUser(user);
-
-                // the current device
-                Device currentDevice = Utils.getDevice();
-
-                String devKey = null;
-
-                // get the device key to match the device id in the user database
-                Map<String, String> devList = user.getDevices();
-                if (devList != null && !devList.isEmpty()) {
-                    for (Map.Entry<String, String> entry : devList.entrySet()) {
-                        // the values is a device id
-                        if (entry.getValue().equals(currentDevice.getDeviceId())) {
-                            devKey = entry.getKey();
-                        }
-                    }
-                }
-
-                String uid = dataSnapshot.getKey();
-
-                DatabaseReference devRef = FirebaseDatabase.getInstance().getReference().child("devices");
-
-                if (devKey != null) {
-                    // update the timestamp of the device
-                    devRef.child(devKey).child("timestamp").setValue(currentDevice.getTimestamp());
-                } else {
-                    // set the uid to the device before save
-                    currentDevice.setUid(uid);
-
-                    // add it as a new device
-                    String newKey = devRef.push().getKey();
-                    devRef.child(newKey).setValue(currentDevice);
-
-                    // also add it to the user database under 'devices'
-                    DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
-                    userRef.child(uid).child("devices").child(newKey).setValue(currentDevice.getDeviceId());
-                }
-
-                Intent intent = new Intent(getContext(), PanelMapActivity.class);
-                startActivity(intent);
-                getActivity().finish();
-            }
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-            }
-        });
-
-    }
-
 }
