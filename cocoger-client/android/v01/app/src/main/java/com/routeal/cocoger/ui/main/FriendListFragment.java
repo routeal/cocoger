@@ -9,13 +9,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.franmontiel.fullscreendialog.FullScreenDialogFragment;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.routeal.cocoger.R;
-import com.routeal.cocoger.model.Friend;
+import com.routeal.cocoger.fb.FB;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 /**
@@ -47,7 +43,7 @@ public class FriendListFragment extends Fragment {
                 dialogFragment = new FullScreenDialogFragment.Builder(getActivity())
                         .setTitle("People")
                         .setConfirmButton("Request Friend")
-                        .setContent(AddFriendFragment.class, new Bundle())
+                        .setContent(UserListFragment.class, new Bundle())
                         .build();
                 dialogFragment.show(getActivity().getSupportFragmentManager(), "user-dialog");
             }
@@ -67,25 +63,10 @@ public class FriendListFragment extends Fragment {
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
         recyclerView.setLayoutManager(layoutManager);
 
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
-        DatabaseReference friendRef = userRef.child(uid).child("friends");
-
-        FirebaseRecyclerAdapter<Friend, FriendListViewHolder> adapter =
-                new FirebaseRecyclerAdapter<Friend, FriendListViewHolder>(
-                        Friend.class,
-                        R.layout.listview_friend_list,
-                        FriendListViewHolder.class,
-                        friendRef
-                ) {
-                    @Override
-                    protected void populateViewHolder(FriendListViewHolder viewHolder, Friend model, int position) {
-                        viewHolder.bind(model, getRef(position).getKey());
-                    }
-                };
-
-        recyclerView.setAdapter(adapter);
+        try {
+            recyclerView.setAdapter(FB.getFriendRecyclerAdapter());
+        } catch (Exception e) {
+        }
 
         return view;
     }

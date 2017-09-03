@@ -17,24 +17,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.franmontiel.fullscreendialog.FullScreenDialogContent;
 import com.franmontiel.fullscreendialog.FullScreenDialogController;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.routeal.cocoger.R;
-import com.routeal.cocoger.model.User;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.routeal.cocoger.fb.FB;
 
 /**
  * Created by nabe on 8/13/17.
  */
 
-public class AddFriendFragment extends Fragment
+public class UserListFragment extends Fragment
         implements FullScreenDialogContent,
         View.OnClickListener,
         TextView.OnEditorActionListener {
@@ -45,7 +37,7 @@ public class AddFriendFragment extends Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_add_friend, container, false);
+        return inflater.inflate(R.layout.fragment_user_list, container, false);
     }
 
     @Override
@@ -98,41 +90,7 @@ public class AddFriendFragment extends Fragment
 
     private boolean updateDatabaseForFriendRequest() {
         RecyclerView recyclerView = (RecyclerView) getView().findViewById(R.id.user_list);
-
-        FirebaseRecyclerAdapter<User, AddFriendViewHolder> adapter =
-                (FirebaseRecyclerAdapter<User, AddFriendViewHolder>) recyclerView.getAdapter();
-
-        FirebaseDatabase db = FirebaseDatabase.getInstance();
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
-        DatabaseReference userRef = db.getReference().child("users");
-
-        for (int i = 0; i < adapter.getItemCount(); i++) {
-            DatabaseReference friendRef = adapter.getRef(i);
-            if (friendRef.getKey().equals(uid)) {
-                // trying to add myself to friends
-                continue;
-            }
-
-            // set the timestamp when the friend request is added.
-            // When the requested user approved, the timestamp will be changed to true.
-            long timestamp = System.currentTimeMillis();
-
-            Map<String, Long> friend = new HashMap<>();
-
-            // add myself to friend
-            friend.clear();
-            friend.put(uid, timestamp);
-            friendRef.child("invitees").setValue(friend);
-
-            // add friends to myself
-            String key = adapter.getRef(i).getKey();
-            friend.clear();
-            friend.put(key, timestamp);
-            userRef.child(uid).child("invites").setValue(friend);
-        }
-
-        return true;
+        return FB.sendFriendRequest(recyclerView.getAdapter());
     }
 
     @Override
@@ -164,41 +122,11 @@ public class AddFriendFragment extends Fragment
     }
 
     private void searchUser(String text) {
-        // TODO:
-        // Exclude 1) myself, 2) current friends but being added to friend
-
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
-
-        Query query = userRef
-                .orderByChild("searchedName")
-                .startAt(text)
-                .endAt(text + "~");
-
-        FirebaseRecyclerAdapter<User, AddFriendViewHolder> adapter =
-                new FirebaseRecyclerAdapter<User, AddFriendViewHolder>(
-                        User.class,
-                        R.layout.listview_add_friend,
-                        AddFriendViewHolder.class,
-                        query) {
-
-                    @Override
-                    public void populateViewHolder(AddFriendViewHolder holder, User user, int position) {
-                        holder.bind(user, getRef(position).getKey());
-                    }
-
-                    @Override
-                    public void onDataChanged() {
-                        // NOTE: this gets called when new people are added to the friends
-                        View view = getView();
-                        if (view != null) {
-                            TextView emptyListMessage = (TextView) view.findViewById(R.id.empty_list_text);
-                            emptyListMessage.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
-                        }
-                    }
-                };
-
-        RecyclerView recyclerView = (RecyclerView) getView().findViewById(R.id.user_list);
-        recyclerView.setAdapter(adapter);
+        try {
+            RecyclerView recyclerView = (RecyclerView) getView().findViewById(R.id.user_list);
+            recyclerView.setAdapter(FB.getUserRecyclerAdapter(text, getView()));
+        } catch (Exception e) {
+        }
     }
 
 }

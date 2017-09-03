@@ -16,14 +16,14 @@ import com.squareup.picasso.Picasso;
 
 import java.util.Map;
 
-public class AddFriendViewHolder extends RecyclerView.ViewHolder {
+public class UserListViewHolder extends RecyclerView.ViewHolder {
     private final CheckBox mCheckbox;
     private final ImageView mPicture;
     private final TextView mName;
     private final TextView mLocation;
     private final View mView;
 
-    public AddFriendViewHolder(View itemView) {
+    public UserListViewHolder(View itemView) {
         super(itemView);
 
         mView = itemView;

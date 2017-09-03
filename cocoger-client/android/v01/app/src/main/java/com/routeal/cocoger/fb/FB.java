@@ -8,10 +8,14 @@ import android.location.Location;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.core.GeoHash;
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -23,18 +27,22 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.UploadTask;
 import com.routeal.cocoger.MainApplication;
+import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.Device;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.model.RangeRequest;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.service.MainReceiver;
+import com.routeal.cocoger.ui.main.FriendListViewHolder;
 import com.routeal.cocoger.ui.main.MapActivity;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
+import com.routeal.cocoger.ui.main.UserListViewHolder;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.NotificationHelper;
 import com.routeal.cocoger.util.Utils;
@@ -57,25 +65,29 @@ public class FB {
 
     public interface SignInListener {
         void onSuccess();
+
         void onFail(String err);
     }
 
     public interface CreateUserListener {
         void onSuccess();
+
         void onFail(String err);
     }
 
     public interface ResetPasswordListener {
         void onSuccess();
+
         void onFail(String err);
     }
 
     public interface UploadImageListener {
         void onSuccess(String url);
+
         void onFail(String err);
     }
 
-    static String getUid() throws Exception {
+    static String getUid() {
         FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
         return fUser.getUid();
     }
@@ -86,6 +98,10 @@ public class FB {
 
     static DatabaseReference getUserDatabaseReference() {
         return FirebaseDatabase.getInstance().getReference().child("users");
+    }
+
+    static DatabaseReference getFriendDatabaseReference(String user) {
+        return getUserDatabaseReference().child(user).child("friends");
     }
 
     static DatabaseReference getFriendDatabaseReference(String user, String friend) {
@@ -252,7 +268,9 @@ public class FB {
         // geo location
         updates.put("geo_locations/" + key + "/l", Arrays.asList(latitude, longitude));
         // user locations
-        updates.put("users/" + getUid() + "/locations/" + key, loc.getTimestamp());
+        //updates.put("users/" + getUid() + "/locations/" + key, loc.getTimestamp());
+        updates.put("user_locations/" + getUid() + "/" + key, loc.getTimestamp());
+        updates.put("users/" + getUid() + "/locations/", key);
 
         db.updateChildren(updates);
     }
@@ -420,6 +438,45 @@ public class FB {
         });
     }
 
+    public static boolean sendFriendRequest(RecyclerView.Adapter a) {
+        FirebaseRecyclerAdapter<User, UserListViewHolder> adapter =
+                (FirebaseRecyclerAdapter<User, UserListViewHolder>) a;
+
+        String uid = getUid();
+        DatabaseReference userDb = getUserDatabaseReference();
+
+        boolean modified = false;
+
+        for (int i = 0; i < adapter.getItemCount(); i++) {
+            DatabaseReference fDb = adapter.getRef(i);
+            if (fDb.getKey().equals(uid)) {
+                // trying to add myself to friends
+                continue;
+            }
+
+            // set the timestamp when the friend request is added.
+            // When the requested user approved, the timestamp will be changed to true.
+            long timestamp = System.currentTimeMillis();
+
+            Map<String, Long> friend = new HashMap<>();
+
+            // add myself to friend
+            friend.clear();
+            friend.put(uid, timestamp);
+            fDb.child("invitees").setValue(friend);
+
+            // add friends to myself
+            String key = adapter.getRef(i).getKey();
+            friend.clear();
+            friend.put(key, timestamp);
+            userDb.child(uid).child("invites").setValue(friend);
+
+            modified = true;
+        }
+
+        return modified;
+    }
+
     public static void acceptFriendRequest(final String invite) throws Exception {
         final String invitee = getUid();
 
@@ -507,7 +564,7 @@ public class FB {
         rangeRequest.setRange(range);
 
         DatabaseReference hisside = getFriendDatabaseReference(fid, uid);
-        hisside.child("range").child("rangeRequest").setValue(rangeRequest);
+        hisside.child("rangeRequest").setValue(rangeRequest);
     }
 
     public static void uploadImageFile(Uri localFile, String name,
@@ -590,5 +647,62 @@ public class FB {
             }
         });
 
+    }
+
+    public static FirebaseRecyclerAdapter<Friend, FriendListViewHolder> getFriendRecyclerAdapter()
+            throws Exception {
+        DatabaseReference fDb = getFriendDatabaseReference(getUid());
+
+        FirebaseRecyclerAdapter<Friend, FriendListViewHolder> adapter =
+                new FirebaseRecyclerAdapter<Friend, FriendListViewHolder>(
+                        Friend.class,
+                        R.layout.listview_friend_list,
+                        FriendListViewHolder.class,
+                        fDb
+                ) {
+                    @Override
+                    protected void populateViewHolder(FriendListViewHolder viewHolder,
+                                                      Friend model, int position) {
+                        viewHolder.bind(model, getRef(position).getKey());
+                    }
+                };
+
+        return adapter;
+    }
+
+
+    public static FirebaseRecyclerAdapter<User, UserListViewHolder>
+    getUserRecyclerAdapter(String text, final View view) throws Exception {
+        // TODO:
+        // Exclude 1) myself, 2) current friends but being added to friend
+
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
+
+        Query query = userRef
+                .orderByChild("searchedName")
+                .startAt(text)
+                .endAt(text + "~");
+
+        FirebaseRecyclerAdapter<User, UserListViewHolder> adapter =
+                new FirebaseRecyclerAdapter<User, UserListViewHolder>(
+                        User.class,
+                        R.layout.listview_user_list,
+                        UserListViewHolder.class,
+                        query) {
+
+                    @Override
+                    public void populateViewHolder(UserListViewHolder holder, User user, int position) {
+                        holder.bind(user, getRef(position).getKey());
+                    }
+
+                    @Override
+                    public void onDataChanged() {
+                        // NOTE: this gets called when new people are added to the friends
+                        TextView emptyListMessage = (TextView) view.findViewById(R.id.empty_list_text);
+                        emptyListMessage.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
+                    }
+                };
+
+        return adapter;
     }
 }
