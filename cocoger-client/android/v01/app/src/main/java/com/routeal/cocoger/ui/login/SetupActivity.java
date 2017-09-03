@@ -178,28 +178,34 @@ public class SetupActivity extends AppCompatActivity {
         user.setLocale(getResources().getConfiguration().locale.getDisplayLanguage());
         user.setTimezone(TimeZone.getDefault().getID());
 
-        FB.uploadImageFile(mProfilePictureUri, "profile.jpg", new FB.UploadImageListener() {
-            @Override
-            public void onSuccess(String url) {
-                dialog.dismiss();
+        try {
+            FB.uploadImageFile(mProfilePictureUri, "profile.jpg", new FB.UploadImageListener() {
+                @Override
+                public void onSuccess(String url) {
+                    dialog.dismiss();
 
-                // set the url to the user
-                user.setPicture(url);
+                    // set the url to the user
+                    user.setPicture(url);
 
-                // save the user to the database
-                FB.initUser(user);
+                    // save the user to the database
+                    try {
+                        FB.initUser(user);
+                    } catch (Exception e) {
+                    }
 
-                // start the main map
-                Intent intent = new Intent(getApplicationContext(), PanelMapActivity.class);
-                startActivity(intent);
-                finish();
-            }
+                    // start the main map
+                    Intent intent = new Intent(getApplicationContext(), PanelMapActivity.class);
+                    startActivity(intent);
+                    finish();
+                }
 
-            @Override
-            public void onFail(String err) {
-                dialog.dismiss();
-            }
-        });
+                @Override
+                public void onFail(String err) {
+                    dialog.dismiss();
+                }
+            });
+        } catch (Exception e) {
+        }
     }
 
     @Override

@@ -162,7 +162,7 @@ public class LoginFragment extends Fragment {
 
         FB.signIn(getActivity(), email, password, new FB.SignInListener() {
             @Override
-            public void OnSuccess() {
+            public void onSuccess() {
                 dialog.dismiss();
                 Intent intent = new Intent(getContext(), PanelMapActivity.class);
                 startActivity(intent);

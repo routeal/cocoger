@@ -19,17 +19,20 @@ import java.util.Random;
 
 public class NotificationHelper {
 
-    void send(String title, String content, String icon, Intent accept, Intent decline) {
-        int nid = new Random().nextInt();
+    public static void send(String title, String content, String icon, Intent accept, Intent decline) {
+        int nid = new Random().nextInt(100);
 
         Context context = MainApplication.getContext();
 
-        PendingIntent pendingAcceptIntent = PendingIntent.getActivity(context, 1, accept, 0);
+        accept.putExtra("notification_id", nid);
+        decline.putExtra("notification_id", nid);
+
+        PendingIntent pendingAcceptIntent = PendingIntent.getActivity(context, 1, accept, PendingIntent.FLAG_CANCEL_CURRENT);
         NotificationCompat.Action acceptAction = new NotificationCompat.Action.Builder(
             R.drawable.ic_contacts_black_18dp,
             "Accept", pendingAcceptIntent).build();
 
-        PendingIntent pendingDeclineIntent = PendingIntent.getBroadcast(context, 1, decline, 0);
+        PendingIntent pendingDeclineIntent = PendingIntent.getBroadcast(context, 1, decline, PendingIntent.FLAG_CANCEL_CURRENT);
         NotificationCompat.Action declineAction = new NotificationCompat.Action.Builder(
             R.drawable.ic_contacts_black_18dp,
             "Decline", pendingDeclineIntent).build();
@@ -65,6 +68,14 @@ public class NotificationHelper {
             (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
 
         mNotificationManager.notify(nid, notification);
+    }
+
+    public static void remove(int id) {
+        if (id == 0) return;
+        Context context = MainApplication.getContext();
+        NotificationManager mNotificationManager =
+            (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
+        mNotificationManager.cancel(id);
     }
 
 }

@@ -1,63 +1,47 @@
 package com.routeal.cocoger.service;
 
-import android.app.NotificationManager;
-import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-
-import static com.mikepenz.iconics.Iconics.TAG;
+import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.util.NotificationHelper;
 
 /**
  * Created by nabe on 8/27/17.
  */
 
 public class MainReceiver extends BroadcastReceiver {
+    private final static String TAG = "MainReceiver";
+
     @Override
     public void onReceive(Context context, Intent intent) {
-        String action = intent.getAction();
+        try {
 
-        if (action.equals(MainService.ACTION_FRIEND_REQUEST_DECLINED)) {
-            Log.d(TAG, action);
+            String action = intent.getAction();
+            if (action.equals(FB.ACTION_FRIEND_REQUEST_DECLINED)) {
+                Log.d(TAG, action);
 
-            // delete the invite and invitee from the database
-            FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
-            String invitee = fbUser.getUid();
-            String invite = intent.getStringExtra("friend_invite");
+                // delete the invite and invitee from the database
+                String invite = intent.getStringExtra("friend_invite");
+                FB.declineFriendRequest(invite);
 
-            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
+                int nid = intent.getIntExtra("notification_id", 0);
+                NotificationHelper.remove(nid);
+            } else if (action.equals(FB.ACTION_RANGE_REQUEST_DECLINED)) {
+                Log.d(TAG, action);
 
-            userRef.child(invitee).child("invitees").child(invite).removeValue();
-            userRef.child(invite).child("invites").child(invitee).removeValue();
+                // delete the invite and invitee from the database
+                String requester = intent.getStringExtra("range_requester");
+                FB.declineRangeRequest(requester);
 
-            int nid = intent.getIntExtra("notification_id", 0);
-            NotificationManager mNotificationManager =
-                    (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
-            mNotificationManager.cancel(nid);
+                int nid = intent.getIntExtra("notification_id", 0);
+                NotificationHelper.remove(nid);
+            }
+
+        } catch (Exception e) {
+            Log.d(TAG, e.getLocalizedMessage());
         }
-        else if (action.equals(MainService.ACTION_RANGE_REQUEST_DECLINED)) {
-            Log.d(TAG, action);
-
-            // delete the invite and invitee from the database
-            FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
-            String invitee = fbUser.getUid();
-            String invite = intent.getStringExtra("range_request");
-
-            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
-
-            userRef.child(invitee).child("friends").child(invite).child("request").removeValue();
-
-            int nid = intent.getIntExtra("notification_id", 0);
-            NotificationManager mNotificationManager =
-                    (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
-            mNotificationManager.cancel(nid);
-        }
-
     }
 }

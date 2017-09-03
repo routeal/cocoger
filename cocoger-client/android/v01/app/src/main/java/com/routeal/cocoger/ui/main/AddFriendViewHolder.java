@@ -6,9 +6,9 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.google.firebase.auth.FirebaseAuth;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.util.CircleTransform;
@@ -47,13 +47,16 @@ public class AddFriendViewHolder extends RecyclerView.ViewHolder {
         //setLocation(user.getlocation());
 
         // disable myself, don't know how to remove myself from the searched list
-        if (key == FirebaseAuth.getInstance().getCurrentUser().getUid()) {
-            mView.setBackgroundColor(mView.getResources().getColor(R.color.light_gray));
-            mView.setEnabled(false);
-            mView.setClickable(false);
-            mCheckbox.setChecked(false);
-            mCheckbox.setClickable(false);
-            return;
+        try {
+            if (FB.isCurrentUser(key)) {
+                mView.setBackgroundColor(mView.getResources().getColor(R.color.light_gray));
+                mView.setEnabled(false);
+                mView.setClickable(false);
+                mCheckbox.setChecked(false);
+                mCheckbox.setClickable(false);
+                return;
+            }
+        } catch (Exception e) {
         }
 
         // check to see already invited

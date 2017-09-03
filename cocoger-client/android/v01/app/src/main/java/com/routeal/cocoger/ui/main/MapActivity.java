@@ -68,6 +68,9 @@ public class MapActivity extends FragmentActivity
         GoogleMap.OnMarkerClickListener,
         InfoWindowManager.WindowShowListener {
 
+    public static final String USER_AVAILABLE = "user_available";
+    public static final String LAST_LOCATION_UPDATE = "last_location_update";
+
     private final static String TAG = "MapActivity";
     private final static String KEY_CAMERA_POSITION = "camera_position";
     private final static String KEY_LOCATION = "location";
@@ -159,8 +162,8 @@ public class MapActivity extends FragmentActivity
 
         // registers the receiver to receive the location updates from the service
         IntentFilter filter = new IntentFilter();
-        filter.addAction(MainService.LAST_LOCATION_UPDATE);
-        filter.addAction(MainService.USER_AVAILABLE);
+        filter.addAction(MapActivity.LAST_LOCATION_UPDATE);
+        filter.addAction(MapActivity.USER_AVAILABLE);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mLocalLocationReceiver, filter);
     }
@@ -380,7 +383,7 @@ public class MapActivity extends FragmentActivity
     private BroadcastReceiver mLocalLocationReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(MainService.LAST_LOCATION_UPDATE)) {
+            if (intent.getAction().equals(MapActivity.LAST_LOCATION_UPDATE)) {
                 Location location = intent.getParcelableExtra("location");
 
                 if (location != null) {
@@ -399,7 +402,7 @@ public class MapActivity extends FragmentActivity
                 }
 
                 mAddress = intent.getParcelableExtra("address");
-            } else if (intent.getAction().equals(MainService.USER_AVAILABLE)) {
+            } else if (intent.getAction().equals(MapActivity.USER_AVAILABLE)) {
                 if (MainApplication.getUser() != null && myMarkerTarget != null) {
                     Picasso.with(getApplicationContext())
                             .load(MainApplication.getUser().getPicture())

@@ -7,18 +7,10 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
-import com.routeal.cocoger.model.RangeRequest;
-import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.util.CircleTransform;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.SnappingSeekBar;
@@ -29,8 +21,8 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
     private final TextView mName;
     private final SnappingSeekBar mSeekBar;
     private final View mView;
-    private int currentRangePosition;
-    private String fid;
+    private int mCurrentRange;
+    private String mFriendId;
 
     public FriendListViewHolder(View itemView) {
         super(itemView);
@@ -43,7 +35,7 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
         mSeekBar.setOnItemSelectionListener(new SnappingSeekBar.OnItemSelectionListener() {
             @Override
             public void onItemSelected(final int itemIndex, String itemString) {
-                if (itemIndex > currentRangePosition) {
+                if (itemIndex > mCurrentRange) {
                     new AlertDialog.Builder(mView.getContext())
                             .setTitle(R.string.notice)
                             .setMessage(R.string.notice_narrow_range_change)
@@ -52,7 +44,7 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
                                 public void onClick(DialogInterface dialog, int which) {
                                     sendChangeRequest(itemIndex);
 
-                                    mSeekBar.setProgressToIndex(currentRangePosition);
+                                    mSeekBar.setProgressToIndex(mCurrentRange);
 
                                     new AlertDialog.Builder(mView.getContext())
                                             .setMessage(R.string.range_changed_narrow)
@@ -63,12 +55,12 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
                             .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    mSeekBar.setProgressToIndex(currentRangePosition);
+                                    mSeekBar.setProgressToIndex(mCurrentRange);
                                 }
                             })
                             .show();
 
-                } else if (itemIndex < currentRangePosition) {
+                } else if (itemIndex < mCurrentRange) {
                     new AlertDialog.Builder(mView.getContext())
                             .setTitle(R.string.notice)
                             .setMessage(R.string.notice_broad_range_change)
@@ -76,7 +68,7 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     changeRange(itemIndex);
-                                    currentRangePosition = itemIndex;
+                                    mCurrentRange = itemIndex;
                                     new AlertDialog.Builder(mView.getContext())
                                             .setMessage(R.string.range_changed_broad)
                                             .setPositiveButton(android.R.string.ok, null)
@@ -86,7 +78,7 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
                             .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    mSeekBar.setProgressToIndex(currentRangePosition);
+                                    mSeekBar.setProgressToIndex(mCurrentRange);
                                 }
                             })
                             .show();
@@ -96,25 +88,10 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
     }
 
     public void bind(Friend friend, String key /* friend's key */) {
-        fid = key;
-
+        mFriendId = key;
         setRange(friend.getRange());
-
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
-
-        userRef.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                User user = dataSnapshot.getValue(User.class);
-                setName(user.getDisplayName());
-                setPicture(user.getPicture());
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+        setName(friend.getDisplayName());
+        setPicture(friend.getPicture());
     }
 
     private void setName(String name) {
@@ -122,8 +99,8 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
     }
 
     private void setRange(int range) {
-        currentRangePosition = LocationRange.toPosition(range);
-        mSeekBar.setProgressToIndex(currentRangePosition);
+        mCurrentRange = LocationRange.toPosition(range);
+        mSeekBar.setProgressToIndex(mCurrentRange);
     }
 
     private void setPicture(String url) {
@@ -135,24 +112,19 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
     }
 
     private void changeRange(int index) {
-        FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
-        String uid = fbUser.getUid();
-        int range = LocationRange.toRange(index);
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
-        userRef.child(uid).child("friends").child(fid).child("range").setValue(range);
-        userRef.child(fid).child("friends").child(uid).child("range").setValue(range);
+        try {
+            int range = LocationRange.toRange(index);
+            FB.changeRange(mFriendId, range);
+        } catch (Exception e) {
+        }
     }
 
     private void sendChangeRequest(int index) {
-        FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
-        String uid = fbUser.getUid();
-        int range = LocationRange.toRange(index);
-        RangeRequest rangeRequest = new RangeRequest();
-        rangeRequest.setCreated(System.currentTimeMillis());
-        rangeRequest.setRange(range);
-
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
-        userRef.child(fid).child("friends").child(uid).child("rangeRequest").setValue(rangeRequest);
+        try {
+            int range = LocationRange.toRange(index);
+            FB.sendChangeRequest(mFriendId, range);
+        } catch (Exception e) {
+        }
     }
 
 }

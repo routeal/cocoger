@@ -1,9 +1,7 @@
 package com.routeal.cocoger.ui.main;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Color;
-import android.location.Address;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -24,15 +22,13 @@ import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.SearchSuggestionsAdapter;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.arlib.floatingsearchview.util.Util;
-import com.google.firebase.auth.FirebaseAuth;
 import com.mikepenz.aboutlibraries.Libs;
 import com.mikepenz.aboutlibraries.LibsBuilder;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
-import com.routeal.cocoger.provider.DBUtil;
+import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.ui.login.LoginActivity;
 import com.routeal.cocoger.util.CircleTransform;
-import com.routeal.cocoger.util.Utils;
 import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
@@ -94,49 +90,13 @@ public class SearchMapActivity extends MapActivity
     }
 
     private void logout() {
-        ProgressDialog dialog = Utils.spinBusyCursor(this);
-
-        // logout anyway
-        FirebaseAuth.getInstance().signOut();
-
-        // cleanup the databases
-        /*
-        DBUtil.deleteUser();
-        DBUtil.deleteFriends();
-        DBUtil.deleteLocations();
-*/
-
-        // cleanup the app config
-        MainApplication.permitLocation(false);
-
-        dialog.dismiss();
+        FB.signOut();
 
         // start the login screen
         Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
         startActivity(intent);
         finish();
     }
-
-/*
-    private void logout() {
-        final ProgressDialog dialog = Utils.spinBusyCursor(this);
-
-        Call<Void> logout = RestClient.service().logout(RestClient.token(), Utils.getDevice());
-
-        logout.enqueue(new Callback<Void>() {
-            @Override
-            public void onResponse(Call<Void> call, Response<Void> response) {
-                dialog.dismiss();
-                logoutImpl();
-            }
-            @Override
-            public void onFailure(Call<Void> call, Throwable t) {
-                dialog.dismiss();
-                logoutImpl();
-            }
-        });
-    }
-*/
 
     private void showOpensourceLibraries() {
         new LibsBuilder()

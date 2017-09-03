@@ -1,19 +1,12 @@
 package com.routeal.cocoger.fb;
 
 import android.app.Activity;
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
 import android.net.Uri;
 import android.support.annotation.NonNull;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -34,31 +27,23 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.UploadTask;
 import com.routeal.cocoger.MainApplication;
-import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.Device;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.model.RangeRequest;
 import com.routeal.cocoger.model.User;
-import com.routeal.cocoger.service.OnBootReceiver;
+import com.routeal.cocoger.service.MainReceiver;
+import com.routeal.cocoger.ui.main.MapActivity;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
-import com.routeal.cocoger.util.CircleTransform;
 import com.routeal.cocoger.util.LocationRange;
+import com.routeal.cocoger.util.NotificationHelper;
 import com.routeal.cocoger.util.Utils;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Target;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
-
-import static com.routeal.cocoger.service.MainService.ACTION_RANGE_REQUEST_ACCEPTED;
-import static com.routeal.cocoger.service.MainService.ACTION_RANGE_REQUEST_DECLINED;
-import static com.routeal.cocoger.service.MainService.USER_AVAILABLE;
 
 public class FB {
-
 
     private final static String TAG = "FB";
 
@@ -70,34 +55,27 @@ public class FB {
 
     public static final String ACTION_RANGE_REQUEST_DECLINED = "RANGE_REQUEST_DECLINED";
 
-
-
-
     public interface SignInListener {
-        void OnSuccess();
-
+        void onSuccess();
         void onFail(String err);
     }
 
     public interface CreateUserListener {
         void onSuccess();
-
         void onFail(String err);
     }
 
     public interface ResetPasswordListener {
         void onSuccess();
-
         void onFail(String err);
     }
 
     public interface UploadImageListener {
         void onSuccess(String url);
-
         void onFail(String err);
     }
 
-    static String getUid() {
+    static String getUid() throws Exception {
         FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
         return fUser.getUid();
     }
@@ -118,7 +96,19 @@ public class FB {
         return FirebaseDatabase.getInstance().getReference().child("locations");
     }
 
-    public static void monitorAuthentication() {
+    public static boolean isAuthenticated() {
+        return (FirebaseAuth.getInstance().getCurrentUser() != null);
+    }
+
+    public static boolean isCurrentUser(String key) throws Exception {
+        return (key == getUid());
+    }
+
+    public static void signOut() {
+        FirebaseAuth.getInstance().signOut();
+    }
+
+    public static void monitorAuthentication() throws Exception {
         FirebaseAuth auth = FirebaseAuth.getInstance();
 
         if (auth == null) return;
@@ -130,16 +120,22 @@ public class FB {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
                     Log.d(TAG, "Firebase User authenticated");
-                    onUserAuth();
+                    try {
+                        onUserAuth();
+                    } catch (Exception e) {
+                    }
                 } else {
                     Log.d(TAG, "Firebase User invalidated");
                     MainApplication.setUser(null);
+
+                    // cleanup the app config
+                    MainApplication.permitLocation(false);
                 }
             }
         });
     }
 
-    private static void onUserAuth() {
+    private static void onUserAuth() throws Exception {
         DatabaseReference userDb = getUserDatabaseReference();
 
         // called whenever the user database is updated
@@ -171,13 +167,14 @@ public class FB {
         });
     }
 
-    public static void signIn(Activity ctx, String email, String password, final SignInListener listener) {
+    public static void signIn(Activity ctx, String email, String password,
+                              final SignInListener listener) {
         FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(ctx, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            if (listener != null) listener.OnSuccess();
+                            if (listener != null) listener.onSuccess();
                         } else {
                             if (listener != null)
                                 listener.onFail(task.getException().getLocalizedMessage());
@@ -187,7 +184,8 @@ public class FB {
     }
 
 
-    public static void createUser(Activity activity, String email, String password, final CreateUserListener listener) {
+    public static void createUser(Activity activity, String email, String password,
+                                  final CreateUserListener listener) {
         FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
                     @Override
@@ -217,7 +215,7 @@ public class FB {
                 });
     }
 
-    public void saveLocation(Location location, Address address) {
+    public static void saveLocation(Location location, Address address) throws Exception {
         Log.d(TAG, "saveLocation:");
 
         double latitude = location.getLatitude();
@@ -269,7 +267,7 @@ public class FB {
         // so that it can have the user pictures.  Sometimes the map
         // comes faster than the user info from the firebase.
         if (MainApplication.getContext() != null) {
-            Intent intent = new Intent(USER_AVAILABLE);
+            Intent intent = new Intent(MapActivity.USER_AVAILABLE);
             LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
         }
 
@@ -363,7 +361,7 @@ public class FB {
         Map<String, Friend> newFriends = nu.getFriends();
         Map<String, Friend> oldFriends = ou.getFriends();
 
-        if (newFriends == null || oldFriends == null) {
+        if (newFriends == null || newFriends.size() == 0 || oldFriends == null) {
             MainApplication.setUser(nu);
             return;
         }
@@ -376,94 +374,27 @@ public class FB {
         }
         // range request
         else {
-            if (newFriends.size() > 0) {
-                for (Map.Entry<String, Friend> entry : newFriends.entrySet()) {
-                    String friendUid = entry.getKey();
-                    Friend newFriend = entry.getValue();
-                    Friend oldFriend = oldFriends.get(friendUid);
+            for (Map.Entry<String, Friend> entry : newFriends.entrySet()) {
+                String friendUid = entry.getKey();
+                Friend newFriend = entry.getValue();
+                Friend oldFriend = oldFriends.get(friendUid);
 
-                    // possible new range request
-                    if (newFriend.getRangeRequest() != null) {
-                        int requestedRange = newFriend.getRangeRequest().getRange();
-                        int currentRange = newFriend.getRange();
+                // possible new range request
+                if (newFriend.getRangeRequest() != null) {
+                    int requestRange = newFriend.getRangeRequest().getRange();
+                    int currentRange = newFriend.getRange();
 
-                        // new range request found
-                        if (oldFriend.getRangeRequest() == null) {
-                            // send the notification
-
-                            // notification id
-                            int nid = new Random().nextInt();
-
-                            Context context = MainApplication.getContext();
-
-                            // accept starts the main activity with the friend view
-                            Intent acceptIntent = new Intent(context, PanelMapActivity.class);
-                            acceptIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-                                    | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
-                                    | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
-                            acceptIntent.setAction(ACTION_RANGE_REQUEST_ACCEPTED);
-                            acceptIntent.putExtra("range_requester", friendUid);
-                            acceptIntent.putExtra("range", requestedRange);
-                            acceptIntent.putExtra("notification_id", nid);
-                            PendingIntent pendingAcceptIntent = PendingIntent.getActivity(context, 1, acceptIntent, 0);
-                            NotificationCompat.Action acceptAction = new NotificationCompat.Action.Builder(
-                                    R.drawable.ic_contacts_black_18dp,
-                                    "Accept", pendingAcceptIntent).build();
-
-                            Intent declineIntent = new Intent(context, OnBootReceiver.class);
-                            declineIntent.setAction(ACTION_RANGE_REQUEST_DECLINED);
-                            declineIntent.putExtra("range_requester", friendUid);
-                            declineIntent.putExtra("notification_id", nid);
-                            PendingIntent pendingDeclineIntent = PendingIntent.getBroadcast(context, 1, declineIntent, 0);
-                            NotificationCompat.Action declineAction = new NotificationCompat.Action.Builder(
-                                    R.drawable.ic_contacts_black_18dp,
-                                    "Decline", pendingDeclineIntent).build();
-
-                            String to = LocationRange.toString(requestedRange);
-                            String from = LocationRange.toString(currentRange);
-                            String content = "You received a range request to " + to + " from " + from;
-
-                            final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
-                                    .setSmallIcon(R.drawable.ic_person_pin_circle_white_48dp)
-                                    .setContentTitle(newFriend.getDisplayName())
-                                    .setContentText(content)
-                                    .setAutoCancel(true)
-                                    .addAction(acceptAction)
-                                    .addAction(declineAction);
-
-                            // seems not working, use notificationmanager's cancel method
-                            Notification notification = mBuilder.build();
-                            notification.flags |= Notification.FLAG_AUTO_CANCEL;
-
-                            Picasso.with(MainApplication.getContext()).load(newFriend.getPicture()).transform(new CircleTransform()).into(new Target() {
-                                @Override
-                                public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                                    mBuilder.setLargeIcon(bitmap);
-                                }
-
-                                @Override
-                                public void onBitmapFailed(Drawable errorDrawable) {
-                                }
-
-                                @Override
-                                public void onPrepareLoad(Drawable placeHolderDrawable) {
-                                }
-                            });
-
-                            NotificationManager mNotificationManager =
-                                    (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
-
-                            mNotificationManager.notify(nid, notification);
-                        }
-                        // existing range request, show the notification if the timestamp is old
-                        else {
-
-                        }
+                    // new range request found
+                    if (oldFriend.getRangeRequest() == null) {
+                        sendRangeNotification(friendUid, newFriend, requestRange, currentRange);
                     }
-                    // the range has been update, notify the map to change the marker location
-                    else if (newFriend.getRange() != oldFriend.getRange()) {
+                    // existing range request, show the notification if the timestamp is old
+                    else {
 
                     }
+                }
+                // the range has been update, notify the map acitivity to change the marker location
+                else if (newFriend.getRange() != oldFriend.getRange()) {
                 }
             }
         }
@@ -471,7 +402,7 @@ public class FB {
         MainApplication.setUser(nu);
     }
 
-    public static void initUser(User user) {
+    public static void initUser(User user) throws Exception {
         String uid = getUid();
         DatabaseReference userDb = getUserDatabaseReference();
         userDb.child(uid).setValue(user);
@@ -489,7 +420,7 @@ public class FB {
         });
     }
 
-    public void acceptFriendRequest(final String invite) {
+    public static void acceptFriendRequest(final String invite) throws Exception {
         final String invitee = getUid();
 
         DatabaseReference userDb = getUserDatabaseReference();
@@ -531,7 +462,7 @@ public class FB {
         fDb.setValue(myInfo);
     }
 
-    public void declineFriendRequest(String invite) {
+    public static void declineFriendRequest(String invite) throws Exception {
         // delete the invite and invitee from the database
         String invitee = getUid();
 
@@ -540,7 +471,7 @@ public class FB {
         userDb.child(invite).child("invites").child(invitee).removeValue();
     }
 
-    public void acceptRangeRequest(String requester, int range) {
+    public static void acceptRangeRequest(String requester, int range) throws Exception {
         String responder = getUid();
 
         DatabaseReference resDb = getFriendDatabaseReference(responder, requester);
@@ -551,14 +482,14 @@ public class FB {
         reqDb.child("range").setValue(range);
     }
 
-    public void declineRangeRequest(String requester) {
+    public static void declineRangeRequest(String requester) throws Exception {
         String responder = getUid(); // myself
 
         DatabaseReference resDb = getFriendDatabaseReference(responder, requester);
         resDb.child("rangeRequest").removeValue();
     }
 
-    public void changeRange(String fid, int range) {
+    public static void changeRange(String fid, int range) throws Exception {
         String uid = getUid();
 
         DatabaseReference myside = getFriendDatabaseReference(uid, fid);
@@ -568,7 +499,7 @@ public class FB {
         hisside.child("range").setValue(range);
     }
 
-    public void sendChangeRequest(String fid, int range) {
+    public static void sendChangeRequest(String fid, int range) throws Exception {
         String uid = getUid();
 
         RangeRequest rangeRequest = new RangeRequest();
@@ -580,7 +511,7 @@ public class FB {
     }
 
     public static void uploadImageFile(Uri localFile, String name,
-                                       final UploadImageListener listener) {
+                                       final UploadImageListener listener) throws Exception {
         String uid = getUid();
         String refName = "users/" + uid + "/image/" + name;
         FirebaseStorage.getInstance().getReference().child(refName).putFile(localFile)
@@ -602,15 +533,36 @@ public class FB {
 
     }
 
+    private static void sendRangeNotification(String uid, Friend friend,
+                                              int requestRange, int currentRange) {
+        Context context = MainApplication.getContext();
+
+        Intent acceptIntent = new Intent(context, PanelMapActivity.class);
+        acceptIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+        acceptIntent.setAction(ACTION_RANGE_REQUEST_ACCEPTED);
+        acceptIntent.putExtra("range_requester", uid);
+        acceptIntent.putExtra("range", requestRange);
+
+        Intent declineIntent = new Intent(context, MainReceiver.class);
+        declineIntent.setAction(ACTION_RANGE_REQUEST_DECLINED);
+        declineIntent.putExtra("range_requester", uid);
+
+        String to = LocationRange.toString(requestRange);
+        String from = LocationRange.toString(currentRange);
+        String content = "You received a range request to " + to + " from " + from;
+
+        NotificationHelper.send(friend.getDisplayName(), content, friend.getPicture(),
+                acceptIntent, declineIntent);
+    }
+
     private static void sendInviteNotification(final String invite) {
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
 
         userRef.child(invite).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                // notification id
-                int nid = new Random().nextInt();
-
                 User inviteUser = dataSnapshot.getValue(User.class);
 
                 Context context = MainApplication.getContext();
@@ -622,59 +574,19 @@ public class FB {
                         | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
                 acceptIntent.setAction(ACTION_FRIEND_REQUEST_ACCEPTED);
                 acceptIntent.putExtra("friend_invite", invite);
-                acceptIntent.putExtra("notification_id", nid);
-                PendingIntent pendingAcceptIntent = PendingIntent.getActivity(context, 1, acceptIntent, 0);
-                NotificationCompat.Action acceptAction = new NotificationCompat.Action.Builder(
-                        R.drawable.ic_contacts_black_18dp,
-                        "Accept", pendingAcceptIntent).build();
 
-                Intent declineIntent = new Intent(context, OnBootReceiver.class);
+                Intent declineIntent = new Intent(context, MainReceiver.class);
                 declineIntent.setAction(ACTION_FRIEND_REQUEST_DECLINED);
                 declineIntent.putExtra("friend_invite", invite);
-                declineIntent.putExtra("notification_id", nid);
-                PendingIntent pendingDeclineIntent = PendingIntent.getBroadcast(context, 1, declineIntent, 0);
-                NotificationCompat.Action declineAction = new NotificationCompat.Action.Builder(
-                        R.drawable.ic_contacts_black_18dp,
-                        "Decline", pendingDeclineIntent).build();
 
                 String content = "You received a friend request from " + inviteUser.getDisplayName() + ".";
 
-                final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
-                        .setSmallIcon(R.drawable.ic_person_pin_circle_white_48dp)
-                        .setContentTitle(inviteUser.getDisplayName())
-                        .setContentText(content)
-                        .setAutoCancel(true)
-                        .addAction(acceptAction)
-                        .addAction(declineAction);
-
-                // seems not working, use notificationmanager's cancel method
-                Notification notification = mBuilder.build();
-                notification.flags |= Notification.FLAG_AUTO_CANCEL;
-
-                Picasso.with(MainApplication.getContext()).load(inviteUser.getPicture()).transform(new CircleTransform()).into(new Target() {
-                    @Override
-                    public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                        mBuilder.setLargeIcon(bitmap);
-                    }
-
-                    @Override
-                    public void onBitmapFailed(Drawable errorDrawable) {
-                    }
-
-                    @Override
-                    public void onPrepareLoad(Drawable placeHolderDrawable) {
-                    }
-                });
-
-                NotificationManager mNotificationManager =
-                        (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
-
-                mNotificationManager.notify(nid, notification);
+                NotificationHelper.send(inviteUser.getDisplayName(), content, inviteUser.getPicture(),
+                        acceptIntent, declineIntent);
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
             }
         });
 

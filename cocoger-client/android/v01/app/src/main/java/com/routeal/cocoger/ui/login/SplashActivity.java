@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 
-import com.google.firebase.auth.FirebaseAuth;
+import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.service.MainService;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 
@@ -27,11 +27,9 @@ public class SplashActivity extends AppCompatActivity {
         // set it in the foreground mode
         MainService.setForegroundMode();
 
-        FirebaseAuth mAuth = FirebaseAuth.getInstance();
-
         Intent intent;
 
-        if (mAuth.getCurrentUser() != null) {
+        if (FB.isAuthenticated()) {
             intent = new Intent(getApplicationContext(), PanelMapActivity.class);
         } else {
             intent = new Intent(getApplicationContext(), LoginActivity.class);
