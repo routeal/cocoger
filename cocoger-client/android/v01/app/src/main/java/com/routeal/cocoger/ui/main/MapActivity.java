@@ -42,12 +42,17 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.model.Friend;
+import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.service.MainService;
 import com.routeal.cocoger.util.CircleTransform;
 import com.routeal.cocoger.util.PicassoMarker;
 import com.routeal.cocoger.util.Utils;
 import com.squareup.picasso.Picasso;
+
+import java.util.Map;
 
 public class MapActivity extends MapBaseActivity {
 
@@ -72,10 +77,10 @@ public class MapActivity extends MapBaseActivity {
 
     private ProgressDialog spinner;
 
-    private Marker myMarker;
+    //private Marker myMarker;
 
     // drawing target
-    private PicassoMarker myMarkerTarget;
+    //private PicassoMarker myMarkerTarget;
 
     private Address mAddress;
 
@@ -138,9 +143,6 @@ public class MapActivity extends MapBaseActivity {
         // show the spinner
         spinner = Utils.getBusySpinner(this);
 
-        MainService.setForegroundMode();
-        MainService.start(getApplicationContext());
-
         MapInfoWindowFragment mapInfoWindowFragment =
                 (MapInfoWindowFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         infoWindowManager = mapInfoWindowFragment.infoWindowManager();
@@ -169,12 +171,16 @@ public class MapActivity extends MapBaseActivity {
             if (mCameraPosition != null) {
                 mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
             } else if (mLastKnownLocation != null) {
-                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                         Utils.getLatLng(mLastKnownLocation), DEFAULT_ZOOM));
             }
 
             if (mLastKnownLocation != null) {
-                setupMyLocationMarker(mLastKnownLocation);
+                setupMyMarker(mLastKnownLocation);
+            }
+
+            if (MainApplication.getUser() != null) {
+                setupFriendMarkers();
             }
 
             spinner.dismiss();
@@ -190,35 +196,73 @@ public class MapActivity extends MapBaseActivity {
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(MapActivity.LAST_LOCATION_UPDATE)) {
                 Location location = intent.getParcelableExtra(MainService.LOCATION_UPDATE);
-
                 if (location != null) {
                     // first time only
                     if (mLastKnownLocation == null) {
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                                 Utils.getLatLng(location), DEFAULT_ZOOM));
-                        setupMyLocationMarker(location);
                     }
-
+                    if (myMarker == null) {
+                        setupMyMarker(location);
+                    }
                     if (myMarker != null) {
-                        myMarker.setPosition(Utils.getLatLng(location));
+                        myMarker.setPosition(location);
                     }
-
                     mLastKnownLocation = location;
                 }
-
                 mAddress = intent.getParcelableExtra(MainService.ADDRESS_UPDATE);
             } else if (intent.getAction().equals(MapActivity.USER_AVAILABLE)) {
-                if (MainApplication.getUser() != null && myMarkerTarget != null) {
-                    Picasso.with(getApplicationContext())
-                            .load(MainApplication.getUser().getPicture())
-                            .transform(new CircleTransform())
-                            .into(myMarkerTarget);
+                if (MainApplication.getUser() != null) {
+                    if (myMarker != null) {
+                        myMarker.setPicture(MainApplication.getUser().getPicture());
+                    }
+                    setupFriendMarkers();
                 }
             }
         }
     };
 
-    private void setupMyLocationMarker(Location location) {
+    class BaseMarker {
+        Marker mMarker;
+        PicassoMarker mTarget;
+
+        BaseMarker(Location location) {
+            MarkerOptions options = new MarkerOptions().position(Utils.getLatLng(location));
+            mMarker = mMap.addMarker(options);
+            mTarget = new PicassoMarker(mMarker);
+        }
+
+        void setPicture(String pictureUrl) {
+            Picasso.with(getApplicationContext())
+                    .load(pictureUrl)
+                    .transform(new CircleTransform())
+                    .into(mTarget);
+        }
+
+        boolean OnMarkerClickListener(Marker marker) {
+            if (marker.getId().compareTo(mMarker.getId()) == 0) {
+                InfoWindow infoWindow = new InfoWindow(mMarker, markerSpec, myInfoFragment);
+                infoWindowManager.toggle(infoWindow);
+            }
+            return true;
+        }
+
+        void setPosition(Location location) {
+            mMarker.setPosition(Utils.getLatLng(location));
+        }
+    }
+
+    BaseMarker myMarker;
+
+    private void setupMyMarker(Location location) {
+        myMarker = new BaseMarker(location);
+        if (MainApplication.getUser() != null) {
+            myMarker.setPicture(MainApplication.getUser().getPicture());
+        }
+
+        myInfoFragment = new MyInfoFragment();
+        myInfoFragment.setMapActivity(MapActivity.this);
+/*
         // my location marker
         MarkerOptions options = new MarkerOptions().position(Utils.getLatLng(location));
         myMarker = mMap.addMarker(options);
@@ -233,16 +277,23 @@ public class MapActivity extends MapBaseActivity {
         }
         myInfoFragment = new MyInfoFragment();
         myInfoFragment.setMapActivity(this);
+*/
     }
 
     GoogleMap.OnMarkerClickListener mMarkerClickListener = new GoogleMap.OnMarkerClickListener() {
         @Override
         public boolean onMarkerClick(Marker marker) {
-            if (marker.getId().compareTo(myMarker.getId()) == 0) {
-                InfoWindow infoWindow = new InfoWindow(myMarker, markerSpec, myInfoFragment);
+            if (myMarker != null) {
+                return myMarker.OnMarkerClickListener(marker);
+            }
+            /*
+            if (marker.getId().compareTo(myMarker.mMarker.getId()) == 0) {
+                InfoWindow infoWindow = new InfoWindow(myMarker.mMarker, markerSpec, myInfoFragment);
                 infoWindowManager.toggle(infoWindow);
             }
             return true;
+            */
+            return false;
         }
     };
 
@@ -357,4 +408,26 @@ public class MapActivity extends MapBaseActivity {
         }
     }
 
+    private void setupFriendMarkers() {
+        User user = MainApplication.getUser();
+        Map<String, Friend> friends = user.getFriends();
+        if (friends == null || friends.isEmpty()) return;
+        for (Map.Entry<String, Friend> entry : friends.entrySet()) {
+            final Friend friend = entry.getValue();
+            FB.getLocation(friend.getLocation(), new FB.LocationListener() {
+                @Override
+                public void onSuccess(LocationAddress location) {
+                    Location l = new Location("");
+                    l.setLatitude(location.getLatitude());
+                    l.setLongitude(location.getLongitude());
+                    BaseMarker m = new BaseMarker(l);
+                    m.setPicture(friend.getPicture());
+                }
+
+                @Override
+                public void onFail(String err) {
+                }
+            });
+        }
+    }
 }

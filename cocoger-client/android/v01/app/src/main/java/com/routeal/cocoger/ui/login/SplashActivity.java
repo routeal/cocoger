@@ -19,13 +19,7 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-/*
         // ensure that the service is started
-        if (!MainService.instantiated) {
-            new MainService().startResident(getApplicationContext());
-        }
-*/
-
         MainService.start(getApplicationContext());
 
         // set it in the foreground mode

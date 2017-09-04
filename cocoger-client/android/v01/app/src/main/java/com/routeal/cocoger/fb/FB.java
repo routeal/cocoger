@@ -87,8 +87,15 @@ public class FB {
         void onFail(String err);
     }
 
+    public interface LocationListener {
+        void onSuccess(LocationAddress location);
+
+        void onFail(String err);
+    }
+
     static String getUid() {
         FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (fUser == null) return null;
         return fUser.getUid();
     }
 
@@ -234,8 +241,12 @@ public class FB {
                 });
     }
 
+    // Note: this may call before login
     public static void saveLocation(Location location, Address address) {
         Log.d(TAG, "saveLocation:");
+
+        String uid = getUid();
+        if (uid == null) return;
 
         double latitude = location.getLatitude();
         double longitude = location.getLongitude();
@@ -272,8 +283,18 @@ public class FB {
         updates.put("geo_locations/" + key + "/l", Arrays.asList(latitude, longitude));
         // user locations
         //updates.put("users/" + getUid() + "/locations/" + key, loc.getTimestamp());
-        updates.put("user_locations/" + getUid() + "/" + key, loc.getTimestamp());
-        updates.put("users/" + getUid() + "/location/", key);
+        updates.put("user_locations/" + uid + "/" + key, loc.getTimestamp());
+        updates.put("users/" + uid + "/location/", key);
+
+        User user = MainApplication.getUser();
+        if (user != null) {
+            Map<String, Friend> friends = user.getFriends();
+            if (friends != null) {
+                for (Map.Entry<String, Friend> entry : friends.entrySet()) {
+                    updates.put("users/" + entry.getKey() + "/friends/" + uid + "/location", key);
+                }
+            }
+        }
 
         db.updateChildren(updates);
     }
@@ -501,6 +522,7 @@ public class FB {
                         friend.setRange(defaultLocationChange);
                         friend.setDisplayName(inviteUser.getDisplayName());
                         friend.setPicture(inviteUser.getPicture());
+                        friend.setLocation(inviteUser.getLocation());
 
                         DatabaseReference fDb = getFriendDatabaseReference(invitee, invite);
                         fDb.setValue(friend);
@@ -517,6 +539,7 @@ public class FB {
         myInfo.setRange(defaultLocationChange);
         myInfo.setDisplayName(MainApplication.getUser().getDisplayName());
         myInfo.setPicture(MainApplication.getUser().getPicture());
+        myInfo.setLocation(MainApplication.getUser().getLocation());
 
         DatabaseReference fDb = getFriendDatabaseReference(invite, invitee);
         fDb.setValue(myInfo);
@@ -707,5 +730,25 @@ public class FB {
                 };
 
         return adapter;
+    }
+
+    public static void getLocation(String location, final LocationListener listener) {
+        DatabaseReference locDb = getLocationDatabaseReference();
+        locDb.child(location).addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        LocationAddress la = dataSnapshot.getValue(LocationAddress.class);
+                        if (listener != null) {
+                            listener.onSuccess(la);
+                        }
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        if (listener != null) {
+                            listener.onFail(databaseError.toException().getLocalizedMessage());
+                        }
+                    }
+                });
     }
 }

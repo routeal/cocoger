@@ -1,13 +1,11 @@
 package com.routeal.cocoger.service;
 
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.support.annotation.IntDef;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -17,7 +15,6 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
-import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.ui.main.MapActivity;
 
@@ -115,6 +112,9 @@ public class MainService extends BasePeriodicService
     @Override
     public void onCreate() {
         super.onCreate();
+
+        // set up FB monitoring
+        FB.monitorAuthentication();
     }
 
     // connectGoogleApi in background, called in the background
@@ -131,7 +131,7 @@ public class MainService extends BasePeriodicService
                     .build();
         }
 
-        if (!mGoogleApiClient.isConnected()) {
+        if (!(mGoogleApiClient.isConnected() || mGoogleApiClient.isConnecting())) {
             Log.d(TAG, "connecting googleapiclient");
             mGoogleApiClient.connect();
         }
@@ -190,13 +190,10 @@ public class MainService extends BasePeriodicService
     protected void execTask() {
         mActiveService = this;
 
-        // set up FB monitoring
-        FB.monitorAuthentication();
-
-        // connect with google api
+        // connect with google api, will try until success
         connectGoogleApi();
 
-        // start to get a location update
+        // start to get a location update, if the location permission is not set, dose nothing
         startLocationUpdate();
 
         makeNextPlan();

@@ -9,6 +9,7 @@ public class Friend implements Serializable {
     private String displayName;
     private String picture;
     private RangeRequest rangeRequest;
+    private String location;
 
     public void setRange(int range) {
         this.range = range;
@@ -25,6 +26,12 @@ public class Friend implements Serializable {
     public long getCreated() {
         return created;
     }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getLocation() { return location; }
 
     public String getPicture() {
         return picture;
