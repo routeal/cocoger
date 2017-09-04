@@ -287,7 +287,7 @@ public class MapActivity extends FragmentActivity
     }
 
     private void buildMap() {
-        busyCursor = Utils.spinBusyCursor(this);
+        busyCursor = Utils.getBusySpinner(this);
 
         MapInfoWindowFragment mapInfoWindowFragment =
                 (MapInfoWindowFragment) getSupportFragmentManager().findFragmentById(R.id.map);

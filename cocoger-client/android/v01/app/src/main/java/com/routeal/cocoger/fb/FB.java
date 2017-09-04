@@ -270,7 +270,7 @@ public class FB {
         // user locations
         //updates.put("users/" + getUid() + "/locations/" + key, loc.getTimestamp());
         updates.put("user_locations/" + getUid() + "/" + key, loc.getTimestamp());
-        updates.put("users/" + getUid() + "/locations/", key);
+        updates.put("users/" + getUid() + "/location/", key);
 
         db.updateChildren(updates);
     }
@@ -358,7 +358,7 @@ public class FB {
     }
 
     private static void onUpdateUser(User nu /*newUser*/, User ou /*oldUser*/) {
-        Log.d(TAG, "updateUser");
+        Log.d(TAG, "onUpdateUser");
 
         Map<String, Long> invitees = nu.getInvitees();
         if (invitees != null && !invitees.isEmpty()) {

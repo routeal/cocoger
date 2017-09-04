@@ -49,6 +49,10 @@ public class MainService extends BasePeriodicService
 
     private final static float BACKGROUND_MIN_MOVEMENT = 10.0f;
 
+    public final static String LOCATION_UPDATE = "location_update";
+
+    public final static String ADDRESS_UPDATE = "address_update";
+
     public static MainService mActiveService;
 
     private static LocationRequest mLocationRequest;
@@ -192,7 +196,7 @@ public class MainService extends BasePeriodicService
         mActiveService = this;
 
         if (MainApplication.isLocationPermitted()) {
-            // Log.d(TAG, "Permission granted already");
+            Log.d(TAG, "Permission granted already");
 
             // start to connect with google api client
             connectGoogleApi();
@@ -282,8 +286,8 @@ public class MainService extends BasePeriodicService
 
         // notify both location address to the activity
         Intent intent = new Intent(MapActivity.LAST_LOCATION_UPDATE);
-        intent.putExtra("location", location);
-        intent.putExtra("address", address);
+        intent.putExtra(LOCATION_UPDATE, location);
+        intent.putExtra(ADDRESS_UPDATE, address);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
         try {

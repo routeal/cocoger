@@ -28,6 +28,8 @@
     <string name="open_source_libraries">Open Source Libraries</string>
     <string name="location_denied_title">Denied to access this device\'s location?</string>
     <string name="location_denied_content">Permission is required.  Try again or exit the app.</string>
+    <string name="googleapi_denied_title">Connection to GoogleApi</string>
+    <string name="googleapi_denied_content">Connection to GoogleApi service failed.  Install the GoogleApi service and try again.</string>
     <string name="exit">Exit</string>
     <string name="try_again">Try again</string>
     <string name="no_friend">Friends waiting for your invitation!!!</string>

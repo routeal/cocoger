@@ -12,6 +12,8 @@ import android.location.Location;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.Settings;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.view.View;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -30,11 +32,18 @@ import java.io.FileOutputStream;
 
 public class Utils {
 
-    public static ProgressDialog spinBusyCursor(Activity activity) {
-        ProgressDialog dialog = ProgressDialog.show(activity, null, null, false, true);
+    public static ProgressDialog getBusySpinner(Context context) {
+        ProgressDialog dialog = ProgressDialog.show(context, null, null, false, true);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         dialog.setContentView(R.layout.progressbar_spinner);
         return dialog;
+    }
+
+    public static Drawable getIconDrawable(Context context, int resourceId, int backgroundColor) {
+        Drawable drawable = ContextCompat.getDrawable(context, resourceId);
+        drawable.mutate();
+        DrawableCompat.setTint(drawable, ContextCompat.getColor(context, backgroundColor));
+        return drawable;
     }
 
     public static String getDeviceUniqueID() {
@@ -155,11 +164,4 @@ public class Utils {
                 });
     }
 
-
-    public static ProgressDialog getBusySpinner(Context context) {
-        ProgressDialog dialog = ProgressDialog.show(context, null, null, false, true);
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        dialog.setContentView(R.layout.progressbar_spinner);
-        return dialog;
-    }
 }

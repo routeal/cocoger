@@ -15,6 +15,7 @@ public class User implements Serializable {
     private String picture;
     private String locale;
     private String timezone;
+    private String location;
     private long updated;
     private long created;
     private Map<String, String> devices;
@@ -118,6 +119,12 @@ public class User implements Serializable {
 
     public void setGender(String gender) {
         this.gender = gender;
+    }
+
+    public String getLocation() { return location; }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 
     public void setDevices(Map<String, String> devices) {
