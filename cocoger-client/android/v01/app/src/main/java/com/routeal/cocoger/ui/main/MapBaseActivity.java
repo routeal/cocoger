@@ -58,10 +58,6 @@ public abstract class MapBaseActivity extends FragmentActivity {
             }
         });
 
-        startService(new Intent(this, MainService.class));
-
-        MainService.setForegroundMode();
-
         checkPermission();
     }
 

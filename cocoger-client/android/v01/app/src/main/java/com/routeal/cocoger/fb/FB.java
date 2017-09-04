@@ -124,10 +124,16 @@ public class FB {
         FirebaseAuth.getInstance().signOut();
     }
 
-    public static void monitorAuthentication() throws Exception {
+    static boolean monitored = false;
+
+    public static void monitorAuthentication() {
         FirebaseAuth auth = FirebaseAuth.getInstance();
 
         if (auth == null) return;
+
+        if (monitored) return;
+
+        monitored = true;
 
         // setting up a listener when the user is authenticated
         auth.addAuthStateListener(new FirebaseAuth.AuthStateListener() {
@@ -143,9 +149,6 @@ public class FB {
                 } else {
                     Log.d(TAG, "Firebase User invalidated");
                     MainApplication.setUser(null);
-
-                    // cleanup the app config
-                    MainApplication.permitLocation(false);
                 }
             }
         });
@@ -231,7 +234,7 @@ public class FB {
                 });
     }
 
-    public static void saveLocation(Location location, Address address) throws Exception {
+    public static void saveLocation(Location location, Address address) {
         Log.d(TAG, "saveLocation:");
 
         double latitude = location.getLatitude();

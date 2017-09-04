@@ -98,6 +98,7 @@ public class MainApplication extends Application {
 
     public static RestClient getRestClient() { return mRestClient; }
 
+    /*
     public static boolean isLocationPermitted() {
         return mInstance.mPreferences.getBoolean(LOCATION_PERMISSION, false);
     }
@@ -105,6 +106,7 @@ public class MainApplication extends Application {
     public static void permitLocation(boolean permit) {
         mInstance.mPreferences.edit().putBoolean(LOCATION_PERMISSION, permit).apply();
     }
+    */
 
     /*
     public static void setLoginEmail(String value) {

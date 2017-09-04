@@ -9,6 +9,7 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.os.Parcel;
 import android.os.RemoteException;
+import android.support.annotation.Nullable;
 
 /**
  * Created by hwatanabe on 4/11/17.
@@ -22,24 +23,10 @@ public abstract class BasePeriodicService extends Service {
 
     protected abstract void makeNextPlan();
 
-    protected final IBinder binder = new Binder() {
-        @Override
-        protected boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
-            return super.onTransact(code, data, reply, flags);
-        }
-    };
-
+    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return binder;
-    }
-
-    public BasePeriodicService startResident(Context context) {
-        Intent intent = new Intent(context, this.getClass());
-        intent.putExtra("type", "start");
-        context.startService(intent);
-
-        return this;
+        return null;
     }
 
     @Override

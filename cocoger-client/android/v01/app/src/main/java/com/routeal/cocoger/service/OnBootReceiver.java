@@ -9,8 +9,6 @@ import android.content.Context;
 public class OnBootReceiver extends BaseOnBootReceiver {
     @Override
     protected void onDeviceBoot(Context context) {
-        if (!MainService.instantiated) {
-            new MainService().startResident(context);
-        }
+        MainService.start(context);
     }
 }

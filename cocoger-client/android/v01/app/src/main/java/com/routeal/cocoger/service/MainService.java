@@ -1,11 +1,13 @@
 package com.routeal.cocoger.service;
 
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.support.annotation.IntDef;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -105,21 +107,14 @@ public class MainService extends BasePeriodicService
         }
     }
 
-    public static boolean instantiated = false;
+    public static void start(Context context) {
+        Intent intent = new Intent(context, MainService.class);
+        context.startService(intent);
+    }
 
-    // FIXME: MainService gets called twice for some reason.
-    // Needs fix.  instantiated is just a work around.
-    public MainService() {
-        super();
-
-        if (instantiated) return;
-
-        instantiated = true;
-
-        try {
-            FB.monitorAuthentication();
-        } catch (Exception e) {
-        }
+    @Override
+    public void onCreate() {
+        super.onCreate();
     }
 
     // connectGoogleApi in background, called in the background
@@ -195,15 +190,14 @@ public class MainService extends BasePeriodicService
     protected void execTask() {
         mActiveService = this;
 
-        if (MainApplication.isLocationPermitted()) {
-            Log.d(TAG, "Permission granted already");
+        // set up FB monitoring
+        FB.monitorAuthentication();
 
-            // start to connect with google api client
-            connectGoogleApi();
+        // connect with google api
+        connectGoogleApi();
 
-            // start to get a location update
-            startLocationUpdate();
-        }
+        // start to get a location update
+        startLocationUpdate();
 
         makeNextPlan();
     }
@@ -213,7 +207,7 @@ public class MainService extends BasePeriodicService
         this.scheduleNextTime();
     }
 
-    public static void stopResidentIfActive(Context context) {
+    public static void stop(Context context) {
         if (mActiveService != null) {
             mActiveService.stopResident(context);
         }
@@ -290,9 +284,6 @@ public class MainService extends BasePeriodicService
         intent.putExtra(ADDRESS_UPDATE, address);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
-        try {
-            FB.saveLocation(location, address);
-        } catch (Exception e) {
-        }
+        FB.saveLocation(location, address);
     }
 }
