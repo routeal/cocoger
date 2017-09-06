@@ -29,8 +29,7 @@ import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.ui.login.LoginActivity;
-import com.routeal.cocoger.util.CircleTransform;
-import com.squareup.picasso.Picasso;
+import com.routeal.cocoger.util.LoadImage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,10 +70,7 @@ public class SearchMapActivity extends MapActivity
                 textView.setText(user.getEmail());
 
                 ImageView imageView = (ImageView) findViewById(R.id.my_picture);
-                Picasso.with(getApplicationContext())
-                        .load(user.getPicture())
-                        .transform(new CircleTransform())
-                        .into(imageView);
+                new LoadImage.LoadImageView(imageView).execute(user.getPicture());
             }
 
             @Override

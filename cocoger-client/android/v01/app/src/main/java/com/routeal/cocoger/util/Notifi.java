@@ -17,7 +17,7 @@ import com.squareup.picasso.Target;
 
 import java.util.Random;
 
-public class NotificationHelper {
+public class Notifi {
 
     public static void send(String title, String content, String icon, Intent accept, Intent decline) {
         int nid = new Random().nextInt(100);
@@ -49,6 +49,14 @@ public class NotificationHelper {
         Notification notification = mBuilder.build();
         notification.flags |= Notification.FLAG_AUTO_CANCEL;
 
+        new LoadImage.LoadImageAsync(new LoadImage.LoadImageListener() {
+            @Override
+            public void onSuccess(Bitmap bitmap) {
+                mBuilder.setLargeIcon(bitmap);
+            }
+        });
+
+                /*
         Picasso.with(context).load(icon).transform(new CircleTransform()).into(new Target() {
                     @Override
                     public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
@@ -63,6 +71,7 @@ public class NotificationHelper {
                     public void onPrepareLoad(Drawable placeHolderDrawable) {
                     }
                 });
+                */
 
         NotificationManager mNotificationManager =
             (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);

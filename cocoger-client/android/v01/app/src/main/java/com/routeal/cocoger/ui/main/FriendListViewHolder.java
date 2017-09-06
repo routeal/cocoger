@@ -7,14 +7,12 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
-import com.routeal.cocoger.util.CircleTransform;
+import com.routeal.cocoger.util.LoadImage;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.SnappingSeekBar;
-import com.squareup.picasso.Picasso;
 
 public class FriendListViewHolder extends RecyclerView.ViewHolder {
     private final ImageView mPicture;
@@ -104,11 +102,7 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
     }
 
     private void setPicture(String url) {
-        Picasso.with(MainApplication.getContext())
-                .load(url)
-                .transform(new CircleTransform())
-                .resize(48, 48)
-                .into(mPicture);
+        new LoadImage.LoadImageView(mPicture).execute(url);
     }
 
     private void changeRange(int index) {

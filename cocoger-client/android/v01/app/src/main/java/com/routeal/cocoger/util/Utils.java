@@ -1,30 +1,24 @@
 package com.routeal.cocoger.util;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.location.Address;
 import android.location.Location;
 import android.os.Build;
-import android.os.Environment;
 import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
-import android.view.View;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.Device;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Target;
+import com.routeal.cocoger.model.LocationAddress;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.util.Locale;
 
 /**
  * Created by nabe on 7/3/17.
@@ -112,56 +106,56 @@ public class Utils {
         return new LatLng(location.getLatitude(), location.getLongitude());
     }
 
-    public static Bitmap takeScreenshot(View view) {
-        view.setDrawingCacheEnabled(true);
-        Bitmap bitmap = Bitmap.createBitmap(view.getDrawingCache());
-        view.setDrawingCacheEnabled(false);
-        return bitmap;
+    public static Location getLocation(LatLng ll) {
+        Location loc = new Location("");
+        loc.setLongitude(ll.longitude);
+        loc.setLatitude(ll.latitude);
+        return loc;
     }
 
-    public static String saveBitmap(Bitmap bitmap) {
-        String filename = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) +
-                File.pathSeparator + "screenshot_" + System.currentTimeMillis() + ".png";
-        File file = new File(filename);
-        try {
-            FileOutputStream fos = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 20, fos);
-            fos.flush();
-            fos.close();
-        } catch (Exception e) {
-            return null;
+    public static Location getLocation(LocationAddress la) {
+        Location l = new Location("");
+        l.setAltitude(la.getAltitude());
+        l.setLatitude(la.getLatitude());
+        l.setLongitude(la.getLongitude());
+        l.setSpeed(la.getSpeed());
+        l.setTime(la.getTimestamp());
+        return l;
+    }
+
+    public static Address getAddress(LocationAddress la) {
+        Address a = new Address(Locale.getDefault());
+        a.setAdminArea(la.getAdminArea());
+        a.setCountryName(la.getCountryName());
+        a.setLatitude(la.getLatitude());
+        a.setLocality(la.getlocality());
+        a.setLongitude(la.getLongitude());
+        a.setPostalCode(la.getPostalCode());
+        a.setSubAdminArea(la.getSubAdminArea());
+        a.setSubLocality(la.getSubLocality());
+        a.setSubThoroughfare(la.getSubThoroughfare());
+        a.setThoroughfare(la.getThoroughfare());
+        return a;
+    }
+
+    public static String getAddressLine(Address a) {
+        String str = a.getAddressLine(0);
+        if (str != null && !str.isEmpty()) {
+            return str;
         }
-        return filename;
-    }
-
-    public interface ImageDownloadListener {
-        void onDownloaded(String result);
-    }
-
-    public static void downloadImage(Context context, String url, final ImageDownloadListener listener) {
-        Picasso.with(context)
-                .load(url)
-                .into(new Target() {
-                    @Override
-                    public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                        String filename = saveBitmap(bitmap);
-                        if (filename != null) {
-                            listener.onDownloaded(filename);
-                        } else {
-                            listener.onDownloaded(null);
-                        }
-                    }
-
-                    @Override
-                    public void onBitmapFailed(Drawable errorDrawable) {
-                        listener.onDownloaded(null);
-                    }
-
-                    @Override
-                    public void onPrepareLoad(Drawable placeHolderDrawable) {
-
-                    }
-                });
+        str = "";
+        str += (a.getSubThoroughfare() == null) ? "" : a.getSubThoroughfare();
+        if (str.charAt(str.length()-1) != ' ') str += ", ";
+        str += (a.getThoroughfare() == null) ? "" : a.getThoroughfare();
+        if (str.charAt(str.length()-1) != ' ') str += ", ";
+        str += (a.getSubLocality() == null) ? "" : a.getSubLocality();
+        if (str.charAt(str.length()-1) != ' ') str += ", ";
+        str += (a.getLocality() == null) ? "" : a.getLocality();
+        if (str.charAt(str.length()-1) != ' ') str += ", ";
+        str += (a.getAdminArea() == null) ? "" : a.getAdminArea();
+        if (str.charAt(str.length()-1) != ' ') str += ", ";
+        str += (a.getPostalCode() == null) ? "" : a.getPostalCode();
+        return str;
     }
 
 }

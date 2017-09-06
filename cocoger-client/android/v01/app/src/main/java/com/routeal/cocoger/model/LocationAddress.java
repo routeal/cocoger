@@ -1,6 +1,10 @@
 package com.routeal.cocoger.model;
 
+import android.location.Address;
+import android.location.Location;
+
 import java.io.Serializable;
+import java.util.Locale;
 
 public class LocationAddress implements Serializable {
 
@@ -12,14 +16,14 @@ public class LocationAddress implements Serializable {
     private double altitude;
     private float speed;
     private String description;
-    private String postalCode;
-    private String countryName;
-    private String adminArea;
-    private String subAdminArea;
-    private String locality;
-    private String subLocality;
-    private String thoroughfare;
-    private String subThoroughfare;
+    private String postalCode; // zip, 94043
+    private String countryName;  // "US"
+    private String adminArea; // state, "CA"
+    private String subAdminArea; // county, "Santa Clara"
+    private String locality; // city, "Mountain View"
+    private String subLocality; // town,
+    private String thoroughfare; // street, "1600 Amphitheater Parkway"
+    private String subThoroughfare; // street number
     private String placeId;
 
     public long getId() { return id; }

@@ -11,8 +11,7 @@ import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.User;
-import com.routeal.cocoger.util.CircleTransform;
-import com.squareup.picasso.Picasso;
+import com.routeal.cocoger.util.LoadImage;
 
 import java.util.Map;
 
@@ -86,11 +85,7 @@ public class UserListViewHolder extends RecyclerView.ViewHolder {
     }
 
     private void setPicture(String url) {
-        Picasso.with(MainApplication.getContext())
-                .load(url)
-                .transform(new CircleTransform())
-                .resize(48, 48)
-                .into(mPicture);
+        new LoadImage.LoadImageView(mPicture).execute(url);
     }
 }
 

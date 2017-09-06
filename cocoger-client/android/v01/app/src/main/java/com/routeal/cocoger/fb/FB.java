@@ -44,7 +44,7 @@ import com.routeal.cocoger.ui.main.MapActivity;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 import com.routeal.cocoger.ui.main.UserListViewHolder;
 import com.routeal.cocoger.util.LocationRange;
-import com.routeal.cocoger.util.NotificationHelper;
+import com.routeal.cocoger.util.Notifi;
 import com.routeal.cocoger.util.Utils;
 
 import java.util.Arrays;
@@ -93,7 +93,7 @@ public class FB {
         void onFail(String err);
     }
 
-    static String getUid() {
+    public static String getUid() {
         FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
         if (fUser == null) return null;
         return fUser.getUid();
@@ -636,7 +636,7 @@ public class FB {
         String from = LocationRange.toString(currentRange);
         String content = "You received a range request to " + to + " from " + from;
 
-        NotificationHelper.send(friend.getDisplayName(), content, friend.getPicture(),
+        Notifi.send(friend.getDisplayName(), content, friend.getPicture(),
                 acceptIntent, declineIntent);
     }
 
@@ -664,7 +664,7 @@ public class FB {
 
                 String content = "You received a friend request from " + inviteUser.getDisplayName() + ".";
 
-                NotificationHelper.send(inviteUser.getDisplayName(), content, inviteUser.getPicture(),
+                Notifi.send(inviteUser.getDisplayName(), content, inviteUser.getPicture(),
                         acceptIntent, declineIntent);
             }
 

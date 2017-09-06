@@ -150,7 +150,7 @@ public class MainService extends BasePeriodicService
             return;
         }
 
-        if (mLastKnownLocation != null) {
+        if (mLastKnownLocation == null) {
             mLastKnownLocation =
                     LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
         }

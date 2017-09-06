@@ -11,7 +11,7 @@ import android.view.View;
 
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
-import com.routeal.cocoger.util.NotificationHelper;
+import com.routeal.cocoger.util.Notifi;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelState;
@@ -35,12 +35,12 @@ public class PanelMapActivity extends SearchMapActivity {
         mLayout.addPanelSlideListener(new PanelSlideListener() {
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
-                Log.i(TAG, "onPanelSlide, offset " + slideOffset);
+                //Log.i(TAG, "onPanelSlide, offset " + slideOffset);
             }
 
             @Override
             public void onPanelStateChanged(View panel, PanelState previousState, PanelState newState) {
-                Log.i(TAG, "onPanelStateChanged " + newState);
+                //Log.i(TAG, "onPanelStateChanged " + newState);
             }
         });
 
@@ -113,7 +113,7 @@ public class PanelMapActivity extends SearchMapActivity {
 
             // remove the notification
             int nid = extras.getInt("notification_id");
-            NotificationHelper.remove(nid);
+            Notifi.remove(nid);
 
             // set the current page to the friend list fragment
             ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
@@ -132,7 +132,7 @@ public class PanelMapActivity extends SearchMapActivity {
 
             // remove the notification
             int nid = extras.getInt("notification_id");
-            NotificationHelper.remove(nid);
+            Notifi.remove(nid);
 
             // set the current page to the friend list fragment
             ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);

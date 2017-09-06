@@ -9,30 +9,14 @@ import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.widget.AppCompatButton;
-import android.support.v7.widget.AppCompatImageView;
-import android.support.v7.widget.AppCompatTextView;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.appolica.interactiveinfowindow.InfoWindow;
 import com.appolica.interactiveinfowindow.InfoWindowManager;
 import com.appolica.interactiveinfowindow.fragment.MapInfoWindowFragment;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.PlaceLikelihood;
-import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
-import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -47,12 +31,14 @@ import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.service.MainService;
-import com.routeal.cocoger.util.CircleTransform;
-import com.routeal.cocoger.util.PicassoMarker;
+import com.routeal.cocoger.util.LoadImage;
 import com.routeal.cocoger.util.Utils;
-import com.squareup.picasso.Picasso;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 public class MapActivity extends MapBaseActivity {
 
@@ -64,6 +50,8 @@ public class MapActivity extends MapBaseActivity {
     private final static String KEY_LOCATION = "location";
 
     private final static int DEFAULT_ZOOM = 15;
+
+    private final static int MARKER_SZIE = 128;
 
     private GoogleMap mMap;
 
@@ -77,18 +65,17 @@ public class MapActivity extends MapBaseActivity {
 
     private ProgressDialog spinner;
 
-    //private Marker myMarker;
+    private InfoWindow.MarkerSpecification mMarkerOffset;
 
-    // drawing target
-    //private PicassoMarker myMarkerTarget;
+    private BaseMarker myMarker;
 
-    private Address mAddress;
-
-    private InfoWindow.MarkerSpecification markerSpec;
-
-    private MyInfoFragment myInfoFragment;
+    //private MyInfoFragment myInfoFragment;
 
     private InfoWindowManager infoWindowManager;
+
+    private Map<String, BaseMarker> mMarkers = new HashMap<>();
+
+    private boolean mHasFriendMarkers = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,7 +84,7 @@ public class MapActivity extends MapBaseActivity {
         // init the InfoWindow
         int offsetX = (int) getResources().getDimension(R.dimen.marker_offset_x);
         int offsetY = (int) getResources().getDimension(R.dimen.marker_offset_y);
-        markerSpec = new InfoWindow.MarkerSpecification(offsetX, offsetY);
+        mMarkerOffset = new InfoWindow.MarkerSpecification(offsetX, offsetY);
 
         // retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
@@ -106,8 +93,10 @@ public class MapActivity extends MapBaseActivity {
         }
 
         // set up the 'my' location button
-        Drawable drawable = Utils.getIconDrawable(this, R.drawable.ic_my_location_white_36dp, R.color.gray);
-        FloatingActionButton myLocationButton = (FloatingActionButton) findViewById(R.id.my_location);
+        Drawable drawable = Utils.getIconDrawable(this, R.drawable.ic_my_location_white_36dp,
+                R.color.gray);
+        FloatingActionButton myLocationButton =
+                (FloatingActionButton) findViewById(R.id.my_location);
         myLocationButton.setImageDrawable(drawable);
         myLocationButton.setOnClickListener(myLocationButtonListener);
 
@@ -116,6 +105,13 @@ public class MapActivity extends MapBaseActivity {
         filter.addAction(MapActivity.LAST_LOCATION_UPDATE);
         filter.addAction(MapActivity.USER_AVAILABLE);
         LocalBroadcastManager.getInstance(this).registerReceiver(mLocalLocationReceiver, filter);
+
+        // my marker
+        myMarker = new BaseMarker();
+        mMarkers.put(FB.getUid(), myMarker);
+
+        //myInfoFragment = new MyInfoFragment();
+        //myInfoFragment.setMapActivity(MapActivity.this);
     }
 
     /**
@@ -160,10 +156,14 @@ public class MapActivity extends MapBaseActivity {
 
             mMap.setOnMarkerClickListener(mMarkerClickListener);
 
+            // NOTE:
+            // Both location and user may not be available at this point.
+
             // Get the current location from the base object
             mLastKnownLocation = getDeviceLocation();
 
-            // get the current location from the service
+            // get the current location from the service if the
+            // location is not available from the base object
             if (mLastKnownLocation == null) {
                 mLastKnownLocation = MainService.getLastLocation();
             }
@@ -176,12 +176,16 @@ public class MapActivity extends MapBaseActivity {
             }
 
             if (mLastKnownLocation != null) {
-                setupMyMarker(mLastKnownLocation);
+                myMarker.setPosition(mLastKnownLocation);
             }
 
-            if (MainApplication.getUser() != null) {
-                setupFriendMarkers();
+            User user = MainApplication.getUser();
+            if (user != null) {
+                myMarker.addUser(FB.getUid(), user.getDisplayName(), user.getPicture());
             }
+
+            // this needs both the user object and the current user location.
+            setupFriendMarkers();
 
             spinner.dismiss();
             spinner = null;
@@ -202,226 +206,155 @@ public class MapActivity extends MapBaseActivity {
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                                 Utils.getLatLng(location), DEFAULT_ZOOM));
                     }
-                    if (myMarker == null) {
-                        setupMyMarker(location);
-                    }
-                    if (myMarker != null) {
-                        myMarker.setPosition(location);
-                    }
+                    myMarker.setPosition(location);
                     mLastKnownLocation = location;
                 }
-                mAddress = intent.getParcelableExtra(MainService.ADDRESS_UPDATE);
+                Address address = intent.getParcelableExtra(MainService.ADDRESS_UPDATE);
+                if (address != null) {
+                    myMarker.setAddress(address);
+                }
             } else if (intent.getAction().equals(MapActivity.USER_AVAILABLE)) {
-                if (MainApplication.getUser() != null) {
-                    if (myMarker != null) {
-                        myMarker.setPicture(MainApplication.getUser().getPicture());
-                    }
-                    setupFriendMarkers();
+                User user = MainApplication.getUser();
+                if (user != null) {
+                    myMarker.addUser(FB.getUid(), user.getDisplayName(), user.getPicture());
                 }
             }
+
+            // this is usually done at the initialization
+            // but in case it is missed during the initialization
+            setupFriendMarkers();
         }
     };
-
-    class BaseMarker {
-        Marker mMarker;
-        PicassoMarker mTarget;
-
-        BaseMarker(Location location) {
-            MarkerOptions options = new MarkerOptions().position(Utils.getLatLng(location));
-            mMarker = mMap.addMarker(options);
-            mTarget = new PicassoMarker(mMarker);
-        }
-
-        void setPicture(String pictureUrl) {
-            Picasso.with(getApplicationContext())
-                    .load(pictureUrl)
-                    .transform(new CircleTransform())
-                    .into(mTarget);
-        }
-
-        boolean OnMarkerClickListener(Marker marker) {
-            if (marker.getId().compareTo(mMarker.getId()) == 0) {
-                InfoWindow infoWindow = new InfoWindow(mMarker, markerSpec, myInfoFragment);
-                infoWindowManager.toggle(infoWindow);
-            }
-            return true;
-        }
-
-        void setPosition(Location location) {
-            mMarker.setPosition(Utils.getLatLng(location));
-        }
-    }
-
-    BaseMarker myMarker;
-
-    private void setupMyMarker(Location location) {
-        myMarker = new BaseMarker(location);
-        if (MainApplication.getUser() != null) {
-            myMarker.setPicture(MainApplication.getUser().getPicture());
-        }
-
-        myInfoFragment = new MyInfoFragment();
-        myInfoFragment.setMapActivity(MapActivity.this);
-/*
-        // my location marker
-        MarkerOptions options = new MarkerOptions().position(Utils.getLatLng(location));
-        myMarker = mMap.addMarker(options);
-        myMarkerTarget = new PicassoMarker(myMarker);
-        // sometimes the user won't be available when the process comes here faster than
-        // etting the user from the firebase database
-        if (MainApplication.getUser() != null) {
-            Picasso.with(getApplicationContext())
-                    .load(MainApplication.getUser().getPicture())
-                    .transform(new CircleTransform())
-                    .into(myMarkerTarget);
-        }
-        myInfoFragment = new MyInfoFragment();
-        myInfoFragment.setMapActivity(this);
-*/
-    }
 
     GoogleMap.OnMarkerClickListener mMarkerClickListener = new GoogleMap.OnMarkerClickListener() {
         @Override
         public boolean onMarkerClick(Marker marker) {
-            if (myMarker != null) {
-                return myMarker.OnMarkerClickListener(marker);
+            for (Map.Entry<String, BaseMarker> entry : mMarkers.entrySet()) {
+                BaseMarker bm = entry.getValue();
+                if (bm.onMarkerClick(marker)) {
+                    return true;
+                }
             }
-            /*
-            if (marker.getId().compareTo(myMarker.mMarker.getId()) == 0) {
-                InfoWindow infoWindow = new InfoWindow(myMarker.mMarker, markerSpec, myInfoFragment);
-                infoWindowManager.toggle(infoWindow);
-            }
-            return true;
-            */
             return false;
         }
     };
 
-    public static class MyInfoFragment extends Fragment implements View.OnClickListener {
-        private MapActivity mapActivity;
-        private AppCompatTextView name;
-        private AppCompatImageView street_snapshot;
-        private AppCompatTextView current_address;
-        private AppCompatButton post_facebook;
-        private AppCompatButton more_info;
-        private AppCompatButton save_to_map;
+    class BaseMarker {
+        private Set<String> mIds = new HashSet<>();
+        private Set<String> mNames = new HashSet<>();
+        private Set<String> mPictures = new HashSet<>();
+        private Marker mMarker;
+        private boolean pictured = false;
+        private LoadImage.LoadMarkerImage imageTask;
+        private Address mAddress;
 
-        @Nullable
-        @Override
-        public View onCreateView(LayoutInflater inflater,
-                                 @Nullable ViewGroup container,
-                                 @Nullable Bundle savedInstanceState) {
-            Log.d(TAG, "MyInfoFragment: onCreateView");
-
-            View view = inflater.inflate(R.layout.infowindow_me, container, false);
-            name = (AppCompatTextView) view.findViewById(R.id.name);
-            street_snapshot = (AppCompatImageView) view.findViewById(R.id.street_snapshot);
-            current_address = (AppCompatTextView) view.findViewById(R.id.current_address);
-            post_facebook = (AppCompatButton) view.findViewById(R.id.post_facebook);
-            more_info = (AppCompatButton) view.findViewById(R.id.more_info);
-            save_to_map = (AppCompatButton) view.findViewById(R.id.save_to_map);
-            street_snapshot.setOnClickListener(this);
-            post_facebook.setOnClickListener(this);
-            more_info.setOnClickListener(this);
-            save_to_map.setOnClickListener(this);
-            return view;
+        void addUser(String id, String name, String picture) {
+            int size = mPictures.size();
+            mIds.add(id);
+            mNames.add(name);
+            mPictures.add(picture);
+            if (size != mPictures.size()) {
+                Log.d(TAG, "pic should be redraw");
+                getPicture();
+            }
         }
 
-        @SuppressWarnings("MissingPermission")
-        @Override
-        public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-            super.onViewCreated(view, savedInstanceState);
-
-            Log.d(TAG, "MyInfoFragment: onViewCreated");
-
-            String url = String.format(getResources().getString(R.string.street_view_image_url),
-                    mapActivity.mLastKnownLocation.getLatitude(),
-                    mapActivity.mLastKnownLocation.getLongitude());
-
-            Picasso.with(getContext())
-                    .load(url)
-                    .resize(96, 96)
-                    .into(street_snapshot);
-
-            User user = MainApplication.getUser();
-            if (user != null) {
-                name.setText(user.getDisplayName());
-            }
-
-            if (mapActivity.mAddress != null) {
-                String address = mapActivity.mAddress.getAddressLine(0);
-                if (address != null) {
-                    current_address.setText(address);
+        void getPicture() {
+            if (mMarker == null) return;
+            String[] pictures = mPictures.toArray(new String[0]);
+            if (pictures.length > 0) {
+                pictured = true;
+                if (imageTask != null) {
+                    imageTask.cancel(true);
+                    imageTask = null;
                 }
-            }
-
-            GoogleApiClient mGoogleApiClient = MainService.getGoogleApiClient();
-
-            if (mGoogleApiClient != null) {
-                PendingResult<PlaceLikelihoodBuffer> result =
-                        Places.PlaceDetectionApi.getCurrentPlace(mGoogleApiClient, null);
-                result.setResultCallback(new ResultCallback<PlaceLikelihoodBuffer>() {
-                    @Override
-                    public void onResult(@NonNull PlaceLikelihoodBuffer placeLikelihoods) {
-                        for (PlaceLikelihood placeLikelihood : placeLikelihoods) {
-                            Log.i(TAG, String.format("Place '%s' has likelihood: %g",
-                                    placeLikelihood.getPlace().getName(),
-                                    placeLikelihood.getLikelihood()));
-                            if (placeLikelihood.getLikelihood() >= 0.9 &&
-                                    placeLikelihood.getPlace().getWebsiteUri() != null &&
-                                    placeLikelihood.getPlace().getPhoneNumber() != null) {
-                                setPlace(placeLikelihood.getPlace());
-                                break;
-                            }
-                        }
-                        placeLikelihoods.release();
-                    }
-                });
+                imageTask = new LoadImage.LoadMarkerImage(mMarker);
+                imageTask.execute(pictures);
             }
         }
 
-        // replace this in the info window
-        void setPlace(Place place) {
-        }
-
-        @Override
-        public void onClick(View v) {
-            switch (v.getId()) {
-                case R.id.street_snapshot:
-                    Intent intent = new Intent(getContext(), StreetViewActivity.class);
-                    intent.putExtra("location", Utils.getLatLng(mapActivity.mLastKnownLocation));
-                    startActivity(intent);
-                    break;
-                case R.id.post_facebook:
-                    break;
-                case R.id.more_info:
-                    Toast.makeText(getContext(), "moreinfo", Toast.LENGTH_SHORT).show();
-                    break;
-                case R.id.save_to_map:
-                    Toast.makeText(getContext(), "savetomap", Toast.LENGTH_SHORT).show();
-                    break;
+        boolean onMarkerClick(Marker marker) {
+            if (marker.getId().compareTo(mMarker.getId()) == 0) {
+                String[] ids = mIds.toArray(new String[0]);
+                String[] names = mNames.toArray(new String[0]);
+                if (ids.length == 1) {
+                    Bundle args = new Bundle();
+                    args.putString("id", ids[0]);
+                    args.putParcelable("location", getLocation());
+                    args.putParcelable("address", mAddress);
+                    args.putString("name", names[0]);
+                    SingleInfoFragment info = new SingleInfoFragment();
+                    info.setArguments(args);
+                    InfoWindow infoWindow = new InfoWindow(mMarker, mMarkerOffset, info);
+                    infoWindowManager.toggle(infoWindow);
+                } else if (mIds.size() > 1) {
+                    Log.d(TAG, "many user's info window");
+                }
+                return true;
             }
+            return false;
         }
 
-        void setMapActivity(MapActivity mapActivity) {
-            this.mapActivity = mapActivity;
+        void setPosition(Location location) {
+            if (mMarker == null) {
+                MarkerOptions options = new MarkerOptions().position(Utils.getLatLng(location));
+                mMarker = mMap.addMarker(options);
+            }
+            mMarker.setPosition(Utils.getLatLng(location));
+            if (!pictured) getPicture();
+        }
+
+        void setAddress(Address address) {
+            mAddress = address;
+        }
+
+        Location getLocation() {
+            if (mMarker == null) {
+                return null;
+            }
+            return Utils.getLocation(mMarker.getPosition());
         }
     }
 
+    // we call this until it is succeeded.
     private void setupFriendMarkers() {
-        User user = MainApplication.getUser();
+        final User user = MainApplication.getUser();
+        if (user == null) return;
+
+        if (myMarker.getLocation() == null) return;
+
+        if (mHasFriendMarkers) return;
+        mHasFriendMarkers = true;
+
         Map<String, Friend> friends = user.getFriends();
         if (friends == null || friends.isEmpty()) return;
-        for (Map.Entry<String, Friend> entry : friends.entrySet()) {
-            final Friend friend = entry.getValue();
+
+        Iterator<String> it = friends.keySet().iterator();
+
+        while (it.hasNext()) {
+            final String key = it.next();
+            final Friend friend = friends.get(key);
+
             FB.getLocation(friend.getLocation(), new FB.LocationListener() {
                 @Override
                 public void onSuccess(LocationAddress location) {
-                    Location l = new Location("");
-                    l.setLatitude(location.getLatitude());
-                    l.setLongitude(location.getLongitude());
-                    BaseMarker m = new BaseMarker(l);
-                    m.setPicture(friend.getPicture());
+                    Location l = Utils.getLocation(location);
+
+                    // check the buddies nearby
+                    for (Map.Entry<String, BaseMarker> entry : mMarkers.entrySet()) {
+                        BaseMarker bm = entry.getValue();
+                        if (l.distanceTo(bm.getLocation()) < 5.0) {
+                            Log.d(TAG, "pic added");
+                            bm.addUser(key, friend.getDisplayName(), friend.getPicture());
+                            return;
+                        }
+                    }
+
+                    BaseMarker m = new BaseMarker();
+                    m.setPosition(l);
+                    m.setAddress(Utils.getAddress(location));
+                    m.addUser(key, friend.getDisplayName(), friend.getPicture());
+                    mMarkers.put(key, m);
                 }
 
                 @Override

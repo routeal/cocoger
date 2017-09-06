@@ -6,7 +6,7 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.routeal.cocoger.fb.FB;
-import com.routeal.cocoger.util.NotificationHelper;
+import com.routeal.cocoger.util.Notifi;
 
 /**
  * Created by nabe on 8/27/17.
@@ -28,7 +28,7 @@ public class MainReceiver extends BroadcastReceiver {
                 FB.declineFriendRequest(invite);
 
                 int nid = intent.getIntExtra("notification_id", 0);
-                NotificationHelper.remove(nid);
+                Notifi.remove(nid);
             } else if (action.equals(FB.ACTION_RANGE_REQUEST_DECLINED)) {
                 Log.d(TAG, action);
 
@@ -37,7 +37,7 @@ public class MainReceiver extends BroadcastReceiver {
                 FB.declineRangeRequest(requester);
 
                 int nid = intent.getIntExtra("notification_id", 0);
-                NotificationHelper.remove(nid);
+                Notifi.remove(nid);
             }
 
         } catch (Exception e) {
