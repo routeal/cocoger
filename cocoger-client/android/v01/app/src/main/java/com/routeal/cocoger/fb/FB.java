@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.location.Address;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Build;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.RecyclerView;
@@ -39,6 +41,7 @@ import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.model.RangeRequest;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.service.MainReceiver;
+import com.routeal.cocoger.service.MainService;
 import com.routeal.cocoger.ui.main.FriendListViewHolder;
 import com.routeal.cocoger.ui.main.MapActivity;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
@@ -88,7 +91,7 @@ public class FB {
     }
 
     public interface LocationListener {
-        void onSuccess(LocationAddress location);
+        void onSuccess(String key, LocationAddress location);
 
         void onFail(String err);
     }
@@ -156,6 +159,8 @@ public class FB {
                 } else {
                     Log.d(TAG, "Firebase User invalidated");
                     MainApplication.setUser(null);
+                    // stop the service
+                    MainService.stop();
                 }
             }
         });
@@ -314,7 +319,7 @@ public class FB {
         }
 
         // the current device
-        Device currentDevice = Utils.getDevice();
+        Device currentDevice = getDevice();
 
         String devKey = null;
 
@@ -362,7 +367,7 @@ public class FB {
         FirebaseDatabase db = FirebaseDatabase.getInstance();
 
         // save the device info
-        Device device = Utils.getDevice();
+        Device device = getDevice();
         device.setUid(uid);
         DatabaseReference devDb = getDeviceDatabaseReference();
         String key = devDb.push().getKey();
@@ -414,7 +419,7 @@ public class FB {
         // deleted friends
         else if (newFriends.size() < oldFriends.size()) {
         }
-        // range request
+        // range request, location change
         else {
             for (Map.Entry<String, Friend> entry : newFriends.entrySet()) {
                 String friendUid = entry.getKey();
@@ -437,6 +442,11 @@ public class FB {
                 }
                 // the range has been update, notify the map acitivity to change the marker location
                 else if (newFriend.getRange() != oldFriend.getRange()) {
+                }
+                else if (!newFriend.getLocation().equals(oldFriend.getLocation())) {
+                    Intent intent = new Intent(MapActivity.FRIEND_LOCATION_UPDATE);
+                    intent.putExtra(MapActivity.LOCATION_UPDATE, friendUid);
+                    LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
                 }
             }
         }
@@ -740,7 +750,7 @@ public class FB {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         LocationAddress la = dataSnapshot.getValue(LocationAddress.class);
                         if (listener != null) {
-                            listener.onSuccess(la);
+                            listener.onSuccess(dataSnapshot.getKey(), la);
                         }
                     }
                     @Override
@@ -750,5 +760,59 @@ public class FB {
                         }
                     }
                 });
+    }
+
+    // For now, the device is saved into the memory
+    static Device getDevice() {
+        Device mDevice = new Device();
+        mDevice.setDeviceId(getDeviceUniqueId());
+        mDevice.setBrand(Build.BRAND);
+        mDevice.setModel(Build.MODEL);
+        mDevice.setPlatformVersion(Build.VERSION.RELEASE);
+        mDevice.setSimulator(isEmulator());
+        mDevice.setToken(""); // empty for now
+        mDevice.setStatus(Device.FOREGROUND);
+        mDevice.setAppVersion(MainApplication.getApplicationVersion());
+        mDevice.setTimestamp(System.currentTimeMillis());
+        return mDevice;
+    }
+
+    static boolean isEmulator() {
+        int rating = 0;
+
+        if ((Build.PRODUCT.equals("sdk")) || (Build.PRODUCT.equals("google_sdk"))
+                || (Build.PRODUCT.equals("sdk_x86")) || (Build.PRODUCT.equals("vbox86p"))) {
+            rating++;
+        }
+        if ((Build.MANUFACTURER.equals("unknown")) || (Build.MANUFACTURER.equals("Genymotion"))) {
+            rating++;
+        }
+        if ((Build.BRAND.equals("generic")) || (Build.BRAND.equals("generic_x86"))) {
+            rating++;
+        }
+        if ((Build.DEVICE.equals("generic")) || (Build.DEVICE.equals("generic_x86")) ||
+                (Build.DEVICE.equals("vbox86p"))) {
+            rating++;
+        }
+        if ((Build.MODEL.equals("sdk")) || (Build.MODEL.equals("google_sdk"))
+                || (Build.MODEL.equals("Android SDK built for x86"))) {
+            rating++;
+        }
+        if ((Build.HARDWARE.equals("goldfish")) || (Build.HARDWARE.equals("vbox86"))) {
+            rating++;
+        }
+        if ((Build.FINGERPRINT.contains("generic/sdk/generic"))
+                || (Build.FINGERPRINT.contains("generic_x86/sdk_x86/generic_x86"))
+                || (Build.FINGERPRINT.contains("generic/google_sdk/generic"))
+                || (Build.FINGERPRINT.contains("generic/vbox86p/vbox86p"))) {
+            rating++;
+        }
+
+        return rating > 4;
+    }
+
+    static String getDeviceUniqueId() {
+        return Settings.Secure.getString(MainApplication.getContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID);
     }
 }

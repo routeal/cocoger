@@ -27,8 +27,7 @@ import java.util.PriorityQueue;
  * Created by hwatanabe on 4/11/17.
  */
 
-public class MainService extends BasePeriodicService
-        implements LocationListener {
+public class MainService extends BasePeriodicService {
 
     enum LocationMode {
         NONE,
@@ -42,29 +41,27 @@ public class MainService extends BasePeriodicService
 
     private final static long FOREGROUND_INTERVAL = 2000;
 
-    private final static int PASTLOCATION_QUEUE_SIZE = 3;
+    private final static int PAST_LOCATION_QUEUE_MAX = 10;
 
-    private final static float FOREGROUND_MIN_MOVEMENT = 2.0f;
+    private final static int PAST_LOCATION_QUEUE_SIZE = 3;
 
-    private final static float BACKGROUND_MIN_MOVEMENT = 10.0f;
+    private final static float FOREGROUND_MIN_MOVEMENT = 5.0f;
 
-    public final static String LOCATION_UPDATE = "location_update";
-
-    public final static String ADDRESS_UPDATE = "address_update";
-
-    public static MainService mActiveService;
-
-    private static LocationRequest mLocationRequest;
-
-    private static LocationMode mLocationMode = LocationMode.NONE;
-
-    private static LocationMode mRequestedLocationMode = LocationMode.BACKGROUND;
-
-    private static Location mLastKnownLocation;
+    private final static float BACKGROUND_MIN_MOVEMENT = 50.0f;
 
     private static long mServiceInterval = BACKGROUND_INTERVAL;
 
-    private GoogleApiClient mGoogleApiClient;
+    private static LocationMode mRequestedLocationMode = LocationMode.BACKGROUND;
+
+    private static MainService mActiveService;
+
+    private LocationRequest mLocationRequest;
+
+    private LocationMode mLocationMode = LocationMode.NONE;
+
+    private Location mLastKnownLocation;
+
+    private GoogleApiClient mGoogleApi;
 
     private Geocoder mGeocoder;
 
@@ -86,7 +83,7 @@ public class MainService extends BasePeriodicService
     }
 
     private static PriorityQueue<PastLocation> queue =
-            new PriorityQueue<>(10, new LocationAscendingOrder());
+            new PriorityQueue<>(PAST_LOCATION_QUEUE_MAX, new LocationAscendingOrder());
 
     public static void setForegroundMode() {
         mRequestedLocationMode = LocationMode.FOREGROUND;
@@ -105,44 +102,61 @@ public class MainService extends BasePeriodicService
     }
 
     public static void start(Context context) {
-        Intent intent = new Intent(context, MainService.class);
-        context.startService(intent);
+        // start the service only when the user is authenticated
+        if (FB.isAuthenticated()) {
+            Intent intent = new Intent(context, MainService.class);
+            context.startService(intent);
+        }
+    }
+
+    public static void stop() {
+        if (mActiveService != null) {
+            mActiveService.stopLocationUpdate();
+            mActiveService.stopResident();
+        }
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
 
-        // set up FB monitoring
+        // set up FB monitoring, in other words, this is an entry
+        // point to FB
         FB.monitorAuthentication();
     }
 
-    // connectGoogleApi in background, called in the background
+    @Override
+    public void onDestroy() {
+        mGeocoder = null;
+        mGoogleApi.disconnect();
+        super.onDestroy();
+    }
+
     private void connectGoogleApi() {
         if (mGeocoder == null) {
-            mGeocoder = new Geocoder(this, Locale.ENGLISH);
+            mGeocoder = new Geocoder(this, Locale.getDefault());
         }
 
-        if (mGoogleApiClient == null) {
-            mGoogleApiClient = new GoogleApiClient.Builder(mActiveService)
+        if (mGoogleApi == null) {
+            mGoogleApi = new GoogleApiClient.Builder(mActiveService)
                     .addApi(LocationServices.API)
                     .addApi(Places.GEO_DATA_API)
                     .addApi(Places.PLACE_DETECTION_API)
                     .build();
         }
 
-        if (!(mGoogleApiClient.isConnected() || mGoogleApiClient.isConnecting())) {
-            Log.d(TAG, "connecting googleapiclient");
-            mGoogleApiClient.connect();
+        if (!(mGoogleApi.isConnected() || mGoogleApi.isConnecting())) {
+            Log.d(TAG, "connecting google api client");
+            mGoogleApi.connect();
         }
     }
 
     private void startLocationUpdate() {
-        if (mGoogleApiClient == null || !mGoogleApiClient.isConnected()) {
+        if (mGoogleApi == null || !mGoogleApi.isConnected()) {
             return;
         }
 
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+        if (ContextCompat.checkSelfPermission(getApplicationContext(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             // do nothing
@@ -151,34 +165,44 @@ public class MainService extends BasePeriodicService
         }
 
         if (mLastKnownLocation == null) {
-            mLastKnownLocation =
-                    LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            mLastKnownLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApi);
         }
 
         if (mLocationMode == mRequestedLocationMode) return;
 
         Log.d(TAG, "startLocationUpdate");
 
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApi, mLocationListener);
+
         if (mRequestedLocationMode.equals(LocationMode.BACKGROUND)) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-            mLocationRequest = LocationRequest.create()
-                    .setSmallestDisplacement(10) // when 10 meter moved
-                    .setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
-                    mLocationRequest, this);
             mLocationMode = LocationMode.BACKGROUND;
+
+            mLocationRequest = LocationRequest.create()
+                    .setInterval(15 * 60 * 1000) // 15 mins
+                    .setSmallestDisplacement(BACKGROUND_MIN_MOVEMENT)
+                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApi,
+                    mLocationRequest, mLocationListener);
+
             Log.d(TAG, "start background LocationUpdate");
         } else {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-            mLocationRequest = LocationRequest.create()
-                    .setInterval(2000)
-                    .setFastestInterval(1000)
-                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
-                    mLocationRequest, this);
             mLocationMode = LocationMode.FOREGROUND;
+
+            mLocationRequest = LocationRequest.create()
+                    .setInterval(10000)
+                    .setFastestInterval(5000)
+                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApi,
+                    mLocationRequest, mLocationListener);
+
             Log.d(TAG, "start foreground LocationUpdate");
         }
+    }
+
+    private void stopLocationUpdate() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApi, mLocationListener);
     }
 
     @Override
@@ -190,42 +214,46 @@ public class MainService extends BasePeriodicService
     protected void execTask() {
         mActiveService = this;
 
-        // connect with google api, will try until success
+        // Try to connect Google Api until it is succeded.  The main
+        // UI (MapActivity) should resolve any issue like old version
+        // and not installed.
         connectGoogleApi();
 
-        // start to get a location update, if the location permission is not set, dose nothing
+        // Start a location update.  The location permission should be
+        // taken care of by the main UI (MapActivity).
         startLocationUpdate();
 
+        // Schedule to run this again.
         makeNextPlan();
     }
 
     @Override
-    public void makeNextPlan() {
+    protected void makeNextPlan() {
         this.scheduleNextTime();
     }
 
-    public static void stop(Context context) {
-        if (mActiveService != null) {
-            mActiveService.stopResident(context);
-        }
-    }
+    private LocationListener mLocationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(Location location) {
+            if (location == null) return;
 
-    @Override
-    public void onLocationChanged(Location location) {
-        if (location == null) return;
+            if (mLastKnownLocation == null) {
+                mLastKnownLocation = location;
+                return;
+            }
 
-        if (mLastKnownLocation != null) {
             // distance in meter
             float distance = location.distanceTo(mLastKnownLocation);
 
             // saveLocation location when
-            // 1. in foreground, keep the past 10 locations, then if the minimum move is more
-            // than 5 meters, save the location.
+            // 1. in foreground, keep the past 10 locations, then if
+            // the minimum move is more than 5 meters, save the
+            // location.
             // 2. in background, when moved more than 10 meters
 
             if (mLocationMode == LocationMode.FOREGROUND) {
                 queue.add(new PastLocation(distance, location));
-                if (queue.size() == PASTLOCATION_QUEUE_SIZE) {
+                if (queue.size() == PAST_LOCATION_QUEUE_SIZE) {
                     Log.d(TAG, "foreground distance: " + queue.poll().distance);
                     if (queue.poll().distance > FOREGROUND_MIN_MOVEMENT) {
                         saveLocation(queue.poll().location);
@@ -238,21 +266,8 @@ public class MainService extends BasePeriodicService
                     saveLocation(location);
                 }
             }
-        } else {
-            saveLocation(location);
         }
-    }
-
-    public static Location getLastLocation() {
-        return mLastKnownLocation;
-    }
-
-    public static GoogleApiClient getGoogleApiClient() {
-        if (mActiveService != null) {
-            return mActiveService.mGoogleApiClient;
-        }
-        return null;
-    }
+    };
 
     private void saveLocation(Location location) {
         mLastKnownLocation = location;
@@ -266,19 +281,20 @@ public class MainService extends BasePeriodicService
             // FIXME: first address always works best???
             address = addresses.get(0);
         } catch (Exception e) {
+            Log.d(TAG, "Geocoder failed:" + e.getLocalizedMessage());
         }
 
         if (address == null) {
-            Log.d(TAG, "No address for " + location.toString());
+            Log.d(TAG, "No address retrieved from Geocoder for " + location.toString());
             return;
         }
 
         Log.d(TAG, "saveLocation");
 
-        // notify both location address to the activity
+        // notify both location and address to the activity
         Intent intent = new Intent(MapActivity.LAST_LOCATION_UPDATE);
-        intent.putExtra(LOCATION_UPDATE, location);
-        intent.putExtra(ADDRESS_UPDATE, address);
+        intent.putExtra(MapActivity.LOCATION_UPDATE, location);
+        intent.putExtra(MapActivity.ADDRESS_UPDATE, address);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
         FB.saveLocation(location, address);

@@ -51,17 +51,17 @@ public abstract class BasePeriodicService extends Service {
         );
     }
 
-    public void stopResident(Context context) {
-        Intent intent = new Intent(context, this.getClass());
+    public void stopResident() {
+        Intent intent = new Intent(this, this.getClass());
 
         PendingIntent pendingIntent = PendingIntent.getService(
-                context,
+                this,
                 0,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT
         );
 
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        AlarmManager alarmManager = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
         alarmManager.cancel(pendingIntent);
 
         stopSelf();

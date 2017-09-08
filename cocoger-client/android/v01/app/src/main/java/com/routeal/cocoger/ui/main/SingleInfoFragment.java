@@ -97,6 +97,7 @@ public class SingleInfoFragment extends Fragment implements View.OnClickListener
             }
         }
 
+/*
         GoogleApiClient mGoogleApiClient = MainService.getGoogleApiClient();
 
         if (mGoogleApiClient != null) {
@@ -120,6 +121,7 @@ public class SingleInfoFragment extends Fragment implements View.OnClickListener
                 }
             });
         }
+*/
     }
 
     // replace this in the info window

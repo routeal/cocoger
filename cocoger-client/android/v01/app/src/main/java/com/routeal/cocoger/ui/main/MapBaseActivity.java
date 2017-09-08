@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -22,10 +24,12 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 import com.routeal.cocoger.R;
-import com.routeal.cocoger.service.MainReceiver;
 import com.routeal.cocoger.service.MainService;
 import com.routeal.cocoger.util.AppVisibilityDetector;
 import com.routeal.cocoger.util.Utils;
+
+import java.util.List;
+import java.util.Locale;
 
 public abstract class MapBaseActivity extends FragmentActivity {
 
@@ -203,11 +207,25 @@ public abstract class MapBaseActivity extends FragmentActivity {
     @SuppressWarnings("MissingPermission")
     protected Location getDeviceLocation() {
         Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-/*
+        /*
         if (mGoogleApiClient != null) {
             mGoogleApiClient.disconnect();
         }
-*/
+        */
         return location;
+    }
+
+    protected Address getAddress(Location location) {
+        Address address = null;
+        try {
+            List<Address> addresses = new Geocoder(this, Locale.getDefault()).getFromLocation(
+                    location.getLatitude(),
+                    location.getLongitude(),
+                    1);
+            address = addresses.get(0);
+        } catch (Exception e) {
+            Log.d(TAG, "Geocoder failed:" + e.getLocalizedMessage());
+        }
+        return address;
     }
 }

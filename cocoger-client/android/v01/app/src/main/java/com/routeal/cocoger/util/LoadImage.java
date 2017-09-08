@@ -27,6 +27,7 @@ public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
         for (int i = 0; i < params.length; i++) {
             String url = params[i];
             try {
+                if (isCancelled()) return null;
                 Bitmap bitmap = Picasso.with(MainApplication.getContext()).load(url).get();
                 bitmaps.add(bitmap);
             } catch (IOException e) {
@@ -111,6 +112,7 @@ public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
 
         @Override
         protected void onPostExecute(List<Bitmap> bitmaps) {
+            if (isCancelled()) return;
             super.onPostExecute(bitmaps);
             Bitmap combined = combineBitmaps(bitmaps, MARKER_SZIE);
             Bitmap cropped = cropCircle(combined);
