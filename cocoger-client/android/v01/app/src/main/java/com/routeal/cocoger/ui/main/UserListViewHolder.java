@@ -1,5 +1,6 @@
 package com.routeal.cocoger.ui.main;
 
+import android.location.Address;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.CheckBox;
@@ -10,8 +11,10 @@ import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
+import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.util.LoadImage;
+import com.routeal.cocoger.util.Utils;
 
 import java.util.Map;
 
@@ -39,31 +42,33 @@ public class UserListViewHolder extends RecyclerView.ViewHolder {
         });
     }
 
+    private void disableInput(boolean checkbox, int color) {
+        mView.setBackgroundColor(mView.getResources().getColor(color));
+        mView.setEnabled(false);
+        mView.setClickable(false);
+        mCheckbox.setChecked(checkbox);
+        mCheckbox.setClickable(false);
+    }
+
     public void bind(User user, String key /* user's key */) {
         setName(user.getDisplayName());
         setPicture(user.getPicture());
-        // TODO:
-        //setLocation(user.getlocation());
 
+        // FIXME:
         // disable myself, don't know how to remove myself from the searched list
-        try {
-            if (FB.isCurrentUser(key)) {
-                mView.setBackgroundColor(mView.getResources().getColor(R.color.light_gray));
-                mView.setEnabled(false);
-                mView.setClickable(false);
-                mCheckbox.setChecked(false);
-                mCheckbox.setClickable(false);
-                return;
-            }
-        } catch (Exception e) {
+        if (FB.isCurrentUser(key)) {
+            disableInput(false, R.color.light_gray);
+            setLocation("");
+            return;
         }
 
         // check to see already invited
         User me = MainApplication.getUser();
-        Map<String, Long> invitees = me.getInvitees();
-        if (invitees != null && invitees.containsKey(key)) {
+        Map<String, Long> invites = me.getInvites();
+        if (invites != null && invites.containsKey(key)) {
             // already invited
-            mCheckbox.setChecked(true);
+            disableInput(true, R.color.peachpuff);
+            setLocation(mView.getResources().getString(R.string.pending));
             return;
         }
 
@@ -71,9 +76,24 @@ public class UserListViewHolder extends RecyclerView.ViewHolder {
         Map<String, Friend> friends = me.getFriends();
         if (friends != null && friends.containsKey(key)) {
             // already being friend
-            mCheckbox.setChecked(true);
-            mCheckbox.setClickable(false);
+            disableInput(true, R.color.teal100);
+            setLocation(mView.getResources().getString(R.string.friend));
+            return;
         }
+
+        FB.getLocation(user.getLocation(), new FB.LocationListener() {
+            @Override
+            public void onSuccess(String key, LocationAddress location) {
+                Address address = Utils.getAddress(location);
+                if (address.getCountryName() != null) {
+                    setLocation(address.getCountryName());
+                }
+            }
+
+            @Override
+            public void onFail(String err) {
+            }
+        });
     }
 
     private void setName(String name) {

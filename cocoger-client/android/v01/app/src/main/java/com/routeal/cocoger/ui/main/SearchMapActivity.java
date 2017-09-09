@@ -117,8 +117,6 @@ public class SearchMapActivity extends MapActivity
             // Handle the camera action
         } else if (id == R.id.nav_gallery) {
 
-        } else if (id == R.id.nav_slideshow) {
-
         } else if (id == R.id.nav_logout) {
             logout();
         } else if (id == R.id.nav_open_source) {

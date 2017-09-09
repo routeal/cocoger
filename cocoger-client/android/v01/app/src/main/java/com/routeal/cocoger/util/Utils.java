@@ -1,5 +1,6 @@
 package com.routeal.cocoger.util;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Color;
@@ -11,6 +12,8 @@ import android.os.Build;
 import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.routeal.cocoger.MainApplication;
@@ -25,6 +28,20 @@ import java.util.Locale;
  */
 
 public class Utils {
+
+    public static void showSoftKeyboard(Activity activity, View view) {
+        if (view.requestFocus()) {
+            InputMethodManager imm = (InputMethodManager)
+                    activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
+        }
+    }
+
+    public static void hideSoftKeyboard(Activity activity, View view) {
+        InputMethodManager imm = (InputMethodManager)
+                activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
 
     public static ProgressDialog getBusySpinner(Context context) {
         ProgressDialog dialog = ProgressDialog.show(context, null, null, false, true);

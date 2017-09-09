@@ -67,29 +67,35 @@ class MarkerManager {
     };
 
     // add a new user or friend
-    synchronized void add(String id, String name, String picture, Location location, Address address) {
+    void add(String id, String name, String picture, Location location, Address address) {
+        if (address != null) {
+            Log.d(TAG, "add: address = " + Utils.getAddressLine(address));
+        } else {
+            Log.d(TAG, "add: address empty");
+        }
+
         for (ComboMarker marker : mMarkers) {
             if (marker.contains(id)) {
-                Log.d(TAG, "add: " + id + " update the location and address");
+                //Log.d(TAG, "add: " + id + " update the location and address");
                 marker.setPosition(location);
                 marker.setAddress(address);
                 return;
             }
             if (location.distanceTo(marker.getLocation()) < mMarkerDistance) {
-                Log.d(TAG, "add: combined " + id);
+                //Log.d(TAG, "add: combined " + id);
                 marker.addUser(id, name, picture, location, address);
                 return;
             }
         }
 
-        Log.d(TAG, "add: create a new marker " + id);
+        //Log.d(TAG, "add: create a new marker " + id);
         ComboMarker m = new ComboMarker(id, name, picture, location, address);
         mMarkers.add(m);
     }
 
     // reposition the marker owned by the key
-    synchronized void reposition(String key, Location location, Address address) {
-        Log.d(TAG, "reposition: " + key);
+    void reposition(String key, Location location, Address address) {
+        //Log.d(TAG, "reposition: " + key);
 
         // remove the marker from the current joined one
         for (Iterator<ComboMarker> ite = mMarkers.iterator(); ite.hasNext(); ) {
@@ -105,7 +111,7 @@ class MarkerManager {
                     if (location.distanceTo(marker.getLocation()) < mMarkerDistance) {
                         return;
                     }
-                    Log.d(TAG, "reposition: remove from the current marker");
+                    //Log.d(TAG, "reposition: remove from the current marker");
                     // remove from the current marker
                     boolean removed = marker.removeUser(key);
                     // remove from the map
@@ -139,27 +145,27 @@ class MarkerManager {
         // find the nearest marker and join
         for (ComboMarker marker : mMarkers) {
             if (location.distanceTo(marker.getLocation()) < mMarkerDistance) {
-                Log.d(TAG, "reposition: join to the marker");
+                //Log.d(TAG, "reposition: join to the marker");
                 marker.addUser(key, name, picture, location, address);
                 return;
             }
         }
 
-        Log.d(TAG, "reposition: add a marker for " + key);
+        //Log.d(TAG, "reposition: add a marker for " + key);
         // add a new marker to map
         mMarkers.add(new ComboMarker(key, name, picture, location, address));
     }
 
     // apart users from one marker when the distance between them is
     // bigger than the current marker distance
-    private synchronized void zoomIn() {
-        Log.d(TAG, "zoomIn");
+    private void zoomIn() {
+        //Log.d(TAG, "zoomIn");
         Map<String, ComboMarker.MarkerInfo> aparted = new HashMap<>();
 
         ComboMarker[] markers = mMarkers.toArray(new ComboMarker[0]);
         for (int i = 0; i < markers.length; i++) {
             ComboMarker m = markers[i];
-            Log.d(TAG, "zoomIn: apart=" + i + " for " + m.mOwner.id + " size=" + m.size());
+            //Log.d(TAG, "zoomIn: apart=" + i + " for " + m.mOwner.id + " size=" + m.size());
             m.apart(aparted);
         }
 
@@ -172,7 +178,7 @@ class MarkerManager {
     }
 
     // combine the markers when the distance is smaller than the current marker distance
-    private synchronized void zoomOut() {
+    private void zoomOut() {
         if (mMarkers.size() <= 1) return;
 
         ComboMarker[] markers = mMarkers.toArray(new ComboMarker[0]);
@@ -185,7 +191,7 @@ class MarkerManager {
             Location pl = p.getLocation();
             Location nl = n.getLocation();
             if (pl.distanceTo(nl) < mMarkerDistance) {
-                Log.d(TAG, "zoom out: removed and added to the other");
+                //Log.d(TAG, "zoom out: removed and added to the other");
                 n.copy(p);
                 p.remove();
                 mMarkers.remove(p);
@@ -206,13 +212,11 @@ class MarkerManager {
 
         private List<MarkerInfo> mInfoList = new ArrayList<>();
         private Marker mMarker;
-        private Address mAddress;
-        private Location mLocation;
         private MarkerInfo mOwner;
         private LoadImage.LoadMarkerImage mImageTask;
 
         ComboMarker(String id, String name, String picture, Location location, Address address) {
-            Log.d(TAG, "ComboMarker: new " + id);
+            //Log.d(TAG, "ComboMarker: new " + id);
 
             MarkerInfo markerInfo = new MarkerInfo();
             markerInfo.id = id;
@@ -224,7 +228,6 @@ class MarkerManager {
 
             // initial owner should be the one who constructs the object
             mOwner = markerInfo;
-            mLocation = location;
             MarkerOptions options = new MarkerOptions().position(Utils.getLatLng(location));
             mMarker = mMap.addMarker(options);
 
@@ -235,7 +238,7 @@ class MarkerManager {
             return mInfoList.size();
         }
 
-        synchronized boolean contains(String id) {
+        boolean contains(String id) {
             for (MarkerInfo info : mInfoList) {
                 if (info.id.equals(id)) {
                     return true;
@@ -244,20 +247,20 @@ class MarkerManager {
             return false;
         }
 
-        synchronized boolean removeUser(String id) {
+        boolean removeUser(String id) {
             // if there is only one in the marker, just remove the marker
             if (mInfoList.size() == 1 && mOwner.id.equals(id)) {
-                Log.d(TAG, "removeUser: " + id + " removed the marker");
+                //Log.d(TAG, "removeUser: " + id + " removed the marker");
                 mMarker.remove();
                 return true;
             } else {
-                Log.d(TAG, "removeUser: remove=" + id + " size=" + mInfoList.size() +
-                        " owner=" + mOwner.id);
+                //Log.d(TAG, "removeUser: remove=" + id + " size=" + mInfoList.size() +
+                //        " owner=" + mOwner.id);
                 // remove it from the list
                 for (int i = 0; i < mInfoList.size(); i++) {
                     MarkerInfo info = mInfoList.get(i);
                     if (info.id.equals(id)) {
-                        Log.d(TAG, "removeUser: " + id + " removed");
+                        //Log.d(TAG, "removeUser: " + id + " removed");
                         mInfoList.remove(i);
                         break;
                     }
@@ -265,12 +268,10 @@ class MarkerManager {
 
                 // replace the owner when the owner is removed
                 if (mOwner.id.equals(id)) {
-                    Log.d(TAG, "removeUser: " + id + " replace the owner");
+                    //Log.d(TAG, "removeUser: " + id + " replace the owner");
                     MarkerInfo newOwner = mInfoList.get(0);
                     mOwner = newOwner;
-                    mLocation = newOwner.location;
-                    mAddress = newOwner.address;
-                    mMarker.setPosition(Utils.getLatLng(mLocation));
+                    mMarker.setPosition(Utils.getLatLng(newOwner.location));
                 }
 
                 getPicture();
@@ -279,29 +280,29 @@ class MarkerManager {
         }
 
         // simply remove this from the map
-        synchronized void remove() {
+        void remove() {
             if (mImageTask != null) {
                 mImageTask.cancel(true);
                 mImageTask = null;
             }
-            Log.d(TAG, "remove: from the map " + mOwner.id);
+            //Log.d(TAG, "remove: from the map " + mOwner.id);
             mMarker.remove();
         }
 
         // copy all users in the argument
-        synchronized void copy(ComboMarker m) {
-            Log.d(TAG, "copy: all children from " + m.mOwner.id);
+        void copy(ComboMarker m) {
+            //Log.d(TAG, "copy: all children from " + m.mOwner.id);
             for (MarkerInfo info : m.mInfoList) {
                 addUser(info.id, info.name, info.picture, info.location, info.address);
             }
         }
 
         // apart the users in the marker when the distance is longer
-        synchronized void apart(Map<String, MarkerInfo> aparted) {
-            Log.d(TAG, "apart: " + mOwner.id);
+        void apart(Map<String, MarkerInfo> aparted) {
+            //Log.d(TAG, "apart: " + mOwner.id);
             // no need to apart
             if (mInfoList.size() == 1) {
-                Log.d(TAG, "NOP apart: no need to apart - only one");
+                //Log.d(TAG, "NOP apart: no need to apart - only one");
                 return;
             }
             for (Iterator<MarkerInfo> iterator = mInfoList.iterator(); iterator.hasNext(); ) {
@@ -310,17 +311,17 @@ class MarkerManager {
                 if (mOwner == info) continue;
                 // remove from this marker and put into the list argument
                 if (mOwner.location.distanceTo(info.location) > mMarkerDistance) {
-                    Log.d(TAG, "apart: removed and added " + info.id + " size=" + mInfoList.size());
+                    //Log.d(TAG, "apart: removed and added " + info.id + " size=" + mInfoList.size());
                     iterator.remove();
-                    Log.d(TAG, "apart: removed and added after size=" + mInfoList.size());
+                    //Log.d(TAG, "apart: removed and added after size=" + mInfoList.size());
                     getPicture();
                     aparted.put(info.id, info);
                 }
             }
         }
 
-        synchronized void addUser(String id, String name, String picture,
-                                  Location location, Address address) {
+        void addUser(String id, String name, String picture,
+                     Location location, Address address) {
             boolean hasInfo = contains(id);
             if (hasInfo) return;
 
@@ -332,11 +333,11 @@ class MarkerManager {
             markerInfo.address = address;
             mInfoList.add(markerInfo);
 
-            Log.d(TAG, "addUsr: " + id);
+            //Log.d(TAG, "addUsr: " + id);
             getPicture();
         }
 
-        synchronized void getPicture() {
+        void getPicture() {
             if (mMarker == null) return;
             if (mInfoList.isEmpty()) return;
             String[] pictures = new String[mInfoList.size()];
@@ -348,7 +349,7 @@ class MarkerManager {
                 mImageTask.cancel(true);
                 mImageTask = null;
             }
-            Log.d(TAG, "getPicture: owner=" + mOwner.id);
+            //Log.d(TAG, "getPicture: owner=" + mOwner.id);
             mImageTask = new LoadImage.LoadMarkerImage(mMarker);
             mImageTask.execute(pictures);
         }
@@ -360,14 +361,14 @@ class MarkerManager {
                     Bundle args = new Bundle();
                     args.putString("id", markerInfo.id);
                     args.putString("name", markerInfo.name);
-                    args.putParcelable("location", mLocation);
-                    args.putParcelable("address", mAddress);
+                    args.putParcelable("location", markerInfo.location);
+                    args.putParcelable("address", markerInfo.address);
                     SingleInfoFragment sif = new SingleInfoFragment();
                     sif.setArguments(args);
                     InfoWindow infoWindow = new InfoWindow(mMarker, mMarkerOffset, sif);
                     mInfoWindowManager.toggle(infoWindow);
                 } else if (mInfoList.size() > 1) {
-                    Log.d(TAG, "many user's info window");
+                    //Log.d(TAG, "many user's info window");
                 }
                 return true;
             }
@@ -376,16 +377,17 @@ class MarkerManager {
 
         void setPosition(Location location) {
             if (mMarker != null) {
+                mOwner.location = location;
                 mMarker.setPosition(Utils.getLatLng(location));
             }
         }
 
         void setAddress(Address address) {
-            mAddress = address;
+            mOwner.address = address;
         }
 
         Location getLocation() {
-            return mLocation;
+            return mOwner.location;
         }
     }
 
@@ -395,7 +397,7 @@ class MarkerManager {
                 public void onCameraMove() {
                     CameraPosition cameraPosition = mMap.getCameraPosition();
                     float oldDistance = mMarkerDistance;
-                    //Log.d(TAG, "Zoom: " + cameraPosition.zoom + " old:" + oldDistance);
+                    ////Log.d(TAG, "Zoom: " + cameraPosition.zoom + " old:" + oldDistance);
                     if (cameraPosition.zoom > 20) {
                         mMarkerDistance = 0;
                     } else if (cameraPosition.zoom > 18) {
@@ -421,11 +423,11 @@ class MarkerManager {
                         return;
                     }
                     if (mMarkerDistance < oldDistance) {
-                        Log.d(TAG, "zoomIn:" + mMarkerDistance);
+                        //Log.d(TAG, "zoomIn:" + mMarkerDistance);
                         zoomIn();
                     } else {
                         zoomOut();
-                        Log.d(TAG, "zoomOut:" + mMarkerDistance);
+                        //Log.d(TAG, "zoomOut:" + mMarkerDistance);
                     }
                 }
             };

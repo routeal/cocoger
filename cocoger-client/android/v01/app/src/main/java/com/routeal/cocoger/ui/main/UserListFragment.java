@@ -1,6 +1,5 @@
 package com.routeal.cocoger.ui.main;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -12,7 +11,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -21,6 +19,7 @@ import com.franmontiel.fullscreendialog.FullScreenDialogContent;
 import com.franmontiel.fullscreendialog.FullScreenDialogController;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.util.Utils;
 
 /**
  * Created by nabe on 8/13/17.
@@ -31,7 +30,9 @@ public class UserListFragment extends Fragment
         View.OnClickListener,
         TextView.OnEditorActionListener {
 
-    private FullScreenDialogController dialogController;
+    private FullScreenDialogController mDialogController;
+
+    private EditText mSearchText;
 
     @Nullable
     @Override
@@ -42,7 +43,7 @@ public class UserListFragment extends Fragment
 
     @Override
     public void onDialogCreated(FullScreenDialogController dialogController) {
-        this.dialogController = dialogController;
+        this.mDialogController = dialogController;
     }
 
     @Override
@@ -51,8 +52,9 @@ public class UserListFragment extends Fragment
 
         View view = getView();
 
-        EditText searchText = (EditText) view.findViewById(R.id.search_text);
-        searchText.setOnEditorActionListener(this);
+        mSearchText = (EditText) view.findViewById(R.id.search_text);
+        mSearchText.setOnEditorActionListener(this);
+        Utils.showSoftKeyboard(getActivity(), mSearchText);
 
         Button searchButton = (Button) view.findViewById(R.id.search_button);
         searchButton.setOnClickListener(this);
@@ -65,68 +67,61 @@ public class UserListFragment extends Fragment
         recyclerView.setLayoutManager(layoutManager);
     }
 
-    private void hideKeyboard(View view) {
-        InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-    }
-
     @Override
     public boolean onConfirmClick(FullScreenDialogController dialogController) {
         final boolean isRequested = updateDatabaseForFriendRequest();
-
         if (isRequested) {
             new AlertDialog.Builder(getContext())
-                    .setTitle("Friend Request")
-                    .setMessage("Has been successfully sent.")
+                    .setTitle(R.string.friend_request)
+                    .setMessage(R.string.friend_request_sent)
                     .setPositiveButton(android.R.string.ok, null)
                     .show();
         }
-
-        EditText searchText = (EditText) getView().findViewById(R.id.search_text);
-        hideKeyboard(searchText);
-
+        Utils.hideSoftKeyboard(getActivity(), mSearchText);
         return false;
     }
 
     private boolean updateDatabaseForFriendRequest() {
         RecyclerView recyclerView = (RecyclerView) getView().findViewById(R.id.user_list);
+        if (FB.checkFriendRequest(recyclerView.getAdapter())) {
+            new AlertDialog.Builder(getContext())
+                    .setTitle(R.string.friend_request)
+                    .setMessage(R.string.friend_request_failed)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
+            return false;
+        }
         return FB.sendFriendRequest(recyclerView.getAdapter());
     }
 
     @Override
     public boolean onDiscardClick(FullScreenDialogController dialogController) {
+        Utils.hideSoftKeyboard(getActivity(), mSearchText);
         return false;
     }
 
     @Override
     public void onClick(View v) {
-        EditText searchText = (EditText) getView().findViewById(R.id.search_text);
-        String text = searchText.getText().toString();
-        if (!text.isEmpty()) {
-            searchUser(text);
-            searchText.setText("");
-            hideKeyboard(searchText);
-        }
+        searchUser();
     }
 
     @Override
     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
         if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-            String text = v.getText().toString();
-            if (!text.isEmpty()) {
-                searchUser(text);
-                v.setText("");
-            }
+            searchUser();
         }
         return false;
     }
 
-    private void searchUser(String text) {
-        try {
+    private void searchUser() {
+        String text = mSearchText.getText().toString();
+        text.trim();
+        if (!text.isEmpty()) {
             RecyclerView recyclerView = (RecyclerView) getView().findViewById(R.id.user_list);
             recyclerView.setAdapter(FB.getUserRecyclerAdapter(text, getView()));
-        } catch (Exception e) {
+            mSearchText.setText("");
         }
+        Utils.showSoftKeyboard(getActivity(), mSearchText);
     }
 
 }

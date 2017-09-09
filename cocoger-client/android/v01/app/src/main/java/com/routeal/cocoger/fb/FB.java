@@ -96,6 +96,12 @@ public class FB {
         void onFail(String err);
     }
 
+    public interface UserListener {
+        void onSuccess(User user);
+
+        void onFail(String err);
+    }
+
     public static String getUid() {
         FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
         if (fUser == null) return null;
@@ -126,8 +132,9 @@ public class FB {
         return (FirebaseAuth.getInstance().getCurrentUser() != null);
     }
 
-    public static boolean isCurrentUser(String key) throws Exception {
-        return (key == getUid());
+    public static boolean isCurrentUser(String key) {
+        if (key == null) return false;
+        return key.equals(getUid());
     }
 
     public static void signOut() {
@@ -435,12 +442,14 @@ public class FB {
                     if (oldFriend.getRangeRequest() == null) {
                         sendRangeNotification(friendUid, newFriend, requestRange, currentRange);
                     }
-                    // existing range request, show the notification if the timestamp is old
+                    // existing range request, show the notification
+                    // if the timestamp is old
                     else {
 
                     }
                 }
-                // the range has been update, notify the map acitivity to change the marker location
+                // the range has been update, notify the map acitivity
+                // to change the marker location
                 else if (newFriend.getRange() != oldFriend.getRange()) {
                 }
                 else if (!newFriend.getLocation().equals(oldFriend.getLocation())) {
@@ -472,12 +481,39 @@ public class FB {
         });
     }
 
+    public static boolean checkFriendRequest(RecyclerView.Adapter a) {
+        FirebaseRecyclerAdapter<User, UserListViewHolder> adapter =
+                (FirebaseRecyclerAdapter<User, UserListViewHolder>) a;
+        boolean accepted = false;
+
+        User user = MainApplication.getUser();
+
+        Map<String, Long> invitees = user.getInvitees();
+
+        if (invitees != null) {
+            for (int i = 0; i < adapter.getItemCount(); i++) {
+                String key = adapter.getRef(i).getKey();
+                if (invitees.get(key) != null) {
+                    acceptFriendRequest(key);
+                    accepted = true;
+                }
+            }
+        }
+
+        return accepted;
+    }
+
     public static boolean sendFriendRequest(RecyclerView.Adapter a) {
         FirebaseRecyclerAdapter<User, UserListViewHolder> adapter =
                 (FirebaseRecyclerAdapter<User, UserListViewHolder>) a;
 
+        if (adapter == null) return false;
+
         String uid = getUid();
         DatabaseReference userDb = getUserDatabaseReference();
+
+        User user = MainApplication.getUser();
+        Map<String, Friend> friends = user.getFriends();
 
         boolean modified = false;
 
@@ -485,6 +521,12 @@ public class FB {
             DatabaseReference fDb = adapter.getRef(i);
             if (fDb.getKey().equals(uid)) {
                 // trying to add myself to friends
+                continue;
+            }
+
+            String key = adapter.getRef(i).getKey();
+            if (friends != null && friends.get(key) != null) {
+                // already being friend
                 continue;
             }
 
@@ -500,7 +542,6 @@ public class FB {
             fDb.child("invitees").setValue(friend);
 
             // add friends to myself
-            String key = adapter.getRef(i).getKey();
             friend.clear();
             friend.put(key, timestamp);
             userDb.child(uid).child("invites").setValue(friend);
@@ -511,7 +552,7 @@ public class FB {
         return modified;
     }
 
-    public static void acceptFriendRequest(final String invite) throws Exception {
+    public static void acceptFriendRequest(final String invite) {
         final String invitee = getUid();
 
         DatabaseReference userDb = getUserDatabaseReference();
@@ -582,7 +623,7 @@ public class FB {
         resDb.child("rangeRequest").removeValue();
     }
 
-    public static void changeRange(String fid, int range) throws Exception {
+    public static void changeRange(String fid, int range) {
         String uid = getUid();
 
         DatabaseReference myside = getFriendDatabaseReference(uid, fid);
@@ -592,7 +633,7 @@ public class FB {
         hisside.child("range").setValue(range);
     }
 
-    public static void sendChangeRequest(String fid, int range) throws Exception {
+    public static void sendChangeRequest(String fid, int range) {
         String uid = getUid();
 
         RangeRequest rangeRequest = new RangeRequest();
@@ -601,6 +642,15 @@ public class FB {
 
         DatabaseReference hisside = getFriendDatabaseReference(fid, uid);
         hisside.child("rangeRequest").setValue(rangeRequest);
+    }
+
+    public static void unfriend(String fid) {
+        String uid = getUid();
+        DatabaseReference hisside = getFriendDatabaseReference(fid, uid);
+        hisside.removeValue();
+
+        DatabaseReference myside = getFriendDatabaseReference(uid, fid);
+        myside.removeValue();
     }
 
     public static void uploadImageFile(Uri localFile, String name,
@@ -672,7 +722,8 @@ public class FB {
                 declineIntent.setAction(ACTION_FRIEND_REQUEST_DECLINED);
                 declineIntent.putExtra("friend_invite", invite);
 
-                String content = "You received a friend request from " + inviteUser.getDisplayName() + ".";
+                String content = "You received a friend request from " +
+                    inviteUser.getDisplayName() + ".";
 
                 Notifi.send(inviteUser.getDisplayName(), content, inviteUser.getPicture(),
                         acceptIntent, declineIntent);
@@ -686,7 +737,7 @@ public class FB {
     }
 
     public static FirebaseRecyclerAdapter<Friend, FriendListViewHolder> getFriendRecyclerAdapter()
-            throws Exception {
+            {
         DatabaseReference fDb = getFriendDatabaseReference(getUid());
 
         FirebaseRecyclerAdapter<Friend, FriendListViewHolder> adapter =
@@ -708,14 +759,15 @@ public class FB {
 
 
     public static FirebaseRecyclerAdapter<User, UserListViewHolder>
-    getUserRecyclerAdapter(String text, final View view) throws Exception {
-        // TODO:
-        // Exclude 1) myself, 2) current friends but being added to friend
+    getUserRecyclerAdapter(String text, final View view) {
+        // FIXME:
+        // Need flexible search
 
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
 
         Query query = userRef
                 .orderByChild("searchedName")
+                .limitToFirst(20)
                 .startAt(text)
                 .endAt(text + "~");
 
@@ -727,7 +779,8 @@ public class FB {
                         query) {
 
                     @Override
-                    public void populateViewHolder(UserListViewHolder holder, User user, int position) {
+                    public void populateViewHolder(UserListViewHolder holder,
+                                                   User user, int position) {
                         holder.bind(user, getRef(position).getKey());
                     }
 
@@ -740,6 +793,28 @@ public class FB {
                 };
 
         return adapter;
+    }
+
+    public static void getUser(String key, final UserListener listener) {
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
+        userRef.child(key).addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        User user = dataSnapshot.getValue(User.class);
+                        if (listener != null) {
+                            listener.onSuccess(user);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        if (listener != null) {
+                            listener.onFail(databaseError.toException().getLocalizedMessage());
+                        }
+                    }
+                }
+        );
     }
 
     public static void getLocation(String location, final LocationListener listener) {

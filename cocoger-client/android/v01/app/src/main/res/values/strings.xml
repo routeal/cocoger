@@ -81,7 +81,7 @@
     <string name="verification_email_sent">Sign up successful.  Verification email sent.</string>
     <string name="password_reset_email_sent">Password reset email has been sent successfully.</string>
     <string name="search">Search</string>
-    <string name="search_users">Search friends with prefix string</string>
+    <string name="search_users">Search friends</string>
     <string name="display_name">Display name</string>
     <string name="start_app">Start App</string>
     <string name="notice">Notice</string>
@@ -91,4 +91,15 @@
     <string name="range_changed_broad">The range has been changed successfully.</string>
     <string name="term_services">Terms of Services</string>
     <string name="privacy_policy">Privacy Policy</string>
+    <string name="not_available">N/A</string>
+    <string name="friend">Friend</string>
+    <string name="pending">Pending</string>
+    <string name="unfriend">Unfriend</string>
+    <string name="confirm_unfriend">Do you really want to unfriend %s?</string>
+    <string name="send_voice">Send Your Voice</string>
+    <string name="friend_request">Friend Request</string>
+    <string name="friend_request_sent">Your friend request has been sent.</string>
+    <string name="friend_request_failed">You have already friend requests from some of your friends.  Those requests have been accepted.  For the other requests, please try again. </string>
+    <string name="search_users_title">Users</string>
+    <string name="request_friend">Request Friend</string>
 </resources>

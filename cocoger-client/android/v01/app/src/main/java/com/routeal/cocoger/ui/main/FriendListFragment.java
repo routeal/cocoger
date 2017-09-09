@@ -41,8 +41,8 @@ public class FriendListFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 dialogFragment = new FullScreenDialogFragment.Builder(getActivity())
-                        .setTitle("People")
-                        .setConfirmButton("Request Friend")
+                        .setTitle(R.string.search_users_title)
+                        .setConfirmButton(R.string.request_friend)
                         .setContent(UserListFragment.class, new Bundle())
                         .build();
                 dialogFragment.show(getActivity().getSupportFragmentManager(), "user-dialog");

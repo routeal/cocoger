@@ -22,7 +22,7 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
     private int mCurrentRange;
     private String mFriendId;
 
-    public FriendListViewHolder(View itemView) {
+    public FriendListViewHolder(final View itemView) {
         super(itemView);
 
         mView = itemView;
@@ -83,6 +83,40 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
                 }
             }
         });
+
+        View view = itemView.findViewById(R.id.message);
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendMessage();
+            }
+        });
+
+        view = itemView.findViewById(R.id.remove);
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String msg = String.format(itemView.getResources().getString(R.string.confirm_unfriend),
+                        mName.getText().toString());
+                new AlertDialog.Builder(mView.getContext())
+                        .setTitle(R.string.unfriend)
+                        .setMessage(msg)
+                        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                FB.unfriend(mFriendId);
+                            }
+                        })
+                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                            }
+                        })
+                        .show();
+
+            }
+        });
+
     }
 
     public void bind(Friend friend, String key /* friend's key */) {
@@ -106,20 +140,17 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
     }
 
     private void changeRange(int index) {
-        try {
-            int range = LocationRange.toRange(index);
-            FB.changeRange(mFriendId, range);
-        } catch (Exception e) {
-        }
+        int range = LocationRange.toRange(index);
+        FB.changeRange(mFriendId, range);
     }
 
     private void sendChangeRequest(int index) {
-        try {
-            int range = LocationRange.toRange(index);
-            FB.sendChangeRequest(mFriendId, range);
-        } catch (Exception e) {
-        }
+        int range = LocationRange.toRange(index);
+        FB.sendChangeRequest(mFriendId, range);
     }
 
+    private void sendMessage() {
+
+    }
 }
 
