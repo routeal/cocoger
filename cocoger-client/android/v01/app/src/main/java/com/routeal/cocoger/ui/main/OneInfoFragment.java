@@ -40,6 +40,9 @@ public class OneInfoFragment extends Fragment implements View.OnClickListener {
     private Address mAddress;
     private int mRange;
 
+    private ComboMarker mMarker;
+    private ComboMarker.MarkerInfo mMarkerInfo;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -61,12 +64,15 @@ public class OneInfoFragment extends Fragment implements View.OnClickListener {
         mSaveMapButton.setOnClickListener(this);
 
         Bundle bundle = getArguments();
-        mUid = bundle.getString("id");
-        mName = bundle.getString("name");
-        mLocation = bundle.getParcelable("location");
-        mAddress = bundle.getParcelable("address");
-        mRange = bundle.getInt("range");
-        mRangeLocation = bundle.getParcelable("rangeLocation");
+        mMarker = bundle.getParcelable("marker");
+        mMarkerInfo = mMarker.getOwner();
+
+        mUid = mMarkerInfo.id;
+        mName = mMarkerInfo.name;
+        mLocation = mMarkerInfo.location;
+        mAddress = mMarkerInfo.address;
+        mRange = mMarkerInfo.range;
+        mRangeLocation = mMarkerInfo.rangeLocation;
 
         return view;
     }

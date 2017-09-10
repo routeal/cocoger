@@ -47,8 +47,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/street_view_container"
-        android:layout_marginTop="4dp"
-        android:layout_toLeftOf="@+id/list"
+        android:layout_marginTop="2dp"
+        android:layout_toLeftOf="@+id/friend_list"
         android:gravity="center"
         android:textAppearance="@android:style/TextAppearance.Material.Caption" />
 

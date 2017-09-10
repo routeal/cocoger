@@ -144,6 +144,16 @@ public class PanelMapActivity extends SearchMapActivity {
             // show the friend list fragment
             SlidingUpPanelLayout mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
             mLayout.setPanelState(PanelState.ANCHORED);
+        } else if (action.equals("show_friend")) {
+            String nid = extras.getString("id");
+
+            // set the current page to the friend list fragment
+            ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
+            viewPager.setCurrentItem(1);
+
+            // show the friend list fragment
+            SlidingUpPanelLayout mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+            mLayout.setPanelState(PanelState.ANCHORED);
         }
     }
 }
