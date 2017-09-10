@@ -113,7 +113,6 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
                             }
                         })
                         .show();
-
             }
         });
 

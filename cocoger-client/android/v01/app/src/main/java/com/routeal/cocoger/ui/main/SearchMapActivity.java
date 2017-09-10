@@ -1,5 +1,6 @@
 package com.routeal.cocoger.ui.main;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -10,6 +11,7 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.AlertDialog;
 import android.text.Html;
 import android.util.Log;
 import android.view.MenuItem;
@@ -92,12 +94,26 @@ public class SearchMapActivity extends MapActivity
     }
 
     private void logout() {
-        FB.signOut();
+        new AlertDialog.Builder(mSearchView.getContext())
+                .setTitle(R.string.logout)
+                .setMessage(R.string.confirm_logout)
+                .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        FB.signOut();
 
-        // start the login screen
-        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-        startActivity(intent);
-        finish();
+                        // start the login screen
+                        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                        startActivity(intent);
+                        finish();
+                    }
+                })
+                .setPositiveButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                })
+                .show();
     }
 
     private void showOpensourceLibraries() {

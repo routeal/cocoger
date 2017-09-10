@@ -28,6 +28,7 @@ import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.service.MainService;
+import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Utils;
 
 import java.util.Iterator;
@@ -36,10 +37,13 @@ import java.util.Map;
 public class MapActivity extends MapBaseActivity {
 
     public static final String USER_AVAILABLE = "user_available";
-    public static final String LAST_LOCATION_UPDATE = "last_location_update";
+    public static final String USER_LOCATION_UPDATE = "user_location_update";
+    public final static String FRIEND_LOCATION_UPDATE = "friend_location_update";
+    public final static String FRIEND_LOCATION_REMOVE = "friend_location_remove";
+
+    public final static String FRIEND_KEY = "friend_key";
     public final static String LOCATION_UPDATE = "location_update";
     public final static String ADDRESS_UPDATE = "address_update";
-    public final static String FRIEND_LOCATION_UPDATE = "friend_location_update";
 
     private final static String TAG = "MapActivity";
     private final static String KEY_CAMERA_POSITION = "camera_position";
@@ -88,8 +92,10 @@ public class MapActivity extends MapBaseActivity {
 
         // registers the receiver to receive the location updates from the service
         IntentFilter filter = new IntentFilter();
-        filter.addAction(MapActivity.LAST_LOCATION_UPDATE);
         filter.addAction(MapActivity.USER_AVAILABLE);
+        filter.addAction(MapActivity.USER_LOCATION_UPDATE);
+        filter.addAction(MapActivity.FRIEND_LOCATION_UPDATE);
+        filter.addAction(MapActivity.FRIEND_LOCATION_REMOVE);
         LocalBroadcastManager.getInstance(this).registerReceiver(mLocalLocationReceiver, filter);
     }
 
@@ -143,7 +149,7 @@ public class MapActivity extends MapBaseActivity {
             // the location may not be available at this point
             if (mLastKnownLocation != null) {
                 Log.d(TAG, "onMapReady: setupMarkers");
-                setupMarkers(mLastKnownLocation, getAddress(mLastKnownLocation));
+                setupMarkers(mLastKnownLocation, Utils.getAddress(mLastKnownLocation));
             }
 
             if (mCameraPosition != null) {
@@ -164,7 +170,7 @@ public class MapActivity extends MapBaseActivity {
     private BroadcastReceiver mLocalLocationReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(MapActivity.LAST_LOCATION_UPDATE)) {
+            if (intent.getAction().equals(MapActivity.USER_LOCATION_UPDATE)) {
                 Address address = intent.getParcelableExtra(MapActivity.ADDRESS_UPDATE);
                 Location location = intent.getParcelableExtra(MapActivity.LOCATION_UPDATE);
                 if (location == null || address == null) {
@@ -177,14 +183,14 @@ public class MapActivity extends MapBaseActivity {
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                             Utils.getLatLng(location), DEFAULT_ZOOM));
                 } else {
-                    mMm.reposition(FB.getUid(), location, address);
+                    mMm.reposition(FB.getUid(), location, address, LocationRange.CURRENT.range);
                 }
                 mLastKnownLocation = location;
             } else if (intent.getAction().equals(MapActivity.USER_AVAILABLE)) {
                 Log.d(TAG, "Receive User_available: setupMarkers");
-                setupMarkers(mLastKnownLocation, getAddress(mLastKnownLocation));
+                setupMarkers(mLastKnownLocation, Utils.getAddress(mLastKnownLocation));
             } else if (intent.getAction().equals(MapActivity.FRIEND_LOCATION_UPDATE)) {
-                String fid = intent.getStringExtra(MapActivity.LOCATION_UPDATE);
+                String fid = intent.getStringExtra(MapActivity.FRIEND_KEY);
                 if (fid == null) {
                     return;
                 }
@@ -196,6 +202,7 @@ public class MapActivity extends MapBaseActivity {
                         return;
                     }
                 }
+                final int range = friend.getRange();
                 FB.getLocation(friend.getLocation(), new FB.LocationListener() {
                     @Override
                     public void onFail(String err) {
@@ -203,9 +210,15 @@ public class MapActivity extends MapBaseActivity {
 
                     @Override
                     public void onSuccess(String key, LocationAddress location) {
-                        mMm.reposition(key, Utils.getLocation(location), Utils.getAddress(location));
+                        mMm.reposition(key, Utils.getLocation(location), Utils.getAddress(location), range);
                     }
                 });
+            } else if (intent.getAction().equals(MapActivity.FRIEND_LOCATION_REMOVE)) {
+                String fid = intent.getStringExtra(MapActivity.FRIEND_KEY);
+                if (fid == null) {
+                    return;
+                }
+                mMm.remove(fid);
             }
         }
     };
@@ -226,7 +239,8 @@ public class MapActivity extends MapBaseActivity {
 
         mHasFriendMarkers = true;
 
-        mMm.add(FB.getUid(), user.getDisplayName(), user.getPicture(), location, address);
+        mMm.add(FB.getUid(), user.getDisplayName(), user.getPicture(), location, address,
+                LocationRange.CURRENT.range);
 
         Map<String, Friend> friends = user.getFriends();
         if (friends == null || friends.isEmpty()) {
@@ -243,7 +257,7 @@ public class MapActivity extends MapBaseActivity {
                 public void onSuccess(String key, LocationAddress location) {
                     Location l = Utils.getLocation(location);
                     Address a = Utils.getAddress(location);
-                    mMm.add(key, friend.getDisplayName(), friend.getPicture(), l, a);
+                    mMm.add(key, friend.getDisplayName(), friend.getPicture(), l, a, friend.getRange());
                 }
 
                 @Override

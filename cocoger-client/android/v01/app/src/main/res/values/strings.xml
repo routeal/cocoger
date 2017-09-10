@@ -102,4 +102,5 @@
     <string name="friend_request_failed">You have already friend requests from some of your friends.  Those requests have been accepted.  For the other requests, please try again. </string>
     <string name="search_users_title">Users</string>
     <string name="request_friend">Request Friend</string>
+    <string name="confirm_logout">You will not receive friends\' locations and update yours neither.  Do you still want to log out?</string>
 </resources>

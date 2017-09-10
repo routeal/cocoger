@@ -21,14 +21,10 @@ public enum LocationRange {
     SUBTHOROUGHFARE(64), // street number
     CURRENT(128); // current
 
-    private final int range;
+    public final int range;
 
     LocationRange(int range) {
         this.range = range;
-    }
-
-    public int toInt() {
-        return range;
     }
 
     static final Map<String, Integer> STR_RANGE = new HashMap<String, Integer>() {{
@@ -41,6 +37,18 @@ public enum LocationRange {
         put("THOROUGHFARE", 32);
         put("SUBTHOROUGHFARE", 64);
         put("CURRENT", 128);
+    }};
+
+    static final Map<Integer, LocationRange> INT_RANGE = new HashMap<Integer, LocationRange>() {{
+        put(0, NONE);
+        put(1, COUNTRY);
+        put(2, ADMINAREA);
+        put(4, SUBADMINAREA);
+        put(8, LOCALITY);
+        put(16, SUBLOCALITY);
+        put(32, THOROUGHFARE);
+        put(64, SUBTHOROUGHFARE);
+        put(128, CURRENT);
     }};
 
     static Map<Integer, Integer> RANGE_POSITION = new HashMap<>();
@@ -65,6 +73,10 @@ public enum LocationRange {
 
     public static int toRange(int position) {
         return POSITION_RANGE.get(position);
+    }
+
+    public static LocationRange to(int range) {
+        return INT_RANGE.get(range);
     }
 
     public static String toString(int range) {

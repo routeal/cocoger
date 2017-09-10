@@ -292,7 +292,7 @@ public class MainService extends BasePeriodicService {
         Log.d(TAG, "saveLocation");
 
         // notify both location and address to the activity
-        Intent intent = new Intent(MapActivity.LAST_LOCATION_UPDATE);
+        Intent intent = new Intent(MapActivity.USER_LOCATION_UPDATE);
         intent.putExtra(MapActivity.LOCATION_UPDATE, location);
         intent.putExtra(MapActivity.ADDRESS_UPDATE, address);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);

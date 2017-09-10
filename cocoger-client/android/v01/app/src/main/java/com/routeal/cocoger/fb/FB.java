@@ -420,11 +420,22 @@ public class FB {
             return;
         }
 
-        // added new friends
-        if (newFriends.size() > oldFriends.size()) {
-        }
-        // deleted friends
-        else if (newFriends.size() < oldFriends.size()) {
+        if (newFriends.size() != oldFriends.size()) {
+            Map<String, Friend> diffs = Utils.diffMaps(newFriends, oldFriends);
+            for (Map.Entry<String, Friend> entry : diffs.entrySet()) {
+                // deleted
+                if (newFriends.get(entry.getKey()) == null)  {
+                    Intent intent = new Intent(MapActivity.FRIEND_LOCATION_UPDATE);
+                    intent.putExtra(MapActivity.FRIEND_KEY, entry.getKey());
+                    LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+                }
+                // added
+                else if (oldFriends.get(entry.getKey()) == null) {
+                    Intent intent = new Intent(MapActivity.FRIEND_LOCATION_REMOVE);
+                    intent.putExtra(MapActivity.FRIEND_KEY, entry.getKey());
+                    LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+                }
+            }
         }
         // range request, location change
         else {
@@ -454,7 +465,7 @@ public class FB {
                 }
                 else if (!newFriend.getLocation().equals(oldFriend.getLocation())) {
                     Intent intent = new Intent(MapActivity.FRIEND_LOCATION_UPDATE);
-                    intent.putExtra(MapActivity.LOCATION_UPDATE, friendUid);
+                    intent.putExtra(MapActivity.FRIEND_KEY, friendUid);
                     LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
                 }
             }
@@ -560,7 +571,7 @@ public class FB {
         userDb.child(invite).child("invites").child(invitee).removeValue();
 
         final long timestamp = System.currentTimeMillis();
-        final int defaultLocationChange = LocationRange.SUBADMINAREA.toInt();
+        final int defaultLocationChange = LocationRange.SUBADMINAREA.range;
 
         // invitee - me invited by invite, get the information of the invite
         userDb.child(invite).addListenerForSingleValueEvent(

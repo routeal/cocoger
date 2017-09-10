@@ -5,8 +5,6 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -28,9 +26,6 @@ import com.routeal.cocoger.service.MainService;
 import com.routeal.cocoger.util.AppVisibilityDetector;
 import com.routeal.cocoger.util.Utils;
 
-import java.util.List;
-import java.util.Locale;
-
 public abstract class MapBaseActivity extends FragmentActivity {
 
     private final static String TAG = "MapBaseActivity";
@@ -40,6 +35,8 @@ public abstract class MapBaseActivity extends FragmentActivity {
 
     // The entry point to Google Play services, used by the Places API and Fused Location Provider.
     private GoogleApiClient mGoogleApiClient;
+
+    private Location mLastKnownLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,7 +128,10 @@ public abstract class MapBaseActivity extends FragmentActivity {
         }
 
         @Override
+        @SuppressWarnings("MissingPermission")
         public void onConnected(@Nullable Bundle bundle) {
+            mLastKnownLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            mGoogleApiClient.disconnect();
             startApp();
         }
 
@@ -204,28 +204,8 @@ public abstract class MapBaseActivity extends FragmentActivity {
     // start an app in the extented object
     abstract void startApp();
 
-    @SuppressWarnings("MissingPermission")
     protected Location getDeviceLocation() {
-        Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        /*
-        if (mGoogleApiClient != null) {
-            mGoogleApiClient.disconnect();
-        }
-        */
-        return location;
+        return mLastKnownLocation;
     }
 
-    protected Address getAddress(Location location) {
-        Address address = null;
-        try {
-            List<Address> addresses = new Geocoder(this, Locale.getDefault()).getFromLocation(
-                    location.getLatitude(),
-                    location.getLongitude(),
-                    1);
-            address = addresses.get(0);
-        } catch (Exception e) {
-            Log.d(TAG, "Geocoder failed:" + e.getLocalizedMessage());
-        }
-        return address;
-    }
 }
