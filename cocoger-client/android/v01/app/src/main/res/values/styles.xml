@@ -12,14 +12,12 @@
         <item name="android:displayOptions">homeAsUp</item>
     </style>
 
-    <style name="SplashTheme" parent="Theme.AppCompat.NoActionBar">
+    <style name="SplashTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">@drawable/background_splash</item>
     </style>
 
-    <style name="LoginTheme" parent="Theme.AppCompat.NoActionBar">
+    <style name="LoginTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">@color/teal400</item>
-
-
         <item name="colorControlNormal">@color/ivory</item>
         <item name="colorControlActivated">@color/white</item>
         <item name="colorControlHighlight">@color/white</item>

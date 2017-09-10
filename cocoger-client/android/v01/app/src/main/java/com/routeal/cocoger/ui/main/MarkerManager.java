@@ -232,7 +232,7 @@ class MarkerManager {
             int range;
         }
 
-        private List<MarkerInfo> mInfoList = new ArrayList<>();
+        private Map<String, MarkerInfo> mInfoMap = new HashMap<>();
         private Marker mMarker;
         private MarkerInfo mOwner;
         private LoadImage.LoadMarkerImage mImageTask;
@@ -248,7 +248,7 @@ class MarkerManager {
             markerInfo.address = address;
             markerInfo.range = range;
             markerInfo.rangeLocation = Utils.getRangedLocation(location, address, range);
-            mInfoList.add(markerInfo);
+            mInfoMap.put(id, markerInfo);
 
             // initial owner should be the one who constructs the object
             mOwner = markerInfo;
@@ -259,21 +259,16 @@ class MarkerManager {
         }
 
         int size() {
-            return mInfoList.size();
+            return mInfoMap.size();
         }
 
         boolean contains(String id) {
-            for (MarkerInfo info : mInfoList) {
-                if (info.id.equals(id)) {
-                    return true;
-                }
-            }
-            return false;
+            return mInfoMap.containsKey(id);
         }
 
         boolean removeUser(String id) {
             // if there is only one in the marker, just remove the marker
-            if (mInfoList.size() == 1 && mOwner.id.equals(id)) {
+            if (mInfoMap.size() == 1 && mOwner.id.equals(id)) {
                 //Log.d(TAG, "removeUser: " + id + " removed the marker");
                 mMarker.remove();
                 return true;
@@ -281,19 +276,12 @@ class MarkerManager {
                 //Log.d(TAG, "removeUser: remove=" + id + " size=" + mInfoList.size() +
                 //        " owner=" + mOwner.id);
                 // remove it from the list
-                for (int i = 0; i < mInfoList.size(); i++) {
-                    MarkerInfo info = mInfoList.get(i);
-                    if (info.id.equals(id)) {
-                        //Log.d(TAG, "removeUser: " + id + " removed");
-                        mInfoList.remove(i);
-                        break;
-                    }
-                }
+                mInfoMap.remove(id);
 
                 // replace the owner when the owner is removed
                 if (mOwner.id.equals(id)) {
                     //Log.d(TAG, "removeUser: " + id + " replace the owner");
-                    MarkerInfo newOwner = mInfoList.get(0);
+                    MarkerInfo newOwner = mInfoMap.get(0);
                     mOwner = newOwner;
                     mMarker.setPosition(Utils.getLatLng(newOwner.rangeLocation));
                 }
@@ -316,7 +304,8 @@ class MarkerManager {
         // copy all users in the argument
         void copy(ComboMarker m) {
             //Log.d(TAG, "copy: all children from " + m.mOwner.id);
-            for (MarkerInfo info : m.mInfoList) {
+            for (Object value : mInfoMap.values()) {
+                MarkerInfo info = (MarkerInfo) value;
                 addUser(info.id, info.name, info.picture, info.location, info.address, info.range);
             }
         }
@@ -325,18 +314,19 @@ class MarkerManager {
         void apart(Map<String, MarkerInfo> aparted) {
             //Log.d(TAG, "apart: " + mOwner.id);
             // no need to apart
-            if (mInfoList.size() == 1) {
+            if (mInfoMap.size() == 1) {
                 //Log.d(TAG, "NOP apart: no need to apart - only one");
                 return;
             }
-            for (Iterator<MarkerInfo> iterator = mInfoList.iterator(); iterator.hasNext(); ) {
-                MarkerInfo info = iterator.next();
+            for(Iterator<Map.Entry<String, MarkerInfo>> it = mInfoMap.entrySet().iterator(); it.hasNext(); ) {
+                Map.Entry<String, MarkerInfo> entry = it.next();
+                MarkerInfo info = entry.getValue();
                 // owner should not leave
                 if (mOwner == info) continue;
                 // remove from this marker and put into the list argument
                 if (mOwner.rangeLocation.distanceTo(info.rangeLocation) > mMarkerDistance) {
                     //Log.d(TAG, "apart: removed and added " + info.id + " size=" + mInfoList.size());
-                    iterator.remove();
+                    it.remove();
                     //Log.d(TAG, "apart: removed and added after size=" + mInfoList.size());
                     getPicture();
                     aparted.put(info.id, info);
@@ -357,7 +347,7 @@ class MarkerManager {
             markerInfo.address = address;
             markerInfo.range = range;
             markerInfo.rangeLocation = Utils.getRangedLocation(location, address, range);
-            mInfoList.add(markerInfo);
+            mInfoMap.put(id, markerInfo);
 
             //Log.d(TAG, "addUsr: " + id);
             getPicture();
@@ -365,11 +355,12 @@ class MarkerManager {
 
         void getPicture() {
             if (mMarker == null) return;
-            if (mInfoList.isEmpty()) return;
-            String[] pictures = new String[mInfoList.size()];
+            if (mInfoMap.isEmpty()) return;
+            String[] pictures = new String[mInfoMap.size()];
             int i = 0;
-            for (MarkerInfo markerInfo : mInfoList) {
-                pictures[i++] = markerInfo.picture;
+            for (Object value : mInfoMap.values()) {
+                MarkerInfo info = (MarkerInfo) value;
+                pictures[i++] = info.picture;
             }
             if (mImageTask != null) {
                 mImageTask.cancel(true);
@@ -382,21 +373,31 @@ class MarkerManager {
 
         boolean onMarkerClick(Marker marker) {
             if (marker.getId().compareTo(mMarker.getId()) == 0) {
-                if (mInfoList.size() == 1) {
-                    MarkerInfo markerInfo = mInfoList.get(0);
+                if (mInfoMap.size() == 1) {
+                    Object v[] = mInfoMap.values().toArray();
+                    MarkerInfo markerInfo = (MarkerInfo) v[0];
                     Bundle args = new Bundle();
-                    args.putString("id", markerInfo.id);
+                    args.putString("uid", markerInfo.id);
                     args.putString("name", markerInfo.name);
                     args.putParcelable("location", markerInfo.location);
                     args.putParcelable("address", markerInfo.address);
                     args.putParcelable("rangeLocation", markerInfo.rangeLocation);
                     args.putInt("range", markerInfo.range);
-                    SingleInfoFragment sif = new SingleInfoFragment();
-                    sif.setArguments(args);
-                    InfoWindow infoWindow = new InfoWindow(mMarker, mMarkerOffset, sif);
+                    OneInfoFragment oneInfo = new OneInfoFragment();
+                    oneInfo.setArguments(args);
+                    InfoWindow infoWindow = new InfoWindow(mMarker, mMarkerOffset, oneInfo);
                     mInfoWindowManager.toggle(infoWindow);
-                } else if (mInfoList.size() > 1) {
+                } else if (mInfoMap.size() > 1) {
                     //Log.d(TAG, "many user's info window");
+                    Bundle args = new Bundle();
+                    args.putParcelable("location", mOwner.location);
+                    args.putParcelable("address", mOwner.address);
+                    args.putParcelable("rangeLocation", mOwner.rangeLocation);
+                    args.putInt("range", mOwner.range);
+                    MultiInfoFragment multiInfo = new MultiInfoFragment();
+                    multiInfo.setArguments(args);
+                    InfoWindow infoWindow = new InfoWindow(mMarker, mMarkerOffset, multiInfo);
+                    mInfoWindowManager.toggle(infoWindow);
                 }
                 return true;
             }
@@ -440,22 +441,24 @@ class MarkerManager {
                         mMarkerDistance = 1000;
                     } else if (cameraPosition.zoom > 8) {
                         mMarkerDistance = 10000;
-                    } else if (cameraPosition.zoom > 6) {
-                        mMarkerDistance = 100000;
-                    } else if (cameraPosition.zoom > 4) {
+                    } else if (cameraPosition.zoom > 7) {
                         mMarkerDistance = 1000000;
+                    } else if (cameraPosition.zoom > 6) {
+                        mMarkerDistance = 100000000;
+                    } else if (cameraPosition.zoom > 4) {
+                        mMarkerDistance = 2100000000;
                     } else if (cameraPosition.zoom > 2) {
-                        mMarkerDistance = 10000000;
+                        mMarkerDistance = 2100000000;
                     }
                     if (mMarkerDistance == oldDistance) {
                         return;
                     }
                     if (mMarkerDistance < oldDistance) {
-                        //Log.d(TAG, "zoomIn:" + mMarkerDistance);
+                        Log.d(TAG, "zoomIn:" + cameraPosition.zoom + " distance=" + mMarkerDistance);
                         zoomIn();
                     } else {
                         zoomOut();
-                        //Log.d(TAG, "zoomOut:" + mMarkerDistance);
+                        Log.d(TAG, "zoomOut:" + cameraPosition.zoom + " distance=" + mMarkerDistance);
                     }
                 }
             };

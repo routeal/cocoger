@@ -24,8 +24,8 @@ import com.routeal.cocoger.util.Utils;
  * Created by nabe on 9/5/17.
  */
 
-public class SingleInfoFragment extends Fragment implements View.OnClickListener {
-    private final static String TAG = "SingleInfoFragment";
+public class OneInfoFragment extends Fragment implements View.OnClickListener {
+    private final static String TAG = "OneInfoFragment";
 
     private AppCompatTextView mNameTextView;
     private AppCompatImageView mStreetImageView;
@@ -33,9 +33,10 @@ public class SingleInfoFragment extends Fragment implements View.OnClickListener
     private AppCompatButton mPostFacebookButton;
     private AppCompatButton mMoreInfoButton;
     private AppCompatButton mSaveMapButton;
-    private String mId;
+    private String mUid;
     private String mName;
     private Location mLocation;
+    private Location mRangeLocation;
     private Address mAddress;
     private int mRange;
 
@@ -46,9 +47,9 @@ public class SingleInfoFragment extends Fragment implements View.OnClickListener
                              @Nullable Bundle savedInstanceState) {
         Log.d(TAG, "MyInfoFragment: onCreateView");
 
-        View view = inflater.inflate(R.layout.infowindow_me, container, false);
+        View view = inflater.inflate(R.layout.fragment_one_info, container, false);
         mNameTextView = (AppCompatTextView) view.findViewById(R.id.name);
-        mStreetImageView = (AppCompatImageView) view.findViewById(R.id.street_snapshot);
+        mStreetImageView = (AppCompatImageView) view.findViewById(R.id.street_view);
         mAddressTextView = (AppCompatTextView) view.findViewById(R.id.current_address);
         mPostFacebookButton = (AppCompatButton) view.findViewById(R.id.post_facebook);
         mMoreInfoButton = (AppCompatButton) view.findViewById(R.id.more_info);
@@ -60,11 +61,12 @@ public class SingleInfoFragment extends Fragment implements View.OnClickListener
         mSaveMapButton.setOnClickListener(this);
 
         Bundle bundle = getArguments();
-        mId = bundle.getString("id");
+        mUid = bundle.getString("id");
         mName = bundle.getString("name");
         mLocation = bundle.getParcelable("location");
         mAddress = bundle.getParcelable("address");
         mRange = bundle.getInt("range");
+        mRangeLocation = bundle.getParcelable("rangeLocation");
 
         return view;
     }
@@ -126,9 +128,9 @@ public class SingleInfoFragment extends Fragment implements View.OnClickListener
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.street_snapshot:
+            case R.id.street_view:
                 Intent intent = new Intent(getContext(), StreetViewActivity.class);
-                intent.putExtra("location", Utils.getLatLng(mLocation));
+                intent.putExtra("location", Utils.getLatLng(mRangeLocation));
                 intent.putExtra("address", mAddressTextView.getText().toString());
                 startActivity(intent);
                 break;
