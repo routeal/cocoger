@@ -23,11 +23,6 @@ public class FriendListFragment extends Fragment {
 
     private SlidingUpPanelLayout mSlidingUpPanelLayout;
 
-    private FullScreenDialogFragment dialogFragment;
-
-    public FriendListFragment() {
-    }
-
     void setSlidingUpPanelLayout(SlidingUpPanelLayout layout) {
         mSlidingUpPanelLayout = layout;
     }
@@ -40,7 +35,7 @@ public class FriendListFragment extends Fragment {
         addFriend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                dialogFragment = new FullScreenDialogFragment.Builder(getActivity())
+                FullScreenDialogFragment dialogFragment = new FullScreenDialogFragment.Builder(getActivity())
                         .setTitle(R.string.search_users_title)
                         .setConfirmButton(R.string.request_friend)
                         .setContent(UserListFragment.class, new Bundle())

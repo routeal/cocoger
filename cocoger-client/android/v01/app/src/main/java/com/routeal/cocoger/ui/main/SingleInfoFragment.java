@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.location.Address;
 import android.location.Location;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatButton;
@@ -16,15 +15,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.PlaceLikelihood;
-import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
-import com.google.android.gms.location.places.Places;
 import com.routeal.cocoger.R;
-import com.routeal.cocoger.service.MainService;
 import com.routeal.cocoger.util.LoadImage;
 import com.routeal.cocoger.util.Utils;
 
@@ -35,12 +27,12 @@ import com.routeal.cocoger.util.Utils;
 public class SingleInfoFragment extends Fragment implements View.OnClickListener {
     private final static String TAG = "SingleInfoFragment";
 
-    private AppCompatTextView name;
-    private AppCompatImageView street_snapshot;
-    private AppCompatTextView current_address;
-    private AppCompatButton post_facebook;
-    private AppCompatButton more_info;
-    private AppCompatButton save_to_map;
+    private AppCompatTextView mNameTextView;
+    private AppCompatImageView mStreetImageView;
+    private AppCompatTextView mAddressTextView;
+    private AppCompatButton mPostFacebookButton;
+    private AppCompatButton mMoreInfoButton;
+    private AppCompatButton mSaveMapButton;
     private String mId;
     private String mName;
     private Location mLocation;
@@ -55,16 +47,17 @@ public class SingleInfoFragment extends Fragment implements View.OnClickListener
         Log.d(TAG, "MyInfoFragment: onCreateView");
 
         View view = inflater.inflate(R.layout.infowindow_me, container, false);
-        name = (AppCompatTextView) view.findViewById(R.id.name);
-        street_snapshot = (AppCompatImageView) view.findViewById(R.id.street_snapshot);
-        current_address = (AppCompatTextView) view.findViewById(R.id.current_address);
-        post_facebook = (AppCompatButton) view.findViewById(R.id.post_facebook);
-        more_info = (AppCompatButton) view.findViewById(R.id.more_info);
-        save_to_map = (AppCompatButton) view.findViewById(R.id.save_to_map);
-        street_snapshot.setOnClickListener(this);
-        post_facebook.setOnClickListener(this);
-        more_info.setOnClickListener(this);
-        save_to_map.setOnClickListener(this);
+        mNameTextView = (AppCompatTextView) view.findViewById(R.id.name);
+        mStreetImageView = (AppCompatImageView) view.findViewById(R.id.street_snapshot);
+        mAddressTextView = (AppCompatTextView) view.findViewById(R.id.current_address);
+        mPostFacebookButton = (AppCompatButton) view.findViewById(R.id.post_facebook);
+        mMoreInfoButton = (AppCompatButton) view.findViewById(R.id.more_info);
+        mSaveMapButton = (AppCompatButton) view.findViewById(R.id.save_to_map);
+
+        mStreetImageView.setOnClickListener(this);
+        mPostFacebookButton.setOnClickListener(this);
+        mMoreInfoButton.setOnClickListener(this);
+        mSaveMapButton.setOnClickListener(this);
 
         Bundle bundle = getArguments();
         mId = bundle.getString("id");
@@ -86,16 +79,16 @@ public class SingleInfoFragment extends Fragment implements View.OnClickListener
         String url = String.format(getResources().getString(R.string.street_view_image_url),
                 mLocation.getLatitude(), mLocation.getLongitude());
 
-        new LoadImage.LoadImageView(street_snapshot, false).execute(url);
+        new LoadImage.LoadImageView(mStreetImageView, false).execute(url);
 
         if (mName != null) {
-            name.setText(mName);
+            mNameTextView.setText(mName);
         }
 
         if (mAddress != null) {
             String address = Utils.getAddressLine(mAddress, mRange);
             if (address != null) {
-                current_address.setText(address);
+                mAddressTextView.setText(address);
             }
         }
 
@@ -136,6 +129,7 @@ public class SingleInfoFragment extends Fragment implements View.OnClickListener
             case R.id.street_snapshot:
                 Intent intent = new Intent(getContext(), StreetViewActivity.class);
                 intent.putExtra("location", Utils.getLatLng(mLocation));
+                intent.putExtra("address", mAddressTextView.getText().toString());
                 startActivity(intent);
                 break;
             case R.id.post_facebook:

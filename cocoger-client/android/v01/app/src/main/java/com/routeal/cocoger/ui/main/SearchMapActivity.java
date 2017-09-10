@@ -24,6 +24,7 @@ import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.SearchSuggestionsAdapter;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.arlib.floatingsearchview.util.Util;
+import com.franmontiel.fullscreendialog.FullScreenDialogFragment;
 import com.mikepenz.aboutlibraries.Libs;
 import com.mikepenz.aboutlibraries.LibsBuilder;
 import com.routeal.cocoger.MainApplication;
@@ -37,11 +38,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class SearchMapActivity extends MapActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+public class SearchMapActivity extends MapActivity {
     private final static String TAG = "SearchMapActivity";
 
     private FloatingSearchView mSearchView;
+
+    private boolean mFirstTime = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,42 +57,46 @@ public class SearchMapActivity extends MapActivity
         drawer.addDrawerListener(new DrawerLayout.DrawerListener() {
             @Override
             public void onDrawerSlide(View drawerView, float slideOffset) {
-
             }
 
             @Override
             public void onDrawerOpened(View drawerView) {
-                User user = MainApplication.getUser();
-                if (user == null) {
-                    return;
-                }
-
-                TextView textView = (TextView) findViewById(R.id.my_display_name);
-                textView.setText(user.getDisplayName());
-
-                textView = (TextView) findViewById(R.id.my_email);
-                textView.setText(user.getEmail());
-
-                ImageView imageView = (ImageView) findViewById(R.id.my_picture);
-                new LoadImage.LoadImageView(imageView).execute(user.getPicture());
+                setupDrawerHead();
             }
 
             @Override
             public void onDrawerClosed(View drawerView) {
-
             }
 
             @Override
             public void onDrawerStateChanged(int newState) {
-
             }
         });
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
+        navigationView.setNavigationItemSelectedListener(mNavigationItemSelectedListener);
 
         mSearchView.attachNavigationDrawerToMenuButton(drawer);
+    }
 
+    private void setupDrawerHead() {
+        if (mFirstTime) return;
+
+        User user = MainApplication.getUser();
+        if (user == null) {
+            return;
+        }
+
+        mFirstTime = true;
+
+        TextView textView = (TextView) findViewById(R.id.my_display_name);
+        textView.setText(user.getDisplayName());
+
+        textView = (TextView) findViewById(R.id.my_email);
+        textView.setText(user.getEmail());
+
+        ImageView imageView = (ImageView) findViewById(R.id.my_picture);
+        new LoadImage.LoadImageView(imageView).execute(user.getPicture());
     }
 
     private void logout() {
@@ -124,25 +130,44 @@ public class SearchMapActivity extends MapActivity
                 .start(this);
     }
 
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
+    private void showAcccount() {
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        FullScreenDialogFragment dialogFragment;
 
-        } else if (id == R.id.nav_logout) {
-            logout();
-        } else if (id == R.id.nav_open_source) {
-            showOpensourceLibraries();
-        }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
+        dialogFragment = new FullScreenDialogFragment.Builder(this)
+                .setTitle(R.string.search_users_title)
+                .setConfirmButton(R.string.request_friend)
+                .setContent(UserListFragment.class, new Bundle())
+                .build();
+        dialogFragment.show(getSupportFragmentManager(), "user-dialog");
     }
+
+    NavigationView.OnNavigationItemSelectedListener mNavigationItemSelectedListener =
+            new NavigationView.OnNavigationItemSelectedListener() {
+                @Override
+                public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                    // Handle navigation view item clicks here.
+                    int id = item.getItemId();
+
+                    if (id == R.id.nav_account) {
+                        showAcccount();
+                    } else if (id == R.id.nav_settings) {
+                        showAcccount();
+                    } else if (id == R.id.nav_send_voice) {
+                        showAcccount();
+                    } else if (id == R.id.nav_logout) {
+                        logout();
+                    } else if (id == R.id.nav_term_services) {
+                    } else if (id == R.id.nav_privacy_policy) {
+                    } else if (id == R.id.nav_open_source) {
+                        showOpensourceLibraries();
+                    }
+
+                    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+                    drawer.closeDrawer(GravityCompat.START);
+                    return true;
+                }
+            };
 
     private static List<NameSuggestion> sNameSuggestions =
             new ArrayList<>(Arrays.asList(
