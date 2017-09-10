@@ -96,7 +96,7 @@
     <string name="pending">Pending</string>
     <string name="unfriend">Unfriend</string>
     <string name="confirm_unfriend">Do you really want to unfriend %s?</string>
-    <string name="send_voice">Send Your Voice</string>
+    <string name="send_feedback">Send Feedback</string>
     <string name="friend_request">Friend Request</string>
     <string name="friend_request_sent">Your friend request has been sent.</string>
     <string name="friend_request_failed">You have already friend requests from some of your friends.  Those requests have been accepted.  For the other requests, please try again. </string>
@@ -105,4 +105,7 @@
     <string name="confirm_logout">You will not receive friends\' locations and update yours neither.  Do you still want to log out?</string>
     <string name="accept">Accept</string>
     <string name="decline">Decline</string>
+    <string name="settings">Settings</string>
+    <string name="send">Send</string>
+    <string name="your_feedback">Your Feedback</string>
 </resources>

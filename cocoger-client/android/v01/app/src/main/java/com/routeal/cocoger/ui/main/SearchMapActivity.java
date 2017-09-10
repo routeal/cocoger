@@ -130,13 +130,20 @@ public class SearchMapActivity extends MapActivity {
                 .start(this);
     }
 
-    private void showAcccount() {
+    private void showAccount() {
+        Intent intent = new Intent(getApplicationContext(), AccountActivity.class);
+        startActivity(intent);
+    }
 
-        FullScreenDialogFragment dialogFragment;
+    private void showSettings() {
+        Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+        startActivity(intent);
+    }
 
-        dialogFragment = new FullScreenDialogFragment.Builder(this)
-                .setTitle(R.string.search_users_title)
-                .setConfirmButton(R.string.request_friend)
+    private void showYourVoice() {
+        FullScreenDialogFragment dialogFragment = new FullScreenDialogFragment.Builder(this)
+                .setTitle(R.string.your_feedback)
+                .setConfirmButton(R.string.send)
                 .setContent(UserListFragment.class, new Bundle())
                 .build();
         dialogFragment.show(getSupportFragmentManager(), "user-dialog");
@@ -146,25 +153,30 @@ public class SearchMapActivity extends MapActivity {
             new NavigationView.OnNavigationItemSelectedListener() {
                 @Override
                 public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+                    drawer.closeDrawer(GravityCompat.START);
+
                     // Handle navigation view item clicks here.
                     int id = item.getItemId();
 
                     if (id == R.id.nav_account) {
-                        showAcccount();
+                        showAccount();
                     } else if (id == R.id.nav_settings) {
-                        showAcccount();
-                    } else if (id == R.id.nav_send_voice) {
-                        showAcccount();
+                        showSettings();
+                    } else if (id == R.id.nav_send_feedback) {
+                        showYourVoice();
                     } else if (id == R.id.nav_logout) {
                         logout();
                     } else if (id == R.id.nav_term_services) {
                     } else if (id == R.id.nav_privacy_policy) {
+                        Intent intent = new Intent(getApplicationContext(), WebActivity.class);
+                        intent.putExtra("url", "http://www.google.com");
+                        intent.putExtra("title", "Privacy Policy");
+                        startActivity(intent);
                     } else if (id == R.id.nav_open_source) {
                         showOpensourceLibraries();
                     }
 
-                    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-                    drawer.closeDrawer(GravityCompat.START);
                     return true;
                 }
             };

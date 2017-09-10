@@ -70,6 +70,9 @@
             android:theme="@style/LoginTheme"/>
 
         <activity android:name=".ui.main.StreetViewActivity" />
+        <activity android:name=".ui.main.AccountActivity" />
+        <activity android:name=".ui.main.SettingsActivity" />
+        <activity android:name=".ui.main.WebActivity" />
 
         <receiver android:name=".service.OnBootReceiver">
             <intent-filter>
