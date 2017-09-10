@@ -66,6 +66,10 @@ public class FB {
 
     public static final String ACTION_RANGE_REQUEST_DECLINED = "RANGE_REQUEST_DECLINED";
 
+    public static final String NOTIFI_RANGE_REQUETER = "range_requester";
+    public static final String NOTIFI_RANGE = "range";
+    public static final String NOTIFI_FRIEND_INVITE = "friend_invite";
+
     public interface SignInListener {
         void onSuccess();
 
@@ -696,12 +700,12 @@ public class FB {
                 | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
                 | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
         acceptIntent.setAction(ACTION_RANGE_REQUEST_ACCEPTED);
-        acceptIntent.putExtra("range_requester", uid);
-        acceptIntent.putExtra("range", requestRange);
+        acceptIntent.putExtra(NOTIFI_RANGE_REQUETER, uid);
+        acceptIntent.putExtra(NOTIFI_RANGE, requestRange);
 
         Intent declineIntent = new Intent(context, MainReceiver.class);
         declineIntent.setAction(ACTION_RANGE_REQUEST_DECLINED);
-        declineIntent.putExtra("range_requester", uid);
+        declineIntent.putExtra(NOTIFI_RANGE_REQUETER, uid);
 
         String to = LocationRange.toString(requestRange);
         String from = LocationRange.toString(currentRange);
@@ -727,11 +731,11 @@ public class FB {
                         | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
                         | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
                 acceptIntent.setAction(ACTION_FRIEND_REQUEST_ACCEPTED);
-                acceptIntent.putExtra("friend_invite", invite);
+                acceptIntent.putExtra(NOTIFI_FRIEND_INVITE, invite);
 
                 Intent declineIntent = new Intent(context, MainReceiver.class);
                 declineIntent.setAction(ACTION_FRIEND_REQUEST_DECLINED);
-                declineIntent.putExtra("friend_invite", invite);
+                declineIntent.putExtra(NOTIFI_FRIEND_INVITE, invite);
 
                 String content = "You received a friend request from " +
                     inviteUser.getDisplayName() + ".";

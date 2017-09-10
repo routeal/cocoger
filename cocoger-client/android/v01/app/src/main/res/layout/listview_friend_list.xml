@@ -49,6 +49,17 @@
         android:background="?android:selectableItemBackground" />
 
     <ImageButton
+        android:id="@+id/post_facebook"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toLeftOf="@+id/message"
+        android:layout_alignTop="@+id/picture"
+        android:layout_alignBottom="@+id/picture"
+        android:layout_marginRight="16dp"
+        android:src="@drawable/fb_f_logo__blue_20"
+        android:background="?android:selectableItemBackground" />
+
+    <ImageButton
         android:id="@+id/remove"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

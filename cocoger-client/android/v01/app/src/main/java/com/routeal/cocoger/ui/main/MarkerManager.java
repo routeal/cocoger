@@ -18,7 +18,6 @@ import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.util.LoadImage;
-import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Utils;
 
 import java.util.ArrayList;
@@ -92,7 +91,8 @@ class MarkerManager {
                 marker.setPosition(location, address, range);
                 return;
             }
-            if (location.distanceTo(marker.getLocation()) < mMarkerDistance) {
+            Location rangeLocation = Utils.getRangedLocation(location, address, range);
+            if (rangeLocation.distanceTo(marker.getLocation()) < mMarkerDistance) {
                 //Log.d(TAG, "add: combined " + id);
                 marker.addUser(id, name, picture, location, address, range);
                 return;
@@ -108,6 +108,8 @@ class MarkerManager {
     void reposition(String key, Location location, Address address, int range) {
         //Log.d(TAG, "reposition: " + key);
 
+        Location rangeLocation = null;
+
         // remove the marker from the current joined one
         for (Iterator<ComboMarker> ite = mMarkers.iterator(); ite.hasNext(); ) {
             ComboMarker marker = ite.next();
@@ -119,7 +121,10 @@ class MarkerManager {
                     return;
                 } else {
                     // too short to reposition, no need to change at all
-                    if (location.distanceTo(marker.getLocation()) < mMarkerDistance) {
+                    if (rangeLocation == null) {
+                        rangeLocation = Utils.getRangedLocation(location, address, range);
+                    }
+                    if (rangeLocation.distanceTo(marker.getLocation()) < mMarkerDistance) {
                         return;
                     }
                     //Log.d(TAG, "reposition: remove from the current marker");
@@ -153,9 +158,13 @@ class MarkerManager {
 
         if (name == null || picture == null) return;
 
+        if (rangeLocation == null) {
+            rangeLocation = Utils.getRangedLocation(location, address, range);
+        }
+
         // find the nearest marker and join
         for (ComboMarker marker : mMarkers) {
-            if (location.distanceTo(marker.getLocation()) < mMarkerDistance) {
+            if (rangeLocation.distanceTo(marker.getLocation()) < mMarkerDistance) {
                 //Log.d(TAG, "reposition: join to the marker");
                 marker.addUser(key, name, picture, location, address, range);
                 return;
@@ -218,6 +227,7 @@ class MarkerManager {
             String name;
             String picture;
             Location location;
+            Location rangeLocation;
             Address address;
             int range;
         }
@@ -225,7 +235,6 @@ class MarkerManager {
         private List<MarkerInfo> mInfoList = new ArrayList<>();
         private Marker mMarker;
         private MarkerInfo mOwner;
-        private Location mRangeLocation;
         private LoadImage.LoadMarkerImage mImageTask;
 
         ComboMarker(String id, String name, String picture, Location location, Address address, int range) {
@@ -238,13 +247,12 @@ class MarkerManager {
             markerInfo.location = location;
             markerInfo.address = address;
             markerInfo.range = range;
+            markerInfo.rangeLocation = Utils.getRangedLocation(location, address, range);
             mInfoList.add(markerInfo);
 
             // initial owner should be the one who constructs the object
             mOwner = markerInfo;
-            mRangeLocation = getRangedPosition(location, address, range);
-///////
-            MarkerOptions options = new MarkerOptions().position(Utils.getLatLng(mRangeLocation));
+            MarkerOptions options = new MarkerOptions().position(Utils.getLatLng(markerInfo.rangeLocation));
             mMarker = mMap.addMarker(options);
 
             getPicture();
@@ -287,11 +295,7 @@ class MarkerManager {
                     //Log.d(TAG, "removeUser: " + id + " replace the owner");
                     MarkerInfo newOwner = mInfoList.get(0);
                     mOwner = newOwner;
-///////////////////
-                    mRangeLocation =
-                            getRangedPosition(newOwner.location, newOwner.address, newOwner.range);
-
-                    mMarker.setPosition(Utils.getLatLng(mRangeLocation));
+                    mMarker.setPosition(Utils.getLatLng(newOwner.rangeLocation));
                 }
 
                 getPicture();
@@ -330,7 +334,7 @@ class MarkerManager {
                 // owner should not leave
                 if (mOwner == info) continue;
                 // remove from this marker and put into the list argument
-                if (mOwner.location.distanceTo(info.location) > mMarkerDistance) {
+                if (mOwner.rangeLocation.distanceTo(info.rangeLocation) > mMarkerDistance) {
                     //Log.d(TAG, "apart: removed and added " + info.id + " size=" + mInfoList.size());
                     iterator.remove();
                     //Log.d(TAG, "apart: removed and added after size=" + mInfoList.size());
@@ -352,6 +356,7 @@ class MarkerManager {
             markerInfo.location = location;
             markerInfo.address = address;
             markerInfo.range = range;
+            markerInfo.rangeLocation = Utils.getRangedLocation(location, address, range);
             mInfoList.add(markerInfo);
 
             //Log.d(TAG, "addUsr: " + id);
@@ -384,6 +389,8 @@ class MarkerManager {
                     args.putString("name", markerInfo.name);
                     args.putParcelable("location", markerInfo.location);
                     args.putParcelable("address", markerInfo.address);
+                    args.putParcelable("rangeLocation", markerInfo.rangeLocation);
+                    args.putInt("range", markerInfo.range);
                     SingleInfoFragment sif = new SingleInfoFragment();
                     sif.setArguments(args);
                     InfoWindow infoWindow = new InfoWindow(mMarker, mMarkerOffset, sif);
@@ -401,23 +408,15 @@ class MarkerManager {
                 mOwner.location = location;
                 mOwner.address = address;
                 mOwner.range = range;
-////////////////////
-                mRangeLocation =
-                        getRangedPosition(mOwner.location, mOwner.address, mOwner.range);
-                mMarker.setPosition(Utils.getLatLng(mRangeLocation));
+                mOwner.rangeLocation = Utils.getRangedLocation(location, address, range);
+                mMarker.setPosition(Utils.getLatLng(mOwner.rangeLocation));
             }
         }
 
         Location getLocation() {
-            return mRangeLocation;
+            return mOwner.rangeLocation;
         }
 
-        Location getRangedPosition(Location location, Address address, int range) {
-            if (range == LocationRange.CURRENT.range) {
-                return location;
-            }
-            return Utils.getRangedLocation(address, range);
-        }
     }
 
     private GoogleMap.OnCameraMoveListener mCameraMoveListener =

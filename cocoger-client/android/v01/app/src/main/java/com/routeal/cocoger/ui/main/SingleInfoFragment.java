@@ -45,6 +45,7 @@ public class SingleInfoFragment extends Fragment implements View.OnClickListener
     private String mName;
     private Location mLocation;
     private Address mAddress;
+    private int mRange;
 
     @Nullable
     @Override
@@ -70,6 +71,7 @@ public class SingleInfoFragment extends Fragment implements View.OnClickListener
         mName = bundle.getString("name");
         mLocation = bundle.getParcelable("location");
         mAddress = bundle.getParcelable("address");
+        mRange = bundle.getInt("range");
 
         return view;
     }
@@ -91,7 +93,7 @@ public class SingleInfoFragment extends Fragment implements View.OnClickListener
         }
 
         if (mAddress != null) {
-            String address = Utils.getAddressLine(mAddress);
+            String address = Utils.getAddressLine(mAddress, mRange);
             if (address != null) {
                 current_address.setText(address);
             }

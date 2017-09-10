@@ -16,23 +16,27 @@ import java.util.Random;
 
 public class Notifi {
 
+    public final static String ID = "notification_id";
+
     public static void send(String title, String content, String icon, Intent accept, Intent decline) {
         int nid = new Random().nextInt(100);
 
         Context context = MainApplication.getContext();
 
-        accept.putExtra("notification_id", nid);
-        decline.putExtra("notification_id", nid);
+        accept.putExtra(ID, nid);
+        decline.putExtra(ID, nid);
 
-        PendingIntent pendingAcceptIntent = PendingIntent.getActivity(context, 1, accept, PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent pendingAcceptIntent =
+                PendingIntent.getActivity(context, 1, accept, PendingIntent.FLAG_CANCEL_CURRENT);
         NotificationCompat.Action acceptAction = new NotificationCompat.Action.Builder(
                 R.drawable.ic_contacts_black_18dp,
-                "Accept", pendingAcceptIntent).build();
+                context.getResources().getString(R.string.accept), pendingAcceptIntent).build();
 
-        PendingIntent pendingDeclineIntent = PendingIntent.getBroadcast(context, 1, decline, PendingIntent.FLAG_CANCEL_CURRENT);
+        PendingIntent pendingDeclineIntent =
+                PendingIntent.getBroadcast(context, 1, decline, PendingIntent.FLAG_CANCEL_CURRENT);
         NotificationCompat.Action declineAction = new NotificationCompat.Action.Builder(
                 R.drawable.ic_contacts_black_18dp,
-                "Decline", pendingDeclineIntent).build();
+                context.getResources().getString(R.string.decline), pendingDeclineIntent).build();
 
         final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
                 .setSmallIcon(R.drawable.ic_person_pin_circle_white_48dp)

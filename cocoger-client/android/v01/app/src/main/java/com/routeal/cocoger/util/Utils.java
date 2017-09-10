@@ -132,10 +132,8 @@ public class Utils {
         return str;
     }
 
-    public static Location getRangedLocation(Address address, int range) {
+    public static String getAddressLine(Address address, int range) {
         String locationName = "";
-
-        Location location = null;
 
         LocationRange value = LocationRange.to(range);
 
@@ -143,7 +141,7 @@ public class Utils {
             case NONE:
                 break;
             case CURRENT:
-                location = Utils.getLocation(address);
+                locationName = getAddressLine(address);
                 break;
             case SUBTHOROUGHFARE:
                 locationName += address.getSubThoroughfare() + ", ";
@@ -163,6 +161,20 @@ public class Utils {
                 break;
         }
 
+        return locationName;
+    }
+
+    public static Location getRangedLocation(Address address, int range) {
+        Location location = null;
+
+        LocationRange value = LocationRange.to(range);
+
+        if (value == LocationRange.NONE) return null;
+
+        if (value == LocationRange.CURRENT) return Utils.getLocation(address);
+
+        String locationName = Utils.getAddressLine(address, range);
+
         if (!locationName.isEmpty()) {
             Log.d(TAG, "getRangedLocation:" + locationName);
 
@@ -179,6 +191,13 @@ public class Utils {
         }
 
         return location;
+    }
+
+    public static Location getRangedLocation(Location location, Address address, int range) {
+        if (range == LocationRange.CURRENT.range) {
+            return location;
+        }
+        return Utils.getRangedLocation(address, range);
     }
 
     public static Address getAddress(Location location) {

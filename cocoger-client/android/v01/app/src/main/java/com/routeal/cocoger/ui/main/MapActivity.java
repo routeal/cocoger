@@ -259,7 +259,6 @@ public class MapActivity extends MapBaseActivity {
                     Address a = Utils.getAddress(location);
                     mMm.add(key, friend.getDisplayName(), friend.getPicture(), l, a, friend.getRange());
                 }
-
                 @Override
                 public void onFail(String err) {
                 }
