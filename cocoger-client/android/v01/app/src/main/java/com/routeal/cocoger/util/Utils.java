@@ -119,15 +119,15 @@ public class Utils {
         }
         str = "";
         str += (a.getSubThoroughfare() == null) ? "" : a.getSubThoroughfare();
-        if (str.charAt(str.length() - 1) != ' ') str += ", ";
+        if (str.length() > 0 && str.charAt(str.length() - 1) != ' ') str += ", ";
         str += (a.getThoroughfare() == null) ? "" : a.getThoroughfare();
-        if (str.charAt(str.length() - 1) != ' ') str += ", ";
+        if (str.length() > 0 && str.charAt(str.length() - 1) != ' ') str += ", ";
         str += (a.getSubLocality() == null) ? "" : a.getSubLocality();
-        if (str.charAt(str.length() - 1) != ' ') str += ", ";
+        if (str.length() > 0 && str.charAt(str.length() - 1) != ' ') str += ", ";
         str += (a.getLocality() == null) ? "" : a.getLocality();
-        if (str.charAt(str.length() - 1) != ' ') str += ", ";
+        if (str.length() > 0 && str.charAt(str.length() - 1) != ' ') str += ", ";
         str += (a.getAdminArea() == null) ? "" : a.getAdminArea();
-        if (str.charAt(str.length() - 1) != ' ') str += ", ";
+        if (str.length() > 0 && str.charAt(str.length() - 1) != ' ') str += ", ";
         str += (a.getPostalCode() == null) ? "" : a.getPostalCode();
         return str;
     }

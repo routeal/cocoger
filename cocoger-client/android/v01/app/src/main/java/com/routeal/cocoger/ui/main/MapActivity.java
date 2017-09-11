@@ -176,14 +176,16 @@ public class MapActivity extends MapBaseActivity {
                 if (location == null || address == null) {
                     return;
                 }
-                // first time only
-                if (mLastKnownLocation == null) {
-                    Log.d(TAG, "Receive Last_location_update: setupMarkers");
-                    setupMarkers(location, address);
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                            Utils.getLatLng(location), DEFAULT_ZOOM));
-                } else {
-                    mMm.reposition(FB.getUid(), location, address, LocationRange.CURRENT.range);
+                if (mMap != null) {
+                    // first time only
+                    if (mLastKnownLocation == null) {
+                        Log.d(TAG, "Receive Last_location_update: setupMarkers");
+                        setupMarkers(location, address);
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                                Utils.getLatLng(location), DEFAULT_ZOOM));
+                    } else {
+                        mMm.reposition(FB.getUid(), location, address, LocationRange.CURRENT.range);
+                    }
                 }
                 mLastKnownLocation = location;
             } else if (intent.getAction().equals(MapActivity.USER_AVAILABLE)) {
@@ -259,6 +261,7 @@ public class MapActivity extends MapBaseActivity {
                     Address a = Utils.getAddress(location);
                     mMm.add(key, friend.getDisplayName(), friend.getPicture(), l, a, friend.getRange());
                 }
+
                 @Override
                 public void onFail(String err) {
                 }

@@ -10,6 +10,7 @@ import android.support.v4.app.Fragment;
 
 import com.appolica.interactiveinfowindow.InfoWindow;
 import com.appolica.interactiveinfowindow.InfoWindowManager;
+import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -34,16 +35,6 @@ class ComboMarker implements Parcelable {
         mMarkerOffset = new InfoWindow.MarkerSpecification(offsetX, offsetY);
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-
-    }
-    
     class MarkerInfo {
         String id;
         String name;
@@ -59,6 +50,16 @@ class ComboMarker implements Parcelable {
     private MarkerInfo mOwner;
     private LoadImage.LoadMarkerImage mImageTask;
     private InfoWindowManager mInfoWindowManager;
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+
+    }
 
     ComboMarker(GoogleMap map, InfoWindowManager infoWindowManager, String id, String name, String picture, Location location, Address address, int range) {
         //Log.d(TAG, "ComboMarker: new " + id);
@@ -101,7 +102,7 @@ class ComboMarker implements Parcelable {
 
     boolean removeUser(String id) {
         // if there is only one in the marker, just remove the marker
-        if (mInfoMap.size() == 1 && mOwner.id.equals(id)) {
+        if (mInfoMap.size() == 1) {
             //Log.d(TAG, "removeUser: " + id + " removed the marker");
             mMarker.remove();
             return true;
@@ -137,7 +138,7 @@ class ComboMarker implements Parcelable {
     // copy all users in the argument
     void copy(ComboMarker m) {
         //Log.d(TAG, "copy: all children from " + m.mOwner.id);
-        for (Object value : mInfoMap.values()) {
+        for (Object value : m.mInfoMap.values()) {
             MarkerInfo info = (MarkerInfo) value;
             addUser(info.id, info.name, info.picture, info.location, info.address, info.range);
         }
@@ -204,6 +205,8 @@ class ComboMarker implements Parcelable {
         mImageTask.execute(pictures);
     }
 
+    private InfoWindow mInfoWindow;
+
     boolean onMarkerClick(Marker marker) {
         if (marker.getId().compareTo(mMarker.getId()) == 0) {
             Fragment infoFragment = null;
@@ -216,12 +219,19 @@ class ComboMarker implements Parcelable {
                 Bundle args = new Bundle();
                 args.putParcelable("marker", this);
                 infoFragment.setArguments(args);
-                InfoWindow infoWindow = new InfoWindow(mMarker, mMarkerOffset, infoFragment);
-                mInfoWindowManager.toggle(infoWindow);
+                mInfoWindow = new InfoWindow(mMarker, mMarkerOffset, infoFragment);
+                mInfoWindowManager.show(mInfoWindow, true);
             }
             return true;
         }
         return false;
+    }
+
+    void hide() {
+        if (mInfoWindow != null) {
+            mInfoWindowManager.hide(mInfoWindow, true);
+            mInfoWindow = null;
+        }
     }
 
     void setPosition(Location location, Address address, int range) {

@@ -4,10 +4,7 @@
     android:layout_height="wrap_content"
     android:descendantFocusability="blocksDescendants"
     android:orientation="vertical"
-    android:paddingBottom="2dp"
-    android:paddingLeft="2dp"
-    android:paddingRight="2dp"
-    android:paddingTop="2dp">
+    android:padding="2dp">
 
     <ImageView
         android:id="@+id/picture"
@@ -31,7 +28,7 @@
         android:textSize="14dp" />
 
     <TextView
-        android:id="@+id/location"
+        android:id="@+id/range"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBottom="@+id/picture"

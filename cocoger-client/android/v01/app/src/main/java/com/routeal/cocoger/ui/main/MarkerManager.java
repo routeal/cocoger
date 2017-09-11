@@ -167,13 +167,13 @@ class MarkerManager {
     // apart users from one marker when the distance between them is
     // bigger than the current marker distance
     private void zoomIn() {
-        //Log.d(TAG, "zoomIn");
+        Log.d(TAG, "zoomIn");
         Map<String, ComboMarker.MarkerInfo> aparted = new HashMap<>();
 
         ComboMarker[] markers = mMarkers.toArray(new ComboMarker[0]);
         for (int i = 0; i < markers.length; i++) {
             ComboMarker m = markers[i];
-            //Log.d(TAG, "zoomIn: apart=" + i + " for " + m.mOwner.id + " size=" + m.size());
+            Log.d(TAG, "zoomIn: apart=" + i + " for " + m.getOwner().id + " size=" + m.size());
             m.apart(aparted, mMarkerDistance);
         }
 
@@ -185,7 +185,22 @@ class MarkerManager {
         }
     }
 
-    // combine the markers when the distance is smaller than the current marker distance
+    private void combineMarkers(ComboMarker n, ComboMarker p) {
+        Location pl = p.getLocation();
+        Location nl = n.getLocation();
+        float distance = pl.distanceTo(nl);
+        Log.d(TAG, "zoom out: p=" + Utils.getAddressLine(p.getOwner().address));
+        Log.d(TAG, "zoom out: n=" + Utils.getAddressLine(n.getOwner().address));
+        Log.d(TAG, "zoom out: distance= " + distance + " max distance=" + mMarkerDistance);
+        if (pl.distanceTo(nl) < mMarkerDistance) {
+            Log.d(TAG, "zoom out: removed and added to the other");
+            n.copy(p);
+            p.remove();
+            mMarkers.remove(p);
+        }
+    }
+
+    // combineMarkers the markers when the distance is smaller than the current marker distance
     private void zoomOut() {
         if (mMarkers.size() <= 1) return;
 
@@ -194,16 +209,16 @@ class MarkerManager {
         // initial marker
         ComboMarker p = markers[0];
 
-        for (int i = 1; i < markers.length; i++) {
-            ComboMarker n = markers[i];
-            Location pl = p.getLocation();
-            Location nl = n.getLocation();
-            if (pl.distanceTo(nl) < mMarkerDistance) {
-                //Log.d(TAG, "zoom out: removed and added to the other");
-                n.copy(p);
-                p.remove();
-                mMarkers.remove(p);
-            }
+        // combine a and b if there are two markers
+        if (mMarkers.size() == 2) {
+            combineMarkers(markers[1], p);
+            return;
+        }
+
+        // if there are more than tree markers, combination is (a,b), (b,c), and (a,c)
+        for (int i = 1; i <= markers.length; i++) {
+            ComboMarker n = markers[i % markers.length];
+            combineMarkers(n, p);
             p = n;
         }
     }

@@ -144,9 +144,11 @@ public class OneInfoFragment extends Fragment implements View.OnClickListener {
                 break;
             case R.id.more_info:
                 Toast.makeText(getContext(), "moreinfo", Toast.LENGTH_SHORT).show();
+                mMarker.hide();
                 break;
             case R.id.save_to_map:
                 Toast.makeText(getContext(), "savetomap", Toast.LENGTH_SHORT).show();
+                mMarker.hide();
                 break;
         }
     }

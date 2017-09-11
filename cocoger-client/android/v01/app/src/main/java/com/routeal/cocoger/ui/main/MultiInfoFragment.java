@@ -20,6 +20,7 @@ import android.widget.TextView;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.util.LoadImage;
+import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Utils;
 
 import java.util.ArrayList;
@@ -47,15 +48,19 @@ public class MultiInfoFragment extends Fragment implements View.OnClickListener 
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_multi_info, container, false);
 
+/*
         mStreetImageView = (AppCompatImageView) view.findViewById(R.id.street_view);
         mAddressTextView = (AppCompatTextView) view.findViewById(R.id.current_address);
         mMoreInfoButton = (AppCompatButton) view.findViewById(R.id.more_info);
         mSaveMapButton = (AppCompatButton) view.findViewById(R.id.save_to_map);
+*/
         mFriendList = (RecyclerView) view.findViewById(R.id.friend_list);
 
+/*
         mStreetImageView.setOnClickListener(this);
         mMoreInfoButton.setOnClickListener(this);
         mSaveMapButton.setOnClickListener(this);
+*/
 
         Bundle bundle = getArguments();
         mMarker = bundle.getParcelable("marker");
@@ -68,6 +73,7 @@ public class MultiInfoFragment extends Fragment implements View.OnClickListener 
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+/*
         String url = String.format(getResources().getString(R.string.street_view_image_url),
                 mMarkerInfo.rangeLocation.getLatitude(), mMarkerInfo.rangeLocation.getLongitude());
 
@@ -79,13 +85,22 @@ public class MultiInfoFragment extends Fragment implements View.OnClickListener 
                 mAddressTextView.setText(address);
             }
         }
+*/
 
         Map<String, ComboMarker.MarkerInfo> markerInfoMap = mMarker.getInfo();
         if (markerInfoMap != null) {
             List<ComboMarker.MarkerInfo> markerInfos = new ArrayList<>(markerInfoMap.values());
+            /* just for testing
+            for (int j = 0; j < 3; j++) {
+                int size = markerInfos.size();
+                for (int i = 0; i < size; i++) {
+                    markerInfos.add(markerInfos.get(i));
+                }
+            }
+            */
             if (markerInfos.size() > 0) {
                 MarkerAdapter adapter = new MarkerAdapter(markerInfos);
-                mFriendList.setLayoutManager(new LinearLayoutManager(getContext()));
+                mFriendList.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
                 mFriendList.setHasFixedSize(true);
                 mFriendList.setAdapter(adapter);
             }
@@ -103,11 +118,13 @@ public class MultiInfoFragment extends Fragment implements View.OnClickListener 
         public class ViewHolder extends RecyclerView.ViewHolder {
             ImageView picture;
             TextView name;
+            TextView range;
 
             public ViewHolder(View itemView) {
                 super(itemView);
                 picture = (ImageView) itemView.findViewById(R.id.picture);
                 name = (TextView) itemView.findViewById(R.id.name);
+                range = (TextView) itemView.findViewById(R.id.range);
 
                 picture.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -118,6 +135,8 @@ public class MultiInfoFragment extends Fragment implements View.OnClickListener 
                         intent.setAction("show_friend");
                         intent.putExtra("id", info.id);
                         LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+
+                        mMarker.hide();
                     }
                 });
 
@@ -130,6 +149,8 @@ public class MultiInfoFragment extends Fragment implements View.OnClickListener 
                         intent.setAction("show_friend");
                         intent.putExtra("id", info.id);
                         LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
+
+                        mMarker.hide();
                     }
                 });
             }
@@ -146,6 +167,7 @@ public class MultiInfoFragment extends Fragment implements View.OnClickListener 
             ComboMarker.MarkerInfo info = mMarkerInfoList.get(position);
             new LoadImage.LoadImageView(holder.picture).execute(info.picture);
             holder.name.setText(info.name);
+            holder.range.setText(LocationRange.toString(info.range));
         }
 
         @Override
