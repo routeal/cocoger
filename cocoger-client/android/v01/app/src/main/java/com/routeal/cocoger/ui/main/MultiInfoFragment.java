@@ -19,6 +19,7 @@ import android.widget.TextView;
 
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.util.LoadImage;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Utils;
@@ -167,7 +168,12 @@ public class MultiInfoFragment extends Fragment implements View.OnClickListener 
             ComboMarker.MarkerInfo info = mMarkerInfoList.get(position);
             new LoadImage.LoadImageView(holder.picture).execute(info.picture);
             holder.name.setText(info.name);
-            holder.range.setText(LocationRange.toString(info.range));
+            String uid = FB.getUid();
+            if (uid != null && uid.equals(info.id)) {
+                //holder.range.setText("me");
+            } else {
+                holder.range.setText(LocationRange.toString(info.range));
+            }
         }
 
         @Override

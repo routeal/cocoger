@@ -30,7 +30,7 @@ class MarkerManager {
 
     private GoogleMap mMap;
 
-    private float mMarkerDistance = 10;
+    private double mMarkerDistance = 10;
 
     MarkerManager(GoogleMap map, InfoWindowManager infoWindowManager) {
         mMap = map;
@@ -78,7 +78,7 @@ class MarkerManager {
                 return;
             }
             Location rangeLocation = Utils.getRangedLocation(location, address, range);
-            if (rangeLocation.distanceTo(marker.getLocation()) < mMarkerDistance) {
+            if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
                 //Log.d(TAG, "add: combined " + id);
                 marker.addUser(id, name, picture, location, address, range);
                 return;
@@ -111,7 +111,7 @@ class MarkerManager {
                     if (rangeLocation == null) {
                         rangeLocation = Utils.getRangedLocation(location, address, range);
                     }
-                    if (rangeLocation.distanceTo(marker.getLocation()) < mMarkerDistance) {
+                    if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
                         return;
                     }
                     //Log.d(TAG, "reposition: remove from the current marker");
@@ -151,7 +151,7 @@ class MarkerManager {
 
         // find the nearest marker and join
         for (ComboMarker marker : mMarkers) {
-            if (rangeLocation.distanceTo(marker.getLocation()) < mMarkerDistance) {
+            if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
                 //Log.d(TAG, "reposition: join to the marker");
                 marker.addUser(key, name, picture, location, address, range);
                 return;
@@ -188,11 +188,11 @@ class MarkerManager {
     private void combineMarkers(ComboMarker n, ComboMarker p) {
         Location pl = p.getLocation();
         Location nl = n.getLocation();
-        float distance = pl.distanceTo(nl);
+        double distance = Utils.distanceTo(pl, nl);
         Log.d(TAG, "zoom out: p=" + Utils.getAddressLine(p.getOwner().address));
         Log.d(TAG, "zoom out: n=" + Utils.getAddressLine(n.getOwner().address));
         Log.d(TAG, "zoom out: distance= " + distance + " max distance=" + mMarkerDistance);
-        if (pl.distanceTo(nl) < mMarkerDistance) {
+        if (distance < mMarkerDistance) {
             Log.d(TAG, "zoom out: removed and added to the other");
             n.copy(p);
             p.remove();
@@ -228,30 +228,36 @@ class MarkerManager {
                 @Override
                 public void onCameraMove() {
                     CameraPosition cameraPosition = mMap.getCameraPosition();
-                    float oldDistance = mMarkerDistance;
+                    double oldDistance = mMarkerDistance;
                     ////Log.d(TAG, "Zoom: " + cameraPosition.zoom + " old:" + oldDistance);
                     if (cameraPosition.zoom > 20) {
                         mMarkerDistance = 0;
                     } else if (cameraPosition.zoom > 18) {
-                        mMarkerDistance = 10;
+                        mMarkerDistance = 0.010;
                     } else if (cameraPosition.zoom > 16) {
-                        mMarkerDistance = 100;
+                        mMarkerDistance = 0.100;
                     } else if (cameraPosition.zoom > 14) {
-                        mMarkerDistance = 300;
+                        mMarkerDistance = 0.300;
                     } else if (cameraPosition.zoom > 12) {
-                        mMarkerDistance = 500;
+                        mMarkerDistance = 1;
+                    } else if (cameraPosition.zoom > 11) {
+                        mMarkerDistance = 2; // 1km
                     } else if (cameraPosition.zoom > 10) {
-                        mMarkerDistance = 1000;
+                        mMarkerDistance = 5; // 1km
                     } else if (cameraPosition.zoom > 8) {
-                        mMarkerDistance = 10000;
+                        mMarkerDistance = 10; // 10km
                     } else if (cameraPosition.zoom > 7) {
-                        mMarkerDistance = 1000000;
+                        mMarkerDistance = 50; // 10
                     } else if (cameraPosition.zoom > 6) {
-                        mMarkerDistance = 100000000;
+                        mMarkerDistance = 100;
                     } else if (cameraPosition.zoom > 4) {
-                        mMarkerDistance = 2100000000;
+                        mMarkerDistance = 200;
+                    } else if (cameraPosition.zoom > 3) {
+                        mMarkerDistance = 300;
                     } else if (cameraPosition.zoom > 2) {
-                        mMarkerDistance = 2100000000;
+                        mMarkerDistance = 500;
+                    } else if (cameraPosition.zoom > 1) {
+                        mMarkerDistance = 1000;
                     }
                     if (mMarkerDistance == oldDistance) {
                         return;

@@ -145,7 +145,7 @@ class ComboMarker implements Parcelable {
     }
 
     // apart the users in the marker when the distance is longer
-    void apart(Map<String, MarkerInfo> aparted, float minDistance) {
+    void apart(Map<String, MarkerInfo> aparted, double minDistance) {
         //Log.d(TAG, "apart: " + mOwner.id);
         // no need to apart
         if (mInfoMap.size() == 1) {
@@ -158,7 +158,7 @@ class ComboMarker implements Parcelable {
             // owner should not leave
             if (mOwner == info) continue;
             // remove from this marker and put into the list argument
-            if (mOwner.rangeLocation.distanceTo(info.rangeLocation) > minDistance) {
+            if (Utils.distanceTo(mOwner.rangeLocation, info.rangeLocation) > minDistance) {
                 //Log.d(TAG, "apart: removed and added " + info.id + " size=" + mInfoList.size());
                 it.remove();
                 //Log.d(TAG, "apart: removed and added after size=" + mInfoList.size());
