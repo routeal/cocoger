@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 
 import com.appolica.interactiveinfowindow.InfoWindow;
 import com.appolica.interactiveinfowindow.InfoWindowManager;
@@ -24,6 +25,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 class ComboMarker implements Parcelable {
+    private final static String TAG = "ComboMarker";
 
     private static InfoWindow.MarkerSpecification mMarkerOffset;
 
@@ -115,9 +117,10 @@ class ComboMarker implements Parcelable {
             // replace the owner when the owner is removed
             if (mOwner.id.equals(id)) {
                 //Log.d(TAG, "removeUser: " + id + " replace the owner");
-                MarkerInfo newOwner = mInfoMap.get(0);
-                mOwner = newOwner;
-                mMarker.setPosition(Utils.getLatLng(newOwner.rangeLocation));
+                Iterator<Map.Entry<String, MarkerInfo>> it = mInfoMap.entrySet().iterator();
+                Map.Entry<String, MarkerInfo> entry = it.next();
+                mOwner = entry.getValue();
+                mMarker.setPosition(Utils.getLatLng(mOwner.rangeLocation));
             }
 
             getPicture();
@@ -137,10 +140,10 @@ class ComboMarker implements Parcelable {
 
     // copy all users in the argument
     void copy(ComboMarker m) {
-        //Log.d(TAG, "copy: all children from " + m.mOwner.id);
+        Log.d(TAG, "copy: all children from " + m.mOwner.id);
         for (Object value : m.mInfoMap.values()) {
             MarkerInfo info = (MarkerInfo) value;
-            addUser(info.id, info.name, info.picture, info.location, info.address, info.range);
+            addUser(info);
         }
     }
 
@@ -166,6 +169,14 @@ class ComboMarker implements Parcelable {
                 aparted.put(info.id, info);
             }
         }
+    }
+
+    void addUser(MarkerInfo info) {
+        boolean hasInfo = contains(info.id);
+        if (hasInfo) return;
+        mInfoMap.put(info.id, info);
+        Log.d(TAG, "addUsr: " + info.id);
+        getPicture();
     }
 
     void addUser(String id, String name, String picture,

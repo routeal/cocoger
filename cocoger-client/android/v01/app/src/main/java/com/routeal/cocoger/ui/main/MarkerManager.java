@@ -185,7 +185,8 @@ class MarkerManager {
         }
     }
 
-    private void combineMarkers(ComboMarker n, ComboMarker p) {
+    private boolean combineMarkers(ComboMarker n, ComboMarker p) {
+        if (n == p) return false;
         Location pl = p.getLocation();
         Location nl = n.getLocation();
         double distance = Utils.distanceTo(pl, nl);
@@ -196,8 +197,9 @@ class MarkerManager {
             Log.d(TAG, "zoom out: removed and added to the other");
             n.copy(p);
             p.remove();
-            mMarkers.remove(p);
+            return true;
         }
+        return false;
     }
 
     // combineMarkers the markers when the distance is smaller than the current marker distance
@@ -206,20 +208,37 @@ class MarkerManager {
 
         ComboMarker[] markers = mMarkers.toArray(new ComboMarker[0]);
 
-        // initial marker
         ComboMarker p = markers[0];
 
-        // combine a and b if there are two markers
-        if (mMarkers.size() == 2) {
-            combineMarkers(markers[1], p);
-            return;
+        // compare two markers one by one from 0 to n
+        Log.d(TAG, "zoom out: compare from 0 to n");
+        for (int i = 1; i < markers.length; i++) {
+            ComboMarker n = markers[i];
+            if (combineMarkers(n, p)) {
+                markers[i-1] = null;
+                mMarkers.remove(p);
+            }
+            p = n;
         }
 
-        // if there are more than tree markers, combination is (a,b), (b,c), and (a,c)
-        for (int i = 1; i <= markers.length; i++) {
-            ComboMarker n = markers[i % markers.length];
-            combineMarkers(n, p);
-            p = n;
+        // compare the first and last ones
+        if (markers.length > 2) {
+            int i = markers.length - 1;
+            int j = 0;
+
+            Log.d(TAG, "zoom out: compare first and last");
+
+            // find the first one
+            for (; j < markers.length; j++) {
+                if (markers[j] != null) break;
+            }
+
+            if (i != j && markers[j] != null && markers[i] != null) {
+                // 2nd arg will be removed
+                if (combineMarkers(markers[j], markers[i])) {
+                    mMarkers.remove(markers[i]);
+                }
+            }
         }
     }
 

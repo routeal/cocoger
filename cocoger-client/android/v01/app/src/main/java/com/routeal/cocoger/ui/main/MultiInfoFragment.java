@@ -1,5 +1,6 @@
 package com.routeal.cocoger.ui.main;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -14,6 +15,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -121,40 +124,89 @@ public class MultiInfoFragment extends Fragment implements View.OnClickListener 
             TextView name;
             TextView range;
 
+            View.OnClickListener listener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ComboMarker.MarkerInfo info = mMarkerInfoList.get(getLayoutPosition());
+                    showDialog(info);
+                    mMarker.hide();
+                }
+            };
+
             public ViewHolder(View itemView) {
                 super(itemView);
                 picture = (ImageView) itemView.findViewById(R.id.picture);
                 name = (TextView) itemView.findViewById(R.id.name);
                 range = (TextView) itemView.findViewById(R.id.range);
-
-                picture.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Log.d(TAG, "picture onclick");
-                        ComboMarker.MarkerInfo info = mMarkerInfoList.get(getLayoutPosition());
-                        Intent intent = new Intent(MainApplication.getContext(), PanelMapActivity.class);
-                        intent.setAction("show_friend");
-                        intent.putExtra("id", info.id);
-                        LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
-
-                        mMarker.hide();
-                    }
-                });
-
-                name.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Log.d(TAG, "name onclick");
-                        ComboMarker.MarkerInfo info = mMarkerInfoList.get(getLayoutPosition());
-                        Intent intent = new Intent(getContext(), PanelMapActivity.class);
-                        intent.setAction("show_friend");
-                        intent.putExtra("id", info.id);
-                        LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
-
-                        mMarker.hide();
-                    }
-                });
+                picture.setOnClickListener(listener);
+                name.setOnClickListener(listener);
+                range.setOnClickListener(listener);
             }
+        }
+
+        void showDialog(final ComboMarker.MarkerInfo info) {
+            final Dialog dialog = new Dialog(getActivity());
+            dialog.setContentView(R.layout.fragment_one_info);
+            //dialog.setCancelable(true);
+            dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+
+            AppCompatTextView mNameTextView = (AppCompatTextView) dialog.findViewById(R.id.name);
+            AppCompatImageView mStreetImageView = (AppCompatImageView) dialog.findViewById(R.id.street_view);
+            ImageButton mHistoryButton = (ImageButton) dialog.findViewById(R.id.location_history);
+            ImageButton mSendMessageButton = (ImageButton) dialog.findViewById(R.id.send_message);
+            ImageButton mSendFacebookButton = (ImageButton) dialog.findViewById(R.id.send_facebook);
+            AppCompatTextView mAddressTextView = (AppCompatTextView) dialog.findViewById(R.id.current_address);
+            //AppCompatButton mPostFacebookButton = (AppCompatButton) dialog.findViewById(R.id.post_facebook);
+            AppCompatButton mMoreInfoButton = (AppCompatButton) dialog.findViewById(R.id.more_info);
+            AppCompatButton mSaveMapButton = (AppCompatButton) dialog.findViewById(R.id.save_to_map);
+
+            if (FB.isCurrentUser(info.id)) {
+                mSendMessageButton.setVisibility(View.GONE);
+                mHistoryButton.setVisibility(View.GONE);
+                mSendFacebookButton.setVisibility(View.VISIBLE);
+            } else {
+                mSendMessageButton.setVisibility(View.VISIBLE);
+                mHistoryButton.setVisibility(View.GONE);
+                mSendFacebookButton.setVisibility(View.VISIBLE);
+            }
+
+            String url = String.format(getResources().getString(R.string.street_view_image_url),
+                    info.rangeLocation.getLatitude(), info.rangeLocation.getLongitude());
+
+            new LoadImage.LoadImageView(mStreetImageView, false).execute(url);
+
+            mNameTextView.setText(info.name);
+
+            final String addressText = Utils.getAddressLine(info.address, info.range);
+
+            mAddressTextView.setText(addressText);
+
+            mMoreInfoButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dialog.dismiss();
+                }
+            });
+
+            mSaveMapButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dialog.dismiss();
+                }
+            });
+
+            mStreetImageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(dialog.getContext(), StreetViewActivity.class);
+                    intent.putExtra("location", Utils.getLatLng(info.rangeLocation));
+                    intent.putExtra("address", addressText);
+                    dialog.getContext().startActivity(intent);
+                    dialog.dismiss();
+                }
+            });
+
+            dialog.show();
         }
 
         public MarkerAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -171,6 +223,7 @@ public class MultiInfoFragment extends Fragment implements View.OnClickListener 
             String uid = FB.getUid();
             if (uid != null && uid.equals(info.id)) {
                 //holder.range.setText("me");
+                holder.range.setText("");
             } else {
                 holder.range.setText(LocationRange.toString(info.range));
             }

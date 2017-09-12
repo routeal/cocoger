@@ -611,7 +611,7 @@ public class FB {
         fDb.setValue(myInfo);
     }
 
-    public static void declineFriendRequest(String invite) throws Exception {
+    public static void declineFriendRequest(String invite) {
         // delete the invite and invitee from the database
         String invitee = getUid();
 
@@ -620,7 +620,7 @@ public class FB {
         userDb.child(invite).child("invites").child(invitee).removeValue();
     }
 
-    public static void acceptRangeRequest(String requester, int range) throws Exception {
+    public static void acceptRangeRequest(String requester, int range) {
         String responder = getUid();
 
         DatabaseReference resDb = getFriendDatabaseReference(responder, requester);
@@ -631,7 +631,7 @@ public class FB {
         reqDb.child("range").setValue(range);
     }
 
-    public static void declineRangeRequest(String requester) throws Exception {
+    public static void declineRangeRequest(String requester) {
         String responder = getUid(); // myself
 
         DatabaseReference resDb = getFriendDatabaseReference(responder, requester);

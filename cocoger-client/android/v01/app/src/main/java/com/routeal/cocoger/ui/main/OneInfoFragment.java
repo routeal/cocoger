@@ -1,5 +1,6 @@
 package com.routeal.cocoger.ui.main;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Location;
@@ -13,10 +14,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.franmontiel.fullscreendialog.FullScreenDialogFragment;
 import com.google.android.gms.location.places.Place;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.util.LoadImage;
 import com.routeal.cocoger.util.Utils;
 
@@ -30,7 +34,9 @@ public class OneInfoFragment extends Fragment implements View.OnClickListener {
     private AppCompatTextView mNameTextView;
     private AppCompatImageView mStreetImageView;
     private AppCompatTextView mAddressTextView;
-    private AppCompatButton mPostFacebookButton;
+    private ImageButton mHistoryButton;
+    private ImageButton mSendMessageButton;
+    private ImageButton mSendFacebookButton;
     private AppCompatButton mMoreInfoButton;
     private AppCompatButton mSaveMapButton;
     private String mUid;
@@ -48,20 +54,24 @@ public class OneInfoFragment extends Fragment implements View.OnClickListener {
     public View onCreateView(LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        Log.d(TAG, "MyInfoFragment: onCreateView");
+        Log.d(TAG, "OneInfoFragment: onCreateView");
 
         View view = inflater.inflate(R.layout.fragment_one_info, container, false);
         mNameTextView = (AppCompatTextView) view.findViewById(R.id.name);
         mStreetImageView = (AppCompatImageView) view.findViewById(R.id.street_view);
+        mHistoryButton = (ImageButton) view.findViewById(R.id.location_history);
+        mSendMessageButton = (ImageButton) view.findViewById(R.id.send_message);
+        mSendFacebookButton = (ImageButton) view.findViewById(R.id.send_facebook);
         mAddressTextView = (AppCompatTextView) view.findViewById(R.id.current_address);
-        mPostFacebookButton = (AppCompatButton) view.findViewById(R.id.post_facebook);
         mMoreInfoButton = (AppCompatButton) view.findViewById(R.id.more_info);
         mSaveMapButton = (AppCompatButton) view.findViewById(R.id.save_to_map);
 
         mStreetImageView.setOnClickListener(this);
-        mPostFacebookButton.setOnClickListener(this);
         mMoreInfoButton.setOnClickListener(this);
         mSaveMapButton.setOnClickListener(this);
+        mHistoryButton.setOnClickListener(this);
+        mSendMessageButton.setOnClickListener(this);
+        mSendFacebookButton.setOnClickListener(this);
 
         Bundle bundle = getArguments();
         mMarker = bundle.getParcelable("marker");
@@ -73,6 +83,16 @@ public class OneInfoFragment extends Fragment implements View.OnClickListener {
         mAddress = mMarkerInfo.address;
         mRange = mMarkerInfo.range;
         mRangeLocation = mMarkerInfo.rangeLocation;
+
+        if (FB.isCurrentUser(mUid)) {
+            mSendMessageButton.setVisibility(View.GONE);
+            mHistoryButton.setVisibility(View.GONE);
+            mSendFacebookButton.setVisibility(View.VISIBLE);
+        } else {
+            mSendMessageButton.setVisibility(View.VISIBLE);
+            mHistoryButton.setVisibility(View.GONE);
+            mSendFacebookButton.setVisibility(View.VISIBLE);
+        }
 
         return view;
     }
@@ -148,6 +168,15 @@ public class OneInfoFragment extends Fragment implements View.OnClickListener {
                 break;
             case R.id.save_to_map:
                 Toast.makeText(getContext(), "savetomap", Toast.LENGTH_SHORT).show();
+                mMarker.hide();
+                break;
+            case R.id.location_history:
+                FullScreenDialogFragment dialogFragment = new FullScreenDialogFragment.Builder(getActivity())
+                        .setTitle(R.string.location_sharing)
+                        .setConfirmButton(R.string.share)
+                        .setContent(HistoryFragment.class, new Bundle())
+                        .build();
+                dialogFragment.show(getActivity().getSupportFragmentManager(), "user-dialog");
                 mMarker.hide();
                 break;
         }
