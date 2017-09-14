@@ -53,16 +53,43 @@ public class PanelMapActivity extends SearchMapActivity {
             }
         });
 
-        FriendListFragment friendFragment = new FriendListFragment();
-        friendFragment.setSlidingUpPanelLayout(mLayout);
-
         ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
-        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
-        adapter.addFragment(new NotifiListFragment(), null);
-        adapter.addFragment(friendFragment, null);
-        adapter.addFragment(new GroupListFragment(), null);
+        final ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+
+        PagerFragment pagerFragment = new NotifiListFragment();
+        pagerFragment.setSlidingUpPanelLayout(mLayout);
+        pagerFragment.setViewPager(viewPager);
+        adapter.addFragment(pagerFragment, null);
+
+        pagerFragment = new FriendListFragment();
+        pagerFragment.setSlidingUpPanelLayout(mLayout);
+        pagerFragment.setViewPager(viewPager);
+        adapter.addFragment(pagerFragment, null);
+
+        pagerFragment = new GroupListFragment();
+        pagerFragment.setSlidingUpPanelLayout(mLayout);
+        pagerFragment.setViewPager(viewPager);
+        adapter.addFragment(pagerFragment, null);
+
         viewPager.setAdapter(adapter);
         viewPager.setCurrentItem(1);
+
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                PagerFragment fragment = (PagerFragment) adapter.getItem(position);
+                fragment.onSelected();
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);

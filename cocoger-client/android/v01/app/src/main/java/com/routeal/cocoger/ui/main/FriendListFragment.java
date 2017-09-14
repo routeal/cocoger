@@ -18,14 +18,8 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
  * Created by nabe on 7/22/17.
  */
 
-public class FriendListFragment extends Fragment {
+public class FriendListFragment extends PagerFragment {
     private final static String TAG = "FriendListFragment";
-
-    private SlidingUpPanelLayout mSlidingUpPanelLayout;
-
-    void setSlidingUpPanelLayout(SlidingUpPanelLayout layout) {
-        mSlidingUpPanelLayout = layout;
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

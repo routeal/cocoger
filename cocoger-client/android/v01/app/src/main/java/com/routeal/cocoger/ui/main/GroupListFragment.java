@@ -12,11 +12,7 @@ package com.routeal.cocoger.ui.main;
  * Created by nabe on 7/22/17.
  */
 
-public class GroupListFragment extends Fragment {
-
-    public GroupListFragment() {
-        // Required empty public constructor
-    }
+public class GroupListFragment extends PagerFragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

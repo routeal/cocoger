@@ -11,8 +11,9 @@ import android.util.Log;
 
 import com.appolica.interactiveinfowindow.InfoWindow;
 import com.appolica.interactiveinfowindow.InfoWindowManager;
-import com.google.android.gms.ads.identifier.AdvertisingIdClient;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.routeal.cocoger.MainApplication;
@@ -82,6 +83,9 @@ class ComboMarker implements Parcelable {
         mOwner = markerInfo;
         MarkerOptions options = new MarkerOptions().position(Utils.getLatLng(markerInfo.rangeLocation));
         mMarker = map.addMarker(options);
+
+        BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.ic_face_black_48dp);
+        mMarker.setIcon(icon);
 
         getPicture();
     }

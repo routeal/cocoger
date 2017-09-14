@@ -1,6 +1,5 @@
 package com.routeal.cocoger.ui.main;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.location.Address;
 import android.location.Location;
@@ -57,7 +56,7 @@ public class OneInfoFragment extends Fragment implements View.OnClickListener {
         Log.d(TAG, "OneInfoFragment: onCreateView");
 
         View view = inflater.inflate(R.layout.fragment_one_info, container, false);
-        mNameTextView = (AppCompatTextView) view.findViewById(R.id.name);
+        mNameTextView = (AppCompatTextView) view.findViewById(R.id.title);
         mStreetImageView = (AppCompatImageView) view.findViewById(R.id.street_view);
         mHistoryButton = (ImageButton) view.findViewById(R.id.location_history);
         mSendMessageButton = (ImageButton) view.findViewById(R.id.send_message);

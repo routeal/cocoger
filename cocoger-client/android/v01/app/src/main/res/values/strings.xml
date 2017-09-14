@@ -110,4 +110,6 @@
     <string name="your_feedback">Your Feedback</string>
     <string name="share">Share</string>
     <string name="location_sharing">Location Sharing</string>
+    <string name="receive_friend_request" formatted="false">You received a friend request from %s.</string>
+    <string name="receive_range_request" formatted="false">You received a range request to %s from %s.</string>
 </resources>

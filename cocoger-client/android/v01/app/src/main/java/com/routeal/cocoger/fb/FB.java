@@ -466,12 +466,16 @@ public class FB {
                 // the range has been update, notify the map acitivity
                 // to change the marker location
                 else if (newFriend.getRange() != oldFriend.getRange()) {
-                }
-                else if (!newFriend.getLocation().equals(oldFriend.getLocation())) {
-                    Intent intent = new Intent(MapActivity.FRIEND_LOCATION_UPDATE);
+                    Intent intent = new Intent(MapActivity.FRIEND_RANGE_UPDATE);
                     intent.putExtra(MapActivity.FRIEND_KEY, friendUid);
                     LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
                 }
+
+                //else if (!newFriend.getLocation().equals(oldFriend.getLocation())) {
+                    Intent intent = new Intent(MapActivity.FRIEND_LOCATION_UPDATE);
+                    intent.putExtra(MapActivity.FRIEND_KEY, friendUid);
+                    LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+                //}
             }
         }
 
@@ -709,7 +713,8 @@ public class FB {
 
         String to = LocationRange.toString(requestRange);
         String from = LocationRange.toString(currentRange);
-        String content = "You received a range request to " + to + " from " + from;
+        String pattern = context.getResources().getString(R.string.receive_range_request);
+        String content = String.format(pattern, to, from);
 
         Notifi.send(friend.getDisplayName(), content, friend.getPicture(),
                 acceptIntent, declineIntent);
@@ -737,8 +742,8 @@ public class FB {
                 declineIntent.setAction(ACTION_FRIEND_REQUEST_DECLINED);
                 declineIntent.putExtra(NOTIFI_FRIEND_INVITE, invite);
 
-                String content = "You received a friend request from " +
-                    inviteUser.getDisplayName() + ".";
+                String pattern = context.getResources().getString(R.string.receive_friend_request);
+                String content = String.format(pattern, inviteUser.getDisplayName());
 
                 Notifi.send(inviteUser.getDisplayName(), content, inviteUser.getPicture(),
                         acceptIntent, declineIntent);

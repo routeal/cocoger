@@ -31,7 +31,7 @@ public class UserListViewHolder extends RecyclerView.ViewHolder {
         mView = itemView;
         mCheckbox = (CheckBox) itemView.findViewById(R.id.check_user);
         mPicture = (ImageView) itemView.findViewById(R.id.picture);
-        mName = (TextView) itemView.findViewById(R.id.name);
+        mName = (TextView) itemView.findViewById(R.id.title);
         mLocation = (TextView) itemView.findViewById(R.id.location);
 
         itemView.setOnClickListener(new View.OnClickListener() {

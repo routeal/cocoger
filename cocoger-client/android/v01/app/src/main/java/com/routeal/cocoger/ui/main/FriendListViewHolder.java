@@ -27,7 +27,7 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
 
         mView = itemView;
         mPicture = (ImageView) itemView.findViewById(R.id.picture);
-        mName = (TextView) itemView.findViewById(R.id.name);
+        mName = (TextView) itemView.findViewById(R.id.title);
         mSeekBar = (SnappingSeekBar) itemView.findViewById(R.id.seekbar);
 
         mSeekBar.setOnItemSelectionListener(new SnappingSeekBar.OnItemSelectionListener() {

@@ -164,6 +164,60 @@ class MarkerManager {
                 key, name, picture, location, address, range));
     }
 
+    void reposition(String key, int range) {
+        //Log.d(TAG, "reposition: " + key);
+
+        Location rangeLocation = null;
+
+        ComboMarker.MarkerInfo info = null;
+
+        // remove the marker from the current joined one
+        for (Iterator<ComboMarker> ite = mMarkers.iterator(); ite.hasNext(); ) {
+            ComboMarker marker = ite.next();
+            // found the current marker
+            if (marker.contains(key)) {
+                info = marker.getOwner();
+                info.range = range;
+                // simply change the position when theere is only one in the marker
+                if (marker.size() == 1) {
+                    marker.setPosition(info.location, info.address, range);
+                    return;
+                } else {
+                    //Log.d(TAG, "reposition: remove from the current marker");
+                    // remove from the current marker
+                    boolean removed = marker.removeUser(key);
+                    // remove from the map
+                    if (removed) {
+                        ite.remove();
+                    }
+                    break;
+                }
+            }
+        }
+
+        if (info == null) {
+            return;
+        }
+
+        if (rangeLocation == null) {
+            rangeLocation = Utils.getRangedLocation(info.location, info.address, range);
+        }
+
+        // find the nearest marker and join
+        for (ComboMarker marker : mMarkers) {
+            if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
+                //Log.d(TAG, "reposition: join to the marker");
+                marker.addUser(info);
+                return;
+            }
+        }
+
+        //Log.d(TAG, "reposition: add a marker for " + key);
+        // add a new marker to map
+        mMarkers.add(new ComboMarker(mMap, mInfoWindowManager,
+                key, info.name, info.picture, info.location, info.address, range));
+    }
+
     // apart users from one marker when the distance between them is
     // bigger than the current marker distance
     private void zoomIn() {

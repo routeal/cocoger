@@ -40,6 +40,7 @@ public class MapActivity extends MapBaseActivity {
     public static final String USER_LOCATION_UPDATE = "user_location_update";
     public final static String FRIEND_LOCATION_UPDATE = "friend_location_update";
     public final static String FRIEND_LOCATION_REMOVE = "friend_location_remove";
+    public final static String FRIEND_RANGE_UPDATE = "friend_range_update";
 
     public final static String FRIEND_KEY = "friend_key";
     public final static String LOCATION_UPDATE = "location_update";
@@ -96,6 +97,7 @@ public class MapActivity extends MapBaseActivity {
         filter.addAction(MapActivity.USER_LOCATION_UPDATE);
         filter.addAction(MapActivity.FRIEND_LOCATION_UPDATE);
         filter.addAction(MapActivity.FRIEND_LOCATION_REMOVE);
+        filter.addAction(MapActivity.FRIEND_RANGE_UPDATE);
         LocalBroadcastManager.getInstance(this).registerReceiver(mLocalLocationReceiver, filter);
     }
 
@@ -221,6 +223,21 @@ public class MapActivity extends MapBaseActivity {
                     return;
                 }
                 mMm.remove(fid);
+            } else if (intent.getAction().equals(MapActivity.FRIEND_RANGE_UPDATE)) {
+                String fid = intent.getStringExtra(MapActivity.FRIEND_KEY);
+                if (fid == null) {
+                    return;
+                }
+                Friend friend = null;
+                User user = MainApplication.getUser();
+                if (user != null && user.getFriends() != null) {
+                    friend = user.getFriends().get(fid);
+                    if (friend == null || friend.getLocation() == null) {
+                        return;
+                    }
+                }
+                int range = friend.getRange();
+                mMm.reposition(fid, range);
             }
         }
     };

@@ -43,7 +43,7 @@ public class MainService extends BasePeriodicService {
 
     private final static int PAST_LOCATION_QUEUE_MAX = 10;
 
-    private final static int PAST_LOCATION_QUEUE_SIZE = 3;
+    private final static int PAST_LOCATION_QUEUE_SIZE = 2;
 
     private final static float FOREGROUND_MIN_MOVEMENT = 5.0f;
 
@@ -190,8 +190,8 @@ public class MainService extends BasePeriodicService {
             mLocationMode = LocationMode.FOREGROUND;
 
             mLocationRequest = LocationRequest.create()
-                    .setInterval(10000)
-                    .setFastestInterval(5000)
+                    .setInterval(5000) // 5 sec
+                    .setFastestInterval(5000) // 5 sec
                     .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApi,
@@ -255,8 +255,9 @@ public class MainService extends BasePeriodicService {
                 queue.add(new PastLocation(distance, location));
                 if (queue.size() == PAST_LOCATION_QUEUE_SIZE) {
                     Log.d(TAG, "foreground distance: " + queue.poll().distance);
-                    if (queue.poll().distance > FOREGROUND_MIN_MOVEMENT) {
-                        saveLocation(queue.poll().location);
+                    PastLocation pl = queue.poll();
+                    if (pl.distance > FOREGROUND_MIN_MOVEMENT) {
+                        saveLocation(pl.location);
                     }
                     queue.clear();
                 }
