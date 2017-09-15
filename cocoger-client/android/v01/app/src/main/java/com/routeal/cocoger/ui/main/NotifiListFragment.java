@@ -22,6 +22,7 @@ import com.routeal.cocoger.model.RangeRequest;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.util.LoadImage;
 import com.routeal.cocoger.util.LocationRange;
+import com.routeal.cocoger.util.Notifi;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.text.DateFormat;
@@ -72,6 +73,7 @@ public class NotifiListFragment extends PagerFragment {
 
     class Message {
         String id;
+        int nid;
         String date;
         String message;
     }
@@ -111,6 +113,7 @@ public class NotifiListFragment extends PagerFragment {
                     DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
                     m.date = df.format(new Date(entry.getValue()));
                     m.message = "Friend Invited";
+                    m.nid = Math.abs((int) entry.getValue().longValue());
                     messages.add(m);
                 }
             }
@@ -123,6 +126,7 @@ public class NotifiListFragment extends PagerFragment {
                     DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
                     m.date = df.format(new Date(entry.getValue()));
                     m.message = "Friend Invite";
+                    m.nid = Math.abs((int) entry.getValue().longValue());
                     messages.add(m);
                 }
             }
@@ -145,6 +149,7 @@ public class NotifiListFragment extends PagerFragment {
                     String from = LocationRange.toString(m.rangeFrom);
                     String pattern = getResources().getString(R.string.receive_range_request);
                     m.message = String.format(pattern, to, from);
+                    m.nid = Math.abs((int) request.getCreated());
                     messages.add(m);
                 }
             }
@@ -212,6 +217,7 @@ public class NotifiListFragment extends PagerFragment {
                     @Override
                     public void onClick(View v) {
                         FB.acceptFriendRequest(im.id);
+                        Notifi.remove(im.nid);
                         //NotifiListAdapter.this.notifyItemRemoved(position);
                         ViewPager page = getViewPager();
                         page.setCurrentItem(1);
@@ -222,6 +228,7 @@ public class NotifiListFragment extends PagerFragment {
                     @Override
                     public void onClick(View v) {
                         FB.declineFriendRequest(im.id);
+                        Notifi.remove(im.nid);
                         //NotifiListAdapter.this.notifyItemRemoved(position);
                         SlidingUpPanelLayout slidingUpPanelLayout = getSlidingUpPanelLayout();
                         slidingUpPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
@@ -243,6 +250,7 @@ public class NotifiListFragment extends PagerFragment {
                     @Override
                     public void onClick(View v) {
                         FB.acceptRangeRequest(rm.id, rm.rangeTo);
+                        Notifi.remove(rm.nid);
                         //NotifiListAdapter.this.notifyItemRemoved(position);
                         ViewPager page = getViewPager();
                         page.setCurrentItem(1);
@@ -253,10 +261,12 @@ public class NotifiListFragment extends PagerFragment {
                     @Override
                     public void onClick(View v) {
                         FB.declineRangeRequest(rm.id);
+                        Notifi.remove(rm.nid);
                         //NotifiListAdapter.this.notifyItemRemoved(position);
-                        SlidingUpPanelLayout slidingUpPanelLayout = getSlidingUpPanelLayout();
-                        slidingUpPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
-
+                        //SlidingUpPanelLayout slidingUpPanelLayout = getSlidingUpPanelLayout();
+                        //slidingUpPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+                        ViewPager page = getViewPager();
+                        page.setCurrentItem(1);
                     }
                 });
             }
@@ -264,6 +274,7 @@ public class NotifiListFragment extends PagerFragment {
 
         @Override
         public int getItemCount() {
+            Log.d(TAG, "getItemCount:" + mMessages.size());
             return mMessages.size();
         }
     }

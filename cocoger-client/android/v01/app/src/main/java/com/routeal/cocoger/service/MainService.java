@@ -43,7 +43,7 @@ public class MainService extends BasePeriodicService {
 
     private final static int PAST_LOCATION_QUEUE_MAX = 10;
 
-    private final static int PAST_LOCATION_QUEUE_SIZE = 2;
+    private final static int PAST_LOCATION_QUEUE_SIZE = 3;
 
     private final static float FOREGROUND_MIN_MOVEMENT = 5.0f;
 
@@ -190,7 +190,7 @@ public class MainService extends BasePeriodicService {
             mLocationMode = LocationMode.FOREGROUND;
 
             mLocationRequest = LocationRequest.create()
-                    .setInterval(5000) // 5 sec
+                    .setInterval(10000) // 10 sec
                     .setFastestInterval(5000) // 5 sec
                     .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
@@ -271,6 +271,17 @@ public class MainService extends BasePeriodicService {
     };
 
     private void saveLocation(Location location) {
+        if (mLastKnownLocation != null) {
+            float distance = location.distanceTo(mLastKnownLocation);
+            float elapsed = (float) ((location.getTime() - mLastKnownLocation.getTime()) / 1000.0);
+            if (elapsed > 0) {
+                float speed = distance / elapsed; // meter / seconds
+                location.setSpeed(speed);
+            }
+            float speed2 = location.getSpeed() * 18 / 5;
+            Log.d(TAG, "saveLocation:speed="+speed2+" (km/h)");
+        }
+
         mLastKnownLocation = location;
 
         Address address = null;

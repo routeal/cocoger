@@ -1,6 +1,7 @@
 package com.routeal.cocoger.ui.login;
 
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -8,13 +9,13 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.TextInputEditText;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
@@ -92,6 +93,19 @@ public class SetupActivity extends AppCompatActivity {
     }
 
     private void startGenderDialog() {
+        new AlertDialog.Builder(this)
+            .setSingleChoiceItems(R.array.genders, -1, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String[] genders = getResources().getStringArray(R.array.genders);
+                        EditText genderText = (EditText) findViewById(R.id.input_gender);
+                        genderText.setText(genders[which]);
+                        genderText.setError(null);
+                    }
+                })
+            .show();
+
+/*
         new MaterialDialog.Builder(this)
                 .items(R.array.genders)
                 .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
@@ -105,9 +119,23 @@ public class SetupActivity extends AppCompatActivity {
                     }
                 })
                 .show();
-    }
+*/
+  }
 
     private void startYearBirthDialog() {
+        new AlertDialog.Builder(this)
+            .setSingleChoiceItems(R.array.years, -1, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String[] years = getResources().getStringArray(R.array.years);
+                        EditText yearBirthText = (EditText) findViewById(R.id.input_year_birth);
+                        yearBirthText.setText(years[which]);
+                        yearBirthText.setError(null);
+                    }
+                })
+            .show();
+
+/*
         new MaterialDialog.Builder(this)
                 .items(R.array.years)
                 .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
@@ -121,6 +149,7 @@ public class SetupActivity extends AppCompatActivity {
                     }
                 })
                 .show();
+*/
     }
 
     private void startApp() {

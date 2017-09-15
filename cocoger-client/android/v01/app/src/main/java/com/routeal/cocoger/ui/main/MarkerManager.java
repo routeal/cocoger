@@ -93,9 +93,9 @@ class MarkerManager {
 
     // reposition the marker owned by the key
     void reposition(String key, Location location, Address address, int range) {
-        //Log.d(TAG, "reposition: " + key);
+        Log.d(TAG, "reposition: " + key);
 
-        Location rangeLocation = null;
+        Location rangeLocation = Utils.getRangedLocation(location, address, range);
 
         // remove the marker from the current joined one
         for (Iterator<ComboMarker> ite = mMarkers.iterator(); ite.hasNext(); ) {
@@ -104,17 +104,23 @@ class MarkerManager {
             if (marker.contains(key)) {
                 // simply change the position when theere is only one in the marker
                 if (marker.size() == 1) {
-                    marker.setPosition(location, address, range);
-                    return;
+                    Log.d(TAG, "reposition: reposition");
+                    if (Utils.distanceTo(rangeLocation, location) < mMarkerDistance) {
+                        Log.d(TAG, "reposition: join to another");
+                        marker.removeUser(key);
+                        ite.remove();
+                        break;
+                    } else {
+                        Log.d(TAG, "reposition: simply move");
+                        marker.setPosition(location, address, range);
+                        return;
+                    }
                 } else {
                     // too short to reposition, no need to change at all
-                    if (rangeLocation == null) {
-                        rangeLocation = Utils.getRangedLocation(location, address, range);
-                    }
                     if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
                         return;
                     }
-                    //Log.d(TAG, "reposition: remove from the current marker");
+                    Log.d(TAG, "reposition: remove from the current marker");
                     // remove from the current marker
                     boolean removed = marker.removeUser(key);
                     // remove from the map
@@ -145,29 +151,23 @@ class MarkerManager {
 
         if (name == null || picture == null) return;
 
-        if (rangeLocation == null) {
-            rangeLocation = Utils.getRangedLocation(location, address, range);
-        }
-
         // find the nearest marker and join
         for (ComboMarker marker : mMarkers) {
             if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
-                //Log.d(TAG, "reposition: join to the marker");
+                Log.d(TAG, "reposition: join to the marker");
                 marker.addUser(key, name, picture, location, address, range);
                 return;
             }
         }
 
-        //Log.d(TAG, "reposition: add a marker for " + key);
+        Log.d(TAG, "reposition: add a marker for " + key);
         // add a new marker to map
         mMarkers.add(new ComboMarker(mMap, mInfoWindowManager,
                 key, name, picture, location, address, range));
     }
 
     void reposition(String key, int range) {
-        //Log.d(TAG, "reposition: " + key);
-
-        Location rangeLocation = null;
+        Log.d(TAG, "reposition range: " + key);
 
         ComboMarker.MarkerInfo info = null;
 
@@ -176,43 +176,44 @@ class MarkerManager {
             ComboMarker marker = ite.next();
             // found the current marker
             if (marker.contains(key)) {
-                info = marker.getOwner();
+                info = marker.getMakerInfo(key);
                 info.range = range;
-                // simply change the position when theere is only one in the marker
+                // simply change the position when there is only one in the marker
                 if (marker.size() == 1) {
-                    marker.setPosition(info.location, info.address, range);
-                    return;
+                    Log.d(TAG, "reposition range: only one marker - remove and reposition");
+                    marker.removeUser(key);
+                    ite.remove();
+                    break;//return;
                 } else {
-                    //Log.d(TAG, "reposition: remove from the current marker");
                     // remove from the current marker
                     boolean removed = marker.removeUser(key);
                     // remove from the map
                     if (removed) {
+                        Log.d(TAG, "reposition range: also remove the current marker from the map");
                         ite.remove();
+                    } else {
+                        Log.d(TAG, "reposition range: remove from the current marker - " + info.name);
                     }
                     break;
                 }
             }
         }
 
-        if (info == null) {
-            return;
-        }
+        if (info == null) return;
 
-        if (rangeLocation == null) {
-            rangeLocation = Utils.getRangedLocation(info.location, info.address, range);
-        }
+        Location rangeLocation = Utils.getRangedLocation(info.location, info.address, range);
 
         // find the nearest marker and join
         for (ComboMarker marker : mMarkers) {
+            Log.d(TAG, "reposition range: find the nearest to join");
             if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
-                //Log.d(TAG, "reposition: join to the marker");
+                Log.d(TAG, "reposition range: join to the marker");
                 marker.addUser(info);
                 return;
             }
         }
 
-        //Log.d(TAG, "reposition: add a marker for " + key);
+        Log.d(TAG, "reposition range: add a marker for " + key);
         // add a new marker to map
         mMarkers.add(new ComboMarker(mMap, mInfoWindowManager,
                 key, info.name, info.picture, info.location, info.address, range));

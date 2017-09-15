@@ -1,6 +1,7 @@
 package com.routeal.cocoger.ui.main;
 
 import android.app.Activity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
@@ -12,11 +13,10 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.afollestad.materialdialogs.DialogAction;
-import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
@@ -91,6 +91,25 @@ public abstract class MapBaseActivity extends FragmentActivity {
                     Drawable drawable = Utils.getIconDrawable(this, R.drawable.ic_place_white_36dp,
                             R.color.teal);
 
+                    new AlertDialog.Builder(this)
+                            .setIcon(drawable)
+                            .setTitle(R.string.location_denied_title)
+                            .setMessage(R.string.location_denied_content)
+                            .setPositiveButton(R.string.try_again, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    checkPermission();
+                                }
+                            })
+                            .setNegativeButton(R.string.exit, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    finish();
+                                }
+                            })
+                            .show();
+
+                    /*
                     new MaterialDialog.Builder(this)
                             .icon(drawable)
                             .limitIconToDefaultSize()
@@ -113,6 +132,7 @@ public abstract class MapBaseActivity extends FragmentActivity {
                                 }
                             })
                             .show();
+                    */
                 }
             }
             break;
@@ -182,6 +202,20 @@ public abstract class MapBaseActivity extends FragmentActivity {
                     Drawable drawable = Utils.getIconDrawable(this, R.drawable.ic_place_white_36dp,
                             R.color.teal);
 
+                    new AlertDialog.Builder(this)
+                            .setIcon(drawable)
+                            .setTitle(R.string.googleapi_denied_title)
+                            .setMessage(R.string.googleapi_denied_content)
+                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    finish();
+                                }
+                            })
+                            .show();
+
+                    /*
+
                     new MaterialDialog.Builder(this)
                             .icon(drawable)
                             .limitIconToDefaultSize()
@@ -196,6 +230,7 @@ public abstract class MapBaseActivity extends FragmentActivity {
                                 }
                             })
                             .show();
+                    */
                 }
                 break;
         }

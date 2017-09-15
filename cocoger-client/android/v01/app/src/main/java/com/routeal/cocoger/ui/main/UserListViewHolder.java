@@ -1,6 +1,7 @@
 package com.routeal.cocoger.ui.main;
 
 import android.location.Address;
+import android.location.Location;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.CheckBox;
@@ -83,8 +84,7 @@ public class UserListViewHolder extends RecyclerView.ViewHolder {
 
         FB.getLocation(user.getLocation(), new FB.LocationListener() {
             @Override
-            public void onSuccess(String key, LocationAddress location) {
-                Address address = Utils.getAddress(location);
+            public void onSuccess(Location location, Address address) {
                 if (address.getCountryName() != null) {
                     setLocation(address.getCountryName());
                 }

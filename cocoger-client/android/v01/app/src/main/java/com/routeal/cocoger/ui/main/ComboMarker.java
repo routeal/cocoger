@@ -1,6 +1,7 @@
 package com.routeal.cocoger.ui.main;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
 import android.os.Bundle;
@@ -24,6 +25,7 @@ import com.routeal.cocoger.util.Utils;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
 
 class ComboMarker implements Parcelable {
     private final static String TAG = "ComboMarker";
@@ -53,6 +55,12 @@ class ComboMarker implements Parcelable {
     private MarkerInfo mOwner;
     private LoadImage.LoadMarkerImage mImageTask;
     private InfoWindowManager mInfoWindowManager;
+
+    private int[] colors = {
+            R.color.teal300,
+            R.color.red,
+            R.color.steelblue
+    };
 
     @Override
     public int describeContents() {
@@ -84,7 +92,10 @@ class ComboMarker implements Parcelable {
         MarkerOptions options = new MarkerOptions().position(Utils.getLatLng(markerInfo.rangeLocation));
         mMarker = map.addMarker(options);
 
-        BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.ic_face_black_48dp);
+        int color = Utils.randInt(0, colors.length-1);
+        Drawable d = Utils.getIconDrawable(MainApplication.getContext(), R.drawable.ic_face_black_48dp, colors[color]);
+        BitmapDescriptor icon = Utils.getBitmapDescriptor(d);
+
         mMarker.setIcon(icon);
 
         getPicture();
@@ -96,6 +107,10 @@ class ComboMarker implements Parcelable {
 
     MarkerInfo getOwner() {
         return mOwner;
+    }
+
+    MarkerInfo getMakerInfo(String key) {
+        return mInfoMap.get(key);
     }
 
     int size() {

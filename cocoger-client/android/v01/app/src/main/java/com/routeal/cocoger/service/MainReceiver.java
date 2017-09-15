@@ -12,6 +12,10 @@ import com.routeal.cocoger.util.Notifi;
  * Created by nabe on 8/27/17.
  */
 
+/**
+ * Receives the notifications intents which do not want the UI
+ * started.
+ */
 public class MainReceiver extends BroadcastReceiver {
     private final static String TAG = "MainReceiver";
 
@@ -24,20 +28,24 @@ public class MainReceiver extends BroadcastReceiver {
                 Log.d(TAG, action);
 
                 // delete the invite and invitee from the database
-                String invite = intent.getStringExtra("friend_invite");
+                String invite = intent.getStringExtra(FB.NOTIFI_FRIEND_INVITE);
                 FB.declineFriendRequest(invite);
 
-                int nid = intent.getIntExtra("notification_id", 0);
-                Notifi.remove(nid);
+                int nid = intent.getIntExtra(Notifi.ID, 0);
+                if (nid > 0) {
+                    Notifi.remove(nid);
+                }
             } else if (action.equals(FB.ACTION_RANGE_REQUEST_DECLINED)) {
                 Log.d(TAG, action);
 
                 // delete the invite and invitee from the database
-                String requester = intent.getStringExtra("range_requester");
+                String requester = intent.getStringExtra(FB.NOTIFI_RANGE_REQUETER);
                 FB.declineRangeRequest(requester);
 
-                int nid = intent.getIntExtra("notification_id", 0);
-                Notifi.remove(nid);
+                int nid = intent.getIntExtra(Notifi.ID, 0);
+                if (nid > 0) {
+                    Notifi.remove(nid);
+                }
             }
 
         } catch (Exception e) {

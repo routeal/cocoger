@@ -95,7 +95,7 @@ public class FB {
     }
 
     public interface LocationListener {
-        void onSuccess(String key, LocationAddress location);
+        void onSuccess(Location location, Address address);
 
         void onFail(String err);
     }
@@ -408,7 +408,7 @@ public class FB {
                             ou.getInvitees().get(entry.getKey()) == null) {
                         Log.d(TAG, "received new friends request");
                         //ou.setInvitees(invitees);
-                        sendInviteNotification(entry.getKey());
+                        sendInviteNotification(entry.getKey(), entry.getValue());
                     } else {
                         Log.d(TAG, "received old friends request");
                     }
@@ -463,19 +463,20 @@ public class FB {
 
                     }
                 }
+
                 // the range has been update, notify the map acitivity
                 // to change the marker location
-                else if (newFriend.getRange() != oldFriend.getRange()) {
+                if (newFriend.getRange() != oldFriend.getRange()) {
                     Intent intent = new Intent(MapActivity.FRIEND_RANGE_UPDATE);
                     intent.putExtra(MapActivity.FRIEND_KEY, friendUid);
                     LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
                 }
 
-                //else if (!newFriend.getLocation().equals(oldFriend.getLocation())) {
+                if (!newFriend.getLocation().equals(oldFriend.getLocation())) {
                     Intent intent = new Intent(MapActivity.FRIEND_LOCATION_UPDATE);
                     intent.putExtra(MapActivity.FRIEND_KEY, friendUid);
                     LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
-                //}
+                }
             }
         }
 
@@ -700,8 +701,9 @@ public class FB {
         Context context = MainApplication.getContext();
 
         Intent acceptIntent = new Intent(context, PanelMapActivity.class);
-        acceptIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-                | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+        acceptIntent.addFlags(//Intent.FLAG_ACTIVITY_CLEAR_TOP
+//                | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+            Intent.FLAG_ACTIVITY_SINGLE_TOP
                 | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
         acceptIntent.setAction(ACTION_RANGE_REQUEST_ACCEPTED);
         acceptIntent.putExtra(NOTIFI_RANGE_REQUETER, uid);
@@ -715,12 +717,13 @@ public class FB {
         String from = LocationRange.toString(currentRange);
         String pattern = context.getResources().getString(R.string.receive_range_request);
         String content = String.format(pattern, to, from);
+        int nid = Math.abs((int) friend.getRangeRequest().getCreated());
 
-        Notifi.send(friend.getDisplayName(), content, friend.getPicture(),
+        Notifi.send(nid, friend.getDisplayName(), content, friend.getPicture(),
                 acceptIntent, declineIntent);
     }
 
-    private static void sendInviteNotification(final String invite) {
+    private static void sendInviteNotification(final String invite, final long timestamp) {
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
 
         userRef.child(invite).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -732,8 +735,9 @@ public class FB {
 
                 // accept starts the main activity with the friend view
                 Intent acceptIntent = new Intent(context, PanelMapActivity.class);
-                acceptIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-                        | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+                acceptIntent.addFlags(//Intent.FLAG_ACTIVITY_CLEAR_TOP
+//                        | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
+            Intent.FLAG_ACTIVITY_SINGLE_TOP
                         | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
                 acceptIntent.setAction(ACTION_FRIEND_REQUEST_ACCEPTED);
                 acceptIntent.putExtra(NOTIFI_FRIEND_INVITE, invite);
@@ -745,7 +749,9 @@ public class FB {
                 String pattern = context.getResources().getString(R.string.receive_friend_request);
                 String content = String.format(pattern, inviteUser.getDisplayName());
 
-                Notifi.send(inviteUser.getDisplayName(), content, inviteUser.getPicture(),
+                int nid = Math.abs((int) timestamp);
+
+                Notifi.send(nid, inviteUser.getDisplayName(), content, inviteUser.getPicture(),
                         acceptIntent, declineIntent);
             }
 
@@ -845,7 +851,9 @@ public class FB {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         LocationAddress la = dataSnapshot.getValue(LocationAddress.class);
                         if (listener != null) {
-                            listener.onSuccess(dataSnapshot.getKey(), la);
+                            Location location = Utils.getLocation(la);
+                            Address address = Utils.getAddress(location);
+                            listener.onSuccess(location, address);
                         }
                     }
                     @Override

@@ -1,5 +1,6 @@
 package com.routeal.cocoger.ui.main;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -97,7 +98,7 @@ public class PanelMapActivity extends SearchMapActivity {
             tabLayout.getTabAt(i).setIcon(tabIcons[i]);
         }
 
-        handleIntent();
+        handleIntent(getIntent());
     }
 
     private class ViewPagerAdapter extends FragmentPagerAdapter {
@@ -130,9 +131,9 @@ public class PanelMapActivity extends SearchMapActivity {
     }
 
     // most of the notification intent come here
-    private void handleIntent() {
-        String action = getIntent().getAction();
-        Bundle extras = getIntent().getExtras();
+    private void handleIntent(Intent intent) {
+        String action = intent.getAction();
+        Bundle extras = intent.getExtras();
         if (action == null || extras == null) return;
         if (action.equals(FB.ACTION_FRIEND_REQUEST_ACCEPTED)) {
             try {
@@ -182,5 +183,11 @@ public class PanelMapActivity extends SearchMapActivity {
             SlidingUpPanelLayout mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
             mLayout.setPanelState(PanelState.ANCHORED);
         }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        handleIntent(intent);
     }
 }

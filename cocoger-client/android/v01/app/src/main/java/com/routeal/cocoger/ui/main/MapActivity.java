@@ -194,7 +194,7 @@ public class MapActivity extends MapBaseActivity {
                 Log.d(TAG, "Receive User_available: setupMarkers");
                 setupMarkers(mLastKnownLocation, Utils.getAddress(mLastKnownLocation));
             } else if (intent.getAction().equals(MapActivity.FRIEND_LOCATION_UPDATE)) {
-                String fid = intent.getStringExtra(MapActivity.FRIEND_KEY);
+                final String fid = intent.getStringExtra(MapActivity.FRIEND_KEY);
                 if (fid == null) {
                     return;
                 }
@@ -213,8 +213,8 @@ public class MapActivity extends MapBaseActivity {
                     }
 
                     @Override
-                    public void onSuccess(String key, LocationAddress location) {
-                        mMm.reposition(key, Utils.getLocation(location), Utils.getAddress(location), range);
+                    public void onSuccess(Location location, Address address) {
+                        mMm.reposition(fid, location, address, range);
                     }
                 });
             } else if (intent.getAction().equals(MapActivity.FRIEND_LOCATION_REMOVE)) {
@@ -237,6 +237,7 @@ public class MapActivity extends MapBaseActivity {
                     }
                 }
                 int range = friend.getRange();
+                Log.d(TAG, "FRIEND_RANGE_UPDATE:" + fid);
                 mMm.reposition(fid, range);
             }
         }
@@ -270,13 +271,12 @@ public class MapActivity extends MapBaseActivity {
         Iterator<String> it = friends.keySet().iterator();
 
         while (it.hasNext()) {
-            final Friend friend = friends.get(it.next());
+            final String key = it.next();
+            final Friend friend = friends.get(key);
             FB.getLocation(friend.getLocation(), new FB.LocationListener() {
                 @Override
-                public void onSuccess(String key, LocationAddress location) {
-                    Location l = Utils.getLocation(location);
-                    Address a = Utils.getAddress(location);
-                    mMm.add(key, friend.getDisplayName(), friend.getPicture(), l, a, friend.getRange());
+                public void onSuccess(Location location, Address address) {
+                    mMm.add(key, friend.getDisplayName(), friend.getPicture(), location, address, friend.getRange());
                 }
 
                 @Override
