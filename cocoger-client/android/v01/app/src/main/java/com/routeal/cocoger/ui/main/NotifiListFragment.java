@@ -132,25 +132,27 @@ public class NotifiListFragment extends PagerFragment {
             }
 
             Map<String, Friend> friends = user.getFriends();
-            for (Map.Entry<String, Friend> entry : friends.entrySet()) {
-                String id = entry.getKey();
-                Friend friend = entry.getValue();
-                if (friend.getRangeRequest() != null) {
-                    RangeRequest request = friend.getRangeRequest();
-                    RangeMessage m = new RangeMessage();
-                    m.id = id;
-                    DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-                    m.date = df.format(new Date(request.getCreated()));
-                    m.rangeTo = request.getRange();
-                    m.rangeFrom = friend.getRange();
-                    m.name = friend.getDisplayName();
-                    m.picture = friend.getPicture();
-                    String to = LocationRange.toString(m.rangeTo);
-                    String from = LocationRange.toString(m.rangeFrom);
-                    String pattern = getResources().getString(R.string.receive_range_request);
-                    m.message = String.format(pattern, to, from);
-                    m.nid = Math.abs((int) request.getCreated());
-                    messages.add(m);
+            if (friends != null) {
+                for (Map.Entry<String, Friend> entry : friends.entrySet()) {
+                    String id = entry.getKey();
+                    Friend friend = entry.getValue();
+                    if (friend.getRangeRequest() != null) {
+                        RangeRequest request = friend.getRangeRequest();
+                        RangeMessage m = new RangeMessage();
+                        m.id = id;
+                        DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
+                        m.date = df.format(new Date(request.getCreated()));
+                        m.rangeTo = request.getRange();
+                        m.rangeFrom = friend.getRange();
+                        m.name = friend.getDisplayName();
+                        m.picture = friend.getPicture();
+                        String to = LocationRange.toString(m.rangeTo);
+                        String from = LocationRange.toString(m.rangeFrom);
+                        String pattern = getResources().getString(R.string.receive_range_request);
+                        m.message = String.format(pattern, to, from);
+                        m.nid = Math.abs((int) request.getCreated());
+                        messages.add(m);
+                    }
                 }
             }
         }

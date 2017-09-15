@@ -419,23 +419,40 @@ public class FB {
         Map<String, Friend> newFriends = nu.getFriends();
         Map<String, Friend> oldFriends = ou.getFriends();
 
-        if (newFriends == null || newFriends.size() == 0 || oldFriends == null) {
+        if (newFriends == null && oldFriends == null) {
             MainApplication.setUser(nu);
             return;
         }
 
-        if (newFriends.size() != oldFriends.size()) {
+        if (oldFriends == null && newFriends != null) {
+            for (Map.Entry<String, Friend> entry : newFriends.entrySet()) {
+                Log.d(TAG, "Friend added: " + entry.getKey());
+                Intent intent = new Intent(MapActivity.FRIEND_LOCATION_UPDATE);
+                intent.putExtra(MapActivity.FRIEND_KEY, entry.getKey());
+                LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+            }
+        } else if (oldFriends != null && newFriends == null) {
+            for (Map.Entry<String, Friend> entry : oldFriends.entrySet()) {
+                Log.d(TAG, "Friend deleted: " + entry.getKey());
+                Intent intent = new Intent(MapActivity.FRIEND_LOCATION_REMOVE);
+                intent.putExtra(MapActivity.FRIEND_KEY, entry.getKey());
+                LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+            }
+        } else if (newFriends.size() != oldFriends.size()) {
+            Log.d(TAG, "Friend size changed");
             Map<String, Friend> diffs = Utils.diffMaps(newFriends, oldFriends);
             for (Map.Entry<String, Friend> entry : diffs.entrySet()) {
                 // deleted
                 if (newFriends.get(entry.getKey()) == null)  {
-                    Intent intent = new Intent(MapActivity.FRIEND_LOCATION_UPDATE);
+                    Log.d(TAG, "Friend deleted: " + entry.getKey());
+                    Intent intent = new Intent(MapActivity.FRIEND_LOCATION_REMOVE);
                     intent.putExtra(MapActivity.FRIEND_KEY, entry.getKey());
                     LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
                 }
                 // added
                 else if (oldFriends.get(entry.getKey()) == null) {
-                    Intent intent = new Intent(MapActivity.FRIEND_LOCATION_REMOVE);
+                    Log.d(TAG, "Friend added: " + entry.getKey());
+                    Intent intent = new Intent(MapActivity.FRIEND_LOCATION_UPDATE);
                     intent.putExtra(MapActivity.FRIEND_KEY, entry.getKey());
                     LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
                 }
@@ -443,6 +460,7 @@ public class FB {
         }
         // range request, location change
         else {
+            Log.d(TAG, "Friend size unchanged");
             for (Map.Entry<String, Friend> entry : newFriends.entrySet()) {
                 String friendUid = entry.getKey();
                 Friend newFriend = entry.getValue();
