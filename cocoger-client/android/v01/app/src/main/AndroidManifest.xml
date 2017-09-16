@@ -56,25 +56,29 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".ui.login.SetupActivity"
-            android:windowSoftInputMode="stateHidden"
-            android:theme="@style/LoginTheme"/>
+        <activity
+            android:name=".ui.login.SetupActivity"
+            android:theme="@style/LoginTheme"
+            android:windowSoftInputMode="stateHidden" />
 
-        <activity android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
-            android:theme="@style/Base.Theme.AppCompat"/> <!-- optional (needed if default theme has no action bar) -->
+        <activity
+            android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
+            android:theme="@style/Base.Theme.AppCompat" /> <!-- optional (needed if default theme has no action bar) -->
 
-        <activity android:name=".ui.main.PanelMapActivity"
-            />
+        <activity android:name=".ui.main.PanelMapActivity" />
 
-        <activity android:name=".ui.login.LoginActivity"
-            android:windowSoftInputMode="adjustPan"
-            android:theme="@style/LoginTheme"/>
+        <activity
+            android:name=".ui.login.LoginActivity"
+            android:theme="@style/LoginTheme"
+            android:windowSoftInputMode="adjustPan" />
 
         <activity android:name=".ui.main.StreetViewActivity" />
-        <activity android:name=".ui.main.AccountActivity"
-            android:theme="@style/AppTheme.NoActionBar"/>
+        <activity
+            android:name=".ui.main.AccountActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity android:name=".ui.main.SettingsActivity" />
         <activity android:name=".ui.main.WebActivity" />
+        <activity android:name=".ui.main.TimelineActivity" />
 
         <receiver android:name=".service.OnBootReceiver">
             <intent-filter>
@@ -91,12 +95,10 @@
 
         <service android:name=".service.MainService" />
 
-<!--
         <provider
             android:name="com.routeal.cocoger.provider.DatabaseProvider"
             android:authorities="com.routeal.cocoger.provider"
             android:exported="false" />
--->
 
     </application>
 

@@ -125,6 +125,11 @@ public class SearchMapActivity extends MapActivity {
                 .start(this);
     }
 
+    private void showShareTimeline() {
+        Intent intent = new Intent(getApplicationContext(), TimelineActivity.class);
+        startActivity(intent);
+    }
+
     private void showAccount() {
         Intent intent = new Intent(getApplicationContext(), AccountActivity.class);
         startActivity(intent);
@@ -153,7 +158,9 @@ public class SearchMapActivity extends MapActivity {
                     drawer.closeDrawer(GravityCompat.START);
                     // show the selected activities
                     int id = item.getItemId();
-                    if (id == R.id.nav_account) {
+                    if (id == R.id.nav_sharing_timeline) {
+                        showShareTimeline();
+                    } else if (id == R.id.nav_account) {
                         showAccount();
                     } else if (id == R.id.nav_settings) {
                         showSettings();

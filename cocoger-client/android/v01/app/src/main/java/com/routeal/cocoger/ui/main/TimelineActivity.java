@@ -9,27 +9,26 @@ import android.view.MenuItem;
 import com.routeal.cocoger.R;
 
 /**
- * Created by nabe on 7/25/17.
+ * Created by nabe on 9/16/17.
  */
 
-public class SettingsActivity extends AppCompatActivity {
-
+public class TimelineActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_settings);
+        setContentView(R.layout.activity_timeline);
 
         ActionBar ab = getSupportActionBar();
         if (ab != null) {
             ab.setDisplayHomeAsUpEnabled(true);
             ab.setDisplayShowTitleEnabled(true);
-            ab.setTitle(R.string.settings);
+            ab.setTitle(R.string.sharing_timeline);
         }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_save, menu);
+        getMenuInflater().inflate(R.menu.menu_send, menu);
         return true;
     }
 
