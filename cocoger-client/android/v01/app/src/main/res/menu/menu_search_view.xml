@@ -5,7 +5,7 @@
     tools:context=".ui.main.PanelMapActivity">
     <item
         android:id="@+id/action_map_layer"
-        android:icon="@drawable/ic_history_black_36dp"
+        android:icon="@drawable/ic_layers_black_36dp"
         android:orderInCategory="1"
         android:title="@string/map_layers"
         app:showAsAction="always" />

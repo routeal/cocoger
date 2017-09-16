@@ -38,7 +38,9 @@ public class MultipleDrawable extends Drawable {
     public void draw(@NonNull Canvas canvas) {
         for (int i = 0; i < items.size(); i++) {
             PhotoItem item = items.get(i);
-            canvas.drawBitmap(item.bitmap, null, item.rect, paint);
+            if (!item.bitmap.isRecycled()) {
+                canvas.drawBitmap(item.bitmap, null, item.rect, paint);
+            }
         }
     }
 

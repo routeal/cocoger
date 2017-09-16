@@ -14,6 +14,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
@@ -289,10 +290,32 @@ public class SearchMapActivity extends MapActivity {
         mSearchView.setOnMenuItemClickListener(new FloatingSearchView.OnMenuItemClickListener() {
             @Override
             public void onActionMenuItemSelected(MenuItem item) {
-                //just print action
-                Toast.makeText(getApplicationContext(), item.getTitle(),
-                        Toast.LENGTH_SHORT).show();
+                if (item.getItemId() == R.id.action_map_layer) {
+                    LayoutInflater layoutInflaterAndroid = LayoutInflater.from(SearchMapActivity.this);
+                    View view = layoutInflaterAndroid.inflate(R.layout.dialog_input, null);
+                    TextView title = (TextView) view.findViewById(R.id.title);
+                    title.setText("Display Name");
+                    final TextView text = (TextView) view.findViewById(R.id.text);
+                    text.setText("test");
+                    new AlertDialog.Builder(SearchMapActivity.this)
+                            .setView(view)
+                            .setCancelable(false)
+                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                }
+                            })
+                            .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                }
+                            })
+                            .show();
 
+                    //just print action
+                    Toast.makeText(getApplicationContext(), "Map Layer",
+                            Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

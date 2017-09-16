@@ -315,6 +315,27 @@ public class FB {
         db.updateChildren(updates);
     }
 
+    public static void updateUser(String name, String gender, String bob) {
+        String uid = getUid();
+        if (uid == null) return;
+
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference();
+        Map<String, Object> updates = new HashMap<>();
+        if (name != null) {
+            updates.put("users/" + uid + "/displayName/", name);
+            updates.put("users/" + uid + "/searchedName/", name.toLowerCase());
+        }
+        if (gender != null) {
+            updates.put("users/" + uid + "/gender/", gender.toLowerCase());
+        }
+        if (bob != null) {
+            updates.put("users/" + uid + "/birthYear/", bob.toLowerCase());
+        }
+        if (updates.size() > 0) {
+            db.updateChildren(updates);
+        }
+    }
+
     private static void onSignIn(String uid, User user) {
         Log.d(TAG, "onSignIn:" + user.toString());
 
@@ -692,7 +713,7 @@ public class FB {
     }
 
     public static void uploadImageFile(Uri localFile, String name,
-                                       final UploadImageListener listener) throws Exception {
+                                       final UploadImageListener listener) {
         String uid = getUid();
         String refName = "users/" + uid + "/image/" + name;
         FirebaseStorage.getInstance().getReference().child(refName).putFile(localFile)

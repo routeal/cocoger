@@ -69,7 +69,7 @@ public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
                 return;
             }
             if (crop) {
-                Bitmap cropped = cropCircle(bitmaps.get(0), borderColor);
+                Bitmap cropped = Utils.cropCircle(bitmaps.get(0), borderColor);
                 imageView.setImageBitmap(cropped);
             } else {
                 imageView.setImageBitmap(bitmaps.get(0));
@@ -77,6 +77,7 @@ public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
         }
     }
 
+    public
     interface LoadImageListener {
         void onSuccess(Bitmap bitmap);
     }
@@ -108,7 +109,7 @@ public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
                 return;
             }
             if (crop) {
-                Bitmap cropped = cropCircle(bitmaps.get(0), borderColor);
+                Bitmap cropped = Utils.cropCircle(bitmaps.get(0), borderColor);
                 listener.onSuccess(cropped);
             } else {
                 listener.onSuccess(bitmaps.get(0));
@@ -136,14 +137,16 @@ public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
             if (isCancelled()) return;
             super.onPostExecute(bitmaps);
             Bitmap combined = combineBitmaps(bitmaps, MARKER_SZIE);
-            Bitmap cropped = cropCircle(combined, borderColor);
+            Bitmap cropped = Utils.cropCircle(combined, borderColor);
             combined.recycle();
+            if (cropped.isRecycled()) return;
             marker.setIcon(BitmapDescriptorFactory.fromBitmap(cropped));
         }
     }
 
     static Bitmap combineBitmaps(List<Bitmap> bitmaps, int size) {
         MultipleDrawable drawable = new MultipleDrawable(bitmaps);
+        if (drawable == null) return null;
         Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
@@ -151,71 +154,4 @@ public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
         return bitmap;
     }
 
-    static Bitmap cropCircle(Bitmap from, int borderColor) {
-        if (from == null || from.isRecycled()) {
-            return null;
-        }
-
-        int borderWidth = 4;
-        int width = from.getWidth() + borderWidth;
-        int height = from.getHeight() + borderWidth;
-
-        Bitmap to = Bitmap.createBitmap(width, height, from.getConfig());
-
-        BitmapShader shader =
-            new BitmapShader(from, BitmapShader.TileMode.CLAMP, BitmapShader.TileMode.CLAMP);
-
-        Paint paint = new Paint();
-        paint.setAntiAlias(true);
-        paint.setShader(shader);
-
-        float radius = width > height ? ((float) height) / 2f : ((float) width) / 2f;
-
-        Canvas canvas = new Canvas(to);
-        canvas.drawColor(Color.TRANSPARENT);
-        canvas.drawCircle(width / 2, height / 2, radius, paint);
-
-        if (borderColor >= 0) {
-            paint.setShader(null);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setColor(Color.BLUE);
-            paint.setStrokeWidth(borderWidth);
-            canvas.drawCircle(width / 2, height / 2, radius - borderWidth / 2, paint);
-        }
-
-        return to;
-
-/*
-
-        // create a copy of the bitmap
-        Bitmap to = Bitmap.createBitmap(from.getWidth(), from.getHeight(), from.getConfig());
-
-        BitmapShader shader =
-                new BitmapShader(from, BitmapShader.TileMode.CLAMP, BitmapShader.TileMode.CLAMP);
-
-        Paint paint = new Paint();
-        paint.setShader(shader);
-        paint.setAntiAlias(true);
-        paint.setDither(true);
-
-        Paint paintBorder = null;
-        if (hasBorder) {
-            paintBorder = new Paint();
-            paintBorder.setAntiAlias(true);
-            paintBorder.setShadowLayer(4.0f, 0.0f, 2.0f, Color.BLACK);
-            paintBorder.setColor(Color.WHITE);
-        }
-
-        float r = (from.getWidth() + from.getHeight()) / 4f;
-        Canvas canvas = new Canvas(to);
-        if (paintBorder != null) {
-            canvas.drawCircle(r, r, r, paintBorder);
-            canvas.drawCircle(r, r, r - 4.0f, paint);
-        } else {
-            canvas.drawCircle(r, r, r, paint);
-        }
-
-        return to;
-*/
-    }
 }
