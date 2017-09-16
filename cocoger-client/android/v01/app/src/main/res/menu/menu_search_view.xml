@@ -2,11 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".MainActivity">
+    tools:context=".ui.main.PanelMapActivity">
     <item
-        android:id="@+id/action_voice_rec"
-        android:icon="@android:drawable/stat_notify_voicemail"
+        android:id="@+id/action_map_layer"
+        android:icon="@drawable/ic_history_black_36dp"
         android:orderInCategory="1"
-        android:title="@string/action_voice_rec"
+        android:title="@string/map_layers"
         app:showAsAction="always" />
 </menu>

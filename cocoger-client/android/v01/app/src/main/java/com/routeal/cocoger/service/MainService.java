@@ -179,7 +179,8 @@ public class MainService extends BasePeriodicService {
 
             mLocationRequest = LocationRequest.create()
                     .setInterval(15 * 60 * 1000) // 15 mins
-                    .setSmallestDisplacement(BACKGROUND_MIN_MOVEMENT)
+                    .setFastestInterval(5*60000) // 5 min
+                //.setSmallestDisplacement(BACKGROUND_MIN_MOVEMENT)
                     .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApi,
@@ -190,7 +191,7 @@ public class MainService extends BasePeriodicService {
             mLocationMode = LocationMode.FOREGROUND;
 
             mLocationRequest = LocationRequest.create()
-                    .setInterval(10000) // 10 sec
+                    .setInterval(60000) // 60 sec
                     .setFastestInterval(5000) // 5 sec
                     .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 

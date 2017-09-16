@@ -18,9 +18,11 @@ public class ProviderHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.beginTransaction();
         try {
+/*
             db.execSQL(DB.Users.CREATE_STATEMENT);
             db.execSQL(DB.Friends.CREATE_STATEMENT);
-            db.execSQL(DB.Locations.CREATE_STATEMENT);
+*/
+          db.execSQL(DB.Locations.CREATE_STATEMENT);
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();

@@ -43,8 +43,6 @@ public class SearchMapActivity extends MapActivity {
 
     private FloatingSearchView mSearchView;
 
-    private boolean mFirstTime = false;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,21 +71,17 @@ public class SearchMapActivity extends MapActivity {
             }
         });
 
+        mSearchView.attachNavigationDrawerToMenuButton(drawer);
+
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(mNavigationItemSelectedListener);
-
-        mSearchView.attachNavigationDrawerToMenuButton(drawer);
     }
 
     private void setupDrawerHead() {
-        if (mFirstTime) return;
-
         User user = MainApplication.getUser();
         if (user == null) {
             return;
         }
-
-        mFirstTime = true;
 
         TextView textView = (TextView) findViewById(R.id.my_display_name);
         textView.setText(user.getDisplayName());
@@ -153,12 +147,11 @@ public class SearchMapActivity extends MapActivity {
             new NavigationView.OnNavigationItemSelectedListener() {
                 @Override
                 public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                    // close the drawer
                     DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
                     drawer.closeDrawer(GravityCompat.START);
-
-                    // Handle navigation view item clicks here.
+                    // show the selected activities
                     int id = item.getItemId();
-
                     if (id == R.id.nav_account) {
                         showAccount();
                     } else if (id == R.id.nav_settings) {
@@ -208,7 +201,6 @@ public class SearchMapActivity extends MapActivity {
 
     private void setupFloatingSearch() {
         mSearchView.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
-
             @Override
             public void onSearchTextChanged(String oldQuery, final String newQuery) {
                 if (!oldQuery.equals("") && newQuery.equals("")) {

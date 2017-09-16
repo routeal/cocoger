@@ -72,25 +72,25 @@
         <TableRow
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginBottom="16dp"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="16dp">
+            android:orientation="horizontal">
 
             <android.support.v7.widget.AppCompatButton
                 android:id="@+id/btn_signup"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="18dp"
-                android:text="@string/signup" />
+                android:text="@string/signup"
+                android:textSize="18dp" />
 
             <android.support.v7.widget.AppCompatButton
                 android:id="@+id/btn_login"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:textSize="18dp"
-                android:text="@string/login" />
+                android:text="@string/login"
+                android:textSize="18dp" />
 
         </TableRow>
 
@@ -98,11 +98,10 @@
             android:id="@+id/term_privacy"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:linksClickable="true"
-            android:textSize="16sp"
-            android:lineSpacingExtra="8sp"
             android:layout_margin="8dp"
-            />
+            android:lineSpacingExtra="8sp"
+            android:linksClickable="true"
+            android:textSize="16sp" />
 
     </LinearLayout>
 </ScrollView>

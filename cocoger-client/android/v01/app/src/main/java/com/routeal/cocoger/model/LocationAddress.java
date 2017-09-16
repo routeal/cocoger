@@ -70,6 +70,10 @@ public class LocationAddress implements Serializable {
         this.speed = speed;
     }
 
+    public void setDescription(String description) { this.description = description; }
+
+    public String getDescription() { return description; }
+
     public long getTimestamp() {
         return timestamp;
     }
@@ -110,11 +114,11 @@ public class LocationAddress implements Serializable {
         this.subAdminArea = subAdminArea;
     }
 
-    public String getlocality() {
+    public String getLocality() {
         return locality;
     }
 
-    public void setlocality(String locality) {
+    public void setLocality(String locality) {
         this.locality = locality;
     }
 
@@ -141,4 +145,8 @@ public class LocationAddress implements Serializable {
     public void setSubThoroughfare(String subThoroughfare) {
         this.subThoroughfare = subThoroughfare;
     }
+
+    public void setPlaceId(String placeId) { this.placeId = placeId; }
+
+    public String getPlaceId() { return placeId; }
 }

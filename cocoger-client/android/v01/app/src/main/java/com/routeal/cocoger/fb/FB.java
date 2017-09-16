@@ -277,7 +277,7 @@ public class FB {
         loc.setCountryName(address.getCountryName());
         loc.setAdminArea(address.getAdminArea());
         loc.setSubAdminArea(address.getSubAdminArea());
-        loc.setlocality(address.getLocality());
+        loc.setLocality(address.getLocality());
         loc.setSubLocality(address.getSubLocality());
         loc.setThoroughfare(address.getThoroughfare());
         loc.setSubThoroughfare(address.getSubThoroughfare());

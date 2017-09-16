@@ -82,6 +82,7 @@ public final class DB {
         static final String URI_TAG = "cache";
     }
 
+/*
     public static class ImageColumns extends CacheColumns {
         public static final String NAME = "name";
         public static final String DATA = "data";
@@ -205,14 +206,16 @@ public final class DB {
                 "," + " " + APPROVED + " " + APPROVED_TYPE +
                 ");";
     }
+*/
 
     public static class LocationsColumns extends CacheColumns {
         public static final String UID = "uid";
-        public static final String TIME = "time";
+        public static final String TIMESTAMP = "timestamp";
         public static final String LATITUDE = "latitude";
         public static final String LONGITUDE = "longitude";
         public static final String ALTITUDE = "altitude";
         public static final String SPEED = "speed";
+        public static final String DESCRIPTION = "description";
         public static final String POSTALCODE = "postalCode";
         public static final String COUNTRYNAME = "countryName";
         public static final String ADMINAREA = "adminArea";
@@ -221,13 +224,15 @@ public final class DB {
         public static final String SUBLOCALITY = "subLocality";
         public static final String THOROUGHFARE = "thoroughfare";
         public static final String SUBTHOROUGHFARE = "subThoroughfare";
+        public static final String PLACEID = "placeId";
 
         static final String UID_TYPE = "TEXT";
-        static final String TIME_TYPE = "INTEGER";
+        static final String TIMESTAMP_TYPE = "INTEGER";
         static final String LATITUDE_TYPE = "REAL";
         static final String LONGITUDE_TYPE = "REAL";
         static final String ALTITUDE_TYPE = "REAL";
         static final String SPEED_TYPE = "REAL";
+        static final String DESCRIPTION_TYPE = "TEXT";
         static final String POSTALCODE_TYPE = "TEXT";
         static final String COUNTRYNAME_TYPE = "TEXT";
         static final String ADMINAREA_TYPE = "TEXT";
@@ -236,6 +241,7 @@ public final class DB {
         static final String SUBLOCALITY_TYPE = "TEXT";
         static final String THOROUGHFARE_TYPE = "TEXT";
         static final String SUBTHOROUGHFARE_TYPE = "TEXT";
+        static final String PLACEID_TYPE = "TEXT";
     }
 
     public static final class Locations extends LocationsColumns implements BaseColumns {
@@ -249,11 +255,12 @@ public final class DB {
         static final String CREATE_STATEMENT = "CREATE TABLE " + TABLE +
                 "(" + " " + _ID + " " + _ID_TYPE +
                 "," + " " + UID + " " + UID_TYPE +
-                "," + " " + TIME + " " + TIME_TYPE +
+                "," + " " + TIMESTAMP + " " + TIMESTAMP_TYPE +
                 "," + " " + LATITUDE + " " + LATITUDE_TYPE +
                 "," + " " + LONGITUDE + " " + LONGITUDE_TYPE +
                 "," + " " + ALTITUDE + " " + ALTITUDE_TYPE +
                 "," + " " + SPEED + " " + SPEED_TYPE +
+                "," + " " + DESCRIPTION + " " + DESCRIPTION_TYPE +
                 "," + " " + POSTALCODE + " " + POSTALCODE_TYPE +
                 "," + " " + COUNTRYNAME + " " + COUNTRYNAME_TYPE +
                 "," + " " + ADMINAREA + " " + ADMINAREA_TYPE +
@@ -262,6 +269,7 @@ public final class DB {
                 "," + " " + SUBLOCALITY + " " + SUBLOCALITY_TYPE +
                 "," + " " + THOROUGHFARE + " " + THOROUGHFARE_TYPE +
                 "," + " " + SUBTHOROUGHFARE + " " + SUBTHOROUGHFARE_TYPE +
+                "," + " " + PLACEID + " " + PLACEID_TYPE +
                 ");";
     }
 

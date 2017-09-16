@@ -21,6 +21,7 @@ public class DBUtil {
 
     private final static String TAG = "DBUtil";
 
+/*
     public static User getUser() {
         User user = new User();
         Cursor cursor = null;
@@ -82,42 +83,50 @@ public class DBUtil {
         ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
         contentResolver.delete(DB.Users.CONTENT_URI, null, null);
     }
+*/
 
-    public static void saveLocation(Location location, Address address) {
+    public static void saveLocation(LocationAddress la) {
         ContentValues values = new ContentValues();
-        values.put(DB.Locations.TIME, location.getTime());
-        values.put(DB.Locations.LATITUDE, location.getLatitude());
-        values.put(DB.Locations.LONGITUDE, location.getLongitude());
-        values.put(DB.Locations.ALTITUDE, location.getAltitude());
-        values.put(DB.Locations.SPEED, location.getSpeed());
-        values.put(DB.Locations.POSTALCODE, address.getPostalCode());
-        values.put(DB.Locations.COUNTRYNAME, address.getCountryName());
-        values.put(DB.Locations.ADMINAREA, address.getAdminArea());
-        values.put(DB.Locations.SUBADMINAREA, address.getSubAdminArea());
-        values.put(DB.Locations.LOCALITY, address.getLocality());
-        values.put(DB.Locations.SUBLOCALITY, address.getSubLocality());
-        values.put(DB.Locations.THOROUGHFARE, address.getThoroughfare());
-        values.put(DB.Locations.SUBTHOROUGHFARE, address.getSubThoroughfare());
+        values.put(DB.Locations.UID, la.getUid());
+        values.put(DB.Locations.TIMESTAMP, la.getTimestamp());
+        values.put(DB.Locations.LATITUDE, la.getLatitude());
+        values.put(DB.Locations.LONGITUDE, la.getLongitude());
+        values.put(DB.Locations.ALTITUDE, la.getAltitude());
+        values.put(DB.Locations.SPEED, la.getSpeed());
+        values.put(DB.Locations.DESCRIPTION, la.getDescription());
+        values.put(DB.Locations.POSTALCODE, la.getPostalCode());
+        values.put(DB.Locations.COUNTRYNAME, la.getCountryName());
+        values.put(DB.Locations.ADMINAREA, la.getAdminArea());
+        values.put(DB.Locations.SUBADMINAREA, la.getSubAdminArea());
+        values.put(DB.Locations.LOCALITY, la.getLocality());
+        values.put(DB.Locations.SUBLOCALITY, la.getSubLocality());
+        values.put(DB.Locations.THOROUGHFARE, la.getThoroughfare());
+        values.put(DB.Locations.SUBTHOROUGHFARE, la.getSubThoroughfare());
+        values.put(DB.Locations.PLACEID, la.getPlaceId());
 
         ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
         contentResolver.insert(DB.Locations.CONTENT_URI, values);
     }
 
-    public static List<LocationAddress> getLocations(int max) {
+    public static List<LocationAddress> getLocations() {
         List<LocationAddress> locations = new ArrayList<>();
 
         Cursor cursor = null;
         try {
             ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
             cursor = contentResolver.query(DB.Locations.CONTENT_URI, null, null, null,
-                    DB.Locations.TIME + " ASC");
+                    DB.Locations.TIMESTAMP + " ASC");
             if (cursor != null && cursor.moveToFirst()) {
                 int num = 1;
                 int index;
                 do {
                     LocationAddress la = new LocationAddress();
                     locations.add(la);
-                    index = cursor.getColumnIndex(DB.Locations.TIME);
+                    index = cursor.getColumnIndex(DB.Locations._ID);
+                    la.setId(cursor.getLong(index));
+                    index = cursor.getColumnIndex(DB.Locations.UID);
+                    la.setUid(cursor.getString(index));
+                    index = cursor.getColumnIndex(DB.Locations.TIMESTAMP);
                     la.setTimestamp(cursor.getLong(index));
                     index = cursor.getColumnIndex(DB.Locations.LATITUDE);
                     la.setLatitude(cursor.getDouble(index));
@@ -127,6 +136,8 @@ public class DBUtil {
                     la.setLongitude(cursor.getDouble(index));
                     index = cursor.getColumnIndex(DB.Locations.SPEED);
                     la.setLongitude(cursor.getFloat(index));
+                    index = cursor.getColumnIndex(DB.Locations.DESCRIPTION);
+                    la.setDescription(cursor.getString(index));
                     index = cursor.getColumnIndex(DB.Locations.POSTALCODE);
                     la.setPostalCode(cursor.getString(index));
                     index = cursor.getColumnIndex(DB.Locations.COUNTRYNAME);
@@ -136,20 +147,15 @@ public class DBUtil {
                     index = cursor.getColumnIndex(DB.Locations.SUBADMINAREA);
                     la.setSubAdminArea(cursor.getString(index));
                     index = cursor.getColumnIndex(DB.Locations.LOCALITY);
-                    la.setlocality(cursor.getString(index));
+                    la.setLocality(cursor.getString(index));
                     index = cursor.getColumnIndex(DB.Locations.SUBLOCALITY);
                     la.setSubLocality(cursor.getString(index));
                     index = cursor.getColumnIndex(DB.Locations.THOROUGHFARE);
                     la.setThoroughfare(cursor.getString(index));
                     index = cursor.getColumnIndex(DB.Locations.SUBTHOROUGHFARE);
                     la.setSubThoroughfare(cursor.getString(index));
-                    index = cursor.getColumnIndex(DB.Locations._ID);
-                    la.setId(cursor.getLong(index));
-                    index = cursor.getColumnIndex(DB.Locations.UID);
-                    la.setUid(cursor.getString(index));
-                    if (num++ == max) {
-                        break;
-                    }
+                    index = cursor.getColumnIndex(DB.Locations.PLACEID);
+                    la.setPlaceId(cursor.getString(index));
                 } while (cursor.moveToNext());
             }
         } catch (Exception e) {
@@ -176,9 +182,11 @@ public class DBUtil {
         contentResolver.delete(DB.Locations.CONTENT_URI, null, null);
     }
 
+/*
     public static List<Friend> getFriends() {
         return null;
     }
+*/
 
 /*
     public static void saveFriend(Friend friend) {
@@ -198,7 +206,6 @@ public class DBUtil {
         ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
         contentResolver.insert(DB.Friends.CONTENT_URI, values);
     }
-*/
 
     public static void saveFriends(List<Friend> friends) {
     }
@@ -207,4 +214,6 @@ public class DBUtil {
         ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
         contentResolver.delete(DB.Friends.CONTENT_URI, null, null);
     }
+*/
+
 }

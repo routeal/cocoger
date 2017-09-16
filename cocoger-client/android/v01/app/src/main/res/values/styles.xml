@@ -6,7 +6,18 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@color/snow</item>
     </style>
+
+    <style name="SlidePanelTheme" parent="ThemeOverlay.AppCompat.ActionBar">
+        <item name="colorPrimary">@color/snow</item>
+        <item name="colorPrimaryDark">@color/snow</item>
+    </style>
+
+
+
+
+
 
     <style name="ActionBar" parent="ThemeOverlay.AppCompat.ActionBar">
         <item name="android:displayOptions">homeAsUp</item>
@@ -17,6 +28,7 @@
     </style>
 
     <style name="LoginTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:colorPrimaryDark">@color/teal500</item>
         <item name="android:windowBackground">@color/teal400</item>
         <item name="colorControlNormal">@color/ivory</item>
         <item name="colorControlActivated">@color/white</item>
@@ -24,6 +36,7 @@
         <item name="android:textColorHint">@color/seashell</item>
         <item name="colorButtonNormal">@color/darkslategray</item>
         <item name="android:colorButtonNormal">@color/darkslategray</item>
+        <item name="android:textColorPrimary">@color/white</item>
     </style>
 
     <style name="DialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
@@ -33,11 +46,6 @@
     <style name="PickerTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:textColorPrimary">@color/black</item>
         <item name="android:textSize">16dp</item>
-    </style>
-
-    <style name="SlidePanelTheme" parent="ThemeOverlay.AppCompat.ActionBar">
-        <item name="colorPrimary">@color/white</item>
-        <item name="colorPrimaryDark">@color/white</item>
     </style>
 
     <style name="CheckBoxTheme" parent="Theme.AppCompat.Light">

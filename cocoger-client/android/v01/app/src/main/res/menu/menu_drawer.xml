@@ -1,40 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <group android:checkableBehavior="single">
+    <group
+        android:id="@+id/grp1"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_sharing_timeline"
+            android:icon="@drawable/ic_history_black_48dp"
+            android:title="@string/sharing_timeline" />
         <item
             android:id="@+id/nav_account"
             android:icon="@drawable/ic_account_box_black_48dp"
-            android:title="Account" />
+            android:title="@string/account" />
         <item
             android:id="@+id/nav_settings"
             android:icon="@drawable/ic_settings_applications_black_48dp"
-            android:title="Settings" />
-        <item
-            android:id="@+id/nav_send_feedback"
-            android:icon="@drawable/ic_message_black_48dp"
-            android:title="@string/send_feedback" />
+            android:title="@string/settings" />
         <item
             android:id="@+id/nav_logout"
             android:icon="@drawable/ic_person_pin_circle_white_48dp"
             android:title="@string/logout" />
     </group>
 
-    <item android:title="@string/about_app">
-        <menu>
-            <item
-                android:id="@+id/nav_term_services"
-                android:icon="@drawable/ic_view_headline_black_48dp"
-                android:title="@string/term_services" />
-            <item
-                android:id="@+id/nav_privacy_policy"
-                android:icon="@drawable/ic_lock_black_48dp"
-                android:title="@string/privacy_policy" />
-            <item
-                android:id="@+id/nav_open_source"
-                android:icon="@drawable/ic_opensource_48"
-                android:title="@string/open_source_libraries" />
-        </menu>
-    </item>
+    <group
+        android:id="@+id/grp2"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_term_services"
+            android:icon="@drawable/ic_view_headline_black_48dp"
+            android:title="@string/term_services" />
+        <item
+            android:id="@+id/nav_privacy_policy"
+            android:icon="@drawable/ic_lock_black_48dp"
+            android:title="@string/privacy_policy" />
+        <item
+            android:id="@+id/nav_open_source"
+            android:icon="@drawable/ic_opensource_48"
+            android:title="@string/open_source_libraries" />
+        <item
+            android:id="@+id/nav_send_feedback"
+            android:icon="@drawable/ic_message_black_48dp"
+            android:title="@string/send_feedback" />
+    </group>
 
 </menu>

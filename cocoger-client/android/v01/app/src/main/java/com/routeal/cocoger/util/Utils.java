@@ -121,7 +121,7 @@ public class Utils {
         a.setAdminArea(la.getAdminArea());
         a.setCountryName(la.getCountryName());
         a.setLatitude(la.getLatitude());
-        a.setLocality(la.getlocality());
+        a.setLocality(la.getLocality());
         a.setLongitude(la.getLongitude());
         a.setPostalCode(la.getPostalCode());
         a.setSubAdminArea(la.getSubAdminArea());

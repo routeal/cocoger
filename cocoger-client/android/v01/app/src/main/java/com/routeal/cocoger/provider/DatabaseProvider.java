@@ -21,21 +21,25 @@ import java.util.List;
 public class DatabaseProvider extends ContentProvider {
     private ProviderHelper mDbHelper;
 
+/*
     private static final int USERS = 1;
     private static final int USERS_ID = 2;
     private static final int FRIENDS = 3;
     private static final int FRIENDS_ID = 4;
-    private static final int LOCATIONS = 5;
-    private static final int LOCATIONS_ID = 6;
+*/
+    private static final int LOCATIONS = 1;
+    private static final int LOCATIONS_ID = 2;
 
     private static final UriMatcher mUriMatcher;
 
     static {
         mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+/*
         mUriMatcher.addURI(DB.AUTHORITY, DB.Users.PATH, USERS);
         mUriMatcher.addURI(DB.AUTHORITY, DB.Users.PATH + "/#", USERS_ID);
         mUriMatcher.addURI(DB.AUTHORITY, DB.Friends.PATH, FRIENDS);
         mUriMatcher.addURI(DB.AUTHORITY, DB.Friends.PATH + "/#", FRIENDS_ID);
+*/
         mUriMatcher.addURI(DB.AUTHORITY, DB.Locations.PATH, LOCATIONS);
         mUriMatcher.addURI(DB.AUTHORITY, DB.Locations.PATH + "/#", LOCATIONS_ID);
     }
@@ -51,6 +55,7 @@ public class DatabaseProvider extends ContentProvider {
         int match = mUriMatcher.match(uri);
         String mime = null;
         switch (match) {
+/*
             case USERS:
                 mime = DB.Users.CONTENT_TYPE;
                 break;
@@ -63,6 +68,7 @@ public class DatabaseProvider extends ContentProvider {
             case FRIENDS_ID:
                 mime = DB.Friends.CONTENT_ITEM_TYPE;
                 break;
+*/
             case LOCATIONS:
                 mime = DB.Locations.CONTENT_TYPE;
                 break;
@@ -89,6 +95,7 @@ public class DatabaseProvider extends ContentProvider {
         List<String> pathSegments = uri.getPathSegments();
 
         switch (mUriMatcher.match(uri)) {
+/*
             case USERS:
                 tableName = DB.Users.TABLE;
                 break;
@@ -105,6 +112,7 @@ public class DatabaseProvider extends ContentProvider {
                 innerSelection = DB.Friends._ID + " = ? ";
                 innerSelectionArgs = new String[]{pathSegments.get(1)};
                 break;
+*/
             case LOCATIONS:
                 tableName = DB.Locations.TABLE;
                 break;
@@ -161,6 +169,7 @@ public class DatabaseProvider extends ContentProvider {
                 resolver.notifyChange(DB.Locations.CONTENT_URI, null);
                 break;
             }
+/*
             case USERS: {
                 SQLiteDatabase db = mDbHelper.getWritableDatabase();
                 long id = db.insert(DB.Users.TABLE, null, values);
@@ -179,6 +188,7 @@ public class DatabaseProvider extends ContentProvider {
                 resolver.notifyChange(DB.Friends.CONTENT_URI, null);
                 break;
             }
+*/
             default:
                 break;
         }
@@ -189,6 +199,7 @@ public class DatabaseProvider extends ContentProvider {
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         int updates = -1;
+/*
         switch (mUriMatcher.match(uri)) {
             case USERS_ID: {
                 long id = new Long(uri.getLastPathSegment()).longValue();
@@ -217,6 +228,7 @@ public class DatabaseProvider extends ContentProvider {
             default:
                 break;
         }
+*/
         return updates;
     }
 
@@ -226,6 +238,7 @@ public class DatabaseProvider extends ContentProvider {
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
         switch (mUriMatcher.match(uri)) {
+/*
             case USERS: {
                 affected = db.delete(DB.Users.TABLE, selection, selectionArgs);
                 ContentResolver resolver = getContext().getContentResolver();
@@ -261,6 +274,7 @@ public class DatabaseProvider extends ContentProvider {
                 resolver.notifyChange(DB.Friends.CONTENT_URI, null);
                 break;
             }
+*/
 
             case LOCATIONS: {
                 affected = db.delete(DB.Locations.TABLE, selection, selectionArgs);

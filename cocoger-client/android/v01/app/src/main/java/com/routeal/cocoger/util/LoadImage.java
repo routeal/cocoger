@@ -172,6 +172,7 @@ public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
         float radius = width > height ? ((float) height) / 2f : ((float) width) / 2f;
 
         Canvas canvas = new Canvas(to);
+        canvas.drawColor(Color.TRANSPARENT);
         canvas.drawCircle(width / 2, height / 2, radius, paint);
 
         if (borderColor >= 0) {

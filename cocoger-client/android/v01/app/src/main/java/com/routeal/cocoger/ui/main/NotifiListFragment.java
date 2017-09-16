@@ -68,7 +68,9 @@ public class NotifiListFragment extends PagerFragment {
     void onSelected() {
         Log.d(TAG, "NotifiListFragment selected");
         List<Message> messages = createNotifiList();
-        mRecyclerView.setAdapter(new NotifiListAdapter(messages));
+        if (messages != null && messages.size() > 0) {
+            mRecyclerView.setAdapter(new NotifiListAdapter(messages));
+        }
     }
 
     class Message {
