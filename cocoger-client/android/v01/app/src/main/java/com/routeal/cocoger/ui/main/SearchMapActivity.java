@@ -12,13 +12,16 @@ import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.SwitchCompat;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,6 +30,8 @@ import com.arlib.floatingsearchview.suggestions.SearchSuggestionsAdapter;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.arlib.floatingsearchview.util.Util;
 import com.franmontiel.fullscreendialog.FullScreenDialogFragment;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.mikepenz.aboutlibraries.Libs;
 import com.mikepenz.aboutlibraries.LibsBuilder;
 import com.routeal.cocoger.MainApplication;
@@ -300,24 +305,115 @@ public class SearchMapActivity extends MapActivity {
             public void onActionMenuItemSelected(MenuItem item) {
                 if (item.getItemId() == R.id.action_map_layer) {
                     LayoutInflater layoutInflaterAndroid = LayoutInflater.from(SearchMapActivity.this);
-                    View view = layoutInflaterAndroid.inflate(R.layout.dialog_input, null);
-                    TextView title = (TextView) view.findViewById(R.id.title);
-                    title.setText("Display Name");
-                    final TextView text = (TextView) view.findViewById(R.id.text);
-                    text.setText("test");
+                    View view = layoutInflaterAndroid.inflate(R.layout.dialog_layer, null);
+                    final SwitchCompat satellite = (SwitchCompat) view.findViewById(R.id.switch_satellite);
+                    final SwitchCompat terrain = (SwitchCompat) view.findViewById(R.id.switch_terrain);
+                    final SwitchCompat traffic = (SwitchCompat) view.findViewById(R.id.switch_traffic);
+                    final SwitchCompat retro = (SwitchCompat) view.findViewById(R.id.switch_retro);
+                    final SwitchCompat night = (SwitchCompat) view.findViewById(R.id.switch_night);
+                    final SwitchCompat custom = (SwitchCompat) view.findViewById(R.id.switch_custom);
+                    satellite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            if (isChecked) {
+                                terrain.setChecked(false);
+                                retro.setChecked(false);
+                                night.setChecked(false);
+                                custom.setChecked(false);
+                                mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+                            } else {
+                                mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                            }
+                        }
+                    });
+                    terrain.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            if (isChecked) {
+                                satellite.setChecked(false);
+                                retro.setChecked(false);
+                                night.setChecked(false);
+                                custom.setChecked(false);
+                                satellite.setChecked(false);
+                                mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+                            } else {
+                                mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                            }
+                        }
+                    });
+                    traffic.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            mMap.setTrafficEnabled(isChecked);
+                        }
+                    });
+                    retro.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            if (isChecked) {
+                                satellite.setChecked(false);
+                                terrain.setChecked(false);
+                                night.setChecked(false);
+                                custom.setChecked(false);
+                                MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(SearchMapActivity.this, R.raw.mapstyle_retro);
+                                mMap.setMapStyle(style);
+                            } else {
+                                mMap.setMapStyle(null);
+                            }
+                        }
+                    });
+                    night.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            if (isChecked) {
+                                satellite.setChecked(false);
+                                terrain.setChecked(false);
+                                retro.setChecked(false);
+                                custom.setChecked(false);
+                                MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(SearchMapActivity.this, R.raw.mapstyle_night);
+                                mMap.setMapStyle(style);
+                            } else {
+                                mMap.setMapStyle(null);
+                            }
+                        }
+                    });
+                    custom.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                        @Override
+                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                            if (isChecked) {
+                                satellite.setChecked(false);
+                                terrain.setChecked(false);
+                                retro.setChecked(false);
+                                night.setChecked(false);
+                                MapStyleOptions style = new MapStyleOptions("[" +
+                                        "  {" +
+                                        "    \"featureType\":\"poi.business\"," +
+                                        "    \"elementType\":\"all\"," +
+                                        "    \"stylers\":[" +
+                                        "      {" +
+                                        "        \"visibility\":\"off\"" +
+                                        "      }" +
+                                        "    ]" +
+                                        "  }," +
+                                        "  {" +
+                                        "    \"featureType\":\"transit\"," +
+                                        "    \"elementType\":\"all\"," +
+                                        "    \"stylers\":[" +
+                                        "      {" +
+                                        "        \"visibility\":\"off\"" +
+                                        "      }" +
+                                        "    ]" +
+                                        "  }" +
+                                        "]");
+                                mMap.setMapStyle(style);
+                            } else {
+                                mMap.setMapStyle(null);
+                            }
+                        }
+                    });
                     AlertDialog dialog = new AlertDialog.Builder(SearchMapActivity.this)
                             .setView(view)
                             .setCancelable(true)
-                            .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                }
-                            })
-                            .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                                @Override
-                                public void onClick(DialogInterface dialog, int which) {
-                                }
-                            })
                             .show();
                     dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
                 }

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/activity_horizontal_margin">
+
+    <android.support.v7.widget.SwitchCompat
+        android:id="@+id/switch_traffic"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:checked="false"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Traffic"
+        android:drawableLeft="@drawable/ic_traffic_black_24dp"
+        android:drawablePadding="@dimen/activity_horizontal_margin"
+        />
+
+    <include layout="@layout/item_divider"/>
+
+    <android.support.v7.widget.SwitchCompat
+        android:id="@+id/switch_satellite"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:checked="false"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Satellite"
+        android:drawableLeft="@drawable/ic_satellite_black_24dp"
+        android:drawablePadding="@dimen/activity_horizontal_margin"
+        />
+
+    <android.support.v7.widget.SwitchCompat
+        android:id="@+id/switch_terrain"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:checked="false"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Terrain"
+        android:drawableLeft="@drawable/ic_terrain_black_24dp"
+        android:drawablePadding="@dimen/activity_horizontal_margin"
+        />
+
+    <include layout="@layout/item_divider"/>
+
+    <android.support.v7.widget.SwitchCompat
+        android:id="@+id/switch_retro"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:checked="false"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Retro"
+        android:drawableLeft="@drawable/ic_terrain_black_24dp"
+        android:drawablePadding="@dimen/activity_horizontal_margin"
+        />
+
+    <android.support.v7.widget.SwitchCompat
+        android:id="@+id/switch_night"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:checked="false"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Night"
+        android:drawableLeft="@drawable/ic_terrain_black_24dp"
+        android:drawablePadding="@dimen/activity_horizontal_margin"
+        />
+
+    <android.support.v7.widget.SwitchCompat
+        android:id="@+id/switch_custom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:checked="false"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Custom"
+        android:drawableLeft="@drawable/ic_terrain_black_24dp"
+        android:drawablePadding="@dimen/activity_horizontal_margin"
+        />
+
+</LinearLayout>

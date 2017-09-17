@@ -9,6 +9,8 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
+import android.widget.TextView;
 
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
@@ -20,61 +22,51 @@ public class Notifi {
 
     public final static String ID = "notification_id";
 
-    public static void send(int nid, String title, String content, String icon, Intent accept, Intent decline) {
-        Context context = MainApplication.getContext();
+    public final static String TAG = "Notifi";
+
+    public static void send(final int nid, final String title, final String content, String icon, Intent accept, Intent decline) {
+        final Context context = MainApplication.getContext();
 
         accept.putExtra(ID, nid);
         decline.putExtra(ID, nid);
 
         PendingIntent pendingAcceptIntent =
                 PendingIntent.getActivity(context, nid, accept, PendingIntent.FLAG_CANCEL_CURRENT);
-        NotificationCompat.Action acceptAction = new NotificationCompat.Action.Builder(
+        final NotificationCompat.Action acceptAction = new NotificationCompat.Action.Builder(
                 R.drawable.ic_contacts_black_18dp,
                 context.getResources().getString(R.string.accept), pendingAcceptIntent).build();
 
         PendingIntent pendingDeclineIntent =
                 PendingIntent.getBroadcast(context, nid, decline, PendingIntent.FLAG_CANCEL_CURRENT);
-        NotificationCompat.Action declineAction = new NotificationCompat.Action.Builder(
+        final NotificationCompat.Action declineAction = new NotificationCompat.Action.Builder(
                 R.drawable.ic_contacts_black_18dp,
                 context.getResources().getString(R.string.decline), pendingDeclineIntent).build();
-
-        /*
-        Bitmap bitmap = null;
-
-        try {
-            bitmap = Picasso.with(context).load(icon).get();
-        } catch (Exception e) {
-            bitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_place_white_36dp);
-        }
-*/
-
-        final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
-                .setSmallIcon(R.drawable.ic_person_pin_circle_white_48dp)
-                .setContentTitle(title)
-                .setContentText(content)
-                .setAutoCancel(true)
-                .setDefaults(Notification.DEFAULT_ALL)
-                .setPriority(Notification.PRIORITY_HIGH)
-                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-                //.setLargeIcon(bitmap)
-                .addAction(acceptAction)
-                .addAction(declineAction);
-
-        // seems not working, use notificationmanager's cancel method
-        Notification notification = mBuilder.build();
-        notification.flags |= Notification.FLAG_AUTO_CANCEL;
 
         new LoadImage.LoadImageAsync(true, new LoadImage.LoadImageListener() {
             @Override
             public void onSuccess(Bitmap bitmap) {
-                mBuilder.setLargeIcon(bitmap);
+                final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
+                        .setSmallIcon(R.drawable.ic_person_pin_circle_white_48dp)
+                        .setContentTitle(title)
+                        .setContentText(content)
+                        .setAutoCancel(true)
+                        .setDefaults(Notification.DEFAULT_ALL)
+                        .setPriority(Notification.PRIORITY_HIGH)
+                        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                        .setLargeIcon(bitmap)
+                        .addAction(acceptAction)
+                        .addAction(declineAction);
+
+                // seems not working, use notificationmanager's cancel method
+                Notification notification = mBuilder.build();
+                notification.flags |= Notification.FLAG_AUTO_CANCEL;
+
+                NotificationManager mNotificationManager =
+                        (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
+
+                mNotificationManager.notify(nid, notification);
             }
         }).execute(icon);
-
-        NotificationManager mNotificationManager =
-                (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
-
-        mNotificationManager.notify(nid, notification);
     }
 
     public static void remove(int id) {

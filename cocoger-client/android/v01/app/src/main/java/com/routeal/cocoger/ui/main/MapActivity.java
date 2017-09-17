@@ -52,7 +52,7 @@ public class MapActivity extends MapBaseActivity {
 
     private final static int DEFAULT_ZOOM = 15;
 
-    private GoogleMap mMap;
+    protected GoogleMap mMap;
 
     private View mapView;
 
@@ -141,6 +141,8 @@ public class MapActivity extends MapBaseActivity {
         @Override
         public void onMapReady(GoogleMap googleMap) {
             mMap = googleMap;
+
+            mMap.setPadding(0, 0, 0, 132);
 
             mMm = new MarkerManager(mMap, mInfoWindowManager);
 
@@ -255,6 +257,11 @@ public class MapActivity extends MapBaseActivity {
             return;
         }
 
+        // in the very first beginning, the location might not be set.
+        if (user.getLocation() == null) {
+            FB.saveLocation(location, address);
+        }
+
         Log.d(TAG, "setupMarkers: start processing");
 
         mHasFriendMarkers = true;
@@ -288,4 +295,5 @@ public class MapActivity extends MapBaseActivity {
             }
         }
     }
+
 }
