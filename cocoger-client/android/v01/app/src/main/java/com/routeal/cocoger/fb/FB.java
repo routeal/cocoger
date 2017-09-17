@@ -319,7 +319,7 @@ public class FB {
         db.updateChildren(updates);
     }
 
-    public static void updateUser(String name, String gender, String bob) {
+    public static void updateUser(String name, String gender, String bob, String url) {
         String uid = getUid();
         if (uid == null) return;
 
@@ -337,6 +337,9 @@ public class FB {
         if (bob != null) {
             bob = bob.trim();
             updates.put("users/" + uid + "/birthYear/", bob.toLowerCase());
+        }
+        if (url != null) {
+            updates.put("users/" + uid + "/picture/", url);
         }
         if (updates.size() > 0) {
             db.updateChildren(updates);
@@ -518,7 +521,8 @@ public class FB {
                     LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
                 }
 
-                if (!newFriend.getLocation().equals(oldFriend.getLocation())) {
+                if (newFriend.getLocation() != null && oldFriend.getLocation() != null &&
+                        !newFriend.getLocation().equals(oldFriend.getLocation())) {
                     Intent intent = new Intent(MapActivity.FRIEND_LOCATION_UPDATE);
                     intent.putExtra(MapActivity.FRIEND_KEY, friendUid);
                     LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);

@@ -273,16 +273,19 @@ public class MapActivity extends MapBaseActivity {
         while (it.hasNext()) {
             final String key = it.next();
             final Friend friend = friends.get(key);
-            FB.getLocation(friend.getLocation(), new FB.LocationListener() {
-                @Override
-                public void onSuccess(Location location, Address address) {
-                    mMm.add(key, friend.getDisplayName(), friend.getPicture(), location, address, friend.getRange());
-                }
+            if (friend.getLocation() != null) {
+                FB.getLocation(friend.getLocation(), new FB.LocationListener() {
+                    @Override
+                    public void onSuccess(Location location, Address address) {
+                        mMm.add(key, friend.getDisplayName(), friend.getPicture(),
+                                location, address, friend.getRange());
+                    }
 
-                @Override
-                public void onFail(String err) {
-                }
-            });
+                    @Override
+                    public void onFail(String err) {
+                    }
+                });
+            }
         }
     }
 }

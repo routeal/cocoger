@@ -330,19 +330,20 @@ public class AccountActivity extends AppCompatActivity {
             mGender = null;
         }
 
-        if (mName != null || mBod != null || mGender != null) {
-            FB.updateUser(mName, mGender, mBod);
-        }
-
-        if (mProfilePictureUri != null) {
+        if (mProfilePictureUri == null) {
+            if (mName != null || mBod != null || mGender != null) {
+                FB.updateUser(mName, mGender, mBod, null);
+            }
+        } else {
             FB.uploadImageFile(mProfilePictureUri, "profile.jpg", new FB.UploadImageListener() {
                 @Override
                 public void onSuccess(String url) {
                     // set the url to the user
-                    user.setPicture(url);
+                    if (mName != null || mBod != null || mGender != null) {
+                        FB.updateUser(mName, mGender, mBod, url);
+                    }
                     AccountActivity.this.finish();
                 }
-
                 @Override
                 public void onFail(String err) {
                 }
