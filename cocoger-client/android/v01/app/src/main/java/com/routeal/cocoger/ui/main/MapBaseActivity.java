@@ -1,6 +1,7 @@
 package com.routeal.cocoger.ui.main;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
@@ -23,7 +24,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.service.MainService;
-import com.routeal.cocoger.util.AppVisibilityDetector;
 import com.routeal.cocoger.util.Utils;
 
 public abstract class MapBaseActivity extends FragmentActivity {
@@ -38,28 +38,20 @@ public abstract class MapBaseActivity extends FragmentActivity {
 
     private Location mLastKnownLocation;
 
+    private final AppLifecycleListener mForegroundListener = new AppLifecycleListener();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        getApplication().registerActivityLifecycleCallbacks(mForegroundListener);
         setContentView(R.layout.activity_maps);
-
-        // set a listener to detect running in background or foreground
-        AppVisibilityDetector.init(getApplication(), new AppVisibilityDetector.AppVisibilityCallback() {
-            @Override
-            public void onAppGotoForeground() {
-                //app is from background to foreground
-                MainService.setForegroundMode();
-            }
-
-            @Override
-            public void onAppGotoBackground() {
-                //app is from foreground to background
-                MainService.setBackgroundMode();
-            }
-        });
-
         checkPermission();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        getApplication().unregisterActivityLifecycleCallbacks(mForegroundListener);
     }
 
     private void checkPermission() {
@@ -108,31 +100,6 @@ public abstract class MapBaseActivity extends FragmentActivity {
                                 }
                             })
                             .show();
-
-                    /*
-                    new MaterialDialog.Builder(this)
-                            .icon(drawable)
-                            .limitIconToDefaultSize()
-                            .title(R.string.location_denied_title)
-                            .content(R.string.location_denied_content)
-                            .positiveText(R.string.try_again)
-                            .negativeText(R.string.exit)
-                            .onPositive(new MaterialDialog.SingleButtonCallback() {
-                                @Override
-                                public void onClick(@NonNull MaterialDialog dialog,
-                                                    @NonNull DialogAction which) {
-                                    checkPermission();
-                                }
-                            })
-                            .onNegative(new MaterialDialog.SingleButtonCallback() {
-                                @Override
-                                public void onClick(@NonNull MaterialDialog dialog,
-                                                    @NonNull DialogAction which) {
-                                    finish();
-                                }
-                            })
-                            .show();
-                    */
                 }
             }
             break;
@@ -213,24 +180,6 @@ public abstract class MapBaseActivity extends FragmentActivity {
                                 }
                             })
                             .show();
-
-                    /*
-
-                    new MaterialDialog.Builder(this)
-                            .icon(drawable)
-                            .limitIconToDefaultSize()
-                            .title(R.string.googleapi_denied_title)
-                            .content(R.string.googleapi_denied_content)
-                            .positiveText(android.R.string.ok)
-                            .onPositive(new MaterialDialog.SingleButtonCallback() {
-                                @Override
-                                public void onClick(@NonNull MaterialDialog dialog,
-                                                    @NonNull DialogAction which) {
-                                    finish();
-                                }
-                            })
-                            .show();
-                    */
                 }
                 break;
         }
@@ -243,4 +192,50 @@ public abstract class MapBaseActivity extends FragmentActivity {
         return mLastKnownLocation;
     }
 
+    public static class AppLifecycleListener implements Application.ActivityLifecycleCallbacks {
+        private int numStarted;
+
+        @Override
+        public void onActivityStarted(Activity activity) {
+            if (numStarted == 0) {
+                Log.d(TAG, "AppLifecycleListener: Foreground");
+                MainService.setForegroundMode();
+            }
+            numStarted++;
+        }
+
+        @Override
+        public void onActivityStopped(Activity activity) {
+            numStarted--;
+            if (numStarted == 0) {
+                Log.d(TAG, "AppLifecycleListener: Background");
+                MainService.setBackgroundMode();
+            }
+        }
+
+        @Override
+        public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+
+        }
+
+        @Override
+        public void onActivityResumed(Activity activity) {
+
+        }
+
+        @Override
+        public void onActivityPaused(Activity activity) {
+
+        }
+
+        @Override
+        public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+
+        }
+
+        @Override
+        public void onActivityDestroyed(Activity activity) {
+
+        }
+    }
 }

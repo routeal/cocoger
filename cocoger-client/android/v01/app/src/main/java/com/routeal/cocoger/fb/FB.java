@@ -150,6 +150,8 @@ public class FB {
     public static void monitorAuthentication() {
         FirebaseAuth auth = FirebaseAuth.getInstance();
 
+        Log.d(TAG, "monitorAuthentication");
+
         if (auth == null) return;
 
         if (monitored) return;
@@ -169,9 +171,11 @@ public class FB {
                     }
                 } else {
                     Log.d(TAG, "Firebase User invalidated");
-                    MainApplication.setUser(null);
-                    // stop the service
-                    MainService.stop();
+                    if (MainApplication.getUser() != null) {
+                        MainApplication.setUser(null);
+                        // stop the service
+                        MainService.stop();
+                    }
                 }
             }
         });
@@ -322,13 +326,16 @@ public class FB {
         DatabaseReference db = FirebaseDatabase.getInstance().getReference();
         Map<String, Object> updates = new HashMap<>();
         if (name != null) {
+            name = name.trim();
             updates.put("users/" + uid + "/displayName/", name);
             updates.put("users/" + uid + "/searchedName/", name.toLowerCase());
         }
         if (gender != null) {
+            gender = gender.trim();
             updates.put("users/" + uid + "/gender/", gender.toLowerCase());
         }
         if (bob != null) {
+            bob = bob.trim();
             updates.put("users/" + uid + "/birthYear/", bob.toLowerCase());
         }
         if (updates.size() > 0) {

@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -304,9 +305,9 @@ public class SearchMapActivity extends MapActivity {
                     title.setText("Display Name");
                     final TextView text = (TextView) view.findViewById(R.id.text);
                     text.setText("test");
-                    new AlertDialog.Builder(SearchMapActivity.this)
+                    AlertDialog dialog = new AlertDialog.Builder(SearchMapActivity.this)
                             .setView(view)
-                            .setCancelable(false)
+                            .setCancelable(true)
                             .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
@@ -318,10 +319,7 @@ public class SearchMapActivity extends MapActivity {
                                 }
                             })
                             .show();
-
-                    //just print action
-                    Toast.makeText(getApplicationContext(), "Map Layer",
-                            Toast.LENGTH_SHORT).show();
+                    dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
                 }
             }
         });

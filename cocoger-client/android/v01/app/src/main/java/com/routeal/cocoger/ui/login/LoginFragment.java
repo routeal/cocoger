@@ -27,6 +27,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.ui.main.AccountActivity;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 import com.routeal.cocoger.util.Utils;
 
@@ -181,7 +182,7 @@ public class LoginFragment extends Fragment {
         mLoginButton.setEnabled(false);
         mSignupButton.setEnabled(false);
 
-        String email = mEmailText.getText().toString();
+        final String email = mEmailText.getText().toString();
         String password = mPassword.getText().toString();
 
         final ProgressDialog dialog = Utils.getBusySpinner(getContext());
@@ -191,10 +192,11 @@ public class LoginFragment extends Fragment {
             public void onSuccess() {
                 dialog.dismiss();
                 // start the setup
-                Intent intent = new Intent(getActivity(), SetupActivity.class);
+                Intent intent = new Intent(getActivity(), AccountActivity.class);
                 if (mDisplayName != null && !mDisplayName.isEmpty()) {
                     intent.putExtra("displayName", mDisplayName);
                 }
+                intent.putExtra("email", email);
                 startActivity(intent);
                 getActivity().finish();
             }

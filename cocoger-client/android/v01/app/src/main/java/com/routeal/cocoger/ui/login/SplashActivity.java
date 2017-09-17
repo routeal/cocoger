@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.service.MainService;
+import com.routeal.cocoger.ui.main.AccountActivity;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 
 /**
@@ -21,8 +22,11 @@ public class SplashActivity extends AppCompatActivity {
 
         Intent intent;
 
+        // ensure that the service is started
+        MainService.start(getApplicationContext());
+
         if (FB.isAuthenticated()) {
-            intent = new Intent(getApplicationContext(), PanelMapActivity.class);
+             intent = new Intent(getApplicationContext(), PanelMapActivity.class);
         } else {
             intent = new Intent(getApplicationContext(), LoginActivity.class);
         }

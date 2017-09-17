@@ -86,8 +86,14 @@ public class Utils {
     public static Drawable getIconDrawable(Context context, int resourceId, int backgroundColor) {
         Drawable drawable = ContextCompat.getDrawable(context, resourceId);
         drawable.mutate();
-        DrawableCompat.setTint(drawable, ContextCompat.getColor(context, backgroundColor));
+        if (backgroundColor >= 0) {
+            DrawableCompat.setTint(drawable, ContextCompat.getColor(context, backgroundColor));
+        }
         return drawable;
+    }
+
+    public static Drawable getIconDrawable(Context context, int resourceId) {
+        return getIconDrawable(context, resourceId, -1);
     }
 
     public static LatLng getLatLng(Location location) {

@@ -86,6 +86,7 @@ public class MainService extends BasePeriodicService {
             new PriorityQueue<>(PAST_LOCATION_QUEUE_MAX, new LocationAscendingOrder());
 
     public static void setForegroundMode() {
+        Log.d(TAG, "setForegroundMode");
         mRequestedLocationMode = LocationMode.FOREGROUND;
         mServiceInterval = FOREGROUND_INTERVAL;
         if (mActiveService != null) {
@@ -94,6 +95,8 @@ public class MainService extends BasePeriodicService {
     }
 
     public static void setBackgroundMode() {
+//        Log.d(TAG, Log.getStackTraceString(new Exception()));
+        Log.d(TAG, "setBackgroundMode");
         mRequestedLocationMode = LocationMode.BACKGROUND;
         mServiceInterval = BACKGROUND_INTERVAL;
         if (mActiveService != null) {
@@ -103,10 +106,10 @@ public class MainService extends BasePeriodicService {
 
     public static void start(Context context) {
         // start the service only when the user is authenticated
-        if (FB.isAuthenticated()) {
+        //if (FB.isAuthenticated()) {
             Intent intent = new Intent(context, MainService.class);
             context.startService(intent);
-        }
+        //}
     }
 
     public static void stop() {
@@ -114,6 +117,8 @@ public class MainService extends BasePeriodicService {
             mActiveService.stopLocationUpdate();
             mActiveService.stopResident();
         }
+        //mActiveService.mLocationMode = LocationMode.NONE;
+        //mActiveService.mRequestedLocationMode = LocationMode.NONE;
     }
 
     @Override
@@ -164,6 +169,8 @@ public class MainService extends BasePeriodicService {
             return;
         }
 
+        if (!FB.isAuthenticated()) return;
+
         if (mLastKnownLocation == null) {
             mLastKnownLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApi);
         }
@@ -187,7 +194,7 @@ public class MainService extends BasePeriodicService {
                     mLocationRequest, mLocationListener);
 
             Log.d(TAG, "start background LocationUpdate");
-        } else {
+        } else if (mRequestedLocationMode.equals(LocationMode.FOREGROUND)) {
             mLocationMode = LocationMode.FOREGROUND;
 
             mLocationRequest = LocationRequest.create()
@@ -203,7 +210,9 @@ public class MainService extends BasePeriodicService {
     }
 
     private void stopLocationUpdate() {
-        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApi, mLocationListener);
+        if (mGoogleApi != null && mGoogleApi.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApi, mLocationListener);
+        }
     }
 
     @Override
@@ -213,6 +222,8 @@ public class MainService extends BasePeriodicService {
 
     @Override
     protected void execTask() {
+        Log.d(TAG, "execTask");
+
         mActiveService = this;
 
         // Try to connect Google Api until it is succeded.  The main
@@ -237,6 +248,8 @@ public class MainService extends BasePeriodicService {
         @Override
         public void onLocationChanged(Location location) {
             if (location == null) return;
+
+            Log.d(TAG, "onLocationChanged");
 
             if (mLastKnownLocation == null) {
                 mLastKnownLocation = location;

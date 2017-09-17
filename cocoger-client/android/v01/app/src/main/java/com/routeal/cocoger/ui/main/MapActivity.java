@@ -73,7 +73,7 @@ public class MapActivity extends MapBaseActivity {
         super.onCreate(savedInstanceState);
 
         // ensure that the service is started
-        MainService.start(getApplicationContext());
+        //MainService.start(getApplicationContext());
         // set it in the foreground mode
         MainService.setForegroundMode();
 

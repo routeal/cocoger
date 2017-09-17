@@ -1,5 +1,6 @@
 package com.routeal.cocoger.ui.main;
 
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -16,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,6 +33,7 @@ import com.theartofdev.edmodo.cropper.CropImageView;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.TimeZone;
 
 /**
  * Created by nabe on 7/25/17.
@@ -40,37 +43,69 @@ public class AccountActivity extends AppCompatActivity {
 
     private Uri mProfilePictureUri;
     private String mName;
+    private String mEmail;
     private String mBod;
     private String mGender;
+    private boolean mIsSetup = false;
+    private TextView mNameView;
+    private TextView mEmailView;
+    private TextView mBodView;
+    private TextView mGenderView;
+    private Button mStartApp;
+    private ImageView mPictureView;
+    private FloatingActionButton mPhotoCameraView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_account);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        Intent intent = getIntent();
+        mName = intent.getStringExtra("displayName");
+        mEmail = intent.getStringExtra("email");
+
+        mIsSetup = (mEmail != null && !mEmail.isEmpty());
+
+        mNameView = (TextView) findViewById(R.id.name);
+        mEmailView = (TextView) findViewById(R.id.email);
+        mBodView = (TextView) findViewById(R.id.bod);
+        mGenderView = (TextView) findViewById(R.id.gender);
+        mStartApp = (Button) findViewById(R.id.start_app);
+        mPictureView = (ImageView) findViewById(R.id.profile_picture);
+        mPhotoCameraView = (FloatingActionButton) findViewById(R.id.photo_camera);
+
         final User user = MainApplication.getUser();
 
-        new LoadImage.LoadImageAsync(true, new LoadImage.LoadImageListener() {
-            @Override
-            public void onSuccess(Bitmap bitmap) {
-                ImageView imageView = (ImageView) findViewById(R.id.profile_picture);
-                imageView.setImageBitmap(bitmap);
+        if (!mIsSetup) {
+            ActionBar ab = getSupportActionBar();
+            if (ab != null) {
+                ab.setDisplayHomeAsUpEnabled(true);
+                ab.setDisplayShowTitleEnabled(true);
+                if (user != null && user.getDisplayName() != null) {
+                    ab.setTitle(user.getDisplayName());
+                }
             }
-        }).execute(user.getPicture());
+        }
 
-        ActionBar ab = getSupportActionBar();
-        if (ab != null) {
-            ab.setDisplayHomeAsUpEnabled(true);
-            ab.setDisplayShowTitleEnabled(true);
-            ab.setTitle(user.getDisplayName());
+        if (user != null && user.getPicture() != null) {
+            new LoadImage.LoadImageAsync(true, new LoadImage.LoadImageListener() {
+                @Override
+                public void onSuccess(Bitmap bitmap) {
+                    mPictureView.setImageBitmap(bitmap);
+                }
+            }).execute(user.getPicture());
         }
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.photo_camera);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Drawable drawable = Utils.getIconDrawable(AccountActivity.this, R.drawable.ic_photo_camera_white_48dp);
+                mPhotoCameraView.setImageDrawable(drawable);
                 CropImage.activity()
                         .setGuidelines(CropImageView.Guidelines.ON)
                         .setActivityTitle(getResources().getString(R.string.picture))
@@ -79,29 +114,27 @@ public class AccountActivity extends AppCompatActivity {
                         .setFixAspectRatio(true)
                         .setAspectRatio(100, 100)
                         .start(AccountActivity.this);
-                /*
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-                        */
             }
         });
 
-        final TextView name = (TextView) findViewById(R.id.name);
         if (mName == null) {
-            name.setText(user.getDisplayName());
+            if (user != null && user.getDisplayName() != null) {
+                mNameView.setText(user.getDisplayName());
+            }
         } else {
-            name.setText(mName);
+            mNameView.setText(mName);
         }
         View view = findViewById(R.id.name_container);
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mNameView.setError(null);
                 LayoutInflater layoutInflaterAndroid = LayoutInflater.from(AccountActivity.this);
                 View view = layoutInflaterAndroid.inflate(R.layout.dialog_input, null);
                 TextView title = (TextView) view.findViewById(R.id.title);
                 title.setText("Display Name");
                 final TextView text = (TextView) view.findViewById(R.id.text);
-                text.setText(name.getText().toString());
+                text.setText(mNameView.getText().toString());
                 new AlertDialog.Builder(AccountActivity.this)
                         .setView(view)
                         .setCancelable(false)
@@ -109,7 +142,7 @@ public class AccountActivity extends AppCompatActivity {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 mName = text.getText().toString();
-                                name.setText(mName);
+                                mNameView.setText(mName);
                                 ActionBar ab = AccountActivity.this.getSupportActionBar();
                                 if (ab != null) {
                                     ab.setTitle(mName);
@@ -126,21 +159,28 @@ public class AccountActivity extends AppCompatActivity {
             }
         });
 
-        TextView email = (TextView) findViewById(R.id.email);
-        email.setText(user.getEmail());
-
-        final TextView bod = (TextView) findViewById(R.id.bod);
-        if (mBod == null) {
-            bod.setText(user.getBirthYear());
+        if (mEmail != null) {
+            mEmailView.setText(mEmail);
         } else {
-            bod.setText(mBod);
+            if (user != null && user.getEmail() != null) {
+                mEmailView.setText(user.getEmail());
+            }
+        }
+
+        if (mBod == null) {
+            if (user != null && user.getBirthYear() != null) {
+                mBodView.setText(user.getBirthYear());
+            }
+        } else {
+            mBodView.setText(mBod);
         }
         view = findViewById(R.id.bod_container);
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mBodView.setError(null);
                 final String[] years = getResources().getStringArray(R.array.years);
-                String current_bod = bod.getText().toString();
+                String current_bod = mBodView.getText().toString();
                 int i = 0;
                 for (; i < years.length; i++) {
                     if (current_bod.equalsIgnoreCase(years[i])) {
@@ -161,7 +201,7 @@ public class AccountActivity extends AppCompatActivity {
                         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                bod.setText(mBod);
+                                mBodView.setText(mBod);
                             }
                         })
                         .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
@@ -173,18 +213,20 @@ public class AccountActivity extends AppCompatActivity {
             }
         });
 
-        final TextView gender = (TextView) findViewById(R.id.gender);
         if (mGender == null) {
-            gender.setText(user.getGender());
+            if (user != null && user.getGender() != null) {
+                mGenderView.setText(user.getGender());
+            }
         } else {
-            gender.setText(mGender);
+            mGenderView.setText(mGender);
         }
         view = findViewById(R.id.gender_container);
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mGenderView.setError(null);
                 final String[] genders = getResources().getStringArray(R.array.genders);
-                String current_gender = gender.getText().toString();
+                String current_gender = mGenderView.getText().toString();
                 int i = 0;
                 for (; i < genders.length; i++) {
                     if (current_gender.equalsIgnoreCase(genders[i])) {
@@ -205,7 +247,7 @@ public class AccountActivity extends AppCompatActivity {
                         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                gender.setText(mGender);
+                                mGenderView.setText(mGender);
                             }
                         })
                         .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
@@ -217,12 +259,25 @@ public class AccountActivity extends AppCompatActivity {
             }
         });
 
+        if (!mIsSetup) {
+            mStartApp.setVisibility(View.GONE);
+        } else {
+            mStartApp.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    setup();
+                }
+            });
+        }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_save, menu);
-        return true;
+        if (MainApplication.getUser() != null) {
+            getMenuInflater().inflate(R.menu.menu_save, menu);
+            return true;
+        }
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
@@ -265,24 +320,21 @@ public class AccountActivity extends AppCompatActivity {
     private void save() {
         final User user = MainApplication.getUser();
 
-        if (user == null) {
-            setup();
-            return;
-        }
-
-        if (!mName.equals(user.getDisplayName())) {
+        if (mName != null && mName.equals(user.getDisplayName())) {
             mName = null;
         }
-        if (!mBod.equalsIgnoreCase(user.getBirthYear())) {
+        if (mBod != null && mBod.equalsIgnoreCase(user.getBirthYear())) {
             mBod = null;
         }
-        if (!mGender.equalsIgnoreCase(user.getGender())) {
+        if (mGender != null && mGender.equalsIgnoreCase(user.getGender())) {
             mGender = null;
         }
 
-        if (mProfilePictureUri != null || mName != null || mBod != null || mGender != null) {
+        if (mName != null || mBod != null || mGender != null) {
             FB.updateUser(mName, mGender, mBod);
+        }
 
+        if (mProfilePictureUri != null) {
             FB.uploadImageFile(mProfilePictureUri, "profile.jpg", new FB.UploadImageListener() {
                 @Override
                 public void onSuccess(String url) {
@@ -295,12 +347,71 @@ public class AccountActivity extends AppCompatActivity {
                 public void onFail(String err) {
                 }
             });
-
-            Toast.makeText(this, "Profile has been updated.", Toast.LENGTH_LONG).show();
         }
+
+        finish();
     }
 
     private void setup() {
-        Toast.makeText(this, "Changes saved", Toast.LENGTH_LONG).show();
+        boolean validated = true;
+        if (mName == null || mName.isEmpty()) {
+            validated = false;
+            mNameView.setError("No name entered");
+        }
+        if (mBod == null || mBod.isEmpty()) {
+            validated = false;
+            mBodView.setError("No birth year selected");
+        }
+        if (mGender == null || mGender.isEmpty()) {
+            validated = false;
+            mGenderView.setError("No gender selected");
+        }
+        if (mProfilePictureUri == null) {
+            validated = false;
+            Drawable drawable = Utils.getIconDrawable(this, R.drawable.ic_photo_camera_white_48dp, R.color.red);
+            mPhotoCameraView.setImageDrawable(drawable);
+        }
+        if (!validated) {
+            return;
+        }
+
+        // show the busy cursor
+        final ProgressDialog dialog = Utils.getBusySpinner(this);
+
+        // get the user in the memory
+        final User user = MainApplication.getUser();
+        user.setDisplayName(mName);
+        user.setSearchedName(mName.toLowerCase());
+        user.setGender(mGender.toLowerCase());
+        user.setBirthYear(mBod.toLowerCase());
+        user.setCreated(System.currentTimeMillis());
+        user.setLocale(getResources().getConfiguration().locale.getDisplayLanguage());
+        user.setTimezone(TimeZone.getDefault().getID());
+
+        FB.uploadImageFile(mProfilePictureUri, "profile.jpg", new FB.UploadImageListener() {
+            @Override
+            public void onSuccess(String url) {
+                dialog.dismiss();
+
+                // set the url to the user
+                user.setPicture(url);
+
+                // save the user to the database
+                try {
+                    FB.initUser(user);
+                } catch (Exception e) {
+                }
+
+                // start the main map
+                Intent intent = new Intent(getApplicationContext(), PanelMapActivity.class);
+                startActivity(intent);
+                finish();
+            }
+
+            @Override
+            public void onFail(String err) {
+                dialog.dismiss();
+            }
+        });
     }
 }

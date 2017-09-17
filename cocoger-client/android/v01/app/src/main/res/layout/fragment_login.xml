@@ -101,6 +101,7 @@
             android:layout_margin="8dp"
             android:lineSpacingExtra="8sp"
             android:linksClickable="true"
+            android:textColorLink="@color/white"
             android:textSize="16sp" />
 
     </LinearLayout>
