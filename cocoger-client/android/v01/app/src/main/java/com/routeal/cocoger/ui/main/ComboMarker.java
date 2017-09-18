@@ -90,6 +90,7 @@ class ComboMarker implements Parcelable {
         // initial owner should be the one who constructs the object
         mOwner = markerInfo;
         MarkerOptions options = new MarkerOptions().position(Utils.getLatLng(markerInfo.rangeLocation));
+        options.anchor(0.5f, 0.5f);
         mMarker = map.addMarker(options);
 
         int color = Utils.randInt(0, colors.length-1);

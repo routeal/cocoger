@@ -26,58 +26,6 @@ import android.widget.TextView;
 
 import com.routeal.cocoger.R;
 
-class ProgressBarAnimation extends Animation {
-    private ProgressBar mProgressBar;
-    private float mFrom;
-    private float mTo;
-
-    public ProgressBarAnimation(final ProgressBar progressBar, final float from, final float to) {
-        super();
-        this.mProgressBar = progressBar;
-        this.mFrom = from;
-        this.mTo = to;
-    }
-
-    @Override
-    protected void applyTransformation(final float interpolatedTime, final Transformation t) {
-        super.applyTransformation(interpolatedTime, t);
-        float value = mFrom + (mTo - mFrom) * interpolatedTime;
-        mProgressBar.setProgress((int) value);
-    }
-}
-
-class ReversedSeekBar extends SeekBar {
-
-    public ReversedSeekBar(Context context) {
-        super(context);
-    }
-
-    public ReversedSeekBar(Context context, AttributeSet attrs) {
-        super(context, attrs);
-    }
-
-    public ReversedSeekBar(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
-    }
-
-    @Override
-    protected void onDraw(Canvas canvas) {
-        float px = this.getWidth() / 2.0f;
-        float py = this.getHeight() / 2.0f;
-
-        canvas.scale(-1, 1, px, py);
-
-        super.onDraw(canvas);
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent event) {
-        event.setLocation(this.getWidth() - event.getX(), event.getY());
-
-        return super.onTouchEvent(event);
-    }
-}
-
 /**
  * User: tobiasbuchholz
  * Date: 28.07.14 | Time: 14:18
@@ -511,5 +459,57 @@ public class SnappingSeekBar extends RelativeLayout implements SeekBar.OnSeekBar
 
     interface LayoutPreparedListener {
         void onLayoutPrepared(final View preparedView);
+    }
+
+    class ProgressBarAnimation extends Animation {
+        private ProgressBar mProgressBar;
+        private float mFrom;
+        private float mTo;
+
+        public ProgressBarAnimation(final ProgressBar progressBar, final float from, final float to) {
+            super();
+            this.mProgressBar = progressBar;
+            this.mFrom = from;
+            this.mTo = to;
+        }
+
+        @Override
+        protected void applyTransformation(final float interpolatedTime, final Transformation t) {
+            super.applyTransformation(interpolatedTime, t);
+            float value = mFrom + (mTo - mFrom) * interpolatedTime;
+            mProgressBar.setProgress((int) value);
+        }
+    }
+
+    class ReversedSeekBar extends SeekBar {
+
+        public ReversedSeekBar(Context context) {
+            super(context);
+        }
+
+        public ReversedSeekBar(Context context, AttributeSet attrs) {
+            super(context, attrs);
+        }
+
+        public ReversedSeekBar(Context context, AttributeSet attrs, int defStyle) {
+            super(context, attrs, defStyle);
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            float px = this.getWidth() / 2.0f;
+            float py = this.getHeight() / 2.0f;
+
+            canvas.scale(-1, 1, px, py);
+
+            super.onDraw(canvas);
+        }
+
+        @Override
+        public boolean onTouchEvent(MotionEvent event) {
+            event.setLocation(this.getWidth() - event.getX(), event.getY());
+
+            return super.onTouchEvent(event);
+        }
     }
 }

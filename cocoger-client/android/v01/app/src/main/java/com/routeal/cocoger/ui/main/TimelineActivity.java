@@ -1,10 +1,15 @@
 package com.routeal.cocoger.ui.main;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
 
 import com.routeal.cocoger.R;
 
@@ -27,8 +32,14 @@ public class TimelineActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        //selectDateTime();
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_send, menu);
+        getMenuInflater().inflate(R.menu.menu_timeline, menu);
         return true;
     }
 
@@ -40,8 +51,30 @@ public class TimelineActivity extends AppCompatActivity {
                 return true;
             case R.id.action_save:
                 return true;
+            case R.id.action_date_change:
+                selectDateTime();
+                return true;
             default:
                 return false;
         }
+    }
+
+    private void selectDateTime() {
+        LayoutInflater layoutInflaterAndroid = LayoutInflater.from(TimelineActivity.this);
+        View view = layoutInflaterAndroid.inflate(R.layout.dialog_datetime, null);
+        new AlertDialog.Builder(TimelineActivity.this)
+                .setView(view)
+                .setCancelable(false)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                })
+                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                    }
+                })
+                .show();
     }
 }

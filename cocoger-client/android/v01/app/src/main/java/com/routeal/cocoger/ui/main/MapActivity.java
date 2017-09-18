@@ -13,6 +13,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
+import android.widget.RelativeLayout;
 
 import com.appolica.interactiveinfowindow.InfoWindowManager;
 import com.appolica.interactiveinfowindow.fragment.MapInfoWindowFragment;
@@ -142,7 +143,10 @@ public class MapActivity extends MapBaseActivity {
         public void onMapReady(GoogleMap googleMap) {
             mMap = googleMap;
 
-            mMap.setPadding(0, 0, 0, 132);
+            mMap.setPadding(8, 0, 0, 148);
+            mMap.getUiSettings().setCompassEnabled(true);
+            mMap.getUiSettings().setMyLocationButtonEnabled(false);
+            mMap.setMyLocationEnabled(true);
 
             mMm = new MarkerManager(mMap, mInfoWindowManager);
 
