@@ -13,7 +13,6 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
-import android.widget.RelativeLayout;
 
 import com.appolica.interactiveinfowindow.InfoWindowManager;
 import com.appolica.interactiveinfowindow.fragment.MapInfoWindowFragment;
@@ -26,7 +25,6 @@ import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
-import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.service.MainService;
 import com.routeal.cocoger.util.LocationRange;

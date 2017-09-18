@@ -65,6 +65,8 @@ class MarkerManager {
 
     // add a new user or friend
     void add(String id, String name, String picture, Location location, Address address, int range) {
+        if (range == 0) return;
+
         if (address != null) {
             Log.d(TAG, "add: address = " + Utils.getAddressLine(address));
         } else {
@@ -95,15 +97,26 @@ class MarkerManager {
     void reposition(String key, Location location, Address address, int range) {
         Log.d(TAG, "reposition: " + key);
 
-        Location rangeLocation = Utils.getRangedLocation(location, address, range);
+        Location rangeLocation = null;
+        if (range > 0) {
+            rangeLocation = Utils.getRangedLocation(location, address, range);
+        }
 
         // remove the marker from the current joined one
         for (Iterator<ComboMarker> ite = mMarkers.iterator(); ite.hasNext(); ) {
             ComboMarker marker = ite.next();
             // found the current marker
             if (marker.contains(key)) {
+                if (range == 0) {
+                    boolean removed = marker.removeUser(key);
+                    // remove from the map
+                    if (removed) {
+                        ite.remove();
+                    }
+                    return;
+                }
                 // simply change the position when theere is only one in the marker
-                if (marker.size() == 1) {
+                else if (marker.size() == 1) {
                     Log.d(TAG, "reposition: reposition");
                     if (Utils.distanceTo(rangeLocation, location) < mMarkerDistance) {
                         Log.d(TAG, "reposition: join to another");
@@ -131,6 +144,9 @@ class MarkerManager {
                 }
             }
         }
+
+        // sometimes, try to reposition with range=0 multiple times
+        if (range == 0) return;
 
         User user = MainApplication.getUser();
         String name = null;
@@ -162,8 +178,11 @@ class MarkerManager {
 
         Log.d(TAG, "reposition: add a marker for " + key);
         // add a new marker to map
+/*
         mMarkers.add(new ComboMarker(mMap, mInfoWindowManager,
                 key, name, picture, location, address, range));
+*/
+        add(key, name, picture, location, address, range);
     }
 
     void reposition(String key, int range) {
@@ -178,8 +197,18 @@ class MarkerManager {
             if (marker.contains(key)) {
                 info = marker.getMakerInfo(key);
                 info.range = range;
+                if (range == 0) {
+                    // remove from the current marker
+                    boolean removed = marker.removeUser(key);
+                    // remove from the map
+                    if (removed) {
+                        Log.d(TAG, "reposition range: also remove the current marker from the map");
+                        ite.remove();
+                    }
+                    return;
+                }
                 // simply change the position when there is only one in the marker
-                if (marker.size() == 1) {
+                else if (marker.size() == 1) {
                     Log.d(TAG, "reposition range: only one marker - remove and reposition");
                     marker.removeUser(key);
                     ite.remove();
