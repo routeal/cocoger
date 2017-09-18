@@ -13,7 +13,7 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
-        <item name="android:windowBackground">@color/teal50</item>
+        <item name="android:windowBackground">@color/snow</item>
         <item name="colorButtonNormal">@color/darkslategray</item>
         <item name="android:colorButtonNormal">@color/darkslategray</item>
     </style>

@@ -9,6 +9,7 @@ import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.service.MainService;
 import com.routeal.cocoger.ui.main.AccountActivity;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
+import com.routeal.cocoger.ui.main.TimelineActivity;
 
 /**
  * Created by nabe on 6/11/17.
