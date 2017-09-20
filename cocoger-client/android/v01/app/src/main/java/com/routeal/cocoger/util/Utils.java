@@ -13,6 +13,7 @@ import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.Log;
@@ -25,6 +26,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.LocationAddress;
+import com.routeal.cocoger.provider.DBUtil;
 
 import java.util.HashMap;
 import java.util.List;
@@ -102,8 +104,15 @@ public class Utils {
 
     public static Location getLocation(LatLng ll) {
         Location loc = new Location("");
-        loc.setLongitude(ll.longitude);
         loc.setLatitude(ll.latitude);
+        loc.setLongitude(ll.longitude);
+        return loc;
+    }
+
+    public static Location getLocation(double latitude, double longitude) {
+        Location loc = new Location("");
+        loc.setLatitude(latitude);
+        loc.setLongitude(longitude);
         return loc;
     }
 
@@ -202,19 +211,9 @@ public class Utils {
 
         String locationName = Utils.getAddressLine(address, range);
 
-        if (!locationName.isEmpty()) {
+        if (locationName != null && !locationName.isEmpty()) {
             Log.d(TAG, "getRangedLocation:" + locationName);
-
-            try {
-                List<Address> newAddresses =
-                        new Geocoder(MainApplication.getContext(), Locale.getDefault())
-                                .getFromLocationName(locationName, 1);
-                Address newAddress = newAddresses.get(0);
-                if (newAddress != null) {
-                    location = Utils.getLocation(newAddress);
-                }
-            } catch (Exception e) {
-            }
+            location = getFromAddress(locationName);
         }
 
         return location;
@@ -262,6 +261,57 @@ public class Utils {
 
     private static double rad2deg(double rad) {
         return (rad * 180.0 / Math.PI);
+    }
+
+    public static Location getFromAddress(@NonNull String address) {
+        Location location = DBUtil.getLocation(address);
+        if (location == null) {
+            try {
+                Log.d(TAG, "getFromAddress: from Geocoder");
+                Geocoder geocoder = new Geocoder(MainApplication.getContext(), Locale.getDefault());
+                List<Address> newAddresses = geocoder.getFromLocationName(address, 1);
+                if (newAddresses != null && !newAddresses.isEmpty()) {
+                    Address newAddress = newAddresses.get(0);
+                    location = Utils.getLocation(newAddress);
+                }
+            } catch (Exception e) {
+                Log.d(TAG, "getFromAddress: Geocoder failed:" + e.getLocalizedMessage());
+            }
+            if (location != null) {
+                DBUtil.setLocation(address, location);
+            }
+        }
+        return location;
+    }
+
+    public static Address getFromLocation(Location location) {
+        // get the address from the database within 25 meter
+        Address address = DBUtil.getAddress(location, 25);
+
+        if (address == null) {
+            List<Address> addressList = null;
+
+            try {
+                Log.d(TAG, "getFromLocation: from Geocoder");
+                Geocoder geocoder = new Geocoder(MainApplication.getContext(), Locale.getDefault());
+                addressList = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+            } catch (Exception e) {
+                Log.d(TAG, "getFromLocation: Geocoder failed:" + e.getLocalizedMessage());
+            }
+
+            address = (addressList != null && addressList.size() > 0) ? addressList.get(0) : null;
+
+            if (address != null) {
+                DBUtil.saveAddress(location, address);
+            }
+        } else {
+            Log.d(TAG, "getFromLocation: from Local database");
+            // overwrite the current location
+            address.setLatitude(location.getLatitude());
+            address.setLongitude(location.getLongitude());
+        }
+
+        return address;
     }
 
     public static Bitmap cropCircle(Bitmap from) {

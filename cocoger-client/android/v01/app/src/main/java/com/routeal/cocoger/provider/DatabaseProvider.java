@@ -2,13 +2,14 @@ package com.routeal.cocoger.provider;
 
 import android.content.ContentProvider;
 import android.content.ContentResolver;
-import android.content.ContentValues;
 import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -21,27 +22,27 @@ import java.util.List;
 public class DatabaseProvider extends ContentProvider {
     private ProviderHelper mDbHelper;
 
-/*
-    private static final int USERS = 1;
-    private static final int USERS_ID = 2;
-    private static final int FRIENDS = 3;
-    private static final int FRIENDS_ID = 4;
-*/
     private static final int LOCATIONS = 1;
     private static final int LOCATIONS_ID = 2;
+    private static final int GEO_LOCATIONS = 3;
+    private static final int GEO_LOCATIONS_ID = 4;
+    private static final int REVERSE_GEO_LOCATIONS = 5;
+    private static final int REVERSE_GEO_LOCATIONS_ID = 6;
+    private static final int IMAGES = 7;
+    private static final int IMAGES_ID = 8;
 
     private static final UriMatcher mUriMatcher;
 
     static {
         mUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-/*
-        mUriMatcher.addURI(DB.AUTHORITY, DB.Users.PATH, USERS);
-        mUriMatcher.addURI(DB.AUTHORITY, DB.Users.PATH + "/#", USERS_ID);
-        mUriMatcher.addURI(DB.AUTHORITY, DB.Friends.PATH, FRIENDS);
-        mUriMatcher.addURI(DB.AUTHORITY, DB.Friends.PATH + "/#", FRIENDS_ID);
-*/
         mUriMatcher.addURI(DB.AUTHORITY, DB.Locations.PATH, LOCATIONS);
         mUriMatcher.addURI(DB.AUTHORITY, DB.Locations.PATH + "/#", LOCATIONS_ID);
+        mUriMatcher.addURI(DB.AUTHORITY, DB.GeoLocations.PATH, GEO_LOCATIONS);
+        mUriMatcher.addURI(DB.AUTHORITY, DB.GeoLocations.PATH + "/#", GEO_LOCATIONS_ID);
+        mUriMatcher.addURI(DB.AUTHORITY, DB.ReverseGeoLocations.PATH, REVERSE_GEO_LOCATIONS);
+        mUriMatcher.addURI(DB.AUTHORITY, DB.ReverseGeoLocations.PATH + "/#", REVERSE_GEO_LOCATIONS_ID);
+        mUriMatcher.addURI(DB.AUTHORITY, DB.Images.PATH, IMAGES);
+        mUriMatcher.addURI(DB.AUTHORITY, DB.Images.PATH + "/#", IMAGES_ID);
     }
 
     @Override
@@ -51,29 +52,33 @@ public class DatabaseProvider extends ContentProvider {
     }
 
     @Override
-    public String getType(Uri uri) {
+    public String getType(@NonNull Uri uri) {
         int match = mUriMatcher.match(uri);
         String mime = null;
         switch (match) {
-/*
-            case USERS:
-                mime = DB.Users.CONTENT_TYPE;
-                break;
-            case USERS_ID:
-                mime = DB.Users.CONTENT_ITEM_TYPE;
-                break;
-            case FRIENDS:
-                mime = DB.Friends.CONTENT_TYPE;
-                break;
-            case FRIENDS_ID:
-                mime = DB.Friends.CONTENT_ITEM_TYPE;
-                break;
-*/
             case LOCATIONS:
                 mime = DB.Locations.CONTENT_TYPE;
                 break;
             case LOCATIONS_ID:
                 mime = DB.Locations.CONTENT_ITEM_TYPE;
+                break;
+            case GEO_LOCATIONS:
+                mime = DB.GeoLocations.CONTENT_TYPE;
+                break;
+            case GEO_LOCATIONS_ID:
+                mime = DB.GeoLocations.CONTENT_ITEM_TYPE;
+                break;
+            case REVERSE_GEO_LOCATIONS:
+                mime = DB.ReverseGeoLocations.CONTENT_TYPE;
+                break;
+            case REVERSE_GEO_LOCATIONS_ID:
+                mime = DB.ReverseGeoLocations.CONTENT_ITEM_TYPE;
+                break;
+            case IMAGES:
+                mime = DB.Images.CONTENT_TYPE;
+                break;
+            case IMAGES_ID:
+                mime = DB.Images.CONTENT_ITEM_TYPE;
                 break;
             default:
                 break;
@@ -81,44 +86,48 @@ public class DatabaseProvider extends ContentProvider {
         return mime;
     }
 
-
     //
     // https://developer.android.com/guide/topics/providers/content-provider-basics.html
     //
     @Override
-    public Cursor query(Uri uri, String[] projection,
+    public Cursor query(@NonNull Uri uri, String[] projection,
                         String selection, String[] selectionArgs, String sortOrder) {
-        String tableName = null;
+        String tableName;
         String innerSelection = "1";
         String[] innerSelectionArgs = new String[]{};
-        String sortorder = sortOrder;
         List<String> pathSegments = uri.getPathSegments();
 
         switch (mUriMatcher.match(uri)) {
-/*
-            case USERS:
-                tableName = DB.Users.TABLE;
-                break;
-            case USERS_ID:
-                tableName = DB.Users.TABLE;
-                innerSelection = DB.Users._ID + " = ? ";
-                innerSelectionArgs = new String[]{pathSegments.get(1)};
-                break;
-            case FRIENDS:
-                tableName = DB.Friends.TABLE;
-                break;
-            case FRIENDS_ID:
-                tableName = DB.Friends.TABLE;
-                innerSelection = DB.Friends._ID + " = ? ";
-                innerSelectionArgs = new String[]{pathSegments.get(1)};
-                break;
-*/
             case LOCATIONS:
                 tableName = DB.Locations.TABLE;
                 break;
             case LOCATIONS_ID:
                 tableName = DB.Locations.TABLE;
                 innerSelection = DB.Locations._ID + " = ? ";
+                innerSelectionArgs = new String[]{pathSegments.get(1)};
+                break;
+            case GEO_LOCATIONS:
+                tableName = DB.GeoLocations.TABLE;
+                break;
+            case GEO_LOCATIONS_ID:
+                tableName = DB.GeoLocations.TABLE;
+                innerSelection = DB.GeoLocations._ID + " = ? ";
+                innerSelectionArgs = new String[]{pathSegments.get(1)};
+                break;
+            case REVERSE_GEO_LOCATIONS:
+                tableName = DB.ReverseGeoLocations.TABLE;
+                break;
+            case REVERSE_GEO_LOCATIONS_ID:
+                tableName = DB.ReverseGeoLocations.TABLE;
+                innerSelection = DB.ReverseGeoLocations._ID + " = ? ";
+                innerSelectionArgs = new String[]{pathSegments.get(1)};
+                break;
+            case IMAGES:
+                tableName = DB.Images.TABLE;
+                break;
+            case IMAGES_ID:
+                tableName = DB.Images.TABLE;
+                innerSelection = DB.Images._ID + " = ? ";
                 innerSelectionArgs = new String[]{pathSegments.get(1)};
                 break;
             default:
@@ -148,7 +157,7 @@ public class DatabaseProvider extends ContentProvider {
 
         SQLiteDatabase mDb = mDbHelper.getReadableDatabase();
 
-        Cursor c = qBuilder.query(mDb, projection, selection, selectionArgs, null, null, sortorder);
+        Cursor c = qBuilder.query(mDb, projection, selection, selectionArgs, null, null, sortOrder);
 
         c.setNotificationUri(getContext().getContentResolver(), uri);
 
@@ -156,7 +165,7 @@ public class DatabaseProvider extends ContentProvider {
     }
 
     @Override
-    public Uri insert(Uri uri, ContentValues values) {
+    public Uri insert(@NonNull Uri uri, ContentValues values) {
         Uri insertedUri = null;
 
         switch (mUriMatcher.match(uri)) {
@@ -169,26 +178,33 @@ public class DatabaseProvider extends ContentProvider {
                 resolver.notifyChange(DB.Locations.CONTENT_URI, null);
                 break;
             }
-/*
-            case USERS: {
+            case GEO_LOCATIONS: {
                 SQLiteDatabase db = mDbHelper.getWritableDatabase();
-                long id = db.insert(DB.Users.TABLE, null, values);
+                long id = db.insert(DB.GeoLocations.TABLE, null, values);
                 insertedUri = ContentUris.withAppendedId(uri, id);
 
                 ContentResolver resolver = getContext().getContentResolver();
-                resolver.notifyChange(DB.Users.CONTENT_URI, null);
+                resolver.notifyChange(DB.GeoLocations.CONTENT_URI, null);
                 break;
             }
-            case FRIENDS: {
+            case REVERSE_GEO_LOCATIONS: {
                 SQLiteDatabase db = mDbHelper.getWritableDatabase();
-                long id = db.insert(DB.Friends.TABLE, null, values);
+                long id = db.insert(DB.ReverseGeoLocations.TABLE, null, values);
                 insertedUri = ContentUris.withAppendedId(uri, id);
 
                 ContentResolver resolver = getContext().getContentResolver();
-                resolver.notifyChange(DB.Friends.CONTENT_URI, null);
+                resolver.notifyChange(DB.ReverseGeoLocations.CONTENT_URI, null);
                 break;
             }
-*/
+            case IMAGES: {
+                SQLiteDatabase db = mDbHelper.getWritableDatabase();
+                long id = db.insert(DB.Images.TABLE, null, values);
+                insertedUri = ContentUris.withAppendedId(uri, id);
+
+                ContentResolver resolver = getContext().getContentResolver();
+                resolver.notifyChange(DB.Images.CONTENT_URI, null);
+                break;
+            }
             default:
                 break;
         }
@@ -199,36 +215,45 @@ public class DatabaseProvider extends ContentProvider {
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         int updates = -1;
-/*
+
         switch (mUriMatcher.match(uri)) {
-            case USERS_ID: {
+            case IMAGES_ID: {
                 long id = new Long(uri.getLastPathSegment()).longValue();
-                String whereclause = DB.Users._ID + " = " + id;
+                String whereclause = DB.Images._ID + " = " + id;
                 SQLiteDatabase db = mDbHelper.getWritableDatabase();
-                updates = db.update(DB.Users.TABLE, values, whereclause, null);
+                updates = db.update(DB.Images.TABLE, values, whereclause, null);
 
                 ContentResolver resolver = getContext().getContentResolver();
-                Uri notifyUri = ContentUris.withAppendedId(DB.Users.CONTENT_URI, id);
+                Uri notifyUri = ContentUris.withAppendedId(DB.Images.CONTENT_URI, id);
                 resolver.notifyChange(notifyUri, null);
-                resolver.notifyChange(DB.Users.CONTENT_URI, null);
                 break;
             }
-            case FRIENDS_ID: {
+            case GEO_LOCATIONS_ID: {
                 long id = new Long(uri.getLastPathSegment()).longValue();
-                String whereclause = DB.Friends._ID + " = " + id;
+                String whereclause = DB.GeoLocations._ID + " = " + id;
                 SQLiteDatabase db = mDbHelper.getWritableDatabase();
-                updates = db.update(DB.Friends.TABLE, values, whereclause, null);
+                updates = db.update(DB.GeoLocations.TABLE, values, whereclause, null);
 
                 ContentResolver resolver = getContext().getContentResolver();
-                Uri notifyUri = ContentUris.withAppendedId(DB.Friends.CONTENT_URI, id);
+                Uri notifyUri = ContentUris.withAppendedId(DB.GeoLocations.CONTENT_URI, id);
                 resolver.notifyChange(notifyUri, null);
-                resolver.notifyChange(DB.Friends.CONTENT_URI, null);
+                break;
+            }
+            case REVERSE_GEO_LOCATIONS_ID: {
+                long id = new Long(uri.getLastPathSegment()).longValue();
+                String whereclause = DB.ReverseGeoLocations._ID + " = " + id;
+                SQLiteDatabase db = mDbHelper.getWritableDatabase();
+                updates = db.update(DB.ReverseGeoLocations.TABLE, values, whereclause, null);
+
+                ContentResolver resolver = getContext().getContentResolver();
+                Uri notifyUri = ContentUris.withAppendedId(DB.ReverseGeoLocations.CONTENT_URI, id);
+                resolver.notifyChange(notifyUri, null);
                 break;
             }
             default:
                 break;
         }
-*/
+
         return updates;
     }
 
@@ -238,44 +263,6 @@ public class DatabaseProvider extends ContentProvider {
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
         switch (mUriMatcher.match(uri)) {
-/*
-            case USERS: {
-                affected = db.delete(DB.Users.TABLE, selection, selectionArgs);
-                ContentResolver resolver = getContext().getContentResolver();
-                resolver.notifyChange(DB.Users.CONTENT_URI, null);
-                break;
-            }
-
-            case USERS_ID: {
-                long id  = new Long(uri.getLastPathSegment()).longValue();
-                affected = db.delete(DB.Users.TABLE, DB.Users._ID + "= ?",
-                        new String[] { String.valueOf(id) });
-                ContentResolver resolver = getContext().getContentResolver();
-                Uri notifyUri = ContentUris.withAppendedId(DB.Users.CONTENT_URI, id);
-                resolver.notifyChange(notifyUri, null);
-                resolver.notifyChange(DB.Users.CONTENT_URI, null);
-                break;
-            }
-
-            case FRIENDS: {
-                affected = db.delete(DB.Friends.TABLE, selection, selectionArgs);
-                ContentResolver resolver = getContext().getContentResolver();
-                resolver.notifyChange(DB.Friends.CONTENT_URI, null);
-                break;
-            }
-
-            case FRIENDS_ID: {
-                long id  = new Long(uri.getLastPathSegment()).longValue();
-                affected = db.delete(DB.Friends.TABLE, DB.Friends._ID + "= ?",
-                        new String[] { String.valueOf(id) });
-                ContentResolver resolver = getContext().getContentResolver();
-                Uri notifyUri = ContentUris.withAppendedId(DB.Friends.CONTENT_URI, id);
-                resolver.notifyChange(notifyUri, null);
-                resolver.notifyChange(DB.Friends.CONTENT_URI, null);
-                break;
-            }
-*/
-
             case LOCATIONS: {
                 affected = db.delete(DB.Locations.TABLE, selection, selectionArgs);
                 ContentResolver resolver = getContext().getContentResolver();
@@ -291,6 +278,60 @@ public class DatabaseProvider extends ContentProvider {
                 Uri notifyUri = ContentUris.withAppendedId(DB.Locations.CONTENT_URI, id);
                 resolver.notifyChange(notifyUri, null);
                 resolver.notifyChange(DB.Locations.CONTENT_URI, null);
+                break;
+            }
+
+            case GEO_LOCATIONS: {
+                affected = db.delete(DB.GeoLocations.TABLE, selection, selectionArgs);
+                ContentResolver resolver = getContext().getContentResolver();
+                resolver.notifyChange(DB.GeoLocations.CONTENT_URI, null);
+                break;
+            }
+
+            case GEO_LOCATIONS_ID: {
+                long id = new Long(uri.getLastPathSegment()).longValue();
+                affected = db.delete(DB.GeoLocations.TABLE, DB.GeoLocations._ID + "= ?",
+                        new String[]{String.valueOf(id)});
+                ContentResolver resolver = getContext().getContentResolver();
+                Uri notifyUri = ContentUris.withAppendedId(DB.GeoLocations.CONTENT_URI, id);
+                resolver.notifyChange(notifyUri, null);
+                resolver.notifyChange(DB.GeoLocations.CONTENT_URI, null);
+                break;
+            }
+
+            case REVERSE_GEO_LOCATIONS: {
+                affected = db.delete(DB.ReverseGeoLocations.TABLE, selection, selectionArgs);
+                ContentResolver resolver = getContext().getContentResolver();
+                resolver.notifyChange(DB.ReverseGeoLocations.CONTENT_URI, null);
+                break;
+            }
+
+            case REVERSE_GEO_LOCATIONS_ID: {
+                long id = new Long(uri.getLastPathSegment()).longValue();
+                affected = db.delete(DB.ReverseGeoLocations.TABLE, DB.ReverseGeoLocations._ID + "= ?",
+                        new String[]{String.valueOf(id)});
+                ContentResolver resolver = getContext().getContentResolver();
+                Uri notifyUri = ContentUris.withAppendedId(DB.ReverseGeoLocations.CONTENT_URI, id);
+                resolver.notifyChange(notifyUri, null);
+                resolver.notifyChange(DB.ReverseGeoLocations.CONTENT_URI, null);
+                break;
+            }
+
+            case IMAGES: {
+                affected = db.delete(DB.Images.TABLE, selection, selectionArgs);
+                ContentResolver resolver = getContext().getContentResolver();
+                resolver.notifyChange(DB.Images.CONTENT_URI, null);
+                break;
+            }
+
+            case IMAGES_ID: {
+                long id = new Long(uri.getLastPathSegment()).longValue();
+                affected = db.delete(DB.Images.TABLE, DB.Images._ID + "= ?",
+                        new String[]{String.valueOf(id)});
+                ContentResolver resolver = getContext().getContentResolver();
+                Uri notifyUri = ContentUris.withAppendedId(DB.Images.CONTENT_URI, id);
+                resolver.notifyChange(notifyUri, null);
+                resolver.notifyChange(DB.Images.CONTENT_URI, null);
                 break;
             }
 

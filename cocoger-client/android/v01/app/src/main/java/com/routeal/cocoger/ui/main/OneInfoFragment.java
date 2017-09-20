@@ -58,7 +58,6 @@ public class OneInfoFragment extends Fragment implements View.OnClickListener {
         View view = inflater.inflate(R.layout.fragment_one_info, container, false);
         mNameTextView = (AppCompatTextView) view.findViewById(R.id.title);
         mStreetImageView = (AppCompatImageView) view.findViewById(R.id.street_view);
-        mHistoryButton = (ImageButton) view.findViewById(R.id.location_history);
         mSendMessageButton = (ImageButton) view.findViewById(R.id.send_message);
         mSendFacebookButton = (ImageButton) view.findViewById(R.id.send_facebook);
         mAddressTextView = (AppCompatTextView) view.findViewById(R.id.current_address);
@@ -68,7 +67,6 @@ public class OneInfoFragment extends Fragment implements View.OnClickListener {
         mStreetImageView.setOnClickListener(this);
         mMoreInfoButton.setOnClickListener(this);
         mSaveMapButton.setOnClickListener(this);
-        mHistoryButton.setOnClickListener(this);
         mSendMessageButton.setOnClickListener(this);
         mSendFacebookButton.setOnClickListener(this);
 
@@ -85,11 +83,9 @@ public class OneInfoFragment extends Fragment implements View.OnClickListener {
 
         if (FB.isCurrentUser(mUid)) {
             mSendMessageButton.setVisibility(View.GONE);
-            mHistoryButton.setVisibility(View.GONE);
             mSendFacebookButton.setVisibility(View.VISIBLE);
         } else {
             mSendMessageButton.setVisibility(View.VISIBLE);
-            mHistoryButton.setVisibility(View.GONE);
             mSendFacebookButton.setVisibility(View.VISIBLE);
         }
 
@@ -167,15 +163,6 @@ public class OneInfoFragment extends Fragment implements View.OnClickListener {
                 break;
             case R.id.save_to_map:
                 Toast.makeText(getContext(), "savetomap", Toast.LENGTH_SHORT).show();
-                mMarker.hide();
-                break;
-            case R.id.location_history:
-                FullScreenDialogFragment dialogFragment = new FullScreenDialogFragment.Builder(getActivity())
-                        .setTitle(R.string.location_sharing)
-                        .setConfirmButton(R.string.share)
-                        .setContent(HistoryFragment.class, new Bundle())
-                        .build();
-                dialogFragment.show(getActivity().getSupportFragmentManager(), "user-dialog");
                 mMarker.hide();
                 break;
         }

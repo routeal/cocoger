@@ -14,7 +14,6 @@ import com.appolica.interactiveinfowindow.InfoWindow;
 import com.appolica.interactiveinfowindow.InfoWindowManager;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.routeal.cocoger.MainApplication;
@@ -25,7 +24,6 @@ import com.routeal.cocoger.util.Utils;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Random;
 
 class ComboMarker implements Parcelable {
     private final static String TAG = "ComboMarker";
@@ -93,7 +91,7 @@ class ComboMarker implements Parcelable {
         options.anchor(0.5f, 0.5f);
         mMarker = map.addMarker(options);
 
-        int color = Utils.randInt(0, colors.length-1);
+        int color = Utils.randInt(0, colors.length - 1);
         Drawable d = Utils.getIconDrawable(MainApplication.getContext(), R.drawable.ic_face_black_48dp, colors[color]);
         BitmapDescriptor icon = Utils.getBitmapDescriptor(d);
 

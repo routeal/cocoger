@@ -16,7 +16,10 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.model.LocationAddress;
+import com.routeal.cocoger.provider.DBUtil;
 import com.routeal.cocoger.ui.main.MapActivity;
+import com.routeal.cocoger.util.Utils;
 
 import java.util.Comparator;
 import java.util.List;
@@ -107,8 +110,8 @@ public class MainService extends BasePeriodicService {
     public static void start(Context context) {
         // start the service only when the user is authenticated
         //if (FB.isAuthenticated()) {
-            Intent intent = new Intent(context, MainService.class);
-            context.startService(intent);
+        Intent intent = new Intent(context, MainService.class);
+        context.startService(intent);
         //}
     }
 
@@ -186,8 +189,8 @@ public class MainService extends BasePeriodicService {
 
             mLocationRequest = LocationRequest.create()
                     .setInterval(15 * 60 * 1000) // 15 mins
-                    .setFastestInterval(5*60000) // 5 min
-                //.setSmallestDisplacement(BACKGROUND_MIN_MOVEMENT)
+                    .setFastestInterval(5 * 60000) // 5 min
+                    //.setSmallestDisplacement(BACKGROUND_MIN_MOVEMENT)
                     .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApi,
@@ -198,7 +201,7 @@ public class MainService extends BasePeriodicService {
             mLocationMode = LocationMode.FOREGROUND;
 
             mLocationRequest = LocationRequest.create()
-                    .setInterval(60000) // 60 sec
+                    .setInterval(60 * 1000) // 60 sec
                     .setFastestInterval(1000) // 5 sec
                     .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
@@ -256,6 +259,8 @@ public class MainService extends BasePeriodicService {
                 return;
             }
 
+//            saveLocation(location);
+
             // distance in meter
             float distance = location.distanceTo(mLastKnownLocation);
 
@@ -284,7 +289,7 @@ public class MainService extends BasePeriodicService {
         }
     };
 
-    private void saveLocation(Location location) {
+    private void saveLocation(final Location location) {
         if (mLastKnownLocation != null) {
             float distance = location.distanceTo(mLastKnownLocation);
             float elapsed = (float) ((location.getTime() - mLastKnownLocation.getTime()) / 1000.0);
@@ -293,22 +298,12 @@ public class MainService extends BasePeriodicService {
                 location.setSpeed(speed);
             }
             float speed2 = location.getSpeed() * 18 / 5;
-            Log.d(TAG, "saveLocation:speed="+speed2+" (km/h)");
+            Log.d(TAG, "saveLocation:speed=" + speed2 + " (km/h)");
         }
 
         mLastKnownLocation = location;
 
-        Address address = null;
-        try {
-            List<Address> addresses = mGeocoder.getFromLocation(
-                    location.getLatitude(),
-                    location.getLongitude(),
-                    1);
-            // FIXME: first address always works best???
-            address = addresses.get(0);
-        } catch (Exception e) {
-            Log.d(TAG, "Geocoder failed:" + e.getLocalizedMessage());
-        }
+        final Address address = Utils.getFromLocation(location);
 
         if (address == null) {
             Log.d(TAG, "No address retrieved from Geocoder for " + location.toString());
@@ -323,6 +318,36 @@ public class MainService extends BasePeriodicService {
         intent.putExtra(MapActivity.ADDRESS_UPDATE, address);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
-        FB.saveLocation(location, address);
+        FB.saveLocation(location, address, new FB.CompleteListener() {
+            @Override
+            public void onSuccess() {
+                // do nothing
+            }
+
+            @Override
+            public void onFail(String err) {
+                // save the database
+                DBUtil.saveLocation(location, address);
+            }
+        });
+
+        // locations not sent to the server
+        List<LocationAddress> dbLocations = DBUtil.getLocations();
+        if (dbLocations != null) {
+            for (int i = 0; i < dbLocations.size() && i < 100; i++) {
+                final LocationAddress la = dbLocations.get(i);
+                FB.saveLocation(Utils.getLocation(la), Utils.getAddress(la), false,
+                        new FB.CompleteListener() {
+                            @Override
+                            public void onSuccess() {
+                                DBUtil.deleteLocation(la.getId());
+                            }
+
+                            @Override
+                            public void onFail(String err) {
+                            }
+                        });
+            }
+        }
     }
 }

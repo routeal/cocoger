@@ -7,6 +7,8 @@ import android.os.Build;
 import android.util.JsonReader;
 import android.widget.Toast;
 
+import com.facebook.stetho.Stetho;
+import com.facebook.stetho.okhttp3.StethoInterceptor;
 import com.routeal.cocoger.model.Device;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.User;
@@ -16,6 +18,8 @@ import com.routeal.cocoger.util.Utils;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.OkHttpClient;
 
 /**
  * Created by nabe on 6/11/17.
@@ -44,6 +48,13 @@ public class MainApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        // DEBUG
+        Stetho.initializeWithDefaults(this);
+
+        new OkHttpClient.Builder()
+                .addNetworkInterceptor(new StethoInterceptor())
+                .build();
 
         mInstance = this;
 
@@ -79,7 +90,6 @@ public class MainApplication extends Application {
         }
 
         mRestClient = new RestClient(server_url, true /*enable_server_debug*/);
-
     }
 
     public static Context getContext() {

@@ -116,7 +116,6 @@ public class MultiInfoFragment extends Fragment {
 
             AppCompatTextView mNameTextView = (AppCompatTextView) dialog.findViewById(R.id.title);
             AppCompatImageView mStreetImageView = (AppCompatImageView) dialog.findViewById(R.id.street_view);
-            ImageButton mHistoryButton = (ImageButton) dialog.findViewById(R.id.location_history);
             ImageButton mSendMessageButton = (ImageButton) dialog.findViewById(R.id.send_message);
             ImageButton mSendFacebookButton = (ImageButton) dialog.findViewById(R.id.send_facebook);
             AppCompatTextView mAddressTextView = (AppCompatTextView) dialog.findViewById(R.id.current_address);
@@ -125,11 +124,9 @@ public class MultiInfoFragment extends Fragment {
 
             if (FB.isCurrentUser(info.id)) {
                 mSendMessageButton.setVisibility(View.GONE);
-                mHistoryButton.setVisibility(View.GONE);
                 mSendFacebookButton.setVisibility(View.VISIBLE);
             } else {
                 mSendMessageButton.setVisibility(View.VISIBLE);
-                mHistoryButton.setVisibility(View.GONE);
                 mSendFacebookButton.setVisibility(View.VISIBLE);
             }
 

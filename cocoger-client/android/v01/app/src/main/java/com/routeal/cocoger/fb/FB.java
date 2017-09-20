@@ -106,6 +106,11 @@ public class FB {
         void onFail(String err);
     }
 
+    public interface CompleteListener {
+        void onSuccess();
+        void onFail(String err);
+    }
+
     public static String getUid() {
         FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
         if (fUser == null) return null;
@@ -261,8 +266,17 @@ public class FB {
                 });
     }
 
-    // Note: this may call before login
     public static void saveLocation(Location location, Address address) {
+        saveLocation(location, address, null);
+    }
+
+    // Note: this may call before login
+    public static void saveLocation(Location location, Address address, final CompleteListener listener) {
+        saveLocation(location, address, true, listener);
+    }
+
+    public static void saveLocation(Location location, Address address, boolean notifyFriend,
+                                    final CompleteListener listener) {
         Log.d(TAG, "saveLocation:");
 
         String uid = getUid();
@@ -306,17 +320,30 @@ public class FB {
         updates.put("user_locations/" + uid + "/" + key, loc.getTimestamp());
         updates.put("users/" + uid + "/location/", key);
 
-        User user = MainApplication.getUser();
-        if (user != null) {
-            Map<String, Friend> friends = user.getFriends();
-            if (friends != null) {
-                for (Map.Entry<String, Friend> entry : friends.entrySet()) {
-                    updates.put("users/" + entry.getKey() + "/friends/" + uid + "/location", key);
+        if (notifyFriend) {
+            User user = MainApplication.getUser();
+            if (user != null) {
+                Map<String, Friend> friends = user.getFriends();
+                if (friends != null) {
+                    for (Map.Entry<String, Friend> entry : friends.entrySet()) {
+                        updates.put("users/" + entry.getKey() + "/friends/" + uid + "/location", key);
+                    }
                 }
             }
         }
 
-        db.updateChildren(updates);
+        db.updateChildren(updates, new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                if (databaseError == null) {
+                    // success
+                    if (listener != null) listener.onSuccess();
+                } else {
+                    // error
+                    if (listener != null) listener.onFail(databaseError.getMessage());
+                }
+            }
+        });
     }
 
     public static void updateUser(String name, String gender, String bob, String url) {

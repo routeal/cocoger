@@ -12,8 +12,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.Toast;
 
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.util.RangeSeekBar;
 
@@ -24,7 +26,7 @@ import java.util.Date;
  * Created by nabe on 9/16/17.
  */
 
-public class TimelineActivity extends AppCompatActivity {
+public class TimelineActivity extends AppCompatActivity implements OnMapReadyCallback {
     private final static String TAG = "TimelineActivity";
 
     private Date mDate;
@@ -117,7 +119,7 @@ public class TimelineActivity extends AppCompatActivity {
                                 int month = datePicker.getMonth();
                                 int year = datePicker.getYear();
                                 SimpleDateFormat sdf = new SimpleDateFormat("MM dd yyyy");
-                                mDate = new Date(year-1900, month, day, 0, 0);
+                                mDate = new Date(year - 1900, month, day, 0, 0);
                                 String formatDate = sdf.format(mDate);
                                 dateText.setText(formatDate);
                             }
@@ -163,6 +165,13 @@ public class TimelineActivity extends AppCompatActivity {
 
     private void showTimeline() {
         Log.d(TAG, "showTimeline: " + mDate.toString() + " start: " + mStartTime + " end: " + mEndTime);
+        SupportMapFragment mapFragment =
+                (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
     }
 
+    @Override
+    public void onMapReady(GoogleMap map) {
+        //map.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+    }
 }

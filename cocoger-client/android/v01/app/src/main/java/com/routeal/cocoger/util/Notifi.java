@@ -7,16 +7,10 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.support.v4.app.NotificationCompat;
-import android.util.Log;
-import android.widget.TextView;
 
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
-import com.squareup.picasso.Picasso;
-
-import java.util.Random;
 
 public class Notifi {
 

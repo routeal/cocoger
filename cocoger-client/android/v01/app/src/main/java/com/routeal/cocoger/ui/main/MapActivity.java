@@ -186,11 +186,15 @@ public class MapActivity extends MapBaseActivity {
                     // first time only
                     if (mLastKnownLocation == null) {
                         Log.d(TAG, "Receive Last_location_update: setupMarkers");
-                        setupMarkers(location, address);
+                        if (MainApplication.getUser() != null) {
+                            setupMarkers(location, address);
+                        }
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                                 Utils.getLatLng(location), DEFAULT_ZOOM));
                     } else {
-                        mMm.reposition(FB.getUid(), location, address, LocationRange.CURRENT.range);
+                        if (MainApplication.getUser() != null) {
+                            mMm.reposition(FB.getUid(), location, address, LocationRange.CURRENT.range);
+                        }
                     }
                 }
                 mLastKnownLocation = location;

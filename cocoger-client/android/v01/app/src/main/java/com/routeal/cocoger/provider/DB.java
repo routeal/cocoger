@@ -3,8 +3,6 @@ package com.routeal.cocoger.provider;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
-import java.util.List;
-
 /**
  * Created by hwatanabe on 4/11/17.
  */
@@ -82,15 +80,17 @@ public final class DB {
         static final String URI_TAG = "cache";
     }
 
-/*
-    public static class ImageColumns extends CacheColumns {
+    public static class ImagesColumns extends CacheColumns {
         public static final String NAME = "name";
         public static final String DATA = "data";
+        public static final String REFCOUNT = "refcount";
+
         static final String NAME_TYPE = "TEXT";
         static final String DATA_TYPE = "BLOB";
+        static final String REFCOUNT_TYPE = "INTEGER";
     }
 
-    public static final class Images extends ImageColumns implements BaseColumns {
+    public static final class Images extends ImagesColumns implements BaseColumns {
         public static final String TABLE = "images";
         public static final String PATH = URI_TAG + "/" + TABLE;
         public static final String CONTENT_TYPE = MIME_TYPE + TABLE;
@@ -102,114 +102,11 @@ public final class DB {
                 "(" + " " + _ID + " " + _ID_TYPE +
                 "," + " " + NAME + " " + NAME_TYPE +
                 "," + " " + DATA + " " + DATA_TYPE +
+                "," + " " + REFCOUNT + " " + REFCOUNT_TYPE +
                 ");";
     }
-
-    public static class UsersColumns extends CacheColumns {
-        public static final String BIRTHYEAR = "birthYear";
-        public static final String EMAIL = "email";
-        public static final String FIRSTNAME = "firstName";
-        public static final String LASTNAME = "lastName";
-        public static final String NAME = "name";
-        public static final String GENDER = "gender";
-        public static final String PICTURE = "picture";
-        public static final String LOCALE = "locale";
-        public static final String TIMEZONE = "timezone";
-        public static final String UPDATED = "updated";
-        public static final String CREATED = "created";
-        static final String BIRTHYEAR_TYPE = "TEXT";
-        static final String EMAIL_TYPE = "TEXT";
-        static final String FIRSTNAME_TYPE = "TEXT";
-        static final String LASTNAME_TYPE = "TEXT";
-        static final String NAME_TYPE = "TEXT";
-        static final String GENDER_TYPE = "TEXT";
-        static final String PICTURE_TYPE = "TEXT";
-        static final String LOCALE_TYPE = "TEXT";
-        static final String TIMEZONE_TYPE = "TEXT";
-        static final String UPDATED_TYPE = "INTEGER";
-        static final String CREATED_TYPE = "INTEGER";
-    }
-
-    public static final class Users extends UsersColumns implements BaseColumns {
-        public static final String TABLE = "users";
-        public static final String PATH = URI_TAG + "/" + TABLE;
-        public static final String CONTENT_TYPE = MIME_TYPE + TABLE;
-        public static final String CONTENT_ITEM_TYPE = MIME_ITEM_TYPE + TABLE;
-        public static final Uri CONTENT_URI =
-                Uri.parse("content://" + DB.AUTHORITY + "/" + URI_TAG + "/" + TABLE);
-
-        static final String CREATE_STATEMENT = "CREATE TABLE " + TABLE +
-                "(" + " " + _ID + " " + _ID_TYPE +
-                "," + " " + BIRTHYEAR + " " + BIRTHYEAR_TYPE +
-                "," + " " + EMAIL + " " + EMAIL_TYPE +
-                "," + " " + FIRSTNAME + " " + FIRSTNAME_TYPE +
-                "," + " " + LASTNAME + " " + LASTNAME_TYPE +
-                "," + " " + NAME + " " + NAME_TYPE +
-                "," + " " + GENDER + " " + GENDER_TYPE +
-                "," + " " + PICTURE + " " + PICTURE_TYPE +
-                "," + " " + LOCALE + " " + LOCALE_TYPE +
-                "," + " " + TIMEZONE + " " + TIMEZONE_TYPE +
-                "," + " " + UPDATED + " " + UPDATED_TYPE +
-                "," + " " + CREATED + " " + CREATED_TYPE +
-                ");";
-    }
-
-    public static class FriendsColumns extends CacheColumns {
-        public static final String PROVIDERID = "providerId";
-        public static final String FIRSTNAME = "firstName";
-        public static final String LASTNAME = "lastName";
-        public static final String NAME = "name";
-        public static final String GENDER = "gender";
-        public static final String PICTURE = "picture";
-        public static final String LOCALE = "locale";
-        public static final String TIMEZONE = "timezone";
-        public static final String UPDATED = "updated";
-        public static final String STATUS = "status";
-        public static final String RANGE = "range";
-        public static final String APPROVED = "approved";
-
-        static final String PROVIDERID_TYPE = "TEXT";
-        static final String FIRSTNAME_TYPE = "TEXT";
-        static final String LASTNAME_TYPE = "TEXT";
-        static final String NAME_TYPE = "TEXT";
-        static final String GENDER_TYPE = "TEXT";
-        static final String PICTURE_TYPE = "TEXT";
-        static final String LOCALE_TYPE = "TEXT";
-        static final String TIMEZONE_TYPE = "TEXT";
-        static final String UPDATED_TYPE = "TEXT";
-        static final String STATUS_TYPE = "INTEGER";
-        static final String RANGE_TYPE = "INTEGER";
-        static final String APPROVED_TYPE = "TEXT";
-    }
-
-    public static final class Friends extends FriendsColumns implements BaseColumns {
-        public static final String TABLE = "friends";
-        public static final String PATH = URI_TAG + "/" + TABLE;
-        public static final String CONTENT_TYPE = MIME_TYPE + TABLE;
-        public static final String CONTENT_ITEM_TYPE = MIME_ITEM_TYPE + TABLE;
-        public static final Uri CONTENT_URI =
-                Uri.parse("content://" + DB.AUTHORITY + "/" + URI_TAG + "/" + TABLE);
-
-        static final String CREATE_STATEMENT = "CREATE TABLE " + TABLE +
-                "(" + " " + _ID + " " + _ID_TYPE +
-                "," + " " + PROVIDERID + " " + PROVIDERID_TYPE +
-                "," + " " + FIRSTNAME + " " + FIRSTNAME_TYPE +
-                "," + " " + LASTNAME + " " + LASTNAME_TYPE +
-                "," + " " + NAME + " " + NAME_TYPE +
-                "," + " " + GENDER + " " + GENDER_TYPE +
-                "," + " " + PICTURE + " " + PICTURE_TYPE +
-                "," + " " + LOCALE + " " + LOCALE_TYPE +
-                "," + " " + TIMEZONE + " " + TIMEZONE_TYPE +
-                "," + " " + UPDATED + " " + UPDATED_TYPE +
-                "," + " " + STATUS + " " + STATUS_TYPE +
-                "," + " " + RANGE + " " + RANGE_TYPE +
-                "," + " " + APPROVED + " " + APPROVED_TYPE +
-                ");";
-    }
-*/
 
     public static class LocationsColumns extends CacheColumns {
-        public static final String UID = "uid";
         public static final String TIMESTAMP = "timestamp";
         public static final String LATITUDE = "latitude";
         public static final String LONGITUDE = "longitude";
@@ -226,7 +123,6 @@ public final class DB {
         public static final String SUBTHOROUGHFARE = "subThoroughfare";
         public static final String PLACEID = "placeId";
 
-        static final String UID_TYPE = "TEXT";
         static final String TIMESTAMP_TYPE = "INTEGER";
         static final String LATITUDE_TYPE = "REAL";
         static final String LONGITUDE_TYPE = "REAL";
@@ -254,7 +150,6 @@ public final class DB {
 
         static final String CREATE_STATEMENT = "CREATE TABLE " + TABLE +
                 "(" + " " + _ID + " " + _ID_TYPE +
-                "," + " " + UID + " " + UID_TYPE +
                 "," + " " + TIMESTAMP + " " + TIMESTAMP_TYPE +
                 "," + " " + LATITUDE + " " + LATITUDE_TYPE +
                 "," + " " + LONGITUDE + " " + LONGITUDE_TYPE +
@@ -270,6 +165,67 @@ public final class DB {
                 "," + " " + THOROUGHFARE + " " + THOROUGHFARE_TYPE +
                 "," + " " + SUBTHOROUGHFARE + " " + SUBTHOROUGHFARE_TYPE +
                 "," + " " + PLACEID + " " + PLACEID_TYPE +
+                ");";
+    }
+
+    public static class GeoLocationsColumns extends LocationsColumns {
+        public static final String REFCOUNT = "refcount";
+        static final String REFCOUNT_TYPE = "INTEGER";
+    }
+
+    public static final class GeoLocations extends GeoLocationsColumns implements BaseColumns {
+        public static final String TABLE = "geo_locations";
+        public static final String PATH = URI_TAG + "/" + TABLE;
+        public static final String CONTENT_TYPE = MIME_TYPE + TABLE;
+        public static final String CONTENT_ITEM_TYPE = MIME_ITEM_TYPE + TABLE;
+        public static final Uri CONTENT_URI =
+                Uri.parse("content://" + DB.AUTHORITY + "/" + URI_TAG + "/" + TABLE);
+
+        static final String CREATE_STATEMENT = "CREATE TABLE " + TABLE +
+                "(" + " " + _ID + " " + _ID_TYPE +
+                "," + " " + TIMESTAMP + " " + TIMESTAMP_TYPE +
+                "," + " " + LATITUDE + " " + LATITUDE_TYPE +
+                "," + " " + LONGITUDE + " " + LONGITUDE_TYPE +
+                "," + " " + ALTITUDE + " " + ALTITUDE_TYPE +
+                "," + " " + SPEED + " " + SPEED_TYPE +
+                "," + " " + DESCRIPTION + " " + DESCRIPTION_TYPE +
+                "," + " " + POSTALCODE + " " + POSTALCODE_TYPE +
+                "," + " " + COUNTRYNAME + " " + COUNTRYNAME_TYPE +
+                "," + " " + ADMINAREA + " " + ADMINAREA_TYPE +
+                "," + " " + SUBADMINAREA + " " + SUBADMINAREA_TYPE +
+                "," + " " + LOCALITY + " " + LOCALITY_TYPE +
+                "," + " " + SUBLOCALITY + " " + SUBLOCALITY_TYPE +
+                "," + " " + THOROUGHFARE + " " + THOROUGHFARE_TYPE +
+                "," + " " + SUBTHOROUGHFARE + " " + SUBTHOROUGHFARE_TYPE +
+                "," + " " + REFCOUNT + " " + REFCOUNT_TYPE +
+                ");";
+    }
+
+    public static class ReverseGeoLocationsColumns extends CacheColumns {
+        public static final String REFCOUNT = "refcount";
+        public static final String LATITUDE = "latitude";
+        public static final String LONGITUDE = "longitude";
+        public static final String ADDRESSLINE = "addressline";
+        static final String LATITUDE_TYPE = "REAL";
+        static final String LONGITUDE_TYPE = "REAL";
+        static final String REFCOUNT_TYPE = "INTEGER";
+        static final String ADDRESSLINE_TYPE = "TEXT";
+    }
+
+    public static final class ReverseGeoLocations extends ReverseGeoLocationsColumns implements BaseColumns {
+        public static final String TABLE = "reverse_geo_locations";
+        public static final String PATH = URI_TAG + "/" + TABLE;
+        public static final String CONTENT_TYPE = MIME_TYPE + TABLE;
+        public static final String CONTENT_ITEM_TYPE = MIME_ITEM_TYPE + TABLE;
+        public static final Uri CONTENT_URI =
+                Uri.parse("content://" + DB.AUTHORITY + "/" + URI_TAG + "/" + TABLE);
+
+        static final String CREATE_STATEMENT = "CREATE TABLE " + TABLE +
+                "(" + " " + _ID + " " + _ID_TYPE +
+                "," + " " + LATITUDE + " " + LATITUDE_TYPE +
+                "," + " " + LONGITUDE + " " + LONGITUDE_TYPE +
+                "," + " " + ADDRESSLINE + " " + ADDRESSLINE_TYPE +
+                "," + " " + REFCOUNT + " " + REFCOUNT_TYPE +
                 ");";
     }
 
