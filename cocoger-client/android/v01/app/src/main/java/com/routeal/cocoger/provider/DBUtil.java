@@ -26,7 +26,15 @@ public class DBUtil {
 
     private final static String TAG = "DBUtil";
 
-    public static void saveLocation(Location location, Address address) {
+    public static void saveSentLocation(Location location, Address address) {
+        saveLocation(location, address, 1);
+    }
+
+    public static void saveUnsentLocation(Location location, Address address) {
+        saveLocation(location, address, 0);
+    }
+
+    static void saveLocation(Location location, Address address, int sent) {
         ContentValues values = new ContentValues();
         values.put(DB.Locations.TIMESTAMP, location.getTime());
         values.put(DB.Locations.LATITUDE, location.getLatitude());
@@ -42,6 +50,7 @@ public class DBUtil {
         values.put(DB.Locations.SUBLOCALITY, address.getSubLocality());
         values.put(DB.Locations.THOROUGHFARE, address.getThoroughfare());
         values.put(DB.Locations.SUBTHOROUGHFARE, address.getSubThoroughfare());
+        values.put(DB.Locations.SENT, sent);
 
         ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
         contentResolver.insert(DB.Locations.CONTENT_URI, values);
@@ -69,20 +78,10 @@ public class DBUtil {
         contentResolver.insert(DB.Locations.CONTENT_URI, values);
     }
 
-    public static List<LocationAddress> getLocations() {
-        List<LocationAddress> locations = new ArrayList<>();
-
-        Cursor cursor = null;
-        try {
-            ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
-            cursor = contentResolver.query(DB.Locations.CONTENT_URI, null, null, null,
-                    DB.Locations.TIMESTAMP + " ASC");
-            if (cursor != null && cursor.moveToFirst()) {
+    private static LocationAddress getLocationAddress(Cursor cursor) {
                 int index;
-                do {
                     LocationAddress la = new LocationAddress();
                     la.setUid(FB.getUid());
-                    locations.add(la);
                     index = cursor.getColumnIndex(DB.Locations._ID);
                     la.setId(cursor.getLong(index));
                     index = cursor.getColumnIndex(DB.Locations.TIMESTAMP);
@@ -115,6 +114,60 @@ public class DBUtil {
                     la.setSubThoroughfare(cursor.getString(index));
                     index = cursor.getColumnIndex(DB.Locations.PLACEID);
                     la.setPlaceId(cursor.getString(index));
+                    return la;
+    }
+
+    public static List<LocationAddress> getUnsentLocations() {
+        List<LocationAddress> locations = new ArrayList<>();
+
+        Cursor cursor = null;
+        try {
+            ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
+            String selectionClause = DB.Locations.SENT + " = ?";
+            String[] selectionArgs = new String[]{"0"};
+            cursor = contentResolver.query(DB.Locations.CONTENT_URI, null,
+                                           selectionClause, selectionArgs,
+                                           DB.Locations.TIMESTAMP + " ASC");
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    LocationAddress locationAddress = getLocationAddress(cursor);
+                    locations.add(locationAddress);
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error to retrieve locations", e);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+
+        return locations;
+    }
+
+    public static List<LocationAddress> getSentLocations(long start, long end) {
+        List<LocationAddress> locations = new ArrayList<>();
+
+        Cursor cursor = null;
+        try {
+            ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
+            String selectionClause = "( " +
+                DB.Locations.SENT + " = ? AND " +
+                DB.Locations.TIMESTAMP + " >= ? AND " +
+                DB.Locations.TIMESTAMP + " <= ? " +
+                ")";
+            String[] selectionArgs = new String[]{
+                "1",
+                String.valueOf(start),
+                String.valueOf(end)
+            };
+            cursor = contentResolver.query(DB.Locations.CONTENT_URI, null,
+                                           selectionClause, selectionArgs,
+                                           DB.Locations.TIMESTAMP + " ASC");
+            if (cursor != null && cursor.moveToFirst()) {
+                do {
+                    LocationAddress locationAddress= getLocationAddress(cursor);
+                    locations.add(locationAddress);
                 } while (cursor.moveToNext());
             }
         } catch (Exception e) {

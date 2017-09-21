@@ -1,7 +1,11 @@
 package com.routeal.cocoger.ui.main;
 
 import android.content.DialogInterface;
+import android.location.Address;
+import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -16,7 +20,10 @@ import android.widget.EditText;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.util.RangeSeekBar;
 
 import java.text.SimpleDateFormat;
@@ -32,6 +39,7 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
     private Date mDate;
     private int mStartTime;
     private int mEndTime;
+    private GoogleMap mMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +52,10 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
             ab.setDisplayShowTitleEnabled(true);
             ab.setTitle(R.string.sharing_timeline);
         }
+
+        SupportMapFragment mapFragment =
+                (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
     }
 
     @Override
@@ -165,13 +177,30 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
 
     private void showTimeline() {
         Log.d(TAG, "showTimeline: " + mDate.toString() + " start: " + mStartTime + " end: " + mEndTime);
-        SupportMapFragment mapFragment =
-                (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-        mapFragment.getMapAsync(this);
+        long timestamp = mDate.getTime();
+        long startAt = timestamp + mStartTime * 60 * 60 * 1000;
+        long endAt = timestamp + mEndTime * 60 * 60 * 1000;
+
+        FB.getTimelineLocations(startAt, endAt, new FB.LocationListener() {
+            @Override
+            public void onSuccess(final Location location, final Address address) {
+                /*
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    public void run() {
+                        mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("Marker"));
+                    }
+                });
+                */
+            }
+
+            @Override
+            public void onFail(String err) {
+            }
+        });
     }
 
     @Override
     public void onMapReady(GoogleMap map) {
-        //map.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+        mMap = map;
     }
 }

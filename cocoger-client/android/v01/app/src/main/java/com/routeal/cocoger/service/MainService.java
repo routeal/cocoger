@@ -46,7 +46,7 @@ public class MainService extends BasePeriodicService {
 
     private final static int PAST_LOCATION_QUEUE_MAX = 10;
 
-    private final static int PAST_LOCATION_QUEUE_SIZE = 3;
+    private final static int PAST_LOCATION_QUEUE_SIZE = 5;
 
     private final static float FOREGROUND_MIN_MOVEMENT = 5.0f;
 
@@ -63,6 +63,8 @@ public class MainService extends BasePeriodicService {
     private LocationMode mLocationMode = LocationMode.NONE;
 
     private Location mLastKnownLocation;
+
+    private Address mLastKnownAddress;
 
     private GoogleApiClient mGoogleApi;
 
@@ -202,7 +204,7 @@ public class MainService extends BasePeriodicService {
 
             mLocationRequest = LocationRequest.create()
                     .setInterval(60 * 1000) // 60 sec
-                    .setFastestInterval(1000) // 5 sec
+                    .setFastestInterval(3000) // 5 sec
                     .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApi,
@@ -264,6 +266,8 @@ public class MainService extends BasePeriodicService {
             // distance in meter
             float distance = location.distanceTo(mLastKnownLocation);
 
+            location.setSpeed(getSpeed(location, mLastKnownLocation));
+
             // saveLocation location when
             // 1. in foreground, keep the past 10 locations, then if
             // the minimum move is more than 5 meters, save the
@@ -277,8 +281,12 @@ public class MainService extends BasePeriodicService {
                     PastLocation pl = queue.poll();
                     if (pl.distance > FOREGROUND_MIN_MOVEMENT) {
                         saveLocation(pl.location);
+                    } else {
+                        broadcastLocation(pl.location, mLastKnownAddress);
                     }
                     queue.clear();
+                } else {
+                    broadcastLocation(location, mLastKnownAddress);
                 }
             } else if (mLocationMode == LocationMode.BACKGROUND) {
                 Log.d(TAG, "background distance: " + distance);
@@ -289,52 +297,54 @@ public class MainService extends BasePeriodicService {
         }
     };
 
-    private void saveLocation(final Location location) {
-        if (mLastKnownLocation != null) {
-            float distance = location.distanceTo(mLastKnownLocation);
-            float elapsed = (float) ((location.getTime() - mLastKnownLocation.getTime()) / 1000.0);
-            if (elapsed > 0) {
-                float speed = distance / elapsed; // meter / seconds
-                location.setSpeed(speed);
+    private float getSpeed(Location to, Location from) {
+        float distance = to.distanceTo(from);
+        float elapsed = Math.abs((float) ((to.getTime() - from.getTime()) / 1000.0));
+        if (elapsed > 0) {
+            float speed = distance / elapsed; // meter / seconds
+            { // testing
+                float speed2 = speed * 18 / 5;
+                Log.d(TAG, "getSpeed: speed=" + speed2 + " (km/h)");
             }
-            float speed2 = location.getSpeed() * 18 / 5;
-            Log.d(TAG, "saveLocation:speed=" + speed2 + " (km/h)");
+            return speed;
         }
+        return 0;
+    }
 
+    private void saveLocation(final Location location) {
         mLastKnownLocation = location;
 
-        final Address address = Utils.getFromLocation(location);
+        Address address = Utils.getFromLocation(location);
 
         if (address == null) {
-            Log.d(TAG, "No address retrieved from Geocoder for " + location.toString());
+            Log.d(TAG, "address not available from Geocoder");
             return;
         }
 
+        mLastKnownAddress = address;
+
         Log.d(TAG, "saveLocation");
+        broadcastLocation(mLastKnownLocation, mLastKnownAddress);
 
-        // notify both location and address to the activity
-        Intent intent = new Intent(MapActivity.USER_LOCATION_UPDATE);
-        intent.putExtra(MapActivity.LOCATION_UPDATE, location);
-        intent.putExtra(MapActivity.ADDRESS_UPDATE, address);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-
-        FB.saveLocation(location, address, new FB.CompleteListener() {
+        FB.saveLocation(mLastKnownLocation, mLastKnownAddress, new FB.CompleteListener() {
             @Override
             public void onSuccess() {
-                // do nothing
+                //DBUtil.saveSentLocation(mLastKnownLocation, mLastKnownAddress);
             }
 
             @Override
             public void onFail(String err) {
                 // save the database
-                DBUtil.saveLocation(location, address);
+                Log.d(TAG, "saveLocation: failed to save location");
+                DBUtil.saveUnsentLocation(mLastKnownLocation, mLastKnownAddress);
             }
         });
 
         // locations not sent to the server
-        List<LocationAddress> dbLocations = DBUtil.getLocations();
+        List<LocationAddress> dbLocations = DBUtil.getUnsentLocations();
         if (dbLocations != null) {
             for (int i = 0; i < dbLocations.size() && i < 100; i++) {
+                Log.d(TAG, "saveLocation: save location to database");
                 final LocationAddress la = dbLocations.get(i);
                 FB.saveLocation(Utils.getLocation(la), Utils.getAddress(la), false,
                         new FB.CompleteListener() {
@@ -349,5 +359,13 @@ public class MainService extends BasePeriodicService {
                         });
             }
         }
+    }
+
+    private void broadcastLocation(Location location, Address address) {
+        // notify both location and address to the activity
+        Intent intent = new Intent(MapActivity.USER_LOCATION_UPDATE);
+        intent.putExtra(MapActivity.LOCATION_UPDATE, location);
+        intent.putExtra(MapActivity.ADDRESS_UPDATE, address);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 }

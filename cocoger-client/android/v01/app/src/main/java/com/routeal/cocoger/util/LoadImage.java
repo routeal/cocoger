@@ -5,22 +5,17 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.widget.ImageView;
 
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
 import com.routeal.cocoger.provider.DBUtil;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,63 +51,14 @@ public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
                 bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, null);
             }
 
+            // FIXME: NEED BETTER WAY TO HANDLE THE BIG BITMAP
+            if (bitmap.getHeight() > 1024 || bitmap.getWidth() > 1024) {
+                bitmap = getResizedBitmap(bitmap, 256, 256);
+            }
+
             if (bitmap != null) {
                 bitmaps.add(bitmap);
             }
-/*
-            // dose not exist in the database
-            if (data == null) {
-                URL net;
-                try {
-                    net = new URL(url);
-                } catch (MalformedURLException e) {
-                    Log.e(TAG, "Incorrect URL", e);
-                    continue;
-                }
-
-                InputStream netstream;
-                try {
-                    netstream = net.openStream();
-                } catch (IOException e) {
-                    Log.e(TAG, "Can not open stream", e);
-                    continue;
-                }
-
-                InputStream in = new BufferedInputStream(netstream);
-                ByteArrayOutputStream ds = new ByteArrayOutputStream();
-                BufferedOutputStream out = new BufferedOutputStream(ds);
-                try {
-                    iocopy(in, out);
-                } catch (IOException e) {
-                }
-                try {
-                    out.flush();
-                } catch (IOException e) {
-                    continue;
-                }
-
-                data = ds.toByteArray();
-
-                if (data == null || data.length == 0) continue;
-
-                DBUtil.saveImage(url, data);
-            }
-
-            // FIXME: not working all the time
-            // https://developer.android.com/topic/performance/graphics/load-bitmap.html
-            BitmapFactory.Options opts = new BitmapFactory.Options();
-            //opts.inJustDecodeBounds = true;
-            //opts.inPreferredConfig = Bitmap.Config.RGB_565;
-
-            //BitmapFactory.decodeByteArray(data, 0, data.length, opts);
-            //opts.inSampleSize = calculateInSampleSize(opts, 128, 128);
-
-            //opts.inJustDecodeBounds = false;
-            Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, opts);
-
-            bitmaps.add(bitmap);
-*/
-
         }
         return bitmaps;
     }
@@ -141,46 +87,9 @@ public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
         Matrix matrix = new Matrix();
         // RESIZE THE BIT MAP
         matrix.postScale(scaleWidth, scaleHeight);
-
         // "RECREATE" THE NEW BITMAP
-        Bitmap resizedBitmap = Bitmap.createBitmap(bm, 0, 0, width, height,
-                matrix, false);
-
+        Bitmap resizedBitmap = Bitmap.createBitmap(bm, 0, 0, width, height, matrix, false);
         return resizedBitmap;
-    }
-
-    private static int iocopy(InputStream input, OutputStream output) throws IOException {
-        // FIXME: should grow dynamically
-        byte[] buffer = new byte[8192*4];
-        int count = 0;
-        int n = 0;
-        while (-1 != (n = input.read(buffer))) {
-            output.write(buffer, 0, n);
-            count += n;
-        }
-        return count;
-    }
-
-    private static int calculateInSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
-        // Raw height and width of image
-        final int height = options.outHeight;
-        final int width = options.outWidth;
-        int inSampleSize = 1;
-
-        if (height > reqHeight || width > reqWidth) {
-
-            final int halfHeight = height / 2;
-            final int halfWidth = width / 2;
-
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
-            while ((halfHeight / inSampleSize) >= reqHeight
-                    && (halfWidth / inSampleSize) >= reqWidth) {
-                inSampleSize *= 2;
-            }
-        }
-
-        return inSampleSize;
     }
 
     @Override
@@ -280,11 +189,11 @@ public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
         @Override
         protected void onPostExecute(List<Bitmap> bitmaps) {
             if (isCancelled()) return;
-            super.onPostExecute(bitmaps);
+            //super.onPostExecute(bitmaps);
             Bitmap combined = combineBitmaps(bitmaps, MARKER_SZIE);
+            if (combined == null) return;
             Bitmap cropped = Utils.cropCircle(combined, borderColor);
             combined.recycle();
-            if (cropped.isRecycled()) return;
             if (marker.isVisible()) {
                 marker.setIcon(BitmapDescriptorFactory.fromBitmap(cropped));
             }

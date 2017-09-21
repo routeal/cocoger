@@ -108,6 +108,7 @@ public class FB {
 
     public interface CompleteListener {
         void onSuccess();
+
         void onFail(String err);
     }
 
@@ -135,6 +136,10 @@ public class FB {
 
     static DatabaseReference getLocationDatabaseReference() {
         return FirebaseDatabase.getInstance().getReference().child("locations");
+    }
+
+    static DatabaseReference getUserLocationDatabaseReference() {
+        return FirebaseDatabase.getInstance().getReference().child("user_locations");
     }
 
     public static boolean isAuthenticated() {
@@ -501,7 +506,7 @@ public class FB {
             Map<String, Friend> diffs = Utils.diffMaps(newFriends, oldFriends);
             for (Map.Entry<String, Friend> entry : diffs.entrySet()) {
                 // deleted
-                if (newFriends.get(entry.getKey()) == null)  {
+                if (newFriends.get(entry.getKey()) == null) {
                     Log.d(TAG, "Friend deleted: " + entry.getKey());
                     Intent intent = new Intent(MapActivity.FRIEND_LOCATION_REMOVE);
                     intent.putExtra(MapActivity.FRIEND_KEY, entry.getKey());
@@ -780,8 +785,8 @@ public class FB {
         Intent acceptIntent = new Intent(context, PanelMapActivity.class);
         acceptIntent.addFlags(//Intent.FLAG_ACTIVITY_CLEAR_TOP
 //                | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
-            Intent.FLAG_ACTIVITY_SINGLE_TOP
-                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
         acceptIntent.setAction(ACTION_RANGE_REQUEST_ACCEPTED);
         acceptIntent.putExtra(NOTIFI_RANGE_REQUETER, uid);
         acceptIntent.putExtra(NOTIFI_RANGE, requestRange);
@@ -814,8 +819,8 @@ public class FB {
                 Intent acceptIntent = new Intent(context, PanelMapActivity.class);
                 acceptIntent.addFlags(//Intent.FLAG_ACTIVITY_CLEAR_TOP
 //                        | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
-            Intent.FLAG_ACTIVITY_SINGLE_TOP
-                        | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                        Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
                 acceptIntent.setAction(ACTION_FRIEND_REQUEST_ACCEPTED);
                 acceptIntent.putExtra(NOTIFI_FRIEND_INVITE, invite);
 
@@ -839,8 +844,7 @@ public class FB {
 
     }
 
-    public static FirebaseRecyclerAdapter<Friend, FriendListViewHolder> getFriendRecyclerAdapter()
-            {
+    public static FirebaseRecyclerAdapter<Friend, FriendListViewHolder> getFriendRecyclerAdapter() {
         DatabaseReference fDb = getFriendDatabaseReference(getUid());
 
         FirebaseRecyclerAdapter<Friend, FriendListViewHolder> adapter =
@@ -933,6 +937,7 @@ public class FB {
                             listener.onSuccess(location, address);
                         }
                     }
+
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
                         if (listener != null) {
@@ -940,6 +945,43 @@ public class FB {
                         }
                     }
                 });
+    }
+
+    public static void getTimelineLocations(long start, long end, final LocationListener listener) {
+        String uid = getUid();
+        DatabaseReference locDb = getUserLocationDatabaseReference();
+        Query query = locDb.child(uid).orderByValue().startAt(start).endAt(end);
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot childDataSnapshot : dataSnapshot.getChildren()) {
+                    Log.d(TAG, "getTimelineLocations: " + childDataSnapshot.getKey());
+                    String location = childDataSnapshot.getKey();
+                    getLocation(location, new LocationListener() {
+                        @Override
+                        public void onSuccess(Location location, Address address) {
+                            if (listener != null) {
+                                listener.onSuccess(location, address);
+                            }
+                        }
+
+                        @Override
+                        public void onFail(String err) {
+                            if (listener != null) {
+                                listener.onFail(err);
+                            }
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                if (listener != null) {
+                    listener.onFail(databaseError.getMessage());
+                }
+            }
+        });
     }
 
     // For now, the device is saved into the memory

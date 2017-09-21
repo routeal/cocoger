@@ -159,6 +159,18 @@ public class LoginFragment extends Fragment {
         String email = mEmailText.getText().toString();
         String password = mPassword.getText().toString();
 
+        if (email.isEmpty()) {
+            mEmailText.setError("Email not entered");
+            return;
+        }
+        if (password.isEmpty()) {
+            mPassword.setError("Password not entered");
+            return;
+        }
+
+        mEmailText.setError(null);
+        mPassword.setError(null);
+
         final ProgressDialog dialog = Utils.getBusySpinner(getContext());
 
         FB.signIn(getActivity(), email, password, new FB.SignInListener() {

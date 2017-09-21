@@ -122,6 +122,7 @@ public final class DB {
         public static final String THOROUGHFARE = "thoroughfare";
         public static final String SUBTHOROUGHFARE = "subThoroughfare";
         public static final String PLACEID = "placeId";
+        public static final String SENT = "sent";
 
         static final String TIMESTAMP_TYPE = "INTEGER";
         static final String LATITUDE_TYPE = "REAL";
@@ -138,6 +139,7 @@ public final class DB {
         static final String THOROUGHFARE_TYPE = "TEXT";
         static final String SUBTHOROUGHFARE_TYPE = "TEXT";
         static final String PLACEID_TYPE = "TEXT";
+        static final String SENT_TYPE = "INTEGER";
     }
 
     public static final class Locations extends LocationsColumns implements BaseColumns {
@@ -165,6 +167,7 @@ public final class DB {
                 "," + " " + THOROUGHFARE + " " + THOROUGHFARE_TYPE +
                 "," + " " + SUBTHOROUGHFARE + " " + SUBTHOROUGHFARE_TYPE +
                 "," + " " + PLACEID + " " + PLACEID_TYPE +
+                "," + " " + SENT + " " + SENT_TYPE +
                 ");";
     }
 
