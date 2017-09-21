@@ -239,7 +239,8 @@ public class Utils {
     }
 
     public static double distanceTo(Location a, Location b) {
-        return distanceImpl(a.getLatitude(), a.getLongitude(), b.getLatitude(), b.getLongitude());
+        //return distanceImpl(a.getLatitude(), a.getLongitude(), b.getLatitude(), b.getLongitude());
+        return distanceImpl2(a.getLatitude(), a.getLongitude(), b.getLatitude(), b.getLongitude());
     }
 
     private static double distanceImpl(double lat1, double lon1, double lat2, double lon2) {
@@ -252,7 +253,7 @@ public class Utils {
         dist = Math.acos(dist);
         dist = rad2deg(dist);
         dist = dist * 60 * 1.1515;
-        return (dist * 1.609344);
+        return (dist * 1.609344 * 1000);
     }
 
     private static long distanceImpl2(double lat1, double lng1, double lat2, double lng2) {

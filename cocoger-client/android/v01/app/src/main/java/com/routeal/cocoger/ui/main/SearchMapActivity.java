@@ -84,6 +84,51 @@ public class SearchMapActivity extends MapActivity {
         navigationView.setNavigationItemSelectedListener(mNavigationItemSelectedListener);
     }
 
+    void onMapReady() {
+
+        boolean traffic_value = MainApplication.getBool("traffic");
+        mMap.setTrafficEnabled(traffic_value);
+
+        String style_value = MainApplication.getString("style");
+        if (style_value == null || style_value.equals("normal")) {
+            mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        } else {
+            if (style_value.equals("satellite")) {
+                mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+            } else if (style_value.equals("terrain")) {
+                mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+            } else if (style_value.equals("retro")) {
+                MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(SearchMapActivity.this, R.raw.mapstyle_retro);
+                mMap.setMapStyle(style);
+            } else if (style_value.equals("night")) {
+                MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(SearchMapActivity.this, R.raw.mapstyle_night);
+                mMap.setMapStyle(style);
+            } else if (style_value.equals("custom")) {
+                MapStyleOptions style = new MapStyleOptions("[" +
+                        "  {" +
+                        "    \"featureType\":\"poi.business\"," +
+                        "    \"elementType\":\"all\"," +
+                        "    \"stylers\":[" +
+                        "      {" +
+                        "        \"visibility\":\"off\"" +
+                        "      }" +
+                        "    ]" +
+                        "  }," +
+                        "  {" +
+                        "    \"featureType\":\"transit\"," +
+                        "    \"elementType\":\"all\"," +
+                        "    \"stylers\":[" +
+                        "      {" +
+                        "        \"visibility\":\"off\"" +
+                        "      }" +
+                        "    ]" +
+                        "  }" +
+                        "]");
+                mMap.setMapStyle(style);
+            }
+        }
+    }
+
     private void setupDrawerHead() {
         User user = MainApplication.getUser();
         if (user == null) {
@@ -312,6 +357,31 @@ public class SearchMapActivity extends MapActivity {
                     final SwitchCompat retro = (SwitchCompat) view.findViewById(R.id.switch_retro);
                     final SwitchCompat night = (SwitchCompat) view.findViewById(R.id.switch_night);
                     final SwitchCompat custom = (SwitchCompat) view.findViewById(R.id.switch_custom);
+
+                    boolean traffic_value = MainApplication.getBool("traffic");
+                    traffic.setChecked(traffic_value);
+
+                    String style = MainApplication.getString("style");
+                    if (style == null || style.equals("normal")) {
+                        satellite.setChecked(false);
+                        terrain.setChecked(false);
+                        retro.setChecked(false);
+                        night.setChecked(false);
+                        custom.setChecked(false);
+                    } else {
+                        if (style.equals("satellite")) {
+                            satellite.setChecked(true);
+                        } else if (style.equals("terrain")) {
+                            terrain.setChecked(true);
+                        } else if (style.equals("retro")) {
+                            retro.setChecked(true);
+                        } else if (style.equals("night")) {
+                            night.setChecked(true);
+                        } else if (style.equals("custom")) {
+                            custom.setChecked(true);
+                        }
+                    }
+
                     satellite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                         @Override
                         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -321,8 +391,10 @@ public class SearchMapActivity extends MapActivity {
                                 night.setChecked(false);
                                 custom.setChecked(false);
                                 mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+                                MainApplication.putString("style", "satellite");
                             } else {
                                 mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                                MainApplication.putString("style", "normal");
                             }
                         }
                     });
@@ -336,8 +408,10 @@ public class SearchMapActivity extends MapActivity {
                                 custom.setChecked(false);
                                 satellite.setChecked(false);
                                 mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+                                MainApplication.putString("style", "terrain");
                             } else {
                                 mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                                MainApplication.putString("style", "normal");
                             }
                         }
                     });
@@ -345,6 +419,11 @@ public class SearchMapActivity extends MapActivity {
                         @Override
                         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                             mMap.setTrafficEnabled(isChecked);
+                            if (isChecked) {
+                                MainApplication.putBool("traffic", true);
+                            } else {
+                                MainApplication.putBool("traffic", false);
+                            }
                         }
                     });
                     retro.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -357,8 +436,10 @@ public class SearchMapActivity extends MapActivity {
                                 custom.setChecked(false);
                                 MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(SearchMapActivity.this, R.raw.mapstyle_retro);
                                 mMap.setMapStyle(style);
+                                MainApplication.putString("style", "retro");
                             } else {
                                 mMap.setMapStyle(null);
+                                MainApplication.putString("style", "normal");
                             }
                         }
                     });
@@ -372,8 +453,10 @@ public class SearchMapActivity extends MapActivity {
                                 custom.setChecked(false);
                                 MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(SearchMapActivity.this, R.raw.mapstyle_night);
                                 mMap.setMapStyle(style);
+                                MainApplication.putString("style", "night");
                             } else {
                                 mMap.setMapStyle(null);
+                                MainApplication.putString("style", "normal");
                             }
                         }
                     });
@@ -406,8 +489,10 @@ public class SearchMapActivity extends MapActivity {
                                         "  }" +
                                         "]");
                                 mMap.setMapStyle(style);
+                                MainApplication.putString("style", "custom");
                             } else {
                                 mMap.setMapStyle(null);
+                                MainApplication.putString("style", "normal");
                             }
                         }
                     });

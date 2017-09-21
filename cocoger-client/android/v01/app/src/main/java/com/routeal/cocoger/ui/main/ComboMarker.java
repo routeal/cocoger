@@ -249,6 +249,7 @@ class ComboMarker implements Parcelable {
                 args.putParcelable("marker", this);
                 infoFragment.setArguments(args);
                 mInfoWindow = new InfoWindow(mMarker, mMarkerOffset, infoFragment);
+                mInfoWindowManager.setHideOnFling(false);
                 mInfoWindowManager.show(mInfoWindow, true);
             }
             return true;

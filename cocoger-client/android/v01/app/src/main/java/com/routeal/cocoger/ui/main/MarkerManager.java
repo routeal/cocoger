@@ -254,12 +254,20 @@ class MarkerManager {
         Log.d(TAG, "zoomIn");
         Map<String, ComboMarker.MarkerInfo> aparted = new HashMap<>();
 
+        for (Iterator<ComboMarker> ite = mMarkers.iterator(); ite.hasNext(); ) {
+            ComboMarker m = ite.next();
+            Log.d(TAG, "zoomIn: apart for " + m.getOwner().id + " size=" + m.size());
+            m.apart(aparted, mMarkerDistance);
+        }
+
+        /*
         ComboMarker[] markers = mMarkers.toArray(new ComboMarker[0]);
         for (int i = 0; i < markers.length; i++) {
             ComboMarker m = markers[i];
             Log.d(TAG, "zoomIn: apart=" + i + " for " + m.getOwner().id + " size=" + m.size());
             m.apart(aparted, mMarkerDistance);
         }
+        */
 
         if (!aparted.isEmpty()) {
             for (Map.Entry<String, ComboMarker.MarkerInfo> entry : aparted.entrySet()) {
@@ -336,31 +344,33 @@ class MarkerManager {
                     if (cameraPosition.zoom > 20) {
                         mMarkerDistance = 0;
                     } else if (cameraPosition.zoom > 18) {
-                        mMarkerDistance = 0.010;
+                        mMarkerDistance = 10;
                     } else if (cameraPosition.zoom > 16) {
-                        mMarkerDistance = 0.100;
-                    } else if (cameraPosition.zoom > 14) {
-                        mMarkerDistance = 0.300;
-                    } else if (cameraPosition.zoom > 12) {
-                        mMarkerDistance = 1;
-                    } else if (cameraPosition.zoom > 11) {
-                        mMarkerDistance = 2; // 1km
-                    } else if (cameraPosition.zoom > 10) {
-                        mMarkerDistance = 5; // 1km
-                    } else if (cameraPosition.zoom > 8) {
-                        mMarkerDistance = 10; // 10km
-                    } else if (cameraPosition.zoom > 7) {
-                        mMarkerDistance = 50; // 10
-                    } else if (cameraPosition.zoom > 6) {
+                        mMarkerDistance = 50;
+                    } else if (cameraPosition.zoom > 15) {
                         mMarkerDistance = 100;
-                    } else if (cameraPosition.zoom > 4) {
-                        mMarkerDistance = 200;
-                    } else if (cameraPosition.zoom > 3) {
+                    } else if (cameraPosition.zoom > 14) {
                         mMarkerDistance = 300;
-                    } else if (cameraPosition.zoom > 2) {
-                        mMarkerDistance = 500;
-                    } else if (cameraPosition.zoom > 1) {
+                    } else if (cameraPosition.zoom > 12) {
                         mMarkerDistance = 1000;
+                    } else if (cameraPosition.zoom > 11) {
+                        mMarkerDistance = 2000; // 1km
+                    } else if (cameraPosition.zoom > 10) {
+                        mMarkerDistance = 5000; // 1km
+                    } else if (cameraPosition.zoom > 8) {
+                        mMarkerDistance = 10000; // 10km
+                    } else if (cameraPosition.zoom > 7) {
+                        mMarkerDistance = 50000; // 10
+                    } else if (cameraPosition.zoom > 6) {
+                        mMarkerDistance = 100000;
+                    } else if (cameraPosition.zoom > 4) {
+                        mMarkerDistance = 200000;
+                    } else if (cameraPosition.zoom > 3) {
+                        mMarkerDistance = 300000;
+                    } else if (cameraPosition.zoom > 2) {
+                        mMarkerDistance = 500000;
+                    } else if (cameraPosition.zoom > 1) {
+                        mMarkerDistance = 1000000;
                     }
                     if (mMarkerDistance == oldDistance) {
                         return;

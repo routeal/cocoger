@@ -33,7 +33,7 @@ import com.routeal.cocoger.util.Utils;
 import java.util.Iterator;
 import java.util.Map;
 
-public class MapActivity extends MapBaseActivity {
+abstract public class MapActivity extends MapBaseActivity {
 
     public static final String USER_AVAILABLE = "user_available";
     public static final String USER_LOCATION_UPDATE = "user_location_update";
@@ -136,10 +136,14 @@ public class MapActivity extends MapBaseActivity {
         mapInfoWindowFragment.getMapAsync(mReadyCallback);
     }
 
+    abstract void onMapReady();
+
     OnMapReadyCallback mReadyCallback = new OnMapReadyCallback() {
         @Override
         public void onMapReady(GoogleMap googleMap) {
             mMap = googleMap;
+
+            MapActivity.this.onMapReady();
 
             mMap.setPadding(8, 0, 0, 148);
             mMap.getUiSettings().setCompassEnabled(true);

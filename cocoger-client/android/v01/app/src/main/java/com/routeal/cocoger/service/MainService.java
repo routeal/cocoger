@@ -48,9 +48,9 @@ public class MainService extends BasePeriodicService {
 
     private final static int PAST_LOCATION_QUEUE_SIZE = 5;
 
-    private final static float FOREGROUND_MIN_MOVEMENT = 5.0f;
+    private final static float FOREGROUND_MIN_MOVEMENT = 10.0f;
 
-    private final static float BACKGROUND_MIN_MOVEMENT = 50.0f;
+    private final static float BACKGROUND_MIN_MOVEMENT = 100.0f;
 
     private static long mServiceInterval = BACKGROUND_INTERVAL;
 
@@ -266,8 +266,6 @@ public class MainService extends BasePeriodicService {
             // distance in meter
             float distance = location.distanceTo(mLastKnownLocation);
 
-            location.setSpeed(getSpeed(location, mLastKnownLocation));
-
             // saveLocation location when
             // 1. in foreground, keep the past 10 locations, then if
             // the minimum move is more than 5 meters, save the
@@ -311,7 +309,42 @@ public class MainService extends BasePeriodicService {
         return 0;
     }
 
+    private float getSpeed2(Location to, Location from) {
+        double distance = Utils.distanceTo(to, from);
+        double elapsed = Math.abs((float) ((to.getTime() - from.getTime()) / 1000.0));
+        if (elapsed > 0) {
+            double speed = distance / elapsed; // meter / seconds
+            { // testing
+                double speed2 = speed * 18 / 5;
+                Log.d(TAG, "getSpeed: speed=" + speed2 + " (km/h)");
+            }
+            return (float) speed;
+        }
+        return 0;
+    }
+
+    private float getSpeed3(Location to, Location from) {
+        float speed = 0;
+        if (to.hasSpeed()) {
+            speed = to.getSpeed();
+        } else {
+            long elapsed = to.getElapsedRealtimeNanos() - from.getElapsedRealtimeNanos();
+            elapsed *= 1e-9; // seconds
+
+            float[] result = new float[3];
+            Location.distanceBetween(to.getLatitude(), to.getLongitude(), from.getLatitude(), from.getLongitude(), result);
+            float distance = result[0]; // meter
+            speed = distance / elapsed;
+            to.setSpeed(speed);
+        }
+        float speed2 = speed * 18 / 5;
+        Log.d(TAG, "getSpeed: speed=" + speed2 + " (km/h)");
+        return speed;
+    }
+
     private void saveLocation(final Location location) {
+        location.setSpeed(getSpeed3(location, mLastKnownLocation));
+
         mLastKnownLocation = location;
 
         Address address = Utils.getFromLocation(location);
@@ -329,7 +362,7 @@ public class MainService extends BasePeriodicService {
         FB.saveLocation(mLastKnownLocation, mLastKnownAddress, new FB.CompleteListener() {
             @Override
             public void onSuccess() {
-                //DBUtil.saveSentLocation(mLastKnownLocation, mLastKnownAddress);
+                DBUtil.saveSentLocation(mLastKnownLocation, mLastKnownAddress);
             }
 
             @Override

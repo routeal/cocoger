@@ -136,7 +136,6 @@ public class MainApplication extends Application {
         mUser = user;
     }
 
-    /*
     public static void putString(String key, String value) {
         mInstance.mPreferences.edit().putString(key, value).apply();
     }
@@ -145,6 +144,7 @@ public class MainApplication extends Application {
         return mInstance.mPreferences.getString(key, null);
     }
 
+    /*
     public static String getString(String key, String value) {
         return mInstance.mPreferences.getString(key, value);
     }
@@ -172,6 +172,7 @@ public class MainApplication extends Application {
     public static long getLong(String key, long value) {
         return mInstance.mPreferences.getLong(key, value);
     }
+    */
 
     public static void putBool(String key, boolean value) {
         mInstance.mPreferences.edit().putBoolean(key, value).apply();
@@ -184,5 +185,4 @@ public class MainApplication extends Application {
     public static boolean getBool(String key, boolean value) {
         return mInstance.mPreferences.getBoolean(key, value);
     }
-    */
 }

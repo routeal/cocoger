@@ -24,10 +24,15 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.model.LocationAddress;
+import com.routeal.cocoger.provider.DBUtil;
+import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.RangeSeekBar;
+import com.routeal.cocoger.util.Utils;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Created by nabe on 9/16/17.
@@ -181,22 +186,50 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
         long startAt = timestamp + mStartTime * 60 * 60 * 1000;
         long endAt = timestamp + mEndTime * 60 * 60 * 1000;
 
+        List<LocationAddress> locations = DBUtil.getSentLocations(startAt, endAt);
+
+        for (LocationAddress la : locations) {
+            Log.d(TAG, "showTimeline: " + Utils.getAddressLine(Utils.getAddress(la), LocationRange.CURRENT.range) + " lat:" + la.getLatitude() + " log:" + la.getLongitude());
+            mMap.addMarker(new MarkerOptions().position(new LatLng(la.getLatitude(), la.getLongitude())));
+        }
+
+        int i = 0;
+
+        LocationAddress [] array = locations.toArray(new LocationAddress[0]);
+
+        for (i = 0; i < array.length; i++) {
+            LocationAddress prev = array[i];
+            LocationAddress current = (array.length >= (i+1)) ? array[i+1] : null;
+            LocationAddress next = (array.length >= (i+2)) ? array[i+2] : null;
+
+            if (current == null) break;
+
+            long prevTime = prev.getTimestamp();
+            long currentTime = current.getTimestamp();
+
+            long diffTime = (currentTime - prevTime) / 1000; // seconds
+            double distance = Utils.distanceTo(Utils.getLocation(prev), Utils.getLocation(current));
+
+            if (diffTime < (5 * 60) && distance < 100) {
+
+            }
+
+            long nextTime = next.getTimestamp();
+
+        }
+
+
+/*
         FB.getTimelineLocations(startAt, endAt, new FB.LocationListener() {
             @Override
             public void onSuccess(final Location location, final Address address) {
-                /*
-                new Handler(Looper.getMainLooper()).post(new Runnable() {
-                    public void run() {
-                        mMap.addMarker(new MarkerOptions().position(new LatLng(location.getLatitude(), location.getLongitude())).title("Marker"));
-                    }
-                });
-                */
             }
 
             @Override
             public void onFail(String err) {
             }
         });
+*/
     }
 
     @Override

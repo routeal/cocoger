@@ -93,7 +93,7 @@ public class DBUtil {
                     index = cursor.getColumnIndex(DB.Locations.ALTITUDE);
                     la.setAltitude(cursor.getDouble(index));
                     index = cursor.getColumnIndex(DB.Locations.SPEED);
-                    la.setLongitude(cursor.getFloat(index));
+                    la.setSpeed(cursor.getFloat(index));
                     index = cursor.getColumnIndex(DB.Locations.DESCRIPTION);
                     la.setDescription(cursor.getString(index));
                     index = cursor.getColumnIndex(DB.Locations.POSTALCODE);
@@ -123,10 +123,9 @@ public class DBUtil {
         Cursor cursor = null;
         try {
             ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
-            String selectionClause = DB.Locations.SENT + " = ?";
-            String[] selectionArgs = new String[]{"0"};
+            String selectionClause = DB.Locations.SENT + " = 0";
             cursor = contentResolver.query(DB.Locations.CONTENT_URI, null,
-                                           selectionClause, selectionArgs,
+                                           selectionClause, null,
                                            DB.Locations.TIMESTAMP + " ASC");
             if (cursor != null && cursor.moveToFirst()) {
                 do {
@@ -152,12 +151,11 @@ public class DBUtil {
         try {
             ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
             String selectionClause = "( " +
-                DB.Locations.SENT + " = ? AND " +
+                DB.Locations.SENT + " = 1 AND " +
                 DB.Locations.TIMESTAMP + " >= ? AND " +
                 DB.Locations.TIMESTAMP + " <= ? " +
                 ")";
             String[] selectionArgs = new String[]{
-                "1",
                 String.valueOf(start),
                 String.valueOf(end)
             };
