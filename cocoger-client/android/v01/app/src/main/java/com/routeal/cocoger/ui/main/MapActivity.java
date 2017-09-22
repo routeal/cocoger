@@ -20,7 +20,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
@@ -49,7 +48,7 @@ abstract public class MapActivity extends MapBaseActivity {
     private final static String KEY_CAMERA_POSITION = "camera_position";
     private final static String KEY_LOCATION = "location";
 
-    private final static int DEFAULT_ZOOM = 15;
+    private final static int DEFAULT_ZOOM = 16;
 
     protected GoogleMap mMap;
 
@@ -115,9 +114,8 @@ abstract public class MapActivity extends MapBaseActivity {
     private View.OnClickListener myLocationButtonListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(
-                    new LatLng(mLastKnownLocation.getLatitude(),
-                            mLastKnownLocation.getLongitude())));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                    Utils.getLatLng(mLastKnownLocation), DEFAULT_ZOOM));
         }
     };
 

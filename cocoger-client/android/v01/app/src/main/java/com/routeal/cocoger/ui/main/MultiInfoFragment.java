@@ -2,6 +2,7 @@ package com.routeal.cocoger.ui.main;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -47,6 +48,15 @@ public class MultiInfoFragment extends Fragment {
 
         Bundle bundle = getArguments();
         mMarker = bundle.getParcelable("marker");
+
+        // FIXME: 38 is from nowhere
+        int size = (mMarker.size() > 4) ? 4 : mMarker.size();
+        int height = (size * (int) (36 * Resources.getSystem().getDisplayMetrics().density))
+                + (int) (8 * Resources.getSystem().getDisplayMetrics().density);
+
+        ViewGroup.LayoutParams params = view.getLayoutParams();
+        params.height = height;
+        view.setLayoutParams(params);
 
         return view;
     }

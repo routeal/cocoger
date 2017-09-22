@@ -26,6 +26,10 @@ public class DBUtil {
 
     private final static String TAG = "DBUtil";
 
+    private final static int MAX_IMAGES = 200;
+    private final static int MAX_GEO_LOCATIONS = 1000;
+    private final static int MAX_REVERSE_GEO_LOCATIONS = 1000;
+
     public static void saveSentLocation(Location location, Address address) {
         saveLocation(location, address, 1);
     }
@@ -79,42 +83,42 @@ public class DBUtil {
     }
 
     private static LocationAddress getLocationAddress(Cursor cursor) {
-                int index;
-                    LocationAddress la = new LocationAddress();
-                    la.setUid(FB.getUid());
-                    index = cursor.getColumnIndex(DB.Locations._ID);
-                    la.setId(cursor.getLong(index));
-                    index = cursor.getColumnIndex(DB.Locations.TIMESTAMP);
-                    la.setTimestamp(cursor.getLong(index));
-                    index = cursor.getColumnIndex(DB.Locations.LATITUDE);
-                    la.setLatitude(cursor.getDouble(index));
-                    index = cursor.getColumnIndex(DB.Locations.LONGITUDE);
-                    la.setLongitude(cursor.getDouble(index));
-                    index = cursor.getColumnIndex(DB.Locations.ALTITUDE);
-                    la.setAltitude(cursor.getDouble(index));
-                    index = cursor.getColumnIndex(DB.Locations.SPEED);
-                    la.setSpeed(cursor.getFloat(index));
-                    index = cursor.getColumnIndex(DB.Locations.DESCRIPTION);
-                    la.setDescription(cursor.getString(index));
-                    index = cursor.getColumnIndex(DB.Locations.POSTALCODE);
-                    la.setPostalCode(cursor.getString(index));
-                    index = cursor.getColumnIndex(DB.Locations.COUNTRYNAME);
-                    la.setCountryName(cursor.getString(index));
-                    index = cursor.getColumnIndex(DB.Locations.ADMINAREA);
-                    la.setAdminArea(cursor.getString(index));
-                    index = cursor.getColumnIndex(DB.Locations.SUBADMINAREA);
-                    la.setSubAdminArea(cursor.getString(index));
-                    index = cursor.getColumnIndex(DB.Locations.LOCALITY);
-                    la.setLocality(cursor.getString(index));
-                    index = cursor.getColumnIndex(DB.Locations.SUBLOCALITY);
-                    la.setSubLocality(cursor.getString(index));
-                    index = cursor.getColumnIndex(DB.Locations.THOROUGHFARE);
-                    la.setThoroughfare(cursor.getString(index));
-                    index = cursor.getColumnIndex(DB.Locations.SUBTHOROUGHFARE);
-                    la.setSubThoroughfare(cursor.getString(index));
-                    index = cursor.getColumnIndex(DB.Locations.PLACEID);
-                    la.setPlaceId(cursor.getString(index));
-                    return la;
+        int index;
+        LocationAddress la = new LocationAddress();
+        la.setUid(FB.getUid());
+        index = cursor.getColumnIndex(DB.Locations._ID);
+        la.setId(cursor.getLong(index));
+        index = cursor.getColumnIndex(DB.Locations.TIMESTAMP);
+        la.setTimestamp(cursor.getLong(index));
+        index = cursor.getColumnIndex(DB.Locations.LATITUDE);
+        la.setLatitude(cursor.getDouble(index));
+        index = cursor.getColumnIndex(DB.Locations.LONGITUDE);
+        la.setLongitude(cursor.getDouble(index));
+        index = cursor.getColumnIndex(DB.Locations.ALTITUDE);
+        la.setAltitude(cursor.getDouble(index));
+        index = cursor.getColumnIndex(DB.Locations.SPEED);
+        la.setSpeed(cursor.getFloat(index));
+        index = cursor.getColumnIndex(DB.Locations.DESCRIPTION);
+        la.setDescription(cursor.getString(index));
+        index = cursor.getColumnIndex(DB.Locations.POSTALCODE);
+        la.setPostalCode(cursor.getString(index));
+        index = cursor.getColumnIndex(DB.Locations.COUNTRYNAME);
+        la.setCountryName(cursor.getString(index));
+        index = cursor.getColumnIndex(DB.Locations.ADMINAREA);
+        la.setAdminArea(cursor.getString(index));
+        index = cursor.getColumnIndex(DB.Locations.SUBADMINAREA);
+        la.setSubAdminArea(cursor.getString(index));
+        index = cursor.getColumnIndex(DB.Locations.LOCALITY);
+        la.setLocality(cursor.getString(index));
+        index = cursor.getColumnIndex(DB.Locations.SUBLOCALITY);
+        la.setSubLocality(cursor.getString(index));
+        index = cursor.getColumnIndex(DB.Locations.THOROUGHFARE);
+        la.setThoroughfare(cursor.getString(index));
+        index = cursor.getColumnIndex(DB.Locations.SUBTHOROUGHFARE);
+        la.setSubThoroughfare(cursor.getString(index));
+        index = cursor.getColumnIndex(DB.Locations.PLACEID);
+        la.setPlaceId(cursor.getString(index));
+        return la;
     }
 
     public static List<LocationAddress> getUnsentLocations() {
@@ -125,8 +129,8 @@ public class DBUtil {
             ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
             String selectionClause = DB.Locations.SENT + " = 0";
             cursor = contentResolver.query(DB.Locations.CONTENT_URI, null,
-                                           selectionClause, null,
-                                           DB.Locations.TIMESTAMP + " ASC");
+                    selectionClause, null,
+                    DB.Locations.TIMESTAMP + " ASC");
             if (cursor != null && cursor.moveToFirst()) {
                 do {
                     LocationAddress locationAddress = getLocationAddress(cursor);
@@ -151,20 +155,20 @@ public class DBUtil {
         try {
             ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
             String selectionClause = "( " +
-                DB.Locations.SENT + " = 1 AND " +
-                DB.Locations.TIMESTAMP + " >= ? AND " +
-                DB.Locations.TIMESTAMP + " <= ? " +
-                ")";
+                    DB.Locations.SENT + " = 1 AND " +
+                    DB.Locations.TIMESTAMP + " >= ? AND " +
+                    DB.Locations.TIMESTAMP + " <= ? " +
+                    ")";
             String[] selectionArgs = new String[]{
-                String.valueOf(start),
-                String.valueOf(end)
+                    String.valueOf(start),
+                    String.valueOf(end)
             };
             cursor = contentResolver.query(DB.Locations.CONTENT_URI, null,
-                                           selectionClause, selectionArgs,
-                                           DB.Locations.TIMESTAMP + " ASC");
+                    selectionClause, selectionArgs,
+                    DB.Locations.TIMESTAMP + " ASC");
             if (cursor != null && cursor.moveToFirst()) {
                 do {
-                    LocationAddress locationAddress= getLocationAddress(cursor);
+                    LocationAddress locationAddress = getLocationAddress(cursor);
                     locations.add(locationAddress);
                 } while (cursor.moveToNext());
             }
@@ -450,5 +454,77 @@ public class DBUtil {
         values.put(DB.ReverseGeoLocations.REFCOUNT, 0);
         ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
         contentResolver.insert(DB.ReverseGeoLocations.CONTENT_URI, values);
+    }
+
+    public static void purgeImages() {
+        Cursor cursor = null;
+        try {
+            ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
+            String selectionClause = DB.Images.REFCOUNT + " = 0";
+            cursor = contentResolver.query(DB.Images.CONTENT_URI, null, selectionClause, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                if (cursor.getCount() < MAX_IMAGES) {
+                    return;
+                }
+                do {
+                    Uri uri = ContentUris.withAppendedId(DB.Images.CONTENT_URI, cursor.getLong(0));
+                    contentResolver.delete(uri, null, null);
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error to purge images", e);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
+
+    public static void purgeGeoLocations() {
+        Cursor cursor = null;
+        try {
+            ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
+            String selectionClause = DB.GeoLocations.REFCOUNT + " = 0";
+            cursor = contentResolver.query(DB.GeoLocations.CONTENT_URI, null, selectionClause, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                if (cursor.getCount() < MAX_GEO_LOCATIONS) {
+                    return;
+                }
+                do {
+                    Uri uri = ContentUris.withAppendedId(DB.GeoLocations.CONTENT_URI, cursor.getLong(0));
+                    contentResolver.delete(uri, null, null);
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error to purge locations", e);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
+
+    public static void purgeReverseGeoLocations() {
+        Cursor cursor = null;
+        try {
+            ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
+            String selectionClause = DB.ReverseGeoLocations.REFCOUNT + " = 0";
+            cursor = contentResolver.query(DB.ReverseGeoLocations.CONTENT_URI, null, selectionClause, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                if (cursor.getCount() < MAX_REVERSE_GEO_LOCATIONS) {
+                    return;
+                }
+                do {
+                    Uri uri = ContentUris.withAppendedId(DB.ReverseGeoLocations.CONTENT_URI, cursor.getLong(0));
+                    contentResolver.delete(uri, null, null);
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error to purge locations", e);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
     }
 }
