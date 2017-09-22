@@ -115,4 +115,5 @@
     <string name="map_layers">Map Layers</string>
     <string name="account">Account</string>
     <string name="sharing_timeline">Timeline</string>
+    <string name="close">Close</string>
 </resources>

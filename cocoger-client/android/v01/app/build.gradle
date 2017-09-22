@@ -57,8 +57,6 @@ dependencies {
     //compile 'com.firebaseui:firebase-ui-auth:2.2.0'
     // FirebaseUI Storage only
     //compile 'com.firebaseui:firebase-ui-storage:2.2.0'
-    // info window
-    //compile 'com.appolica:interactive-info-window:v1.0.6'
     // sliding up panel
     compile 'com.sothree.slidinguppanel:library:3.3.1'
     // picasso

@@ -19,6 +19,7 @@
 
     <include layout="@layout/item_divider"/>
 
+<!--
     <android.support.v7.widget.SwitchCompat
         android:id="@+id/switch_satellite"
         android:layout_width="match_parent"
@@ -44,6 +45,7 @@
         />
 
     <include layout="@layout/item_divider"/>
+-->
 
     <android.support.v7.widget.SwitchCompat
         android:id="@+id/switch_retro"
@@ -77,6 +79,90 @@
         android:checked="false"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Custom"
+        android:drawableLeft="@drawable/ic_terrain_black_24dp"
+        android:drawablePadding="@dimen/activity_horizontal_margin"
+        />
+
+    <android.support.v7.widget.SwitchCompat
+        android:id="@+id/switch_blue_essence"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:checked="false"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Blue Essence"
+        android:drawableLeft="@drawable/ic_terrain_black_24dp"
+        android:drawablePadding="@dimen/activity_horizontal_margin"
+        />
+
+    <android.support.v7.widget.SwitchCompat
+        android:id="@+id/switch_blue_ish"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:checked="false"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Blue"
+        android:drawableLeft="@drawable/ic_terrain_black_24dp"
+        android:drawablePadding="@dimen/activity_horizontal_margin"
+        />
+
+    <android.support.v7.widget.SwitchCompat
+        android:id="@+id/switch_grayscale"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:checked="false"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Gray"
+        android:drawableLeft="@drawable/ic_terrain_black_24dp"
+        android:drawablePadding="@dimen/activity_horizontal_margin"
+        />
+
+    <android.support.v7.widget.SwitchCompat
+        android:id="@+id/switch_muted_blue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:checked="false"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Muted Blue"
+        android:drawableLeft="@drawable/ic_terrain_black_24dp"
+        android:drawablePadding="@dimen/activity_horizontal_margin"
+        />
+
+    <android.support.v7.widget.SwitchCompat
+        android:id="@+id/switch_pale_down"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:checked="false"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Pale Down"
+        android:drawableLeft="@drawable/ic_terrain_black_24dp"
+        android:drawablePadding="@dimen/activity_horizontal_margin"
+        />
+
+    <android.support.v7.widget.SwitchCompat
+        android:id="@+id/switch_paper"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:checked="false"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Paper"
+        android:drawableLeft="@drawable/ic_terrain_black_24dp"
+        android:drawablePadding="@dimen/activity_horizontal_margin"
+        />
+
+    <android.support.v7.widget.SwitchCompat
+        android:id="@+id/switch_pinky"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/activity_vertical_margin"
+        android:checked="false"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="Pink"
         android:drawableLeft="@drawable/ic_terrain_black_24dp"
         android:drawablePadding="@dimen/activity_horizontal_margin"
         />

@@ -21,9 +21,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
-import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.SearchSuggestionsAdapter;
@@ -49,6 +47,14 @@ public class SearchMapActivity extends MapActivity {
     private final static String TAG = "SearchMapActivity";
 
     private FloatingSearchView mSearchView;
+
+    class CustomMapStyle {
+        SwitchCompat view;
+        int id;
+        String resource;
+    }
+
+    CustomMapStyle mMapStyles[];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,49 +88,54 @@ public class SearchMapActivity extends MapActivity {
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(mNavigationItemSelectedListener);
+
+        mMapStyles = new CustomMapStyle[10];
+        mMapStyles[0] = new CustomMapStyle();
+        mMapStyles[0].id = R.raw.mapstyle_retro;
+        mMapStyles[0].resource = "retro";
+        mMapStyles[1] = new CustomMapStyle();
+        mMapStyles[1].id = R.raw.mapstyle_night;
+        mMapStyles[1].resource = "night";
+        mMapStyles[2] = new CustomMapStyle();
+        mMapStyles[2].id = R.raw.mapstyle_no_poi;
+        mMapStyles[2].resource = "custom";
+        mMapStyles[3] = new CustomMapStyle();
+        mMapStyles[3].id = R.raw.mapstyle_blue_essence;
+        mMapStyles[3].resource = "blue_essence";
+        mMapStyles[4] = new CustomMapStyle();
+        mMapStyles[4].id = R.raw.mapstyle_blue_ish;
+        mMapStyles[4].resource = "blue_ish";
+        mMapStyles[5] = new CustomMapStyle();
+        mMapStyles[5].id = R.raw.mapstyle_grayscale;
+        mMapStyles[5].resource = "grayscale";
+        mMapStyles[6] = new CustomMapStyle();
+        mMapStyles[6].id = R.raw.mapstyle_muted_blue;
+        mMapStyles[6].resource = "blue";
+        mMapStyles[7] = new CustomMapStyle();
+        mMapStyles[7].id = R.raw.mapstyle_pale_dawn;
+        mMapStyles[7].resource = "pale_down";
+        mMapStyles[8] = new CustomMapStyle();
+        mMapStyles[8].id = R.raw.mapstyle_paper;
+        mMapStyles[8].resource = "paper";
+        mMapStyles[9] = new CustomMapStyle();
+        mMapStyles[9].id = R.raw.mapstyle_pinky;
+        mMapStyles[9].resource = "pinky";
     }
 
     void onMapReady() {
-
         boolean traffic_value = MainApplication.getBool("traffic");
         mMap.setTrafficEnabled(traffic_value);
 
-        String style_value = MainApplication.getString("style");
-        if (style_value == null || style_value.equals("normal")) {
+        String current_style = MainApplication.getString("style");
+        if (current_style == null || current_style.equals("normal")) {
             mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         } else {
-            if (style_value.equals("satellite")) {
-                mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-            } else if (style_value.equals("terrain")) {
-                mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
-            } else if (style_value.equals("retro")) {
-                MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(SearchMapActivity.this, R.raw.mapstyle_retro);
-                mMap.setMapStyle(style);
-            } else if (style_value.equals("night")) {
-                MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(SearchMapActivity.this, R.raw.mapstyle_night);
-                mMap.setMapStyle(style);
-            } else if (style_value.equals("custom")) {
-                MapStyleOptions style = new MapStyleOptions("[" +
-                        "  {" +
-                        "    \"featureType\":\"poi.business\"," +
-                        "    \"elementType\":\"all\"," +
-                        "    \"stylers\":[" +
-                        "      {" +
-                        "        \"visibility\":\"off\"" +
-                        "      }" +
-                        "    ]" +
-                        "  }," +
-                        "  {" +
-                        "    \"featureType\":\"transit\"," +
-                        "    \"elementType\":\"all\"," +
-                        "    \"stylers\":[" +
-                        "      {" +
-                        "        \"visibility\":\"off\"" +
-                        "      }" +
-                        "    ]" +
-                        "  }" +
-                        "]");
-                mMap.setMapStyle(style);
+            for (int i = 0; i < mMapStyles.length; i++) {
+                if (mMapStyles[i].resource.equals(current_style)) {
+                    MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(SearchMapActivity.this, mMapStyles[i].id);
+                    mMap.setMapStyle(style);
+                    break;
+                }
             }
         }
     }
@@ -351,154 +362,67 @@ public class SearchMapActivity extends MapActivity {
                 if (item.getItemId() == R.id.action_map_layer) {
                     LayoutInflater layoutInflaterAndroid = LayoutInflater.from(SearchMapActivity.this);
                     View view = layoutInflaterAndroid.inflate(R.layout.dialog_layer, null);
-                    final SwitchCompat satellite = (SwitchCompat) view.findViewById(R.id.switch_satellite);
-                    final SwitchCompat terrain = (SwitchCompat) view.findViewById(R.id.switch_terrain);
-                    final SwitchCompat traffic = (SwitchCompat) view.findViewById(R.id.switch_traffic);
-                    final SwitchCompat retro = (SwitchCompat) view.findViewById(R.id.switch_retro);
-                    final SwitchCompat night = (SwitchCompat) view.findViewById(R.id.switch_night);
-                    final SwitchCompat custom = (SwitchCompat) view.findViewById(R.id.switch_custom);
 
-                    boolean traffic_value = MainApplication.getBool("traffic");
-                    traffic.setChecked(traffic_value);
+                    mMapStyles[0].view = (SwitchCompat) view.findViewById(R.id.switch_retro);
+                    mMapStyles[1].view = (SwitchCompat) view.findViewById(R.id.switch_night);
+                    mMapStyles[2].view = (SwitchCompat) view.findViewById(R.id.switch_custom);
+                    mMapStyles[3].view = (SwitchCompat) view.findViewById(R.id.switch_blue_essence);
+                    mMapStyles[4].view = (SwitchCompat) view.findViewById(R.id.switch_blue_ish);
+                    mMapStyles[5].view = (SwitchCompat) view.findViewById(R.id.switch_grayscale);
+                    mMapStyles[6].view = (SwitchCompat) view.findViewById(R.id.switch_muted_blue);
+                    mMapStyles[7].view = (SwitchCompat) view.findViewById(R.id.switch_pale_down);
+                    mMapStyles[8].view = (SwitchCompat) view.findViewById(R.id.switch_paper);
+                    mMapStyles[9].view = (SwitchCompat) view.findViewById(R.id.switch_pinky);
 
-                    String style = MainApplication.getString("style");
-                    if (style == null || style.equals("normal")) {
-                        satellite.setChecked(false);
-                        terrain.setChecked(false);
-                        retro.setChecked(false);
-                        night.setChecked(false);
-                        custom.setChecked(false);
-                    } else {
-                        if (style.equals("satellite")) {
-                            satellite.setChecked(true);
-                        } else if (style.equals("terrain")) {
-                            terrain.setChecked(true);
-                        } else if (style.equals("retro")) {
-                            retro.setChecked(true);
-                        } else if (style.equals("night")) {
-                            night.setChecked(true);
-                        } else if (style.equals("custom")) {
-                            custom.setChecked(true);
+                    for (int i = 0; i < mMapStyles.length; i++) {
+                        String current_style = MainApplication.getString("style");
+                        if (!current_style.isEmpty()) {
+                            if (mMapStyles[i].resource.equals(current_style)) {
+                                mMapStyles[i].view.setChecked(true);
+                            } else {
+                                mMapStyles[i].view.setChecked(false);
+                            }
                         }
                     }
 
-                    satellite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                            if (isChecked) {
-                                terrain.setChecked(false);
-                                retro.setChecked(false);
-                                night.setChecked(false);
-                                custom.setChecked(false);
-                                mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-                                MainApplication.putString("style", "satellite");
-                            } else {
-                                mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-                                MainApplication.putString("style", "normal");
+                    for (int i = 0; i < mMapStyles.length; i++) {
+                        final int n = i;
+                        mMapStyles[n].view.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                            @Override
+                            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                if (isChecked) {
+                                    CustomMapStyle cstyle = mMapStyles[n];
+                                    for (int j = 0; j < mMapStyles.length; j++) {
+                                        if (cstyle.view != mMapStyles[j].view) {
+                                            mMapStyles[j].view.setChecked(false);
+                                        }
+                                    }
+                                    MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(SearchMapActivity.this, cstyle.id);
+                                    mMap.setMapStyle(style);
+                                    MainApplication.putString("style", cstyle.resource);
+                                } else {
+                                    mMap.setMapStyle(null);
+                                    MainApplication.putString("style", "normal");
+                                }
                             }
-                        }
-                    });
-                    terrain.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                            if (isChecked) {
-                                satellite.setChecked(false);
-                                retro.setChecked(false);
-                                night.setChecked(false);
-                                custom.setChecked(false);
-                                satellite.setChecked(false);
-                                mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
-                                MainApplication.putString("style", "terrain");
-                            } else {
-                                mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-                                MainApplication.putString("style", "normal");
-                            }
-                        }
-                    });
+                        });
+                    }
+
+                    final SwitchCompat traffic = (SwitchCompat) view.findViewById(R.id.switch_traffic);
+                    traffic.setChecked(MainApplication.getBool("traffic"));
+
                     traffic.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                         @Override
                         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                             mMap.setTrafficEnabled(isChecked);
-                            if (isChecked) {
-                                MainApplication.putBool("traffic", true);
-                            } else {
-                                MainApplication.putBool("traffic", false);
-                            }
+                            MainApplication.putBool("traffic", isChecked);
                         }
                     });
-                    retro.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                            if (isChecked) {
-                                satellite.setChecked(false);
-                                terrain.setChecked(false);
-                                night.setChecked(false);
-                                custom.setChecked(false);
-                                MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(SearchMapActivity.this, R.raw.mapstyle_retro);
-                                mMap.setMapStyle(style);
-                                MainApplication.putString("style", "retro");
-                            } else {
-                                mMap.setMapStyle(null);
-                                MainApplication.putString("style", "normal");
-                            }
-                        }
-                    });
-                    night.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                            if (isChecked) {
-                                satellite.setChecked(false);
-                                terrain.setChecked(false);
-                                retro.setChecked(false);
-                                custom.setChecked(false);
-                                MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(SearchMapActivity.this, R.raw.mapstyle_night);
-                                mMap.setMapStyle(style);
-                                MainApplication.putString("style", "night");
-                            } else {
-                                mMap.setMapStyle(null);
-                                MainApplication.putString("style", "normal");
-                            }
-                        }
-                    });
-                    custom.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                        @Override
-                        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                            if (isChecked) {
-                                satellite.setChecked(false);
-                                terrain.setChecked(false);
-                                retro.setChecked(false);
-                                night.setChecked(false);
-                                MapStyleOptions style = new MapStyleOptions("[" +
-                                        "  {" +
-                                        "    \"featureType\":\"poi.business\"," +
-                                        "    \"elementType\":\"all\"," +
-                                        "    \"stylers\":[" +
-                                        "      {" +
-                                        "        \"visibility\":\"off\"" +
-                                        "      }" +
-                                        "    ]" +
-                                        "  }," +
-                                        "  {" +
-                                        "    \"featureType\":\"transit\"," +
-                                        "    \"elementType\":\"all\"," +
-                                        "    \"stylers\":[" +
-                                        "      {" +
-                                        "        \"visibility\":\"off\"" +
-                                        "      }" +
-                                        "    ]" +
-                                        "  }" +
-                                        "]");
-                                mMap.setMapStyle(style);
-                                MainApplication.putString("style", "custom");
-                            } else {
-                                mMap.setMapStyle(null);
-                                MainApplication.putString("style", "normal");
-                            }
-                        }
-                    });
+
                     AlertDialog dialog = new AlertDialog.Builder(SearchMapActivity.this)
                             .setView(view)
                             .setCancelable(true)
+                            .setNegativeButton(R.string.close, null)
                             .show();
                     dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
                 }
