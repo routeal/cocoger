@@ -24,91 +24,68 @@ repositories {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-
     testCompile 'junit:junit:4.12'
-
     // play service
     compile 'com.google.android.gms:play-services-maps:11.2.0'
     compile 'com.google.android.gms:play-services-places:11.2.0'
     compile 'com.google.android.gms:play-services-location:11.2.0'
     compile 'com.google.android.gms:play-services-auth:11.2.0'
-
     // firebase
     compile 'com.google.firebase:firebase-core:11.2.0'
     compile 'com.google.firebase:firebase-auth:11.2.0'
     compile 'com.google.firebase:firebase-storage:11.2.0'
     compile 'com.google.firebase:firebase-database:11.2.0'
-
     // firebase: geofire
     compile 'com.firebase:geofire-android:2.1.1'
-
     // firrebase ui database
     compile 'com.firebaseui:firebase-ui-database:2.3.0'
-
     // FirebaseUI depedencies
     //compile 'android.arch.lifecycle:runtime:1.0.0-alpha5'
     //compile 'android.arch.lifecycle:extensions:1.0.0-alpha5'
     //annotationProcessor 'android.arch.lifecycle:compiler:1.0.0-alpha5'
-
     // android support
     //compile 'com.android.support:appcompat-v7:25.4.0'
     //compile 'com.android.support:design:25.4.0'
     //compile 'com.android.support:recyclerview-v7:25.4.0'
     //compile 'com.android.support:support-v4:25.4.0'
     //compile "com.android.support:support-core-utils:25.4.0"
-
     // FirebaseUI Auth only
     //compile 'com.firebaseui:firebase-ui-auth:2.2.0'
-
     // FirebaseUI Storage only
     //compile 'com.firebaseui:firebase-ui-storage:2.2.0'
-
     // info window
-    compile 'com.appolica:interactive-info-window:v1.0.6'
-
+    //compile 'com.appolica:interactive-info-window:v1.0.6'
     // sliding up panel
     compile 'com.sothree.slidinguppanel:library:3.3.1'
-
     // picasso
     //compile 'com.squareup.picasso:picasso:2.5.2'
-
     // glide
     //compile 'com.github.bumptech.glide:glide:4.1.1'
     //annotationProcessor 'com.github.bumptech.glide:compiler:4.1.1'
-
-
     compile 'com.github.bassaer:chatmessageview:1.3.4'
-
     // multi image view
     //compile 'com.github.stfalcon:multiimageview:0.1'
-
     // listing open source libraries
     compile('com.mikepenz:aboutlibraries:5.9.6@aar') {
         transitive = true
     }
-
     // need???
     compile 'com.squareup.retrofit2:retrofit:2.3.0'
     compile 'com.squareup.retrofit2:converter-gson:2.3.0'
     compile 'com.squareup.okhttp3:logging-interceptor:3.8.0'
-
     // will remove in the future
     //compile 'com.afollestad.material-dialogs:core:0.9.4.5'
-
     compile 'com.github.arimorty:floatingsearchview:2.1.1'
-
     compile 'com.theartofdev.edmodo:android-image-cropper:2.4.+'
-
     compile 'com.github.franmontiel:Fullscreendialog:1.0.1'
-
-
     // database debugging - remove from the production
     compile 'com.facebook.stetho:stetho:1.5.0'
     compile 'com.facebook.stetho:stetho-okhttp3:1.5.0'
+    compile project(':interactiveinfowindow')
 }
 
 
