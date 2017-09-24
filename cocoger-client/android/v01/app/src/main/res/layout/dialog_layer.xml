@@ -59,7 +59,7 @@
         android:checked="false"
         android:drawableLeft="@drawable/ic_terrain_black_24dp"
         android:drawablePadding="@dimen/activity_horizontal_margin"
-        android:text="Muted Blue"
+        android:text="Blue"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <android.support.v7.widget.SwitchCompat
@@ -70,7 +70,7 @@
         android:checked="false"
         android:drawableLeft="@drawable/ic_terrain_black_24dp"
         android:drawablePadding="@dimen/activity_horizontal_margin"
-        android:text="Pale Down"
+        android:text="Slate"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <android.support.v7.widget.SwitchCompat
@@ -81,7 +81,7 @@
         android:checked="false"
         android:drawableLeft="@drawable/ic_terrain_black_24dp"
         android:drawablePadding="@dimen/activity_horizontal_margin"
-        android:text="Paper"
+        android:text="White"
         android:textAppearance="?android:attr/textAppearanceMedium" />
 
     <android.support.v7.widget.SwitchCompat

@@ -101,32 +101,21 @@ public class SearchMapActivity extends MapActivity {
         mMapStyles[1] = new CustomMapStyle();
         mMapStyles[1].id = R.raw.mapstyle_night;
         mMapStyles[1].resource = "night";
-        /*
         mMapStyles[2] = new CustomMapStyle();
-        mMapStyles[2].id = R.raw.mapstyle_no_poi;
-        mMapStyles[2].resource = "custom";
+        mMapStyles[2].id = R.raw.mapstyle_gray;
+        mMapStyles[2].resource = "gray";
         mMapStyles[3] = new CustomMapStyle();
-        mMapStyles[3].id = R.raw.mapstyle_blue_essence;
-        mMapStyles[3].resource = "blue_essence";
-        mMapStyles[4] = new CustomMapStyle();
-        mMapStyles[4].id = R.raw.mapstyle_blue_ish;
-        mMapStyles[4].resource = "blue_ish";
-        */
-        mMapStyles[2] = new CustomMapStyle();
-        mMapStyles[2].id = R.raw.mapstyle_grayscale;
-        mMapStyles[2].resource = "grayscale";
-        mMapStyles[3] = new CustomMapStyle();
-        mMapStyles[3].id = R.raw.mapstyle_muted_blue;
+        mMapStyles[3].id = R.raw.mapstyle_blue;
         mMapStyles[3].resource = "blue";
         mMapStyles[4] = new CustomMapStyle();
-        mMapStyles[4].id = R.raw.mapstyle_pale_dawn;
-        mMapStyles[4].resource = "pale_down";
+        mMapStyles[4].id = R.raw.mapstyle_slate;
+        mMapStyles[4].resource = "slate";
         mMapStyles[5] = new CustomMapStyle();
-        mMapStyles[5].id = R.raw.mapstyle_paper;
-        mMapStyles[5].resource = "paper";
+        mMapStyles[5].id = R.raw.mapstyle_white;
+        mMapStyles[5].resource = "white";
         mMapStyles[6] = new CustomMapStyle();
-        mMapStyles[6].id = R.raw.mapstyle_pinky;
-        mMapStyles[6].resource = "pinky";
+        mMapStyles[6].id = R.raw.mapstyle_pink;
+        mMapStyles[6].resource = "pink";
     }
 
     void onMapReady() {
@@ -383,9 +372,6 @@ public class SearchMapActivity extends MapActivity {
 
                     mMapStyles[0].view = (SwitchCompat) view.findViewById(R.id.switch_retro);
                     mMapStyles[1].view = (SwitchCompat) view.findViewById(R.id.switch_night);
-                    //mMapStyles[2].view = (SwitchCompat) view.findViewById(R.id.switch_custom);
-                    //mMapStyles[3].view = (SwitchCompat) view.findViewById(R.id.switch_blue_essence);
-                    //mMapStyles[4].view = (SwitchCompat) view.findViewById(R.id.switch_blue_ish);
                     mMapStyles[2].view = (SwitchCompat) view.findViewById(R.id.switch_grayscale);
                     mMapStyles[3].view = (SwitchCompat) view.findViewById(R.id.switch_muted_blue);
                     mMapStyles[4].view = (SwitchCompat) view.findViewById(R.id.switch_pale_down);
