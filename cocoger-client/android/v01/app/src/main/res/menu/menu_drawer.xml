@@ -7,7 +7,7 @@
         <item
             android:id="@+id/nav_sharing_timeline"
             android:icon="@drawable/ic_timeline_black_48dp"
-            android:title="@string/sharing_timeline" />
+            android:title="@string/timeline" />
         <item
             android:id="@+id/nav_account"
             android:icon="@drawable/ic_account_box_black_48dp"

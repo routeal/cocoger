@@ -115,7 +115,8 @@
     <string name="send_friend_request" formatted="false">You sent a friend request to %s.</string>
     <string name="map_layers">Map Layers</string>
     <string name="account">Account</string>
-    <string name="sharing_timeline">Timeline</string>
+    <string name="timeline">Timeline</string>
     <string name="close">Close</string>
     <string name="delete">Delete</string>
+    <string name="no_location_timeline">No location history found</string>
 </resources>

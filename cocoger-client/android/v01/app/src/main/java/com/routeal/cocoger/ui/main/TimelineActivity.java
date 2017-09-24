@@ -9,18 +9,26 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.TextView;
 
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.provider.DBUtil;
@@ -29,6 +37,7 @@ import com.routeal.cocoger.util.RangeSeekBar;
 import com.routeal.cocoger.util.Utils;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -46,6 +55,8 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
     private String mStartTimeStr;
     private String mEndTimeStr;
     private GoogleMap mMap;
+    private List<Marker> mMarkers = new ArrayList<>();
+    private Polyline mPolyline;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +67,7 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
         if (ab != null) {
             ab.setDisplayHomeAsUpEnabled(true);
             ab.setDisplayShowTitleEnabled(true);
-            ab.setTitle(R.string.sharing_timeline);
+            ab.setTitle(R.string.timeline);
         }
 
         SupportMapFragment mapFragment =
@@ -187,10 +198,20 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
         long startAt = timestamp + mStartTime * 60 * 60 * 1000;
         long endAt = timestamp + mEndTime * 60 * 60 * 1000;
 
+        if (mPolyline != null) {
+            mPolyline.remove();
+        }
+
         List<LocationAddress> locations = DBUtil.getSentLocations(startAt, endAt);
 
+        for (Marker marker : mMarkers) {
+            marker.remove();
+        }
+        mMarkers.clear();
+
         for (LocationAddress la : locations) {
-            Log.d(TAG, "showTimeline: " + Utils.getAddressLine(Utils.getAddress(la), LocationRange.CURRENT.range) + " lat:" + la.getLatitude() + " log:" + la.getLongitude());
+            Log.d(TAG, "showTimeline: " + Utils.getAddressLine(Utils.getAddress(la), LocationRange.CURRENT.range) +
+                    " lat:" + la.getLatitude() + " log:" + la.getLongitude());
 
             Location location = Utils.getLocation(la);
             Address address = Utils.getAddress(la);
@@ -199,28 +220,58 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
             double speed = location.getSpeed() * 18 / 5;  // km / hour
             String title = String.format("speed=%f", speed);
 
-            mMap.addMarker(new MarkerOptions().position(new LatLng(la.getLatitude(), la.getLongitude()))
+            Marker marker = mMap.addMarker(new MarkerOptions().position(new LatLng(la.getLatitude(), la.getLongitude()))
                     .title(title)
                     .snippet(addressLine));
+            mMarkers.add(marker);
+        }
+
+        // zoom into the area where all the markers can be shown
+        if (mMarkers.isEmpty()) {
+            new AlertDialog.Builder(this)
+                    .setTitle(R.string.timeline)
+                    .setMessage(R.string.no_location_timeline)
+                    .setCancelable(true)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
+            return;
+        } else {
+            // area bound
+            LatLngBounds.Builder builder = new LatLngBounds.Builder();
+
+            // polyline
+            List<LatLng> points = new ArrayList<>();
+            PolylineOptions lineOptions = new PolylineOptions();
+
+            for (Marker marker : mMarkers) {
+                builder.include(marker.getPosition());
+                points.add(marker.getPosition());
+            }
+
+            // area zoom in
+            LatLngBounds bounds = builder.build();
+            int padding = 100; // offset from edges of the map in pixels
+            CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+            mMap.moveCamera(cu);
+
+            // polyline
+            lineOptions.addAll(points);
+            lineOptions.width(20);
+            lineOptions.color(R.color.navy);
+            mPolyline = mMap.addPolyline(lineOptions);
         }
 
         // shows the status message at the bottom
         DateFormat f = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault());
         String formattedDate = f.format(mDate);
-        String message = formattedDate + " " + mStartTimeStr + " - " + mEndTimeStr;
-        Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_INDEFINITE).show();
+        String message = String.format("Start: %s End: %s Date: %s", mStartTimeStr, mEndTimeStr, formattedDate);
 
-/*
-        FB.getTimelineLocations(startAt, endAt, new FB.LocationListener() {
-            @Override
-            public void onSuccess(final Location location, final Address address) {
-            }
-
-            @Override
-            public void onFail(String err) {
-            }
-        });
-*/
+        Snackbar snack = Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_INDEFINITE);
+        View view = snack.getView();
+        TextView tv = (TextView) view.findViewById(android.support.design.R.id.snackbar_text);
+        tv.setTextAlignment(View.TEXT_ALIGNMENT_CENTER);
+        tv.setGravity(Gravity.CENTER_HORIZONTAL);
+        snack.show();
     }
 
     @Override
