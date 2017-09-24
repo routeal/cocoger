@@ -14,9 +14,11 @@ import android.util.Log;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.LocationAddress;
+import com.routeal.cocoger.model.NoticeMessage;
 import com.routeal.cocoger.util.Utils;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -527,4 +529,70 @@ public class DBUtil {
             }
         }
     }
+
+    public static void saveMessage(String key, String title, String message, int resouceId, Date date) {
+        saveMessage(key, title, message, null, resouceId, date);
+    }
+
+    public static void saveMessage(String key, String title, String message, String picture, Date date) {
+        saveMessage(key, title, message, picture, 0, date);
+    }
+
+    static void saveMessage(String key, String title, String message, String picture, int resouceId, Date date) {
+        ContentValues values = new ContentValues();
+        values.put(DB.Messages.TITLE, title);
+        values.put(DB.Messages.MESSAGE, message);
+        values.put(DB.Messages.PICTURE, picture);
+        values.put(DB.Messages.RESOURCEID, resouceId);
+        values.put(DB.Messages.DATE, date.getTime());
+        values.put(DB.Messages.KEY, key);
+        ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
+        contentResolver.insert(DB.Messages.CONTENT_URI, values);
+    }
+
+    public static void deleteMessage(long id) {
+        ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
+        Uri uri = ContentUris.withAppendedId(DB.Messages.CONTENT_URI, id);
+        contentResolver.delete(uri, null, null);
+    }
+
+    public static List<NoticeMessage> getMessages() {
+        List<NoticeMessage> messages = new ArrayList<>();
+
+        Cursor cursor = null;
+        try {
+            ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
+            cursor = contentResolver.query(DB.Messages.CONTENT_URI, null, null, null, null);
+            if (cursor != null && cursor.moveToFirst()) {
+                int index;
+                do {
+                    NoticeMessage message = new NoticeMessage();
+                    messages.add(message);
+                    message.setId(cursor.getLong(0));
+                    index = cursor.getColumnIndex(DB.Messages.TITLE);
+                    message.setTitle(cursor.getString(index));
+                    index = cursor.getColumnIndex(DB.Messages.MESSAGE);
+                    message.setMessage(cursor.getString(index));
+                    index = cursor.getColumnIndex(DB.Messages.PICTURE);
+                    message.setPicture(cursor.getString(index));
+                    index = cursor.getColumnIndex(DB.Messages.RESOURCEID);
+                    message.setResourceId(cursor.getInt(index));
+                    index = cursor.getColumnIndex(DB.Messages.KEY);
+                    message.setKey(cursor.getString(index));
+                    index = cursor.getColumnIndex(DB.Messages.DATE);
+                    Date date = new Date(cursor.getLong(index));
+                    message.setDate(date);
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error to retrieve locations", e);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+
+        return messages;
+    }
+
 }

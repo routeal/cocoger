@@ -27,10 +27,12 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.provider.DBUtil;
 import com.routeal.cocoger.ui.main.AccountActivity;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 import com.routeal.cocoger.util.Utils;
 
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -201,7 +203,7 @@ public class LoginFragment extends Fragment {
 
         FB.createUser(getActivity(), email, password, new FB.CreateUserListener() {
             @Override
-            public void onSuccess() {
+            public void onSuccess(String key) {
                 dialog.dismiss();
                 // start the setup
                 Intent intent = new Intent(getActivity(), AccountActivity.class);
@@ -211,6 +213,9 @@ public class LoginFragment extends Fragment {
                 intent.putExtra("email", email);
                 startActivity(intent);
                 getActivity().finish();
+
+                DBUtil.saveMessage(key, "Welcome", "Hope that you enjoy cocoger!!!",
+                        R.drawable.ic_person_pin_circle_white_48dp, new Date());
             }
 
             @Override

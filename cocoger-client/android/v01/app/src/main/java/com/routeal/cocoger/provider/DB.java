@@ -106,6 +106,41 @@ public final class DB {
                 ");";
     }
 
+    public static class MessagesColumns extends CacheColumns {
+        public static final String TITLE = "title";
+        public static final String MESSAGE = "message";
+        public static final String PICTURE = "picture";
+        public static final String RESOURCEID = "resourceid";
+        public static final String DATE = "date";
+        public static final String KEY = "key";
+
+        static final String TITLE_TYPE = "TEXT";
+        static final String MESSAGE_TYPE = "TEXT";
+        static final String PICTURE_TYPE = "TEXT";
+        static final String RESOURCEID_TYPE = "INTEGER";
+        static final String DATE_TYPE = "INTEGER";
+        static final String KEY_TYPE = "TEXT";
+    }
+
+    public static final class Messages extends MessagesColumns implements BaseColumns {
+        public static final String TABLE = "messages";
+        public static final String PATH = URI_TAG + "/" + TABLE;
+        public static final String CONTENT_TYPE = MIME_TYPE + TABLE;
+        public static final String CONTENT_ITEM_TYPE = MIME_ITEM_TYPE + TABLE;
+        public static final Uri CONTENT_URI =
+                Uri.parse("content://" + DB.AUTHORITY + "/" + URI_TAG + "/" + TABLE);
+
+        static final String CREATE_STATEMENT = "CREATE TABLE " + TABLE +
+                "(" + " " + _ID + " " + _ID_TYPE +
+                "," + " " + TITLE + " " + TITLE_TYPE +
+                "," + " " + MESSAGE + " " + MESSAGE_TYPE +
+                "," + " " + PICTURE + " " + PICTURE_TYPE +
+                "," + " " + RESOURCEID + " " + RESOURCEID_TYPE +
+                "," + " " + DATE + " " + DATE_TYPE +
+                "," + " " + KEY + " " + KEY_TYPE +
+                ");";
+    }
+
     public static class LocationsColumns extends CacheColumns {
         public static final String TIMESTAMP = "timestamp";
         public static final String LATITUDE = "latitude";

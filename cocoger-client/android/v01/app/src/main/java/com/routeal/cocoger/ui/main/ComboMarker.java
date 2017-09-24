@@ -54,12 +54,6 @@ class ComboMarker implements Parcelable {
     private LoadImage.LoadMarkerImage mImageTask;
     private InfoWindowManager mInfoWindowManager;
 
-    private int[] colors = {
-            R.color.teal300,
-            R.color.red,
-            R.color.steelblue
-    };
-
     @Override
     public int describeContents() {
         return 0;
@@ -91,8 +85,7 @@ class ComboMarker implements Parcelable {
         options.anchor(0.5f, 0.5f);
         mMarker = map.addMarker(options);
 
-        int color = Utils.randInt(0, colors.length - 1);
-        Drawable d = Utils.getIconDrawable(MainApplication.getContext(), R.drawable.ic_face_black_48dp, colors[color]);
+        Drawable d = Utils.getIconDrawable(MainApplication.getContext(), R.drawable.ic_face_black_48dp, R.color.steelblue);
         BitmapDescriptor icon = Utils.getBitmapDescriptor(d);
 
         mMarker.setIcon(icon);
@@ -123,26 +116,34 @@ class ComboMarker implements Parcelable {
     boolean removeUser(String id) {
         // if there is only one in the marker, just remove the marker
         if (mInfoMap.size() == 1) {
-            //Log.d(TAG, "removeUser: " + id + " removed the marker");
+            Log.d(TAG, "removeUser: " + id + " removed the marker");
             mMarker.remove();
             return true;
-        } else {
-            //Log.d(TAG, "removeUser: remove=" + id + " size=" + mInfoList.size() +
-            //        " owner=" + mOwner.id);
-            // remove it from the list
-            mInfoMap.remove(id);
-
-            // replace the owner when the owner is removed
-            if (mOwner.id.equals(id)) {
-                //Log.d(TAG, "removeUser: " + id + " replace the owner");
-                Iterator<Map.Entry<String, MarkerInfo>> it = mInfoMap.entrySet().iterator();
-                Map.Entry<String, MarkerInfo> entry = it.next();
-                mOwner = entry.getValue();
-                mMarker.setPosition(Utils.getLatLng(mOwner.rangeLocation));
-            }
-
-            getPicture();
         }
+
+        Log.d(TAG, "removeUser: remove=" + id + " size=" + mInfoMap.size() +
+                " owner=" + mOwner.id);
+
+        // remove it from the list
+        mInfoMap.remove(id);
+
+        // replace the owner when the owner is removed
+        if (mOwner.id.equals(id)) {
+            Log.d(TAG, "removeUser: " + id + " replace the owner");
+            for (Iterator<Map.Entry<String, MarkerInfo>> it = mInfoMap.entrySet().iterator();
+                 it.hasNext(); ) {
+                Map.Entry<String, MarkerInfo> entry = it.next();
+                MarkerInfo info = entry.getValue();
+                if (!info.id.equals(id)) {
+                    mOwner = info;
+                    mMarker.setPosition(Utils.getLatLng(mOwner.rangeLocation));
+                    break;
+                }
+            }
+        }
+
+        getPicture();
+
         return false;
     }
 

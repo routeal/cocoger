@@ -11,26 +11,25 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
+import com.routeal.cocoger.model.NoticeMessage;
 import com.routeal.cocoger.model.RangeRequest;
 import com.routeal.cocoger.model.User;
+import com.routeal.cocoger.provider.DBUtil;
 import com.routeal.cocoger.util.LoadImage;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Notifi;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -42,6 +41,7 @@ public class NotifiListFragment extends PagerFragment {
     private final static String TAG = "NotifiListFragment";
 
     private RecyclerView mRecyclerView;
+    private TextView mEmptyText;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -56,11 +56,12 @@ public class NotifiListFragment extends PagerFragment {
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(view.getContext());
 
+        mEmptyText = (TextView) view.findViewById(R.id.empty_view);
+
         mRecyclerView = (RecyclerView) view.findViewById(R.id.list);
         mRecyclerView.setLayoutManager(layoutManager);
 
-        List<Message> messages = createNotifiList();
-        mRecyclerView.setAdapter(new NotifiListAdapter(messages));
+        onSelected();
 
         return view;
     }
@@ -68,9 +69,14 @@ public class NotifiListFragment extends PagerFragment {
     void onSelected() {
         Log.d(TAG, "NotifiListFragment selected");
         List<Message> messages = createNotifiList();
-        if (messages != null && messages.size() > 0) {
-            mRecyclerView.setAdapter(new NotifiListAdapter(messages));
+        if (messages == null || messages.isEmpty()) {
+            mEmptyText.setVisibility(View.VISIBLE);
+            mRecyclerView.setVisibility(View.GONE);
+        } else {
+            mEmptyText.setVisibility(View.GONE);
+            mRecyclerView.setVisibility(View.VISIBLE);
         }
+        mRecyclerView.setAdapter(new NotifiListAdapter(messages));
     }
 
     class Message {
@@ -99,6 +105,13 @@ public class NotifiListFragment extends PagerFragment {
         String picture;
         int rangeTo;
         int rangeFrom;
+    }
+
+    class InfoMessage extends Message {
+        long dbId;
+        String title;
+        String picture;
+        int resourceId;
     }
 
     List<Message> createNotifiList() {
@@ -157,6 +170,19 @@ public class NotifiListFragment extends PagerFragment {
                     }
                 }
             }
+
+            List<NoticeMessage> noticeMessages = DBUtil.getMessages();
+            for (NoticeMessage nm : noticeMessages) {
+                InfoMessage m = new InfoMessage();
+                m.dbId = nm.getId();
+                m.title = nm.getTitle();
+                m.message = nm.getMessage();
+                DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
+                m.date = df.format(nm.getDate());
+                m.picture = nm.getPicture();
+                m.resourceId = nm.getResourceId();
+                messages.add(m);
+            }
         }
 
         return messages;
@@ -212,6 +238,7 @@ public class NotifiListFragment extends PagerFragment {
                         String content = String.format(pattern, user.getDisplayName());
                         holder.content.setText(content);
                     }
+
                     @Override
                     public void onFail(String err) {
                     }
@@ -240,9 +267,34 @@ public class NotifiListFragment extends PagerFragment {
                     }
                 });
             } else if (m instanceof InviteMessage) {
-                InviteMessage im = (InviteMessage) m;
+                final InviteMessage im = (InviteMessage) m;
                 holder.content.setText(im.message);
                 holder.date.setText(im.date);
+                FB.getUser(im.id, new FB.UserListener() {
+                    @Override
+                    public void onSuccess(User user) {
+                        new LoadImage.LoadImageView(holder.picture).execute(user.getPicture());
+                        holder.title.setText(user.getDisplayName());
+                        String pattern = getResources().getString(R.string.send_friend_request);
+                        String content = String.format(pattern, user.getDisplayName());
+                        holder.content.setText(content);
+                    }
+
+                    @Override
+                    public void onFail(String err) {
+                    }
+                });
+                holder.ok.setText(android.R.string.cancel);
+                holder.ok.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        FB.cancelFriendRequest(im.id);
+                        Notifi.remove(im.nid);
+                        ViewPager page = getViewPager();
+                        page.setCurrentItem(1);
+                    }
+                });
+                holder.no.setVisibility(View.INVISIBLE);
             } else if (m instanceof RangeMessage) {
                 final RangeMessage rm = (RangeMessage) m;
                 new LoadImage.LoadImageView(holder.picture).execute(rm.picture);
@@ -273,6 +325,26 @@ public class NotifiListFragment extends PagerFragment {
                         page.setCurrentItem(1);
                     }
                 });
+            } else if (m instanceof InfoMessage) {
+                final InfoMessage im = (InfoMessage) m;
+                if (im.picture != null && !im.picture.isEmpty()) {
+                    new LoadImage.LoadImageView(holder.picture).execute(im.picture);
+                }
+                if (im.resourceId > 0) {
+                    holder.picture.setBackgroundResource(im.resourceId);
+                }
+                holder.title.setText(im.title);
+                holder.date.setText(im.date);
+                holder.content.setText(im.message);
+                holder.ok.setText(R.string.delete);
+                holder.ok.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        DBUtil.deleteMessage(im.dbId);
+                        onSelected();
+                    }
+                });
+                holder.no.setVisibility(View.INVISIBLE);
             }
         }
 

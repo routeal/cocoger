@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="240dp"
+    android:layout_width="200dp"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="4dp">
 
     <android.support.v7.widget.AppCompatTextView
-        android:id="@+id/title"
+        android:id="@+id/info_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
@@ -18,17 +18,17 @@
         android:textColor="@color/background" />
 
     <android.support.v7.widget.CardView
-        android:id="@+id/street_view_container"
-        android:layout_width="96dp"
-        android:layout_height="96dp"
+        android:id="@+id/info_street_view_container"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
         android:layout_alignParentLeft="true"
-        android:layout_below="@+id/title"
+        android:layout_below="@+id/info_title"
         android:layout_margin="5dp"
         android:elevation="10dp"
         app:cardCornerRadius="8dp">
 
         <android.support.v7.widget.AppCompatImageView
-            android:id="@+id/street_view"
+            android:id="@+id/info_street_view"
             style="@android:style/Widget.Material.Light.Button.Small"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -40,93 +40,62 @@
     </android.support.v7.widget.CardView>
 
     <android.support.v7.widget.AppCompatTextView
-        android:id="@+id/current_address"
+        android:id="@+id/info_address"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/post_facebook"
+        android:layout_above="@+id/info_action_container"
+        android:layout_alignBottom="@+id/info_street_view_container"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/title"
-        android:layout_toRightOf="@+id/street_view_container"
+        android:layout_alignTop="@+id/info_street_view_container"
+        android:layout_below="@+id/info_title"
+        android:layout_toRightOf="@+id/info_street_view_container"
         android:ellipsize="end"
         android:gravity="center"
         android:textAppearance="@android:style/TextAppearance.Material.Small" />
 
     <LinearLayout
+        android:id="@+id/info_action_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/street_view_container"
-        android:layout_alignParentRight="true"
-        android:layout_toRightOf="@+id/street_view_container"
+        android:layout_below="@+id/info_street_view_container"
+        android:layout_margin="8dp"
         android:orientation="horizontal">
 
         <ImageButton
-            android:id="@+id/send_message"
+            android:id="@+id/action_info"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="?android:selectableItemBackground"
+            android:gravity="center"
+            android:src="@drawable/ic_info_black_24dp" />
+
+        <ImageButton
+            android:id="@+id/action_location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="?android:selectableItemBackground"
+            android:gravity="center"
+            android:src="@drawable/ic_pin_drop_black_24dp" />
+
+        <ImageButton
+            android:id="@+id/action_direction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="?android:selectableItemBackground"
+            android:gravity="center"
+            android:src="@drawable/ic_directions_black_24dp" />
+
+        <ImageButton
+            android:id="@+id/action_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="?android:selectableItemBackground"
             android:gravity="center"
             android:src="@drawable/ic_message_black_24dp" />
-
-        <ImageButton
-            android:id="@+id/send_facebook"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:background="?android:selectableItemBackground"
-            android:gravity="center"
-            android:src="@drawable/fb_f_logo__blue_24" />
-
-    </LinearLayout>
-
-
-    <!--
-    <android.support.v7.widget.AppCompatButton
-        android:id="@+id/post_facebook"
-        style="@android:style/Widget.Material.Light.Button.Borderless.Small"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/street_view_container"
-        android:layout_alignParentRight="true"
-        android:layout_toRightOf="@+id/street_view_container"
-        android:text="@string/post_facebook" />
-
-    <android.support.v7.widget.AppCompatImageView
-        android:id="@+id/image_post_facebook"
-        android:layout_marginRight="8dp"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_alignTop="@+id/post_facebook"
-        android:layout_alignBottom="@+id/post_facebook"
-        android:layout_alignParentRight="true"
-        android:layout_toRightOf="@+id/post_facebook"
-        android:layout_centerVertical="true"
-        android:src="@drawable/messenger_button_blue_bg_round"
-        style="@android:style/Widget.Material.Button.Borderless.Colored"/>
-    -->
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/street_view_container"
-        android:gravity="center_horizontal"
-        android:orientation="horizontal">
-
-        <android.support.v7.widget.AppCompatButton
-            android:id="@+id/more_info"
-            style="@android:style/Widget.Material.Light.Button.Borderless.Colored"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/more_info" />
-
-        <android.support.v7.widget.AppCompatButton
-            android:id="@+id/save_to_map"
-            style="@android:style/Widget.Material.Light.Button.Borderless.Colored"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/save_to_map" />
 
     </LinearLayout>
 

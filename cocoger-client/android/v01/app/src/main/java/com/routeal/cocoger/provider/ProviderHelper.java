@@ -22,6 +22,7 @@ public class ProviderHelper extends SQLiteOpenHelper {
             db.execSQL(DB.GeoLocations.CREATE_STATEMENT);
             db.execSQL(DB.ReverseGeoLocations.CREATE_STATEMENT);
             db.execSQL(DB.Images.CREATE_STATEMENT);
+            db.execSQL(DB.Messages.CREATE_STATEMENT);
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();

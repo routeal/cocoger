@@ -4,8 +4,7 @@ import android.content.DialogInterface;
 import android.location.Address;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -23,16 +22,16 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.routeal.cocoger.R;
-import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.provider.DBUtil;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.RangeSeekBar;
 import com.routeal.cocoger.util.Utils;
 
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by nabe on 9/16/17.
@@ -44,6 +43,8 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
     private Date mDate;
     private int mStartTime;
     private int mEndTime;
+    private String mStartTimeStr;
+    private String mEndTimeStr;
     private GoogleMap mMap;
 
     @Override
@@ -135,10 +136,10 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
                                 int day = datePicker.getDayOfMonth();
                                 int month = datePicker.getMonth();
                                 int year = datePicker.getYear();
-                                SimpleDateFormat sdf = new SimpleDateFormat("MM dd yyyy");
                                 mDate = new Date(year - 1900, month, day, 0, 0);
-                                String formatDate = sdf.format(mDate);
-                                dateText.setText(formatDate);
+                                DateFormat f = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault());
+                                String formattedDate = f.format(mDate);
+                                dateText.setText(formattedDate);
                             }
                         })
                         .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
@@ -164,9 +165,9 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
                             public void onClick(DialogInterface dialog, int which) {
                                 mStartTime = seekBar.getSelectedMinValue().intValue();
                                 mEndTime = seekBar.getSelectedMaxValue().intValue();
-                                String max = seekBar.getSelectedMaxTime();
-                                String min = seekBar.getSelectedMinTime();
-                                timeText.setText(String.format("%s - %s", min, max));
+                                mStartTimeStr = seekBar.getSelectedMaxTime();
+                                mEndTimeStr = seekBar.getSelectedMinTime();
+                                timeText.setText(String.format("%s - %s", mStartTimeStr, mEndTimeStr));
                             }
                         })
                         .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
@@ -190,34 +191,24 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
 
         for (LocationAddress la : locations) {
             Log.d(TAG, "showTimeline: " + Utils.getAddressLine(Utils.getAddress(la), LocationRange.CURRENT.range) + " lat:" + la.getLatitude() + " log:" + la.getLongitude());
-            mMap.addMarker(new MarkerOptions().position(new LatLng(la.getLatitude(), la.getLongitude())));
+
+            Location location = Utils.getLocation(la);
+            Address address = Utils.getAddress(la);
+            String addressLine = Utils.getAddressLine(address, LocationRange.CURRENT.range);
+
+            double speed = location.getSpeed() * 18 / 5;  // km / hour
+            String title = String.format("speed=%f", speed);
+
+            mMap.addMarker(new MarkerOptions().position(new LatLng(la.getLatitude(), la.getLongitude()))
+                    .title(title)
+                    .snippet(addressLine));
         }
 
-        int i = 0;
-
-        LocationAddress [] array = locations.toArray(new LocationAddress[0]);
-
-        for (i = 0; i < array.length; i++) {
-            LocationAddress prev = array[i];
-            LocationAddress current = (array.length >= (i+1)) ? array[i+1] : null;
-            LocationAddress next = (array.length >= (i+2)) ? array[i+2] : null;
-
-            if (current == null) break;
-
-            long prevTime = prev.getTimestamp();
-            long currentTime = current.getTimestamp();
-
-            long diffTime = (currentTime - prevTime) / 1000; // seconds
-            double distance = Utils.distanceTo(Utils.getLocation(prev), Utils.getLocation(current));
-
-            if (diffTime < (5 * 60) && distance < 100) {
-
-            }
-
-            long nextTime = next.getTimestamp();
-
-        }
-
+        // shows the status message at the bottom
+        DateFormat f = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault());
+        String formattedDate = f.format(mDate);
+        String message = formattedDate + " " + mStartTimeStr + " - " + mEndTimeStr;
+        Snackbar.make(findViewById(android.R.id.content), message, Snackbar.LENGTH_INDEFINITE).show();
 
 /*
         FB.getTimelineLocations(startAt, endAt, new FB.LocationListener() {

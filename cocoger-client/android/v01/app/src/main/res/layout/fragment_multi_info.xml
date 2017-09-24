@@ -1,85 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="220dp"
     android:layout_height="144dp"
     android:orientation="vertical"
     android:padding="4dp">
 
-<!--
-    <android.support.v7.widget.CardView
-        android:id="@+id/street_view_container"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:elevation="10dp"
-        android:gravity="center"
-        app:cardCornerRadius="8dp">
-
-        <android.support.v7.widget.AppCompatImageView
-            android:id="@+id/street_view"
-            style="@android:style/Widget.Material.Light.Button.Small"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:contentDescription="@string/street_view"
-            android:cropToPadding="true"
-            android:padding="1dp"
-            android:scaleType="centerCrop" />
-
-    </android.support.v7.widget.CardView>
--->
-
     <android.support.v7.widget.RecyclerView
         android:id="@+id/friend_list"
-        android:gravity="center"
-        android:padding="4dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:scrollbars="vertical"
         android:fadeScrollbars="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentBottom="true" />
-
-<!--
-    <android.support.v7.widget.AppCompatTextView
-        android:id="@+id/current_address"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/street_view_container"
-        android:layout_marginTop="2dp"
-        android:layout_toLeftOf="@+id/friend_list"
         android:gravity="center"
-        android:textAppearance="@android:style/TextAppearance.Material.Caption" />
+        android:padding="4dp"
+        android:scrollbars="vertical" />
 
-    <LinearLayout
-        android:id="@+id/lower_pane"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/current_address"
-        android:gravity="center_horizontal"
-        android:orientation="horizontal">
-
-        <android.support.v7.widget.AppCompatButton
-            android:id="@+id/more_info"
-            style="@android:style/Widget.Material.Light.Button.Borderless.Colored"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/more_info" />
-
-        <android.support.v7.widget.AppCompatButton
-            android:id="@+id/save_to_map"
-            style="@android:style/Widget.Material.Light.Button.Borderless.Colored"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/save_to_map" />
-
-    </LinearLayout>
--->
-
-</RelativeLayout>
+</LinearLayout>

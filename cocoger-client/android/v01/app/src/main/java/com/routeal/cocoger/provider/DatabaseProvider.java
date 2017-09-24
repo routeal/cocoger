@@ -30,6 +30,8 @@ public class DatabaseProvider extends ContentProvider {
     private static final int REVERSE_GEO_LOCATIONS_ID = 6;
     private static final int IMAGES = 7;
     private static final int IMAGES_ID = 8;
+    private static final int MESSAGE = 9;
+    private static final int MESSAGE_ID = 10;
 
     private static final UriMatcher mUriMatcher;
 
@@ -43,6 +45,8 @@ public class DatabaseProvider extends ContentProvider {
         mUriMatcher.addURI(DB.AUTHORITY, DB.ReverseGeoLocations.PATH + "/#", REVERSE_GEO_LOCATIONS_ID);
         mUriMatcher.addURI(DB.AUTHORITY, DB.Images.PATH, IMAGES);
         mUriMatcher.addURI(DB.AUTHORITY, DB.Images.PATH + "/#", IMAGES_ID);
+        mUriMatcher.addURI(DB.AUTHORITY, DB.Messages.PATH, MESSAGE);
+        mUriMatcher.addURI(DB.AUTHORITY, DB.Messages.PATH + "/#", MESSAGE_ID);
     }
 
     @Override
@@ -79,6 +83,12 @@ public class DatabaseProvider extends ContentProvider {
                 break;
             case IMAGES_ID:
                 mime = DB.Images.CONTENT_ITEM_TYPE;
+                break;
+            case MESSAGE:
+                mime = DB.Messages.CONTENT_TYPE;
+                break;
+            case MESSAGE_ID:
+                mime = DB.Messages.CONTENT_ITEM_TYPE;
                 break;
             default:
                 break;
@@ -128,6 +138,14 @@ public class DatabaseProvider extends ContentProvider {
             case IMAGES_ID:
                 tableName = DB.Images.TABLE;
                 innerSelection = DB.Images._ID + " = ? ";
+                innerSelectionArgs = new String[]{pathSegments.get(1)};
+                break;
+            case MESSAGE:
+                tableName = DB.Messages.TABLE;
+                break;
+            case MESSAGE_ID:
+                tableName = DB.Messages.TABLE;
+                innerSelection = DB.Messages._ID + " = ? ";
                 innerSelectionArgs = new String[]{pathSegments.get(1)};
                 break;
             default:
@@ -205,6 +223,15 @@ public class DatabaseProvider extends ContentProvider {
                 resolver.notifyChange(DB.Images.CONTENT_URI, null);
                 break;
             }
+            case MESSAGE: {
+                SQLiteDatabase db = mDbHelper.getWritableDatabase();
+                long id = db.insert(DB.Messages.TABLE, null, values);
+                insertedUri = ContentUris.withAppendedId(uri, id);
+
+                ContentResolver resolver = getContext().getContentResolver();
+                resolver.notifyChange(DB.Messages.CONTENT_URI, null);
+                break;
+            }
             default:
                 break;
         }
@@ -225,6 +252,17 @@ public class DatabaseProvider extends ContentProvider {
 
                 ContentResolver resolver = getContext().getContentResolver();
                 Uri notifyUri = ContentUris.withAppendedId(DB.Images.CONTENT_URI, id);
+                resolver.notifyChange(notifyUri, null);
+                break;
+            }
+            case MESSAGE_ID: {
+                long id = new Long(uri.getLastPathSegment()).longValue();
+                String whereclause = DB.Messages._ID + " = " + id;
+                SQLiteDatabase db = mDbHelper.getWritableDatabase();
+                updates = db.update(DB.Messages.TABLE, values, whereclause, null);
+
+                ContentResolver resolver = getContext().getContentResolver();
+                Uri notifyUri = ContentUris.withAppendedId(DB.Messages.CONTENT_URI, id);
                 resolver.notifyChange(notifyUri, null);
                 break;
             }
@@ -332,6 +370,24 @@ public class DatabaseProvider extends ContentProvider {
                 Uri notifyUri = ContentUris.withAppendedId(DB.Images.CONTENT_URI, id);
                 resolver.notifyChange(notifyUri, null);
                 resolver.notifyChange(DB.Images.CONTENT_URI, null);
+                break;
+            }
+
+            case MESSAGE: {
+                affected = db.delete(DB.Messages.TABLE, selection, selectionArgs);
+                ContentResolver resolver = getContext().getContentResolver();
+                resolver.notifyChange(DB.Messages.CONTENT_URI, null);
+                break;
+            }
+
+            case MESSAGE_ID: {
+                long id = new Long(uri.getLastPathSegment()).longValue();
+                affected = db.delete(DB.Messages.TABLE, DB.Messages._ID + "= ?",
+                        new String[]{String.valueOf(id)});
+                ContentResolver resolver = getContext().getContentResolver();
+                Uri notifyUri = ContentUris.withAppendedId(DB.Messages.CONTENT_URI, id);
+                resolver.notifyChange(notifyUri, null);
+                resolver.notifyChange(DB.Messages.CONTENT_URI, null);
                 break;
             }
 

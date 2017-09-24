@@ -68,7 +68,7 @@ public class MultipleDrawable extends Drawable {
             items.add(new PhotoItem(bitmap1, new Rect(0, 0, bounds.width() / 2, bounds.height())));
             items.add(new PhotoItem(bitmap2, new Rect(bounds.width() / 2, 0, bounds.width(), bounds.height() / 2)));
             items.add(new PhotoItem(bitmap3, new Rect(bounds.width() / 2, bounds.height() / 2, bounds.width(), bounds.height())));
-        } else if (bitmaps.size() == 4) {
+        } else if (bitmaps.size() >= 4) {
             Bitmap bitmap1 = scaleCenterCrop(bitmaps.get(0), bounds.width() / 2, bounds.height() / 2);
             Bitmap bitmap2 = scaleCenterCrop(bitmaps.get(1), bounds.width() / 2, bounds.height() / 2);
             Bitmap bitmap3 = scaleCenterCrop(bitmaps.get(2), bounds.width() / 2, bounds.height() / 2);

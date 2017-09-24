@@ -323,6 +323,10 @@ public class MainService extends BasePeriodicService {
         return 0;
     }
 
+    private int detectRangeChange(Address n, Address o) {
+        return 0;
+    }
+
     private float getSpeed3(Location to, Location from) {
         float speed = 0;
         if (to.hasSpeed()) {
@@ -345,14 +349,16 @@ public class MainService extends BasePeriodicService {
     private void saveLocation(final Location location) {
         location.setSpeed(getSpeed3(location, mLastKnownLocation));
 
-        mLastKnownLocation = location;
-
         Address address = Utils.getFromLocation(location);
 
         if (address == null) {
             Log.d(TAG, "address not available from Geocoder");
             return;
         }
+
+        int rangeChange = detectRangeChange(address, mLastKnownAddress);
+
+        mLastKnownLocation = location;
 
         mLastKnownAddress = address;
 

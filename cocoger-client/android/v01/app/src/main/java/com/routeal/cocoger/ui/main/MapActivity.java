@@ -146,6 +146,7 @@ abstract public class MapActivity extends MapBaseActivity {
             mMap.setPadding(8, 0, 0, 148);
             mMap.getUiSettings().setCompassEnabled(true);
             mMap.getUiSettings().setMyLocationButtonEnabled(false);
+            mMap.getUiSettings().setMapToolbarEnabled(false);
             mMap.setMyLocationEnabled(true);
 
             mMm = new MarkerManager(mMap, mInfoWindowManager);

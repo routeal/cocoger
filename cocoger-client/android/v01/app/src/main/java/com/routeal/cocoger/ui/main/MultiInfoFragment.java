@@ -1,21 +1,15 @@
 package com.routeal.cocoger.ui.main;
 
 import android.app.Dialog;
-import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.AppCompatButton;
-import android.support.v7.widget.AppCompatImageView;
-import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -33,7 +27,7 @@ import java.util.Map;
  * Created by nabe on 9/10/17.
  */
 
-public class MultiInfoFragment extends Fragment {
+public class MultiInfoFragment extends InfoFragment {
     private final static String TAG = "MultiInfoFragment";
 
     private RecyclerView mFriendList;
@@ -49,10 +43,10 @@ public class MultiInfoFragment extends Fragment {
         Bundle bundle = getArguments();
         mMarker = bundle.getParcelable("marker");
 
-        // FIXME: 38 is from nowhere
+        // FIXME: 35 is from nowhere
         int size = (mMarker.size() > 4) ? 4 : mMarker.size();
-        int height = (size * (int) (36 * Resources.getSystem().getDisplayMetrics().density))
-                + (int) (8 * Resources.getSystem().getDisplayMetrics().density);
+        int height = (size * (int) (35 * Resources.getSystem().getDisplayMetrics().density))
+                + (int) (6 * Resources.getSystem().getDisplayMetrics().density);
 
         ViewGroup.LayoutParams params = view.getLayoutParams();
         params.height = height;
@@ -121,44 +115,39 @@ public class MultiInfoFragment extends Fragment {
         void showDialog(final ComboMarker.MarkerInfo info) {
             final Dialog dialog = new Dialog(getActivity());
             dialog.setContentView(R.layout.fragment_one_info);
-            //dialog.setCancelable(true);
+            dialog.setCancelable(true);
             dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
 
-            AppCompatTextView mNameTextView = (AppCompatTextView) dialog.findViewById(R.id.title);
-            AppCompatImageView mStreetImageView = (AppCompatImageView) dialog.findViewById(R.id.street_view);
-            ImageButton mSendMessageButton = (ImageButton) dialog.findViewById(R.id.send_message);
-            ImageButton mSendFacebookButton = (ImageButton) dialog.findViewById(R.id.send_facebook);
-            AppCompatTextView mAddressTextView = (AppCompatTextView) dialog.findViewById(R.id.current_address);
-            AppCompatButton mMoreInfoButton = (AppCompatButton) dialog.findViewById(R.id.more_info);
-            AppCompatButton mSaveMapButton = (AppCompatButton) dialog.findViewById(R.id.save_to_map);
+            setupView(dialog);
+            enableMessageButton(info.id);
+            setStreetViewPicture(info.rangeLocation);
+            setTitle(info.name);
+            setAddress(Utils.getAddressLine(info.address, info.range));
 
-            if (FB.isCurrentUser(info.id)) {
-                mSendMessageButton.setVisibility(View.GONE);
-                mSendFacebookButton.setVisibility(View.VISIBLE);
-            } else {
-                mSendMessageButton.setVisibility(View.VISIBLE);
-                mSendFacebookButton.setVisibility(View.VISIBLE);
-            }
+            mActionInfoButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    processInfo(info.rangeLocation);
+                    dialog.dismiss();
+                }
+            });
 
-            String url = String.format(getResources().getString(R.string.street_view_image_url),
-                    info.rangeLocation.getLatitude(), info.rangeLocation.getLongitude());
-
-            new LoadImage.LoadImageView(mStreetImageView, false).execute(url);
-
-            mNameTextView.setText(info.name);
-
-            final String addressText = Utils.getAddressLine(info.address, info.range);
-
-            mAddressTextView.setText(addressText);
-
-            mMoreInfoButton.setOnClickListener(new View.OnClickListener() {
+            mActionLocationButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     dialog.dismiss();
                 }
             });
 
-            mSaveMapButton.setOnClickListener(new View.OnClickListener() {
+            mActionDirectionButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    processDirection(info.rangeLocation);
+                    dialog.dismiss();
+                }
+            });
+
+            mActionMessageButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     dialog.dismiss();
@@ -168,10 +157,7 @@ public class MultiInfoFragment extends Fragment {
             mStreetImageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(dialog.getContext(), StreetViewActivity.class);
-                    intent.putExtra("location", Utils.getLatLng(info.rangeLocation));
-                    intent.putExtra("address", addressText);
-                    dialog.getContext().startActivity(intent);
+                    processStreetView(info.rangeLocation, mAddressTextView.getText().toString());
                     dialog.dismiss();
                 }
             });

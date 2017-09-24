@@ -180,19 +180,26 @@ public class Utils {
                 locationName = getAddressLine(address);
                 break;
             case SUBTHOROUGHFARE:
-                locationName += address.getSubThoroughfare() + ", ";
+                locationName += (address.getSubThoroughfare() == null) ?
+                        "" : (address.getSubThoroughfare() + ", ");
             case THOROUGHFARE:
-                locationName += address.getThoroughfare() + ", ";
+                locationName += (address.getThoroughfare() == null) ?
+                        "" : (address.getThoroughfare() + ", ");
             case SUBLOCALITY:
-                locationName += address.getSubLocality() + ", ";
+                locationName += (address.getSubLocality() == null) ?
+                        "" : (address.getSubLocality() + ", ");
             case LOCALITY:
-                locationName += address.getLocality() + ", ";
+                locationName += (address.getLocality() == null) ?
+                        "" : (address.getLocality() + ", ");
             case SUBADMINAREA:
-                locationName += address.getSubAdminArea() + ", ";
+                locationName += (address.getSubAdminArea() == null) ?
+                        "" : (address.getSubAdminArea() + ", ");
             case ADMINAREA:
-                locationName += address.getAdminArea() + ", ";
+                locationName += (address.getAdminArea() == null) ?
+                        "" : (address.getAdminArea() + ", ");
             case COUNTRY:
-                locationName += address.getCountryName();
+                locationName += (address.getCountryName() == null) ?
+                        "" : address.getCountryName();
             default:
                 break;
         }
@@ -395,38 +402,6 @@ public class Utils {
         }
 
         return to;
-
-/*
-
-        // create a copy of the bitmap
-        Bitmap to = Bitmap.createBitmap(from.getWidth(), from.getHeight(), from.getConfig());
-
-        BitmapShader shader =
-                new BitmapShader(from, BitmapShader.TileMode.CLAMP, BitmapShader.TileMode.CLAMP);
-
-        Paint paint = new Paint();
-        paint.setShader(shader);
-        paint.setAntiAlias(true);
-        paint.setDither(true);
-
-        Paint paintBorder = null;
-        if (hasBorder) {
-            paintBorder = new Paint();
-            paintBorder.setAntiAlias(true);
-            paintBorder.setShadowLayer(4.0f, 0.0f, 2.0f, Color.BLACK);
-            paintBorder.setColor(Color.WHITE);
-        }
-
-        float r = (from.getWidth() + from.getHeight()) / 4f;
-        Canvas canvas = new Canvas(to);
-        if (paintBorder != null) {
-            canvas.drawCircle(r, r, r, paintBorder);
-            canvas.drawCircle(r, r, r - 4.0f, paint);
-        } else {
-            canvas.drawCircle(r, r, r, paint);
-        }
-
-        return to;
-*/
     }
+
 }

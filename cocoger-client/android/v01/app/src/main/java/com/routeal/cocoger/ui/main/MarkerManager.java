@@ -99,6 +99,7 @@ class MarkerManager {
 
         Location rangeLocation = null;
         if (range > 0) {
+            // this is the new position for the key
             rangeLocation = Utils.getRangedLocation(location, address, range);
         }
 
@@ -107,7 +108,7 @@ class MarkerManager {
             ComboMarker marker = ite.next();
             // found the current marker
             if (marker.contains(key)) {
-                if (range == 0) {
+                if (range == 0) { // 0 means none
                     boolean removed = marker.removeUser(key);
                     // remove from the map
                     if (removed) {
@@ -165,6 +166,7 @@ class MarkerManager {
             }
         }
 
+        // should not happen
         if (name == null || picture == null) return;
 
         // find the nearest marker and join
@@ -307,7 +309,7 @@ class MarkerManager {
         for (int i = 1; i < markers.length; i++) {
             ComboMarker n = markers[i];
             if (combineMarkers(n, p)) {
-                markers[i-1] = null;
+                markers[i - 1] = null;
                 mMarkers.remove(p);
             }
             p = n;

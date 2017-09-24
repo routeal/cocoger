@@ -208,10 +208,7 @@
         "elementType": "geometry",
         "stylers": [
             {
-                "lightness": 21
-            },
-            {
-                "visibility": "simplified"
+                "lightness": "21"
             }
         ]
     },

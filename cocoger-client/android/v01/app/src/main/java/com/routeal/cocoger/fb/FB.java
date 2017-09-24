@@ -77,7 +77,7 @@ public class FB {
     }
 
     public interface CreateUserListener {
-        void onSuccess();
+        void onSuccess(String key);
 
         void onFail(String err);
     }
@@ -247,7 +247,8 @@ public class FB {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
-                            if (listener != null) listener.onSuccess();
+                            FirebaseUser user = task.getResult().getUser();
+                            if (listener != null) listener.onSuccess(user.getUid());
                         } else {
                             if (listener != null)
                                 listener.onFail(task.getException().getLocalizedMessage());
@@ -636,17 +637,11 @@ public class FB {
             // When the requested user approved, the timestamp will be changed to true.
             long timestamp = System.currentTimeMillis();
 
-            Map<String, Long> friend = new HashMap<>();
-
             // add myself to friend
-            friend.clear();
-            friend.put(uid, timestamp);
-            fDb.child("invitees").setValue(friend);
+            fDb.child("invitees").child(uid).setValue(timestamp);
 
             // add friends to myself
-            friend.clear();
-            friend.put(key, timestamp);
-            userDb.child(uid).child("invites").setValue(friend);
+            userDb.child(uid).child("invites").child(key).setValue(timestamp);
 
             modified = true;
         }
@@ -702,6 +697,13 @@ public class FB {
         // delete the invite and invitee from the database
         String invitee = getUid();
 
+        DatabaseReference userDb = getUserDatabaseReference();
+        userDb.child(invitee).child("invitees").child(invite).removeValue();
+        userDb.child(invite).child("invites").child(invitee).removeValue();
+    }
+
+    public static void cancelFriendRequest(String invitee) {
+        String invite = getUid();
         DatabaseReference userDb = getUserDatabaseReference();
         userDb.child(invitee).child("invitees").child(invite).removeValue();
         userDb.child(invite).child("invites").child(invitee).removeValue();

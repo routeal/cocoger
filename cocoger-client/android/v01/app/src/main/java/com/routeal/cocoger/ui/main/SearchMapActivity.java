@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.content.res.ResourcesCompat;
@@ -19,6 +20,7 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.BounceInterpolator;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -29,7 +31,10 @@ import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.arlib.floatingsearchview.util.Util;
 import com.franmontiel.fullscreendialog.FullScreenDialogFragment;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.mikepenz.aboutlibraries.Libs;
 import com.mikepenz.aboutlibraries.LibsBuilder;
 import com.routeal.cocoger.MainApplication;
@@ -89,13 +94,14 @@ public class SearchMapActivity extends MapActivity {
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(mNavigationItemSelectedListener);
 
-        mMapStyles = new CustomMapStyle[10];
+        mMapStyles = new CustomMapStyle[7];
         mMapStyles[0] = new CustomMapStyle();
         mMapStyles[0].id = R.raw.mapstyle_retro;
         mMapStyles[0].resource = "retro";
         mMapStyles[1] = new CustomMapStyle();
         mMapStyles[1].id = R.raw.mapstyle_night;
         mMapStyles[1].resource = "night";
+        /*
         mMapStyles[2] = new CustomMapStyle();
         mMapStyles[2].id = R.raw.mapstyle_no_poi;
         mMapStyles[2].resource = "custom";
@@ -105,21 +111,22 @@ public class SearchMapActivity extends MapActivity {
         mMapStyles[4] = new CustomMapStyle();
         mMapStyles[4].id = R.raw.mapstyle_blue_ish;
         mMapStyles[4].resource = "blue_ish";
+        */
+        mMapStyles[2] = new CustomMapStyle();
+        mMapStyles[2].id = R.raw.mapstyle_grayscale;
+        mMapStyles[2].resource = "grayscale";
+        mMapStyles[3] = new CustomMapStyle();
+        mMapStyles[3].id = R.raw.mapstyle_muted_blue;
+        mMapStyles[3].resource = "blue";
+        mMapStyles[4] = new CustomMapStyle();
+        mMapStyles[4].id = R.raw.mapstyle_pale_dawn;
+        mMapStyles[4].resource = "pale_down";
         mMapStyles[5] = new CustomMapStyle();
-        mMapStyles[5].id = R.raw.mapstyle_grayscale;
-        mMapStyles[5].resource = "grayscale";
+        mMapStyles[5].id = R.raw.mapstyle_paper;
+        mMapStyles[5].resource = "paper";
         mMapStyles[6] = new CustomMapStyle();
-        mMapStyles[6].id = R.raw.mapstyle_muted_blue;
-        mMapStyles[6].resource = "blue";
-        mMapStyles[7] = new CustomMapStyle();
-        mMapStyles[7].id = R.raw.mapstyle_pale_dawn;
-        mMapStyles[7].resource = "pale_down";
-        mMapStyles[8] = new CustomMapStyle();
-        mMapStyles[8].id = R.raw.mapstyle_paper;
-        mMapStyles[8].resource = "paper";
-        mMapStyles[9] = new CustomMapStyle();
-        mMapStyles[9].id = R.raw.mapstyle_pinky;
-        mMapStyles[9].resource = "pinky";
+        mMapStyles[6].id = R.raw.mapstyle_pinky;
+        mMapStyles[6].resource = "pinky";
     }
 
     void onMapReady() {
@@ -138,6 +145,17 @@ public class SearchMapActivity extends MapActivity {
                 }
             }
         }
+
+        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+                Marker marker = mMap.addMarker(new MarkerOptions()
+                        .position(latLng)
+                        .title("Your marker title")
+                        .snippet("Your marker snippet"));
+                dropPinEffect(marker);
+            }
+        });
     }
 
     private void setupDrawerHead() {
@@ -365,18 +383,18 @@ public class SearchMapActivity extends MapActivity {
 
                     mMapStyles[0].view = (SwitchCompat) view.findViewById(R.id.switch_retro);
                     mMapStyles[1].view = (SwitchCompat) view.findViewById(R.id.switch_night);
-                    mMapStyles[2].view = (SwitchCompat) view.findViewById(R.id.switch_custom);
-                    mMapStyles[3].view = (SwitchCompat) view.findViewById(R.id.switch_blue_essence);
-                    mMapStyles[4].view = (SwitchCompat) view.findViewById(R.id.switch_blue_ish);
-                    mMapStyles[5].view = (SwitchCompat) view.findViewById(R.id.switch_grayscale);
-                    mMapStyles[6].view = (SwitchCompat) view.findViewById(R.id.switch_muted_blue);
-                    mMapStyles[7].view = (SwitchCompat) view.findViewById(R.id.switch_pale_down);
-                    mMapStyles[8].view = (SwitchCompat) view.findViewById(R.id.switch_paper);
-                    mMapStyles[9].view = (SwitchCompat) view.findViewById(R.id.switch_pinky);
+                    //mMapStyles[2].view = (SwitchCompat) view.findViewById(R.id.switch_custom);
+                    //mMapStyles[3].view = (SwitchCompat) view.findViewById(R.id.switch_blue_essence);
+                    //mMapStyles[4].view = (SwitchCompat) view.findViewById(R.id.switch_blue_ish);
+                    mMapStyles[2].view = (SwitchCompat) view.findViewById(R.id.switch_grayscale);
+                    mMapStyles[3].view = (SwitchCompat) view.findViewById(R.id.switch_muted_blue);
+                    mMapStyles[4].view = (SwitchCompat) view.findViewById(R.id.switch_pale_down);
+                    mMapStyles[5].view = (SwitchCompat) view.findViewById(R.id.switch_paper);
+                    mMapStyles[6].view = (SwitchCompat) view.findViewById(R.id.switch_pinky);
 
                     for (int i = 0; i < mMapStyles.length; i++) {
                         String current_style = MainApplication.getString("style");
-                        if (!current_style.isEmpty()) {
+                        if (current_style != null && !current_style.isEmpty()) {
                             if (mMapStyles[i].resource.equals(current_style)) {
                                 mMapStyles[i].view.setChecked(true);
                             } else {
@@ -460,4 +478,37 @@ public class SearchMapActivity extends MapActivity {
         });
 
     }
+
+    private void dropPinEffect(final Marker marker) {
+        // Handler allows us to repeat a code block after a specified delay
+        final android.os.Handler handler = new android.os.Handler();
+        final long start = SystemClock.uptimeMillis();
+        final long duration = 1500;
+
+        // Use the bounce interpolator
+        final android.view.animation.Interpolator interpolator =
+                new BounceInterpolator();
+
+        // Animate marker with a bounce updating its position every 15ms
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                long elapsed = SystemClock.uptimeMillis() - start;
+                // Calculate t for bounce based on elapsed time
+                float t = Math.max(
+                        1 - interpolator.getInterpolation((float) elapsed
+                                / duration), 0);
+                // Set the anchor
+                marker.setAnchor(0.5f, 1.0f + 14 * t);
+
+                if (t > 0.0) {
+                    // Post this event again 15ms from now.
+                    handler.postDelayed(this, 15);
+                } else { // done elapsing, show window
+                    marker.showInfoWindow();
+                }
+            }
+        });
+    }
+
 }
