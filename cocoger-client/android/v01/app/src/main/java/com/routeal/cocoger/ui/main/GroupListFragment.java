@@ -26,4 +26,8 @@ public class GroupListFragment extends PagerFragment {
         return inflater.inflate(R.layout.fragment_group_list, container, false);
     }
 
+    @Override
+    void selected() {
+        // empty
+    }
 }

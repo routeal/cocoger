@@ -61,12 +61,13 @@ public class NotifiListFragment extends PagerFragment {
         mRecyclerView = (RecyclerView) view.findViewById(R.id.list);
         mRecyclerView.setLayoutManager(layoutManager);
 
-        onSelected();
+        selected();
 
         return view;
     }
 
-    void onSelected() {
+    @Override
+    void selected() {
         Log.d(TAG, "NotifiListFragment selected");
         List<Message> messages = createNotifiList();
         if (messages == null || messages.isEmpty()) {

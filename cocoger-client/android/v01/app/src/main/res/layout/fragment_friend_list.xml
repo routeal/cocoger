@@ -4,27 +4,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.routeal.cocoger.ui.main.PanelMapActivity">
-
-<!--
-    <ListView
-        android:id="@+id/list"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
--->
-
-<!--
-    <include layout="@layout/listview_header_friend" android:id="@+id/header"/>
--->
+    tools:context=".ui.main.PanelMapActivity">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="horizontal"
-        android:gravity="center_horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="32dp"
         android:layout_marginRight="32dp"
-        >
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
 
         <android.support.v7.widget.AppCompatButton
             android:id="@+id/add_friend"
@@ -33,20 +21,20 @@
             android:layout_gravity="center"
             android:layout_margin="4dp"
             android:layout_weight="1"
-            android:textColor="@color/teal500"
             android:backgroundTint="@color/whitesmoke"
-            android:text="@string/add_friend" />
+            android:text="@string/add_friend"
+            android:textColor="@color/teal500" />
 
         <android.support.v7.widget.AppCompatButton
             android:id="@+id/invite_app"
             android:layout_width="0px"
             android:layout_height="match_parent"
+            android:layout_gravity="center"
             android:layout_margin="4dp"
             android:layout_weight="1"
-            android:layout_gravity="center"
-            android:textColor="@color/teal500"
             android:backgroundTint="@color/whitesmoke"
-            android:text="@string/invite_friend" />
+            android:text="@string/invite_friend"
+            android:textColor="@color/teal500" />
 
     </LinearLayout>
 

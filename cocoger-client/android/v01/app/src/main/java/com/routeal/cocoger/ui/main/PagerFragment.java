@@ -10,7 +10,7 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
  * Created by nabe on 9/13/17.
  */
 
-public class PagerFragment extends Fragment {
+abstract public class PagerFragment extends Fragment {
     private static final String TAG = "PagerFragment";
 
     private SlidingUpPanelLayout mSlidingUpPanelLayout;
@@ -28,6 +28,11 @@ public class PagerFragment extends Fragment {
     ViewPager getViewPager() { return viewPager; }
 
     void onSelected() {
-        Log.d(TAG, "selected");
+        if (getView() != null) {
+            Log.d(TAG, "selected");
+            selected();
+        }
     }
+
+    abstract void selected();
 }

@@ -59,4 +59,9 @@ public class FriendListFragment extends PagerFragment {
 
         return view;
     }
+
+    @Override
+    void selected() {
+        // empty
+    }
 }

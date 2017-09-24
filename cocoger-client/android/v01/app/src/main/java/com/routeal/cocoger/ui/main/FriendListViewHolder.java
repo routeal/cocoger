@@ -26,9 +26,9 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
         super(itemView);
 
         mView = itemView;
-        mPicture = (ImageView) itemView.findViewById(R.id.picture);
-        mName = (TextView) itemView.findViewById(R.id.title);
-        mSeekBar = (SnappingSeekBar) itemView.findViewById(R.id.seekbar);
+        mPicture = (ImageView) itemView.findViewById(R.id.friend_picture);
+        mName = (TextView) itemView.findViewById(R.id.friend_title);
+        mSeekBar = (SnappingSeekBar) itemView.findViewById(R.id.friend_range);
 
         mSeekBar.setOnItemSelectionListener(new SnappingSeekBar.OnItemSelectionListener() {
             @Override
@@ -84,7 +84,7 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
             }
         });
 
-        View view = itemView.findViewById(R.id.message);
+        View view = itemView.findViewById(R.id.send_message);
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -92,7 +92,7 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
             }
         });
 
-        view = itemView.findViewById(R.id.remove);
+        view = itemView.findViewById(R.id.unfriend);
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -149,7 +149,7 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
     }
 
     private void sendMessage() {
-
+        // TODO: not implemented yet
     }
 }
 

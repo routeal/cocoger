@@ -9,8 +9,8 @@ import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.AppCompatTextView;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.Toast;
 
+import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.util.LoadImage;
@@ -55,8 +55,10 @@ public class InfoFragment extends Fragment {
     void enableMessageButton(String key) {
         if (FB.isCurrentUser(key)) {
             mActionMessageButton.setVisibility(View.GONE);
+            mActionDirectionButton.setVisibility(View.GONE);
         } else {
             mActionMessageButton.setVisibility(View.VISIBLE);
+            mActionDirectionButton.setVisibility(View.VISIBLE);
         }
     }
 
@@ -80,7 +82,7 @@ public class InfoFragment extends Fragment {
         Intent intent = new Intent(getContext(), StreetViewActivity.class);
         intent.putExtra("location", Utils.getLatLng(location));
         intent.putExtra("address", address);
-        startActivity(intent);
+        MainApplication.getContext().startActivity(intent);
     }
 
     void processInfo(Location location) {
@@ -89,8 +91,7 @@ public class InfoFragment extends Fragment {
         Uri gmmIntentUri = Uri.parse(url);
         Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
         mapIntent.setPackage("com.google.android.apps.maps");
-        startActivity(mapIntent);
-        Toast.makeText(getContext(), "moreinfo", Toast.LENGTH_SHORT).show();
+        MainApplication.getContext().startActivity(mapIntent);
     }
 
     void processLocation() {
@@ -103,8 +104,7 @@ public class InfoFragment extends Fragment {
         Uri gmmIntentUri = Uri.parse(url);
         Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
         mapIntent.setPackage("com.google.android.apps.maps");
-        startActivity(mapIntent);
-        Toast.makeText(getContext(), "savetomap", Toast.LENGTH_SHORT).show();
+        MainApplication.getContext().startActivity(mapIntent);
     }
 
     void processMessage() {
