@@ -31,17 +31,15 @@ public class MultiInfoFragment extends InfoFragment {
     private final static String TAG = "MultiInfoFragment";
 
     private RecyclerView mFriendList;
-    private ComboMarker mMarker;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        init();
+
         View view = inflater.inflate(R.layout.fragment_multi_info, container, false);
 
         mFriendList = (RecyclerView) view.findViewById(R.id.friend_list);
-
-        Bundle bundle = getArguments();
-        mMarker = bundle.getParcelable("marker");
 
         // FIXME: 35 is from nowhere
         int size = (mMarker.size() > 4) ? 4 : mMarker.size();
@@ -127,7 +125,7 @@ public class MultiInfoFragment extends InfoFragment {
             mActionInfoButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    processInfo(info.rangeLocation);
+                    showLocationInfo(info.rangeLocation);
                     dialog.dismiss();
                 }
             });
@@ -142,7 +140,7 @@ public class MultiInfoFragment extends InfoFragment {
             mActionDirectionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    processDirection(info.rangeLocation);
+                    showDirection(info.rangeLocation);
                     dialog.dismiss();
                 }
             });
@@ -157,7 +155,7 @@ public class MultiInfoFragment extends InfoFragment {
             mStreetImageView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    processStreetView(info.rangeLocation, mAddressTextView.getText().toString());
+                    openStreetView(info.rangeLocation, mAddressTextView.getText().toString());
                     dialog.dismiss();
                 }
             });

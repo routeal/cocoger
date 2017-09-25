@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.AppCompatTextView;
@@ -21,6 +22,10 @@ import com.routeal.cocoger.util.Utils;
  */
 
 public class InfoFragment extends Fragment {
+    protected ComboMarker mMarker;
+    protected ComboMarker.MarkerInfo mMarkerInfo;
+    protected Location mLocation;
+
     protected AppCompatTextView mTitleTextView;
     protected AppCompatImageView mStreetImageView;
     protected AppCompatTextView mAddressTextView;
@@ -28,6 +33,13 @@ public class InfoFragment extends Fragment {
     protected ImageButton mActionLocationButton;
     protected ImageButton mActionDirectionButton;
     protected ImageButton mActionMessageButton;
+
+    void init() {
+        Bundle bundle = getArguments();
+        mMarker = bundle.getParcelable("marker");
+        mMarkerInfo = mMarker.getOwner();
+        mLocation = bundle.getParcelable("location");
+    }
 
     void setupView(Object parent) {
         if (parent instanceof View) {
@@ -78,14 +90,14 @@ public class InfoFragment extends Fragment {
         new LoadImage.LoadImageView(mStreetImageView, false).execute(url);
     }
 
-    void processStreetView(Location location, String address) {
+    void openStreetView(Location location, String address) {
         Intent intent = new Intent(getContext(), StreetViewActivity.class);
         intent.putExtra("location", Utils.getLatLng(location));
         intent.putExtra("address", address);
         MainApplication.getContext().startActivity(intent);
     }
 
-    void processInfo(Location location) {
+    void showLocationInfo(Location location) {
         String url = String.format("google.streetview:cbll=%s,%s",
                 location.getLatitude(), location.getLongitude());
         Uri gmmIntentUri = Uri.parse(url);
@@ -94,13 +106,13 @@ public class InfoFragment extends Fragment {
         MainApplication.getContext().startActivity(mapIntent);
     }
 
-    void processLocation() {
+    void saveLocation() {
 
     }
 
-    void processDirection(Location location) {
+    void showDirection(Location locationTo) {
         String url = String.format("google.navigation:q=%s,%s",
-                location.getLatitude(), location.getLongitude());
+                locationTo.getLatitude(), locationTo.getLongitude());
         Uri gmmIntentUri = Uri.parse(url);
         Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
         mapIntent.setPackage("com.google.android.apps.maps");

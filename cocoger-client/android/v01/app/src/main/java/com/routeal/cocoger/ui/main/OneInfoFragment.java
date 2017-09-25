@@ -17,15 +17,14 @@ import com.routeal.cocoger.util.Utils;
 public class OneInfoFragment extends InfoFragment implements View.OnClickListener {
     private final static String TAG = "OneInfoFragment";
 
-    private ComboMarker mMarker;
-    private ComboMarker.MarkerInfo mMarkerInfo;
-
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
         Log.d(TAG, "OneInfoFragment: onCreateView");
+
+        init();
 
         View view = inflater.inflate(R.layout.fragment_one_info, container, false);
         setupView(view);
@@ -35,10 +34,6 @@ public class OneInfoFragment extends InfoFragment implements View.OnClickListene
         mActionLocationButton.setOnClickListener(this);
         mActionDirectionButton.setOnClickListener(this);
         mActionMessageButton.setOnClickListener(this);
-
-        Bundle bundle = getArguments();
-        mMarker = bundle.getParcelable("marker");
-        mMarkerInfo = mMarker.getOwner();
 
         return view;
     }
@@ -57,19 +52,19 @@ public class OneInfoFragment extends InfoFragment implements View.OnClickListene
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.info_street_view:
-                processStreetView(mMarkerInfo.rangeLocation, mAddressTextView.getText().toString());
+                openStreetView(mMarkerInfo.rangeLocation, mAddressTextView.getText().toString());
                 mMarker.hide();
                 break;
             case R.id.action_info:
-                processInfo(mMarkerInfo.rangeLocation);
+                showLocationInfo(mMarkerInfo.rangeLocation);
                 mMarker.hide();
                 break;
             case R.id.action_location:
-                processLocation();
+                saveLocation();
                 mMarker.hide();
                 break;
             case R.id.action_direction:
-                processDirection(mMarkerInfo.rangeLocation);
+                showDirection(mMarkerInfo.rangeLocation);
                 mMarker.hide();
                 break;
             case R.id.action_message:

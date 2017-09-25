@@ -26,18 +26,17 @@ class MarkerManager {
 
     private List<ComboMarker> mMarkers = new ArrayList<>();
 
-    private InfoWindowManager mInfoWindowManager;
+    private MapActivity mMapActivity;
 
     private GoogleMap mMap;
 
     private double mMarkerDistance = 10;
 
-    MarkerManager(GoogleMap map, InfoWindowManager infoWindowManager) {
-        mMap = map;
+    MarkerManager(MapActivity mapActivity) {
+        mMapActivity = mapActivity;
+        mMap = mMapActivity.getGoogleMap();
         mMap.setOnMarkerClickListener(mMarkerClickListener);
         mMap.setOnCameraMoveListener(mCameraMoveListener);
-
-        mInfoWindowManager = infoWindowManager;
     }
 
     GoogleMap.OnMarkerClickListener mMarkerClickListener = new GoogleMap.OnMarkerClickListener() {
@@ -88,7 +87,7 @@ class MarkerManager {
         }
 
         //Log.d(TAG, "add: create a new marker " + id);
-        ComboMarker m = new ComboMarker(mMap, mInfoWindowManager,
+        ComboMarker m = new ComboMarker(mMapActivity,
                 id, name, picture, location, address, range);
         mMarkers.add(m);
     }
@@ -246,7 +245,7 @@ class MarkerManager {
 
         Log.d(TAG, "reposition range: add a marker for " + key);
         // add a new marker to map
-        mMarkers.add(new ComboMarker(mMap, mInfoWindowManager,
+        mMarkers.add(new ComboMarker(mMapActivity,
                 key, info.name, info.picture, info.location, info.address, range));
     }
 

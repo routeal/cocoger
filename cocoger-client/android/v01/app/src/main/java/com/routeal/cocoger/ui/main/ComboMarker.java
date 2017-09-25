@@ -11,8 +11,6 @@ import android.support.v4.app.Fragment;
 import android.util.Log;
 
 import com.appolica.interactiveinfowindow.InfoWindow;
-import com.appolica.interactiveinfowindow.InfoWindowManager;
-import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -52,7 +50,7 @@ class ComboMarker implements Parcelable {
     private Marker mMarker;
     private MarkerInfo mOwner;
     private LoadImage.LoadMarkerImage mImageTask;
-    private InfoWindowManager mInfoWindowManager;
+    private MapActivity mMapActivity;
 
     @Override
     public int describeContents() {
@@ -61,13 +59,13 @@ class ComboMarker implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-
     }
 
-    ComboMarker(GoogleMap map, InfoWindowManager infoWindowManager, String id, String name, String picture, Location location, Address address, int range) {
+    ComboMarker(MapActivity mapActivity,
+                String id, String name, String picture,
+                Location location, Address address, int range) {
         //Log.d(TAG, "ComboMarker: new " + id);
-
-        mInfoWindowManager = infoWindowManager;
+        mMapActivity = mapActivity;
 
         MarkerInfo markerInfo = new MarkerInfo();
         markerInfo.id = id;
@@ -83,9 +81,10 @@ class ComboMarker implements Parcelable {
         mOwner = markerInfo;
         MarkerOptions options = new MarkerOptions().position(Utils.getLatLng(markerInfo.rangeLocation));
         options.anchor(0.5f, 0.5f);
-        mMarker = map.addMarker(options);
+        mMarker = mMapActivity.getGoogleMap().addMarker(options);
 
-        Drawable d = Utils.getIconDrawable(MainApplication.getContext(), R.drawable.ic_face_black_48dp, R.color.steelblue);
+        Drawable d = Utils.getIconDrawable(MainApplication.getContext(),
+                R.drawable.ic_face_black_48dp, R.color.steelblue);
         BitmapDescriptor icon = Utils.getBitmapDescriptor(d);
 
         mMarker.setIcon(icon);
@@ -174,7 +173,8 @@ class ComboMarker implements Parcelable {
             //Log.d(TAG, "NOP apart: no need to apart - only one");
             return;
         }
-        for (Iterator<Map.Entry<String, MarkerInfo>> it = mInfoMap.entrySet().iterator(); it.hasNext(); ) {
+        for (Iterator<Map.Entry<String, MarkerInfo>> it = mInfoMap.entrySet().iterator();
+             it.hasNext(); ) {
             Map.Entry<String, MarkerInfo> entry = it.next();
             MarkerInfo info = entry.getValue();
             // owner should not leave
@@ -248,10 +248,11 @@ class ComboMarker implements Parcelable {
             if (infoFragment != null) {
                 Bundle args = new Bundle();
                 args.putParcelable("marker", this);
+                args.putParcelable("location", mMapActivity.getLocation());
                 infoFragment.setArguments(args);
                 mInfoWindow = new InfoWindow(mMarker, mMarkerOffset, infoFragment);
-                mInfoWindowManager.setHideOnFling(false);
-                mInfoWindowManager.show(mInfoWindow, true);
+                mMapActivity.getInfoWindowManager().setHideOnFling(false);
+                mMapActivity.getInfoWindowManager().show(mInfoWindow, true);
             }
             return true;
         }
@@ -260,7 +261,7 @@ class ComboMarker implements Parcelable {
 
     void hide() {
         if (mInfoWindow != null) {
-            mInfoWindowManager.hide(mInfoWindow, true);
+            mMapActivity.getInfoWindowManager().hide(mInfoWindow, true);
             mInfoWindow = null;
         }
     }

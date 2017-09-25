@@ -188,8 +188,12 @@ public abstract class MapBaseActivity extends FragmentActivity {
     // start an app in the extented object
     abstract void startApp();
 
-    protected Location getDeviceLocation() {
+    Location getLocation() {
         return mLastKnownLocation;
+    }
+
+    void setLocation(Location location) {
+        mLastKnownLocation = location;
     }
 
     public static class AppLifecycleListener implements Application.ActivityLifecycleCallbacks {

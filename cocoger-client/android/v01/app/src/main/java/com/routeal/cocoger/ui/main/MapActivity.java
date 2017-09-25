@@ -56,8 +56,6 @@ abstract public class MapActivity extends MapBaseActivity {
 
     private CameraPosition mCameraPosition;
 
-    private Location mLastKnownLocation;
-
     private ProgressDialog mSpinner;
 
     private InfoWindowManager mInfoWindowManager;
@@ -65,6 +63,14 @@ abstract public class MapActivity extends MapBaseActivity {
     private boolean mHasFriendMarkers = false;
 
     private MarkerManager mMm;
+
+    InfoWindowManager getInfoWindowManager() {
+        return mInfoWindowManager;
+    }
+
+    GoogleMap getGoogleMap() {
+        return mMap;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,7 +83,7 @@ abstract public class MapActivity extends MapBaseActivity {
 
         // retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
-            mLastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION);
+            setLocation((Location) savedInstanceState.getParcelable(KEY_LOCATION));
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
         }
 
@@ -106,7 +112,7 @@ abstract public class MapActivity extends MapBaseActivity {
     protected void onSaveInstanceState(Bundle outState) {
         if (mMap != null) {
             outState.putParcelable(KEY_CAMERA_POSITION, mMap.getCameraPosition());
-            outState.putParcelable(KEY_LOCATION, mLastKnownLocation);
+            outState.putParcelable(KEY_LOCATION, getLocation());
             super.onSaveInstanceState(outState);
         }
     }
@@ -115,7 +121,7 @@ abstract public class MapActivity extends MapBaseActivity {
         @Override
         public void onClick(View v) {
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                    Utils.getLatLng(mLastKnownLocation), DEFAULT_ZOOM));
+                    Utils.getLatLng(getLocation()), DEFAULT_ZOOM));
         }
     };
 
@@ -149,23 +155,21 @@ abstract public class MapActivity extends MapBaseActivity {
             mMap.getUiSettings().setMapToolbarEnabled(false);
             mMap.setMyLocationEnabled(true);
 
-            mMm = new MarkerManager(mMap, mInfoWindowManager);
+            mMm = new MarkerManager(MapActivity.this);
 
-            // Get the current location from the base object
-            mLastKnownLocation = getDeviceLocation();
             Log.d(TAG, "onMapReady: location detected from the base object");
 
             // the location may not be available at this point
-            if (mLastKnownLocation != null) {
+            if (getLocation() != null) {
                 Log.d(TAG, "onMapReady: setupMarkers");
-                setupMarkers(mLastKnownLocation, Utils.getAddress(mLastKnownLocation));
+                setupMarkers(getLocation(), Utils.getAddress(getLocation()));
             }
 
             if (mCameraPosition != null) {
                 mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
-            } else if (mLastKnownLocation != null) {
+            } else if (getLocation() != null) {
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                        Utils.getLatLng(mLastKnownLocation), DEFAULT_ZOOM));
+                        Utils.getLatLng(getLocation()), DEFAULT_ZOOM));
             }
 
             mSpinner.dismiss();
@@ -187,7 +191,7 @@ abstract public class MapActivity extends MapBaseActivity {
                 }
                 if (mMap != null) {
                     // first time only
-                    if (mLastKnownLocation == null) {
+                    if (getLocation() == null) {
                         Log.d(TAG, "Receive Last_location_update: setupMarkers");
                         if (MainApplication.getUser() != null) {
                             setupMarkers(location, address);
@@ -200,10 +204,10 @@ abstract public class MapActivity extends MapBaseActivity {
                         }
                     }
                 }
-                mLastKnownLocation = location;
+                setLocation(location);
             } else if (intent.getAction().equals(MapActivity.USER_AVAILABLE)) {
                 Log.d(TAG, "Receive User_available: setupMarkers");
-                setupMarkers(mLastKnownLocation, Utils.getAddress(mLastKnownLocation));
+                setupMarkers(getLocation(), Utils.getAddress(getLocation()));
             } else if (intent.getAction().equals(MapActivity.FRIEND_LOCATION_UPDATE)) {
                 final String fid = intent.getStringExtra(MapActivity.FRIEND_KEY);
                 if (fid == null) {
