@@ -35,8 +35,6 @@ public class MultiInfoFragment extends InfoFragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        init();
-
         View view = inflater.inflate(R.layout.fragment_multi_info, container, false);
 
         mFriendList = (RecyclerView) view.findViewById(R.id.friend_list);

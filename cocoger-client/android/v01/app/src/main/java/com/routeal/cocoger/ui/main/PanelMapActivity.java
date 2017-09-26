@@ -184,6 +184,12 @@ public class PanelMapActivity extends SearchMapActivity {
     }
 
     @Override
+    void closeSlidePanel() {
+        SlidingUpPanelLayout mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+        mLayout.setPanelState(PanelState.COLLAPSED);
+    }
+
+    @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         handleIntent(intent);

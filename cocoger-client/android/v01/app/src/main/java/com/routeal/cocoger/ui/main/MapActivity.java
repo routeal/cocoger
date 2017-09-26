@@ -5,6 +5,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
@@ -13,13 +16,25 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
+import com.appolica.interactiveinfowindow.InfoWindow;
 import com.appolica.interactiveinfowindow.InfoWindowManager;
 import com.appolica.interactiveinfowindow.fragment.MapInfoWindowFragment;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PointOfInterest;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
@@ -30,19 +45,23 @@ import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Utils;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
-abstract public class MapActivity extends MapBaseActivity {
+public class MapActivity extends MapBaseActivity {
 
     public static final String USER_AVAILABLE = "user_available";
     public static final String USER_LOCATION_UPDATE = "user_location_update";
     public final static String FRIEND_LOCATION_UPDATE = "friend_location_update";
     public final static String FRIEND_LOCATION_REMOVE = "friend_location_remove";
     public final static String FRIEND_RANGE_UPDATE = "friend_range_update";
+    public final static String FRIEND_MARKER_SHOW = "friend_marker_show";
+    public final static String DIRECTION_ROUTE_DRAW = "direction_route_draw";
+    public final static String DIRECTION_ROUTE_REMOVE = "direction_route_remove";
 
     public final static String FRIEND_KEY = "friend_key";
-    public final static String LOCATION_UPDATE = "location_update";
-    public final static String ADDRESS_UPDATE = "address_update";
+    public final static String LOCATION_DATA = "location_data";
+    public final static String ADDRESS_DATA = "address_data";
 
     private final static String TAG = "MapActivity";
     private final static String KEY_CAMERA_POSITION = "camera_position";
@@ -64,13 +83,13 @@ abstract public class MapActivity extends MapBaseActivity {
 
     private MarkerManager mMm;
 
-    InfoWindowManager getInfoWindowManager() {
-        return mInfoWindowManager;
+    class SimpleDirectionRoute {
+        Polyline line;
+        InfoWindow window;
+        Marker marker;
     }
 
-    GoogleMap getGoogleMap() {
-        return mMap;
-    }
+    private SimpleDirectionRoute mDirectionRoute = new SimpleDirectionRoute();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,6 +121,9 @@ abstract public class MapActivity extends MapBaseActivity {
         filter.addAction(MapActivity.FRIEND_LOCATION_UPDATE);
         filter.addAction(MapActivity.FRIEND_LOCATION_REMOVE);
         filter.addAction(MapActivity.FRIEND_RANGE_UPDATE);
+        filter.addAction(MapActivity.FRIEND_MARKER_SHOW);
+        filter.addAction(MapActivity.DIRECTION_ROUTE_DRAW);
+        filter.addAction(MapActivity.DIRECTION_ROUTE_REMOVE);
         LocalBroadcastManager.getInstance(this).registerReceiver(mLocalLocationReceiver, filter);
     }
 
@@ -140,12 +162,18 @@ abstract public class MapActivity extends MapBaseActivity {
         mapInfoWindowFragment.getMapAsync(mReadyCallback);
     }
 
-    abstract void onMapReady();
+    void onMapReady() {
+    }
+
+    void closeSlidePanel() {
+    }
 
     OnMapReadyCallback mReadyCallback = new OnMapReadyCallback() {
         @Override
         public void onMapReady(GoogleMap googleMap) {
             mMap = googleMap;
+
+            mMm = new MarkerManager(mMap, mInfoWindowManager);
 
             MapActivity.this.onMapReady();
 
@@ -155,7 +183,8 @@ abstract public class MapActivity extends MapBaseActivity {
             mMap.getUiSettings().setMapToolbarEnabled(false);
             mMap.setMyLocationEnabled(true);
 
-            mMm = new MarkerManager(MapActivity.this);
+            mMap.setOnPoiClickListener(mPoiClickListener);
+            mMap.setOnPolylineClickListener(mPolylineClickListener);
 
             Log.d(TAG, "onMapReady: location detected from the base object");
 
@@ -184,8 +213,8 @@ abstract public class MapActivity extends MapBaseActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(MapActivity.USER_LOCATION_UPDATE)) {
-                Address address = intent.getParcelableExtra(MapActivity.ADDRESS_UPDATE);
-                Location location = intent.getParcelableExtra(MapActivity.LOCATION_UPDATE);
+                Address address = intent.getParcelableExtra(MapActivity.ADDRESS_DATA);
+                Location location = intent.getParcelableExtra(MapActivity.LOCATION_DATA);
                 if (location == null || address == null) {
                     return;
                 }
@@ -254,6 +283,31 @@ abstract public class MapActivity extends MapBaseActivity {
                 int range = friend.getRange();
                 Log.d(TAG, "FRIEND_RANGE_UPDATE:" + fid);
                 mMm.reposition(fid, range);
+            } else if (intent.getAction().equals(MapActivity.FRIEND_MARKER_SHOW)) {
+                String fid = intent.getStringExtra(MapActivity.FRIEND_KEY);
+                if (fid == null) {
+                    return;
+                }
+                Log.d(TAG, "FRIEND_MARKER_SHOW:" + fid);
+                mMm.show(fid);
+                closeSlidePanel();
+            } else if (intent.getAction().equals(MapActivity.DIRECTION_ROUTE_DRAW)) {
+                Location location = intent.getParcelableExtra(MapActivity.LOCATION_DATA);
+                drawDirection(location);
+                closeSlidePanel();
+            } else if (intent.getAction().equals(MapActivity.DIRECTION_ROUTE_REMOVE)) {
+                if (mDirectionRoute.line != null) {
+                    mDirectionRoute.line.remove();
+                    mDirectionRoute.line = null;
+                }
+                if (mDirectionRoute.window != null) {
+                    mInfoWindowManager.hide(mDirectionRoute.window);
+                    mDirectionRoute.window = null;
+                }
+                if (mDirectionRoute.marker != null) {
+                    mDirectionRoute.marker.remove();
+                    mDirectionRoute.marker = null;
+                }
             }
         }
     };
@@ -263,6 +317,9 @@ abstract public class MapActivity extends MapBaseActivity {
 
         // run only once
         if (mHasFriendMarkers) return;
+
+        // map is not ready
+        if (mMm == null) return;
 
         User user = MainApplication.getUser();
         if (user == null) {
@@ -309,4 +366,80 @@ abstract public class MapActivity extends MapBaseActivity {
         }
     }
 
+    GoogleMap.OnPoiClickListener mPoiClickListener = new GoogleMap.OnPoiClickListener() {
+        @Override
+        public void onPoiClick(PointOfInterest pointOfInterest) {
+            Toast.makeText(getApplicationContext(), "Clicked: " +
+                            pointOfInterest.name + "\nPlace ID:" + pointOfInterest.placeId +
+                            "\nLatitude:" + pointOfInterest.latLng.latitude +
+                            " Longitude:" + pointOfInterest.latLng.longitude,
+                    Toast.LENGTH_LONG).show();
+        }
+    };
+
+    void drawDirection(final Location locationTo) {
+        SimpleDirection.getDirection(locationTo, getLocation(), new SimpleDirection.SimpleDirectionListener() {
+            @Override
+            public void onSuccess(List<SimpleDirection.Route> routes) {
+                SimpleDirection.Route route = routes.get(0);
+                PolylineOptions lineOptions = new PolylineOptions();
+                lineOptions.addAll(route.points);
+                lineOptions.width(10);
+                lineOptions.color(R.color.red);
+                mDirectionRoute.line = mMap.addPolyline(lineOptions);
+                mDirectionRoute.line.setClickable(true);
+
+                //
+                int n = route.points.size() / 2;
+                LatLng pos = route.points.get(n);
+                Bitmap bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(bitmap);
+                canvas.drawColor(Color.TRANSPARENT);
+                BitmapDescriptor transparent = BitmapDescriptorFactory.fromBitmap(bitmap);
+
+                MarkerOptions options = new MarkerOptions()
+                        .position(pos)
+                        .icon(transparent)
+                        .anchor((float) 0.5, (float) 0.5);
+                mDirectionRoute.marker = mMap.addMarker(options);
+
+                // FIXME:
+                Context context = MainApplication.getContext();
+                int offsetX = (int) context.getResources().getDimension(R.dimen.marker_offset_x);
+                int offsetY = (int) context.getResources().getDimension(R.dimen.marker_offset_y);
+                InfoWindow.MarkerSpecification mMarkerOffset = new InfoWindow.MarkerSpecification(offsetX, offsetY);
+
+                DirectionInfoFragment dif = new DirectionInfoFragment();
+                dif.setDistance(route.distance);
+                dif.setDuration(route.duration);
+                dif.setDestination(locationTo);
+                mDirectionRoute.window = new InfoWindow(mDirectionRoute.marker, mMarkerOffset, dif);
+                mInfoWindowManager.setHideOnFling(true);
+                mInfoWindowManager.show(mDirectionRoute.window, true);
+
+                LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                builder.include(Utils.getLatLng(locationTo));
+                builder.include(Utils.getLatLng(getLocation()));
+                LatLngBounds bounds = builder.build();
+                int padding = 200; // offset from edges of the map in pixels
+                CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+                mMap.moveCamera(cu);
+            }
+
+            @Override
+            public void onFail(String err) {
+            }
+        });
+    }
+
+    GoogleMap.OnPolylineClickListener mPolylineClickListener = new GoogleMap.OnPolylineClickListener() {
+        @Override
+        public void onPolylineClick(Polyline polyline) {
+            if (mDirectionRoute.line != null && mDirectionRoute.window != null) {
+                if (polyline.getId().equals(mDirectionRoute.line.getId())) {
+                    mInfoWindowManager.show(mDirectionRoute.window, true);
+                }
+            }
+        }
+    };
 }

@@ -4,8 +4,8 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.location.Location;
 import android.net.Uri;
-import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.AppCompatTextView;
 import android.view.View;
@@ -24,7 +24,6 @@ import com.routeal.cocoger.util.Utils;
 public class InfoFragment extends Fragment {
     protected ComboMarker mMarker;
     protected ComboMarker.MarkerInfo mMarkerInfo;
-    protected Location mLocation;
 
     protected AppCompatTextView mTitleTextView;
     protected AppCompatImageView mStreetImageView;
@@ -34,11 +33,9 @@ public class InfoFragment extends Fragment {
     protected ImageButton mActionDirectionButton;
     protected ImageButton mActionMessageButton;
 
-    void init() {
-        Bundle bundle = getArguments();
-        mMarker = bundle.getParcelable("marker");
+    void setMarker(ComboMarker marker) {
+        mMarker = marker;
         mMarkerInfo = mMarker.getOwner();
-        mLocation = bundle.getParcelable("location");
     }
 
     void setupView(Object parent) {
@@ -61,7 +58,6 @@ public class InfoFragment extends Fragment {
             mActionDirectionButton = (ImageButton) dialog.findViewById(R.id.action_direction);
             mActionMessageButton = (ImageButton) dialog.findViewById(R.id.action_message);
         }
-
     }
 
     void enableMessageButton(String key) {
@@ -107,19 +103,14 @@ public class InfoFragment extends Fragment {
     }
 
     void saveLocation() {
-
     }
 
     void showDirection(Location locationTo) {
-        String url = String.format("google.navigation:q=%s,%s",
-                locationTo.getLatitude(), locationTo.getLongitude());
-        Uri gmmIntentUri = Uri.parse(url);
-        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-        mapIntent.setPackage("com.google.android.apps.maps");
-        MainApplication.getContext().startActivity(mapIntent);
+        Intent intent = new Intent(MapActivity.DIRECTION_ROUTE_DRAW);
+        intent.putExtra(MapActivity.LOCATION_DATA, locationTo);
+        LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
     }
 
     void processMessage() {
-
     }
 }

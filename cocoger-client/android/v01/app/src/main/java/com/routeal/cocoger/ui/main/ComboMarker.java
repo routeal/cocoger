@@ -4,13 +4,11 @@ import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
-import android.os.Bundle;
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 
 import com.appolica.interactiveinfowindow.InfoWindow;
+import com.appolica.interactiveinfowindow.InfoWindowManager;
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -23,7 +21,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-class ComboMarker implements Parcelable {
+class ComboMarker { //implements Parcelable {
     private final static String TAG = "ComboMarker";
 
     private static InfoWindow.MarkerSpecification mMarkerOffset;
@@ -50,8 +48,10 @@ class ComboMarker implements Parcelable {
     private Marker mMarker;
     private MarkerInfo mOwner;
     private LoadImage.LoadMarkerImage mImageTask;
-    private MapActivity mMapActivity;
+    private GoogleMap mMap;
+    private InfoWindowManager mInfoWindowManager;
 
+/*
     @Override
     public int describeContents() {
         return 0;
@@ -60,12 +60,14 @@ class ComboMarker implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
     }
+*/
 
-    ComboMarker(MapActivity mapActivity,
+    ComboMarker(GoogleMap map, InfoWindowManager infoWindowManager,
                 String id, String name, String picture,
                 Location location, Address address, int range) {
         //Log.d(TAG, "ComboMarker: new " + id);
-        mMapActivity = mapActivity;
+        mMap = map;
+        mInfoWindowManager = infoWindowManager;
 
         MarkerInfo markerInfo = new MarkerInfo();
         markerInfo.id = id;
@@ -81,7 +83,7 @@ class ComboMarker implements Parcelable {
         mOwner = markerInfo;
         MarkerOptions options = new MarkerOptions().position(Utils.getLatLng(markerInfo.rangeLocation));
         options.anchor(0.5f, 0.5f);
-        mMarker = mMapActivity.getGoogleMap().addMarker(options);
+        mMarker = mMap.addMarker(options);
 
         Drawable d = Utils.getIconDrawable(MainApplication.getContext(),
                 R.drawable.ic_face_black_48dp, R.color.steelblue);
@@ -154,6 +156,7 @@ class ComboMarker implements Parcelable {
         }
         //Log.d(TAG, "remove: from the map " + mOwner.id);
         mMarker.remove();
+        mMarker = null;
     }
 
     // copy all users in the argument
@@ -239,29 +242,30 @@ class ComboMarker implements Parcelable {
 
     boolean onMarkerClick(Marker marker) {
         if (marker.getId().compareTo(mMarker.getId()) == 0) {
-            Fragment infoFragment = null;
-            if (mInfoMap.size() == 1) {
-                infoFragment = new OneInfoFragment();
-            } else if (mInfoMap.size() > 1) {
-                infoFragment = new MultiInfoFragment();
-            }
-            if (infoFragment != null) {
-                Bundle args = new Bundle();
-                args.putParcelable("marker", this);
-                args.putParcelable("location", mMapActivity.getLocation());
-                infoFragment.setArguments(args);
-                mInfoWindow = new InfoWindow(mMarker, mMarkerOffset, infoFragment);
-                mMapActivity.getInfoWindowManager().setHideOnFling(false);
-                mMapActivity.getInfoWindowManager().show(mInfoWindow, true);
-            }
+            show();
             return true;
         }
         return false;
     }
 
+    void show() {
+        InfoFragment infoFragment = null;
+        if (mInfoMap.size() == 1) {
+            infoFragment = new OneInfoFragment();
+        } else if (mInfoMap.size() > 1) {
+            infoFragment = new MultiInfoFragment();
+        }
+        if (infoFragment != null) {
+            infoFragment.setMarker(this);
+            mInfoWindow = new InfoWindow(mMarker, mMarkerOffset, infoFragment);
+            mInfoWindowManager.setHideOnFling(true);
+            mInfoWindowManager.show(mInfoWindow, true);
+        }
+    }
+
     void hide() {
         if (mInfoWindow != null) {
-            mMapActivity.getInfoWindowManager().hide(mInfoWindow, true);
+            mInfoWindowManager.hide(mInfoWindow, true);
             mInfoWindow = null;
         }
     }

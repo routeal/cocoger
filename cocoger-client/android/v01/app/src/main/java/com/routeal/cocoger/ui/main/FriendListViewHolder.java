@@ -1,12 +1,15 @@
 package com.routeal.cocoger.ui.main;
 
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
@@ -29,6 +32,24 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
         mPicture = (ImageView) itemView.findViewById(R.id.friend_picture);
         mName = (TextView) itemView.findViewById(R.id.friend_title);
         mSeekBar = (SnappingSeekBar) itemView.findViewById(R.id.friend_range);
+
+        mPicture.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MapActivity.FRIEND_MARKER_SHOW);
+                intent.putExtra(MapActivity.FRIEND_KEY, mFriendId);
+                LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+            }
+        });
+
+        mName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MapActivity.FRIEND_MARKER_SHOW);
+                intent.putExtra(MapActivity.FRIEND_KEY, mFriendId);
+                LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+            }
+        });
 
         mSeekBar.setOnItemSelectionListener(new SnappingSeekBar.OnItemSelectionListener() {
             @Override

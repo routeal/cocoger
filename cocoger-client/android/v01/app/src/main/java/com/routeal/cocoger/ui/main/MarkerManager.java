@@ -5,6 +5,7 @@ import android.location.Location;
 import android.util.Log;
 
 import com.appolica.interactiveinfowindow.InfoWindowManager;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Marker;
@@ -26,17 +27,17 @@ class MarkerManager {
 
     private List<ComboMarker> mMarkers = new ArrayList<>();
 
-    private MapActivity mMapActivity;
-
     private GoogleMap mMap;
+
+    private InfoWindowManager mInfoWindowManager;
 
     private double mMarkerDistance = 10;
 
-    MarkerManager(MapActivity mapActivity) {
-        mMapActivity = mapActivity;
-        mMap = mMapActivity.getGoogleMap();
+    MarkerManager(GoogleMap map, InfoWindowManager infoWindowManager) {
+        mMap = map;
         mMap.setOnMarkerClickListener(mMarkerClickListener);
         mMap.setOnCameraMoveListener(mCameraMoveListener);
+        mInfoWindowManager = infoWindowManager;
     }
 
     GoogleMap.OnMarkerClickListener mMarkerClickListener = new GoogleMap.OnMarkerClickListener() {
@@ -87,7 +88,7 @@ class MarkerManager {
         }
 
         //Log.d(TAG, "add: create a new marker " + id);
-        ComboMarker m = new ComboMarker(mMapActivity,
+        ComboMarker m = new ComboMarker(mMap, mInfoWindowManager,
                 id, name, picture, location, address, range);
         mMarkers.add(m);
     }
@@ -245,7 +246,7 @@ class MarkerManager {
 
         Log.d(TAG, "reposition range: add a marker for " + key);
         // add a new marker to map
-        mMarkers.add(new ComboMarker(mMapActivity,
+        mMarkers.add(new ComboMarker(mMap, mInfoWindowManager,
                 key, info.name, info.picture, info.location, info.address, range));
     }
 
@@ -331,6 +332,18 @@ class MarkerManager {
                 if (combineMarkers(markers[j], markers[i])) {
                     mMarkers.remove(markers[i]);
                 }
+            }
+        }
+    }
+
+    void show(String key) {
+        for (ComboMarker marker : mMarkers) {
+            if (marker.contains(key)) {
+                ComboMarker.MarkerInfo markerInfo = marker.getOwner();
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                        Utils.getLatLng(markerInfo.rangeLocation),
+                        mMap.getCameraPosition().zoom));
+                return;
             }
         }
     }

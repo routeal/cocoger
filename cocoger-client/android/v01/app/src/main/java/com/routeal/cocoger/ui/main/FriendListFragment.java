@@ -1,7 +1,6 @@
 package com.routeal.cocoger.ui.main;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -12,7 +11,6 @@ import android.widget.Button;
 import com.franmontiel.fullscreendialog.FullScreenDialogFragment;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
-import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 /**
  * Created by nabe on 7/22/17.
@@ -52,10 +50,7 @@ public class FriendListFragment extends PagerFragment {
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
         recyclerView.setLayoutManager(layoutManager);
 
-        try {
-            recyclerView.setAdapter(FB.getFriendRecyclerAdapter());
-        } catch (Exception e) {
-        }
+        recyclerView.setAdapter(FB.getFriendRecyclerAdapter());
 
         return view;
     }

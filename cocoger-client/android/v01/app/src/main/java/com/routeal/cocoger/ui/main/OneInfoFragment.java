@@ -24,8 +24,6 @@ public class OneInfoFragment extends InfoFragment implements View.OnClickListene
                              @Nullable Bundle savedInstanceState) {
         Log.d(TAG, "OneInfoFragment: onCreateView");
 
-        init();
-
         View view = inflater.inflate(R.layout.fragment_one_info, container, false);
         setupView(view);
 

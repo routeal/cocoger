@@ -314,10 +314,6 @@ public class MainService extends BasePeriodicService {
         double elapsed = Math.abs((float) ((to.getTime() - from.getTime()) / 1000.0));
         if (elapsed > 0) {
             double speed = distance / elapsed; // meter / seconds
-            { // testing
-                double speed2 = speed * 18 / 5;
-                Log.d(TAG, "getSpeed: speed=" + speed2 + " (km/h)");
-            }
             return (float) speed;
         }
         return 0;
@@ -347,7 +343,7 @@ public class MainService extends BasePeriodicService {
     }
 
     private void saveLocation(final Location location) {
-        location.setSpeed(getSpeed3(location, mLastKnownLocation));
+        location.setSpeed(getSpeed2(location, mLastKnownLocation));
 
         Address address = Utils.getFromLocation(location);
 
@@ -356,7 +352,7 @@ public class MainService extends BasePeriodicService {
             return;
         }
 
-        int rangeChange = detectRangeChange(address, mLastKnownAddress);
+        //int rangeChange = detectRangeChange(address, mLastKnownAddress);
 
         mLastKnownLocation = location;
 
@@ -403,8 +399,8 @@ public class MainService extends BasePeriodicService {
     private void broadcastLocation(Location location, Address address) {
         // notify both location and address to the activity
         Intent intent = new Intent(MapActivity.USER_LOCATION_UPDATE);
-        intent.putExtra(MapActivity.LOCATION_UPDATE, location);
-        intent.putExtra(MapActivity.ADDRESS_UPDATE, address);
+        intent.putExtra(MapActivity.LOCATION_DATA, location);
+        intent.putExtra(MapActivity.ADDRESS_DATA, address);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 }
