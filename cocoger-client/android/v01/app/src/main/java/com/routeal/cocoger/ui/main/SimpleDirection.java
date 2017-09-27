@@ -42,36 +42,9 @@ import java.util.List;
 
 class SimpleDirection {
     private final static String TAG = "SimpleDirection";
-
-    class SimpleDirectionRoute {
-        Polyline line;
-        InfoWindow window;
-        Marker marker;
-    }
-
     private GoogleMap mMap;
     private InfoWindowManager mInfoWindowManager;
-
-    SimpleDirection(GoogleMap googleMap, InfoWindowManager infoWindowManager) {
-        mMap = googleMap;
-        mMap.setOnPolylineClickListener(mPolylineClickListener);
-        mInfoWindowManager = infoWindowManager;
-    }
-
     private SimpleDirectionRoute mDirectionRoute = new SimpleDirectionRoute();
-
-    static class Route {
-        String distance;
-        String duration;
-        List<LatLng> points;
-    }
-
-    interface SimpleDirectionListener {
-        void onSuccess(List<Route> routes);
-
-        void onFail(String err);
-    }
-
     private GoogleMap.OnPolylineClickListener mPolylineClickListener = new GoogleMap.OnPolylineClickListener() {
         @Override
         public void onPolylineClick(Polyline polyline) {
@@ -83,75 +56,10 @@ class SimpleDirection {
         }
     };
 
-    void addDirection(final Location locationTo, final Location locationFrom) {
-        cleanupDirection();
-        SimpleDirection.getDirection(locationTo, locationFrom, new SimpleDirection.SimpleDirectionListener() {
-            @Override
-            public void onSuccess(List<SimpleDirection.Route> routes) {
-                SimpleDirection.Route route = routes.get(0);
-                PolylineOptions lineOptions = new PolylineOptions();
-                lineOptions.addAll(route.points);
-                lineOptions.width(10);
-                lineOptions.color(R.color.red);
-                mDirectionRoute.line = mMap.addPolyline(lineOptions);
-                mDirectionRoute.line.setClickable(true);
-
-                //
-                int n = route.points.size() / 2;
-                LatLng pos = route.points.get(n);
-                Bitmap bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
-                Canvas canvas = new Canvas(bitmap);
-                canvas.drawColor(Color.TRANSPARENT);
-                BitmapDescriptor transparent = BitmapDescriptorFactory.fromBitmap(bitmap);
-
-                MarkerOptions options = new MarkerOptions()
-                        .position(pos)
-                        .icon(transparent)
-                        .anchor((float) 0.5, (float) 0.5);
-                mDirectionRoute.marker = mMap.addMarker(options);
-
-                DirectionInfoFragment dif = new DirectionInfoFragment();
-                dif.setDistance(route.distance);
-                dif.setDuration(route.duration);
-                dif.setDestination(locationTo);
-                InfoWindow.MarkerSpecification mMarkerOffset = new InfoWindow.MarkerSpecification(0, 0);
-                mDirectionRoute.window = new InfoWindow(mDirectionRoute.marker, mMarkerOffset, dif);
-                mInfoWindowManager.setHideOnFling(true);
-                mInfoWindowManager.show(mDirectionRoute.window, true);
-
-                LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                builder.include(Utils.getLatLng(locationTo));
-                builder.include(Utils.getLatLng(locationFrom));
-                LatLngBounds bounds = builder.build();
-                int padding = 200; // offset from edges of the map in pixels
-                CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
-                mMap.moveCamera(cu);
-            }
-
-            @Override
-            public void onFail(String err) {
-                String message = MainApplication.getContext().getResources().getString(R.string.no_direction_available);
-                if (!err.isEmpty()) {
-                    message += " (" + err + ")";
-                }
-                Toast.makeText(MainApplication.getContext(), message, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    void cleanupDirection() {
-        if (mDirectionRoute.line != null) {
-            mDirectionRoute.line.remove();
-            mDirectionRoute.line = null;
-        }
-        if (mDirectionRoute.window != null) {
-            mInfoWindowManager.hide(mDirectionRoute.window);
-            mDirectionRoute.window = null;
-        }
-        if (mDirectionRoute.marker != null) {
-            mDirectionRoute.marker.remove();
-            mDirectionRoute.marker = null;
-        }
+    SimpleDirection(GoogleMap googleMap, InfoWindowManager infoWindowManager) {
+        mMap = googleMap;
+        mMap.setOnPolylineClickListener(mPolylineClickListener);
+        mInfoWindowManager = infoWindowManager;
     }
 
     private static void getDirection(Location to, Location from, SimpleDirectionListener listener) {
@@ -219,6 +127,89 @@ class SimpleDirection {
             urlConnection.disconnect();
         }
         return data;
+    }
+
+    void addDirection(final Location locationTo, final Location locationFrom) {
+        removeDirection();
+        SimpleDirection.getDirection(locationTo, locationFrom, new SimpleDirection.SimpleDirectionListener() {
+            @Override
+            public void onSuccess(List<SimpleDirection.Route> routes) {
+                SimpleDirection.Route route = routes.get(0);
+                PolylineOptions lineOptions = new PolylineOptions();
+                lineOptions.addAll(route.points);
+                lineOptions.width(10);
+                lineOptions.color(R.color.red);
+                mDirectionRoute.line = mMap.addPolyline(lineOptions);
+                mDirectionRoute.line.setClickable(true);
+
+                //
+                int n = route.points.size() / 2;
+                LatLng pos = route.points.get(n);
+                Bitmap bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(bitmap);
+                canvas.drawColor(Color.TRANSPARENT);
+                BitmapDescriptor transparent = BitmapDescriptorFactory.fromBitmap(bitmap);
+
+                MarkerOptions options = new MarkerOptions()
+                        .position(pos)
+                        .icon(transparent)
+                        .anchor((float) 0.5, (float) 0.5);
+                mDirectionRoute.marker = mMap.addMarker(options);
+
+                DirectionInfoFragment dif = new DirectionInfoFragment();
+                dif.setDistance(route.distance);
+                dif.setDuration(route.duration);
+                dif.setDestination(locationTo);
+                InfoWindow.MarkerSpecification mMarkerOffset = new InfoWindow.MarkerSpecification(0, 0);
+                mDirectionRoute.window = new InfoWindow(mDirectionRoute.marker, mMarkerOffset, dif);
+                mInfoWindowManager.setHideOnFling(true);
+                mInfoWindowManager.show(mDirectionRoute.window, true);
+
+                LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                builder.include(Utils.getLatLng(locationTo));
+                builder.include(Utils.getLatLng(locationFrom));
+                LatLngBounds bounds = builder.build();
+                int padding = 200; // offset from edges of the map in pixels
+                CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+                mMap.moveCamera(cu);
+            }
+
+            @Override
+            public void onFail(String err) {
+                String message = MainApplication.getContext().getResources().getString(R.string.no_direction_available);
+                if (!err.isEmpty()) {
+                    message += " (" + err + ")";
+                }
+                Toast.makeText(MainApplication.getContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    void removeDirection() {
+        if (mDirectionRoute.line != null) {
+            mDirectionRoute.line.remove();
+            mDirectionRoute.line = null;
+        }
+        if (mDirectionRoute.window != null) {
+            mInfoWindowManager.hide(mDirectionRoute.window);
+            mDirectionRoute.window = null;
+        }
+        if (mDirectionRoute.marker != null) {
+            mDirectionRoute.marker.remove();
+            mDirectionRoute.marker = null;
+        }
+    }
+
+    interface SimpleDirectionListener {
+        void onSuccess(List<Route> routes);
+
+        void onFail(String err);
+    }
+
+    static class Route {
+        String distance;
+        String duration;
+        List<LatLng> points;
     }
 
     // Fetches data from url passed
@@ -335,12 +326,6 @@ class SimpleDirection {
 
     static class DirectionResponseParser {
 
-        class ResponseRoute {
-            String distance;
-            String duration;
-            List<HashMap<String, String>> route;
-        }
-
         /**
          * Receives a JSONObject and returns a list of lists containing latitude and longitude
          */
@@ -446,5 +431,17 @@ class SimpleDirection {
 
             return poly;
         }
+
+        class ResponseRoute {
+            String distance;
+            String duration;
+            List<HashMap<String, String>> route;
+        }
+    }
+
+    private class SimpleDirectionRoute {
+        Polyline line;
+        InfoWindow window;
+        Marker marker;
     }
 }

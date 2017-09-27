@@ -1,6 +1,9 @@
 package com.routeal.cocoger.ui.main;
 
+import android.app.Activity;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.SwitchCompat;
 import android.view.LayoutInflater;
@@ -12,6 +15,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.util.Utils;
 
 /**
  * Created by hwatanabe on 9/27/17.
@@ -19,15 +23,20 @@ import com.routeal.cocoger.R;
 
 class MapStyle {
 
-    class CustomMapStyle {
-        SwitchCompat view;
-        int id;
-        String resource;
-    }
+    private CustomMapStyle mMapStyles[];
+    private GoogleMap mMap;
+    private Activity mActivity;
+    private View.OnClickListener mapLayerButtonListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            dialog();
+        }
+    };
 
-    CustomMapStyle mMapStyles[];
+    MapStyle(GoogleMap map, Activity activity) {
+        mMap = map;
+        mActivity = activity;
 
-    MapStyle() {
         mMapStyles = new CustomMapStyle[7];
         mMapStyles[0] = new CustomMapStyle();
         mMapStyles[0].id = R.raw.mapstyle_retro;
@@ -50,10 +59,16 @@ class MapStyle {
         mMapStyles[6] = new CustomMapStyle();
         mMapStyles[6].id = R.raw.mapstyle_pink;
         mMapStyles[6].resource = "pink";
+
+        // set up the 'my' location button
+        Drawable layerDrawable = Utils.getIconDrawable(mActivity, R.drawable.ic_layers_white_24dp, R.color.gray);
+        FloatingActionButton layerButton = (FloatingActionButton) mActivity.findViewById(R.id.map_layer);
+        layerButton.setImageDrawable(layerDrawable);
+        layerButton.setOnClickListener(mapLayerButtonListener);
     }
 
-    void dialog(final Context context, final GoogleMap googleMap) {
-        LayoutInflater layoutInflaterAndroid = LayoutInflater.from(context);
+    private void dialog() {
+        LayoutInflater layoutInflaterAndroid = LayoutInflater.from(mActivity);
         View view = layoutInflaterAndroid.inflate(R.layout.dialog_layer, null);
 
         mMapStyles[0].view = (SwitchCompat) view.findViewById(R.id.switch_retro);
@@ -87,11 +102,11 @@ class MapStyle {
                                 mMapStyles[j].view.setChecked(false);
                             }
                         }
-                        MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(context, cstyle.id);
-                        googleMap.setMapStyle(style);
+                        MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(mActivity, cstyle.id);
+                        mMap.setMapStyle(style);
                         MainApplication.putString("style", cstyle.resource);
                     } else {
-                        googleMap.setMapStyle(null);
+                        mMap.setMapStyle(null);
                         MainApplication.putString("style", "normal");
                     }
                 }
@@ -104,12 +119,12 @@ class MapStyle {
         traffic.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                googleMap.setTrafficEnabled(isChecked);
+                mMap.setTrafficEnabled(isChecked);
                 MainApplication.putBool("traffic", isChecked);
             }
         });
 
-        AlertDialog dialog = new AlertDialog.Builder(context)
+        AlertDialog dialog = new AlertDialog.Builder(mActivity)
                 .setView(view)
                 .setCancelable(true)
                 .show();
@@ -132,5 +147,11 @@ class MapStyle {
                 }
             }
         }
+    }
+
+    private class CustomMapStyle {
+        SwitchCompat view;
+        int id;
+        String resource;
     }
 }

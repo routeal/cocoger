@@ -13,6 +13,7 @@ import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.User;
+import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Utils;
 
 import java.util.ArrayList;
@@ -26,21 +27,7 @@ class MarkerManager {
     private final static String TAG = "MarkerManager";
 
     private List<ComboMarker> mMarkers = new ArrayList<>();
-
-    private GoogleMap mMap;
-
-    private InfoWindowManager mInfoWindowManager;
-
-    private double mMarkerDistance = 10;
-
-    MarkerManager(GoogleMap map, InfoWindowManager infoWindowManager) {
-        mMap = map;
-        mMap.setOnMarkerClickListener(mMarkerClickListener);
-        mMap.setOnCameraMoveListener(mCameraMoveListener);
-        mInfoWindowManager = infoWindowManager;
-    }
-
-    GoogleMap.OnMarkerClickListener mMarkerClickListener = new GoogleMap.OnMarkerClickListener() {
+    private GoogleMap.OnMarkerClickListener mMarkerClickListener = new GoogleMap.OnMarkerClickListener() {
         @Override
         public boolean onMarkerClick(Marker marker) {
             for (ComboMarker entry : mMarkers) {
@@ -51,6 +38,67 @@ class MarkerManager {
             return false;
         }
     };
+    private GoogleMap mMap;
+    private InfoWindowManager mInfoWindowManager;
+    private double mMarkerDistance = 10;
+    private GoogleMap.OnCameraMoveListener mCameraMoveListener =
+            new GoogleMap.OnCameraMoveListener() {
+                @Override
+                public void onCameraMove() {
+                    CameraPosition cameraPosition = mMap.getCameraPosition();
+                    double oldDistance = mMarkerDistance;
+                    ////Log.d(TAG, "Zoom: " + cameraPosition.zoom + " old:" + oldDistance);
+                    if (cameraPosition.zoom > 20) {
+                        mMarkerDistance = 0;
+                    } else if (cameraPosition.zoom > 18) {
+                        mMarkerDistance = 10;
+                    } else if (cameraPosition.zoom > 16) {
+                        mMarkerDistance = 50;
+                    } else if (cameraPosition.zoom > 15) {
+                        mMarkerDistance = 100;
+                    } else if (cameraPosition.zoom > 14) {
+                        mMarkerDistance = 300;
+                    } else if (cameraPosition.zoom > 12) {
+                        mMarkerDistance = 1000;
+                    } else if (cameraPosition.zoom > 11) {
+                        mMarkerDistance = 2000; // 1km
+                    } else if (cameraPosition.zoom > 10) {
+                        mMarkerDistance = 5000; // 1km
+                    } else if (cameraPosition.zoom > 8) {
+                        mMarkerDistance = 10000; // 10km
+                    } else if (cameraPosition.zoom > 7) {
+                        mMarkerDistance = 50000; // 10
+                    } else if (cameraPosition.zoom > 6) {
+                        mMarkerDistance = 100000;
+                    } else if (cameraPosition.zoom > 4) {
+                        mMarkerDistance = 200000;
+                    } else if (cameraPosition.zoom > 3) {
+                        mMarkerDistance = 300000;
+                    } else if (cameraPosition.zoom > 2) {
+                        mMarkerDistance = 500000;
+                    } else if (cameraPosition.zoom > 1) {
+                        mMarkerDistance = 1000000;
+                    }
+                    if (mMarkerDistance == oldDistance) {
+                        return;
+                    }
+                    if (mMarkerDistance < oldDistance) {
+                        Log.d(TAG, "zoomIn:" + cameraPosition.zoom + " distance=" + mMarkerDistance);
+                        zoomIn();
+                    } else {
+                        zoomOut();
+                        Log.d(TAG, "zoomOut:" + cameraPosition.zoom + " distance=" + mMarkerDistance);
+                    }
+                }
+            };
+    private boolean mHasFriendMarkers = false;
+
+    MarkerManager(GoogleMap map, InfoWindowManager infoWindowManager) {
+        mMap = map;
+        mMap.setOnMarkerClickListener(mMarkerClickListener);
+        mMap.setOnCameraMoveListener(mCameraMoveListener);
+        mInfoWindowManager = infoWindowManager;
+    }
 
     void remove(String id) {
         for (ComboMarker marker : mMarkers) {
@@ -64,7 +112,7 @@ class MarkerManager {
     }
 
     // add a new user or friend
-    void add(String id, String name, String picture, Location location, Address address, int range) {
+    private void add(String id, String name, String picture, Location location, Address address, int range) {
         if (range == 0) return;
 
         if (address != null) {
@@ -348,55 +396,55 @@ class MarkerManager {
         }
     }
 
-    private GoogleMap.OnCameraMoveListener mCameraMoveListener =
-            new GoogleMap.OnCameraMoveListener() {
-                @Override
-                public void onCameraMove() {
-                    CameraPosition cameraPosition = mMap.getCameraPosition();
-                    double oldDistance = mMarkerDistance;
-                    ////Log.d(TAG, "Zoom: " + cameraPosition.zoom + " old:" + oldDistance);
-                    if (cameraPosition.zoom > 20) {
-                        mMarkerDistance = 0;
-                    } else if (cameraPosition.zoom > 18) {
-                        mMarkerDistance = 10;
-                    } else if (cameraPosition.zoom > 16) {
-                        mMarkerDistance = 50;
-                    } else if (cameraPosition.zoom > 15) {
-                        mMarkerDistance = 100;
-                    } else if (cameraPosition.zoom > 14) {
-                        mMarkerDistance = 300;
-                    } else if (cameraPosition.zoom > 12) {
-                        mMarkerDistance = 1000;
-                    } else if (cameraPosition.zoom > 11) {
-                        mMarkerDistance = 2000; // 1km
-                    } else if (cameraPosition.zoom > 10) {
-                        mMarkerDistance = 5000; // 1km
-                    } else if (cameraPosition.zoom > 8) {
-                        mMarkerDistance = 10000; // 10km
-                    } else if (cameraPosition.zoom > 7) {
-                        mMarkerDistance = 50000; // 10
-                    } else if (cameraPosition.zoom > 6) {
-                        mMarkerDistance = 100000;
-                    } else if (cameraPosition.zoom > 4) {
-                        mMarkerDistance = 200000;
-                    } else if (cameraPosition.zoom > 3) {
-                        mMarkerDistance = 300000;
-                    } else if (cameraPosition.zoom > 2) {
-                        mMarkerDistance = 500000;
-                    } else if (cameraPosition.zoom > 1) {
-                        mMarkerDistance = 1000000;
+    void setupMarkers(Location location, Address address) {
+        if (location == null) return;
+
+        // run only once
+        if (mHasFriendMarkers) return;
+
+        User user = MainApplication.getUser();
+        if (user == null) {
+            Log.d(TAG, "setupMarkers: user not available");
+            return;
+        }
+
+        // in the very first beginning, the location might not be set.
+        if (user.getLocation() == null) {
+            FB.saveLocation(location, address);
+        }
+
+        Log.d(TAG, "setupMarkers: start processing");
+
+        mHasFriendMarkers = true;
+
+        add(FB.getUid(), user.getDisplayName(), user.getPicture(), location, address,
+                LocationRange.CURRENT.range);
+
+        Map<String, Friend> friends = user.getFriends();
+        if (friends == null || friends.isEmpty()) {
+            Log.d(TAG, "setupMarkers: empty friend");
+            return;
+        }
+
+        Iterator<String> it = friends.keySet().iterator();
+
+        while (it.hasNext()) {
+            final String key = it.next();
+            final Friend friend = friends.get(key);
+            if (friend.getLocation() != null) {
+                FB.getLocation(friend.getLocation(), new FB.LocationListener() {
+                    @Override
+                    public void onSuccess(Location location, Address address) {
+                        add(key, friend.getDisplayName(), friend.getPicture(),
+                                location, address, friend.getRange());
                     }
-                    if (mMarkerDistance == oldDistance) {
-                        return;
+
+                    @Override
+                    public void onFail(String err) {
                     }
-                    if (mMarkerDistance < oldDistance) {
-                        Log.d(TAG, "zoomIn:" + cameraPosition.zoom + " distance=" + mMarkerDistance);
-                        zoomIn();
-                    } else {
-                        zoomOut();
-                        Log.d(TAG, "zoomOut:" + cameraPosition.zoom + " distance=" + mMarkerDistance);
-                    }
-                }
-            };
+                });
+            }
+        }
+    }
 
 }
