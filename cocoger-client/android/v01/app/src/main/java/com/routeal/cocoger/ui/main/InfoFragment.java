@@ -3,13 +3,13 @@ package com.routeal.cocoger.ui.main;
 import android.app.Dialog;
 import android.content.Intent;
 import android.location.Location;
-import android.net.Uri;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.AppCompatTextView;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
@@ -87,22 +87,27 @@ public class InfoFragment extends Fragment {
     }
 
     void openStreetView(Location location, String address) {
-        Intent intent = new Intent(getContext(), StreetViewActivity.class);
+        Intent intent = new Intent(MainApplication.getContext(), StreetViewActivity.class);
         intent.putExtra("location", Utils.getLatLng(location));
         intent.putExtra("address", address);
         MainApplication.getContext().startActivity(intent);
     }
 
     void showLocationInfo(Location location) {
+        Toast.makeText(MainApplication.getContext(), "More Info not implemented", Toast.LENGTH_SHORT).show();
+
+        /*
         String url = String.format("google.streetview:cbll=%s,%s",
                 location.getLatitude(), location.getLongitude());
         Uri gmmIntentUri = Uri.parse(url);
         Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
         mapIntent.setPackage("com.google.android.apps.maps");
         MainApplication.getContext().startActivity(mapIntent);
+        */
     }
 
     void saveLocation() {
+        Toast.makeText(MainApplication.getContext(), "Save To Map not implemented", Toast.LENGTH_SHORT).show();
     }
 
     void showDirection(Location locationTo) {
@@ -112,5 +117,6 @@ public class InfoFragment extends Fragment {
     }
 
     void processMessage() {
+        Toast.makeText(MainApplication.getContext(), "Send Message not implemented", Toast.LENGTH_SHORT).show();
     }
 }

@@ -1,9 +1,28 @@
 package com.routeal.cocoger.ui.main;
 
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.widget.Toast;
 
+import com.appolica.interactiveinfowindow.InfoWindow;
+import com.appolica.interactiveinfowindow.InfoWindowManager;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
+import com.routeal.cocoger.MainApplication;
+import com.routeal.cocoger.R;
+import com.routeal.cocoger.util.Utils;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -21,8 +40,25 @@ import java.util.List;
  * Created by nabe on 9/24/17.
  */
 
-public class SimpleDirection {
+class SimpleDirection {
     private final static String TAG = "SimpleDirection";
+
+    class SimpleDirectionRoute {
+        Polyline line;
+        InfoWindow window;
+        Marker marker;
+    }
+
+    private GoogleMap mMap;
+    private InfoWindowManager mInfoWindowManager;
+
+    SimpleDirection(GoogleMap googleMap, InfoWindowManager infoWindowManager) {
+        mMap = googleMap;
+        mMap.setOnPolylineClickListener(mPolylineClickListener);
+        mInfoWindowManager = infoWindowManager;
+    }
+
+    private SimpleDirectionRoute mDirectionRoute = new SimpleDirectionRoute();
 
     static class Route {
         String distance;
@@ -36,7 +72,89 @@ public class SimpleDirection {
         void onFail(String err);
     }
 
-    public static void getDirection(Location to, Location from, SimpleDirectionListener listener) {
+    private GoogleMap.OnPolylineClickListener mPolylineClickListener = new GoogleMap.OnPolylineClickListener() {
+        @Override
+        public void onPolylineClick(Polyline polyline) {
+            if (mDirectionRoute.line != null && mDirectionRoute.window != null) {
+                if (polyline.getId().equals(mDirectionRoute.line.getId())) {
+                    mInfoWindowManager.show(mDirectionRoute.window, true);
+                }
+            }
+        }
+    };
+
+    void addDirection(final Location locationTo, final Location locationFrom) {
+        cleanupDirection();
+        SimpleDirection.getDirection(locationTo, locationFrom, new SimpleDirection.SimpleDirectionListener() {
+            @Override
+            public void onSuccess(List<SimpleDirection.Route> routes) {
+                SimpleDirection.Route route = routes.get(0);
+                PolylineOptions lineOptions = new PolylineOptions();
+                lineOptions.addAll(route.points);
+                lineOptions.width(10);
+                lineOptions.color(R.color.red);
+                mDirectionRoute.line = mMap.addPolyline(lineOptions);
+                mDirectionRoute.line.setClickable(true);
+
+                //
+                int n = route.points.size() / 2;
+                LatLng pos = route.points.get(n);
+                Bitmap bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(bitmap);
+                canvas.drawColor(Color.TRANSPARENT);
+                BitmapDescriptor transparent = BitmapDescriptorFactory.fromBitmap(bitmap);
+
+                MarkerOptions options = new MarkerOptions()
+                        .position(pos)
+                        .icon(transparent)
+                        .anchor((float) 0.5, (float) 0.5);
+                mDirectionRoute.marker = mMap.addMarker(options);
+
+                DirectionInfoFragment dif = new DirectionInfoFragment();
+                dif.setDistance(route.distance);
+                dif.setDuration(route.duration);
+                dif.setDestination(locationTo);
+                InfoWindow.MarkerSpecification mMarkerOffset = new InfoWindow.MarkerSpecification(0, 0);
+                mDirectionRoute.window = new InfoWindow(mDirectionRoute.marker, mMarkerOffset, dif);
+                mInfoWindowManager.setHideOnFling(true);
+                mInfoWindowManager.show(mDirectionRoute.window, true);
+
+                LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                builder.include(Utils.getLatLng(locationTo));
+                builder.include(Utils.getLatLng(locationFrom));
+                LatLngBounds bounds = builder.build();
+                int padding = 200; // offset from edges of the map in pixels
+                CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
+                mMap.moveCamera(cu);
+            }
+
+            @Override
+            public void onFail(String err) {
+                String message = MainApplication.getContext().getResources().getString(R.string.no_direction_available);
+                if (!err.isEmpty()) {
+                    message += " (" + err + ")";
+                }
+                Toast.makeText(MainApplication.getContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    void cleanupDirection() {
+        if (mDirectionRoute.line != null) {
+            mDirectionRoute.line.remove();
+            mDirectionRoute.line = null;
+        }
+        if (mDirectionRoute.window != null) {
+            mInfoWindowManager.hide(mDirectionRoute.window);
+            mDirectionRoute.window = null;
+        }
+        if (mDirectionRoute.marker != null) {
+            mDirectionRoute.marker.remove();
+            mDirectionRoute.marker = null;
+        }
+    }
+
+    private static void getDirection(Location to, Location from, SimpleDirectionListener listener) {
         DownloadDirection DownloadDirection = new DownloadDirection(listener);
 
         String url = getUrl(from, to);

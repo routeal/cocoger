@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/activity_vertical_margin"
         android:checked="false"
-        android:drawableLeft="@drawable/ic_terrain_black_24dp"
+        android:drawableLeft="@drawable/ic_layers_black_24dp"
         android:drawablePadding="@dimen/activity_horizontal_margin"
         android:text="Retro"
         android:textAppearance="?android:attr/textAppearanceMedium" />
@@ -35,7 +35,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/activity_vertical_margin"
         android:checked="false"
-        android:drawableLeft="@drawable/ic_terrain_black_24dp"
+        android:drawableLeft="@drawable/ic_layers_black_24dp"
         android:drawablePadding="@dimen/activity_horizontal_margin"
         android:text="Night"
         android:textAppearance="?android:attr/textAppearanceMedium" />
@@ -46,7 +46,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/activity_vertical_margin"
         android:checked="false"
-        android:drawableLeft="@drawable/ic_terrain_black_24dp"
+        android:drawableLeft="@drawable/ic_layers_black_24dp"
         android:drawablePadding="@dimen/activity_horizontal_margin"
         android:text="Gray"
         android:textAppearance="?android:attr/textAppearanceMedium" />
@@ -57,7 +57,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/activity_vertical_margin"
         android:checked="false"
-        android:drawableLeft="@drawable/ic_terrain_black_24dp"
+        android:drawableLeft="@drawable/ic_layers_black_24dp"
         android:drawablePadding="@dimen/activity_horizontal_margin"
         android:text="Blue"
         android:textAppearance="?android:attr/textAppearanceMedium" />
@@ -68,7 +68,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/activity_vertical_margin"
         android:checked="false"
-        android:drawableLeft="@drawable/ic_terrain_black_24dp"
+        android:drawableLeft="@drawable/ic_layers_black_24dp"
         android:drawablePadding="@dimen/activity_horizontal_margin"
         android:text="Slate"
         android:textAppearance="?android:attr/textAppearanceMedium" />
@@ -79,7 +79,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/activity_vertical_margin"
         android:checked="false"
-        android:drawableLeft="@drawable/ic_terrain_black_24dp"
+        android:drawableLeft="@drawable/ic_layers_black_24dp"
         android:drawablePadding="@dimen/activity_horizontal_margin"
         android:text="White"
         android:textAppearance="?android:attr/textAppearanceMedium" />
@@ -90,7 +90,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/activity_vertical_margin"
         android:checked="false"
-        android:drawableLeft="@drawable/ic_terrain_black_24dp"
+        android:drawableLeft="@drawable/ic_layers_black_24dp"
         android:drawablePadding="@dimen/activity_horizontal_margin"
         android:text="Pink"
         android:textAppearance="?android:attr/textAppearanceMedium" />

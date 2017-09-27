@@ -553,8 +553,10 @@ public class InfoWindowManager
             }
         }
 
-        final CameraUpdate cameraUpdate = CameraUpdateFactory.scrollBy(scrollX, scrollY);
-        googleMap.animateCamera(cameraUpdate, DURATION_CAMERA_ENSURE_VISIBLE_ANIMATION, null);
+        if (scrollX != 0 || scrollY != 0) {
+            final CameraUpdate cameraUpdate = CameraUpdateFactory.scrollBy(scrollX, scrollY);
+            googleMap.animateCamera(cameraUpdate, DURATION_CAMERA_ENSURE_VISIBLE_ANIMATION, null);
+        }
 
         return visible;
     }

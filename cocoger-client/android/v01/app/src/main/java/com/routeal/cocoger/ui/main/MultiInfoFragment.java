@@ -41,8 +41,8 @@ public class MultiInfoFragment extends InfoFragment {
 
         // FIXME: 35 is from nowhere
         int size = (mMarker.size() > 4) ? 4 : mMarker.size();
-        int height = (size * (int) (35 * Resources.getSystem().getDisplayMetrics().density))
-                + (int) (6 * Resources.getSystem().getDisplayMetrics().density);
+        int height = (size * (int) (32 * Resources.getSystem().getDisplayMetrics().density))
+                + (int) (16 * Resources.getSystem().getDisplayMetrics().density);
 
         ViewGroup.LayoutParams params = view.getLayoutParams();
         params.height = height;
