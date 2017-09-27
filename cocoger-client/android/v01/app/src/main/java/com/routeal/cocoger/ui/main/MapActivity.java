@@ -14,8 +14,13 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.SwitchCompat;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.WindowManager;
+import android.widget.CompoundButton;
 import android.widget.Toast;
 
 import com.appolica.interactiveinfowindow.InfoWindow;
@@ -30,6 +35,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PointOfInterest;
@@ -91,6 +97,14 @@ public class MapActivity extends MapBaseActivity {
 
     private SimpleDirectionRoute mDirectionRoute = new SimpleDirectionRoute();
 
+    class CustomMapStyle {
+        SwitchCompat view;
+        int id;
+        String resource;
+    }
+
+    CustomMapStyle mMapStyles[];
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -107,12 +121,16 @@ public class MapActivity extends MapBaseActivity {
         }
 
         // set up the 'my' location button
-        Drawable drawable = Utils.getIconDrawable(this, R.drawable.ic_my_location_white_36dp,
-                R.color.gray);
-        FloatingActionButton myLocationButton =
-                (FloatingActionButton) findViewById(R.id.my_location);
-        myLocationButton.setImageDrawable(drawable);
+        Drawable myLocationDrawable = Utils.getIconDrawable(this, R.drawable.ic_my_location_white_36dp, R.color.gray);
+        FloatingActionButton myLocationButton = (FloatingActionButton) findViewById(R.id.my_location);
+        myLocationButton.setImageDrawable(myLocationDrawable);
         myLocationButton.setOnClickListener(myLocationButtonListener);
+
+        // set up the 'my' location button
+        Drawable layerDrawable = Utils.getIconDrawable(this, R.drawable.ic_layers_white_24dp, R.color.gray);
+        FloatingActionButton layerButton = (FloatingActionButton) findViewById(R.id.map_layer);
+        layerButton.setImageDrawable(layerDrawable);
+        layerButton.setOnClickListener(mapLayerButtonListener);
 
         // registers the receiver to receive the location updates from the service
         IntentFilter filter = new IntentFilter();
@@ -125,6 +143,29 @@ public class MapActivity extends MapBaseActivity {
         filter.addAction(MapActivity.DIRECTION_ROUTE_DRAW);
         filter.addAction(MapActivity.DIRECTION_ROUTE_REMOVE);
         LocalBroadcastManager.getInstance(this).registerReceiver(mLocalLocationReceiver, filter);
+
+        mMapStyles = new CustomMapStyle[7];
+        mMapStyles[0] = new CustomMapStyle();
+        mMapStyles[0].id = R.raw.mapstyle_retro;
+        mMapStyles[0].resource = "retro";
+        mMapStyles[1] = new CustomMapStyle();
+        mMapStyles[1].id = R.raw.mapstyle_night;
+        mMapStyles[1].resource = "night";
+        mMapStyles[2] = new CustomMapStyle();
+        mMapStyles[2].id = R.raw.mapstyle_gray;
+        mMapStyles[2].resource = "gray";
+        mMapStyles[3] = new CustomMapStyle();
+        mMapStyles[3].id = R.raw.mapstyle_blue;
+        mMapStyles[3].resource = "blue";
+        mMapStyles[4] = new CustomMapStyle();
+        mMapStyles[4].id = R.raw.mapstyle_slate;
+        mMapStyles[4].resource = "slate";
+        mMapStyles[5] = new CustomMapStyle();
+        mMapStyles[5].id = R.raw.mapstyle_white;
+        mMapStyles[5].resource = "white";
+        mMapStyles[6] = new CustomMapStyle();
+        mMapStyles[6].id = R.raw.mapstyle_pink;
+        mMapStyles[6].resource = "pink";
     }
 
     /**
@@ -144,6 +185,74 @@ public class MapActivity extends MapBaseActivity {
         public void onClick(View v) {
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                     Utils.getLatLng(getLocation()), DEFAULT_ZOOM));
+        }
+    };
+
+    private View.OnClickListener mapLayerButtonListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            LayoutInflater layoutInflaterAndroid = LayoutInflater.from(MapActivity.this);
+            View view = layoutInflaterAndroid.inflate(R.layout.dialog_layer, null);
+
+            mMapStyles[0].view = (SwitchCompat) view.findViewById(R.id.switch_retro);
+            mMapStyles[1].view = (SwitchCompat) view.findViewById(R.id.switch_night);
+            mMapStyles[2].view = (SwitchCompat) view.findViewById(R.id.switch_grayscale);
+            mMapStyles[3].view = (SwitchCompat) view.findViewById(R.id.switch_muted_blue);
+            mMapStyles[4].view = (SwitchCompat) view.findViewById(R.id.switch_pale_down);
+            mMapStyles[5].view = (SwitchCompat) view.findViewById(R.id.switch_paper);
+            mMapStyles[6].view = (SwitchCompat) view.findViewById(R.id.switch_pinky);
+
+            for (int i = 0; i < mMapStyles.length; i++) {
+                String current_style = MainApplication.getString("style");
+                if (current_style != null && !current_style.isEmpty()) {
+                    if (mMapStyles[i].resource.equals(current_style)) {
+                        mMapStyles[i].view.setChecked(true);
+                    } else {
+                        mMapStyles[i].view.setChecked(false);
+                    }
+                }
+            }
+
+            for (int i = 0; i < mMapStyles.length; i++) {
+                final int n = i;
+                mMapStyles[n].view.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        if (isChecked) {
+                            CustomMapStyle cstyle = mMapStyles[n];
+                            for (int j = 0; j < mMapStyles.length; j++) {
+                                if (cstyle.view != mMapStyles[j].view) {
+                                    mMapStyles[j].view.setChecked(false);
+                                }
+                            }
+                            MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(MapActivity.this, cstyle.id);
+                            mMap.setMapStyle(style);
+                            MainApplication.putString("style", cstyle.resource);
+                        } else {
+                            mMap.setMapStyle(null);
+                            MainApplication.putString("style", "normal");
+                        }
+                    }
+                });
+            }
+
+            final SwitchCompat traffic = (SwitchCompat) view.findViewById(R.id.switch_traffic);
+            traffic.setChecked(MainApplication.getBool("traffic"));
+
+            traffic.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    mMap.setTrafficEnabled(isChecked);
+                    MainApplication.putBool("traffic", isChecked);
+                }
+            });
+
+            AlertDialog dialog = new AlertDialog.Builder(MapActivity.this)
+                    .setView(view)
+                    .setCancelable(true)
+                    .setNegativeButton(R.string.close, null)
+                    .show();
+            dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
         }
     };
 
@@ -174,6 +283,22 @@ public class MapActivity extends MapBaseActivity {
             mMap = googleMap;
 
             mMm = new MarkerManager(mMap, mInfoWindowManager);
+
+            boolean traffic_value = MainApplication.getBool("traffic");
+            mMap.setTrafficEnabled(traffic_value);
+
+            String current_style = MainApplication.getString("style");
+            if (current_style == null || current_style.equals("normal")) {
+                mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+            } else {
+                for (int i = 0; i < mMapStyles.length; i++) {
+                    if (mMapStyles[i].resource.equals(current_style)) {
+                        MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(MapActivity.this, mMapStyles[i].id);
+                        mMap.setMapStyle(style);
+                        break;
+                    }
+                }
+            }
 
             MapActivity.this.onMapReady();
 
@@ -296,18 +421,7 @@ public class MapActivity extends MapBaseActivity {
                 drawDirection(location);
                 closeSlidePanel();
             } else if (intent.getAction().equals(MapActivity.DIRECTION_ROUTE_REMOVE)) {
-                if (mDirectionRoute.line != null) {
-                    mDirectionRoute.line.remove();
-                    mDirectionRoute.line = null;
-                }
-                if (mDirectionRoute.window != null) {
-                    mInfoWindowManager.hide(mDirectionRoute.window);
-                    mDirectionRoute.window = null;
-                }
-                if (mDirectionRoute.marker != null) {
-                    mDirectionRoute.marker.remove();
-                    mDirectionRoute.marker = null;
-                }
+                cleanupDirection();
             }
         }
     };
@@ -377,7 +491,23 @@ public class MapActivity extends MapBaseActivity {
         }
     };
 
+    void cleanupDirection() {
+        if (mDirectionRoute.line != null) {
+            mDirectionRoute.line.remove();
+            mDirectionRoute.line = null;
+        }
+        if (mDirectionRoute.window != null) {
+            mInfoWindowManager.hide(mDirectionRoute.window);
+            mDirectionRoute.window = null;
+        }
+        if (mDirectionRoute.marker != null) {
+            mDirectionRoute.marker.remove();
+            mDirectionRoute.marker = null;
+        }
+    }
+
     void drawDirection(final Location locationTo) {
+        cleanupDirection();
         SimpleDirection.getDirection(locationTo, getLocation(), new SimpleDirection.SimpleDirectionListener() {
             @Override
             public void onSuccess(List<SimpleDirection.Route> routes) {
@@ -428,6 +558,11 @@ public class MapActivity extends MapBaseActivity {
 
             @Override
             public void onFail(String err) {
+                String message = MapActivity.this.getResources().getString(R.string.no_direction_available);
+                if (!err.isEmpty()) {
+                    message += " (" + err + ")";
+                }
+                Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
             }
         });
     }

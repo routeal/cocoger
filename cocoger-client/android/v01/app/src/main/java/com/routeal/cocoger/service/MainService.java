@@ -46,7 +46,7 @@ public class MainService extends BasePeriodicService {
 
     private final static int PAST_LOCATION_QUEUE_MAX = 10;
 
-    private final static int PAST_LOCATION_QUEUE_SIZE = 5;
+    private final static int PAST_LOCATION_QUEUE_SIZE = 6;
 
     private final static float FOREGROUND_MIN_MOVEMENT = 10.0f;
 
@@ -204,7 +204,7 @@ public class MainService extends BasePeriodicService {
 
             mLocationRequest = LocationRequest.create()
                     .setInterval(60 * 1000) // 60 sec
-                    .setFastestInterval(3000) // 5 sec
+                    .setFastestInterval(10000) // 10 sec
                     .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
             LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApi,
@@ -361,10 +361,10 @@ public class MainService extends BasePeriodicService {
         Log.d(TAG, "saveLocation");
         broadcastLocation(mLastKnownLocation, mLastKnownAddress);
 
-        FB.saveLocation(mLastKnownLocation, mLastKnownAddress, new FB.CompleteListener() {
+        FB.saveLocation(mLastKnownLocation, mLastKnownAddress, new FB.SaveLocationListener() {
             @Override
-            public void onSuccess() {
-                DBUtil.saveSentLocation(mLastKnownLocation, mLastKnownAddress);
+            public void onSuccess(String key) {
+                DBUtil.saveSentLocation(mLastKnownLocation, mLastKnownAddress, key);
             }
 
             @Override
@@ -382,9 +382,9 @@ public class MainService extends BasePeriodicService {
                 Log.d(TAG, "saveLocation: save location to database");
                 final LocationAddress la = dbLocations.get(i);
                 FB.saveLocation(Utils.getLocation(la), Utils.getAddress(la), false,
-                        new FB.CompleteListener() {
+                        new FB.SaveLocationListener() {
                             @Override
-                            public void onSuccess() {
+                            public void onSuccess(String key) {
                                 DBUtil.deleteLocation(la.getId());
                             }
 

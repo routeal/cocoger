@@ -112,6 +112,12 @@ public class FB {
         void onFail(String err);
     }
 
+    public interface SaveLocationListener {
+        void onSuccess(String key);
+
+        void onFail(String err);
+    }
+
     public static String getUid() {
         FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
         if (fUser == null) return null;
@@ -277,12 +283,12 @@ public class FB {
     }
 
     // Note: this may call before login
-    public static void saveLocation(Location location, Address address, final CompleteListener listener) {
+    public static void saveLocation(Location location, Address address, SaveLocationListener listener) {
         saveLocation(location, address, true, listener);
     }
 
     public static void saveLocation(Location location, Address address, boolean notifyFriend,
-                                    final CompleteListener listener) {
+                                    final SaveLocationListener listener) {
         Log.d(TAG, "saveLocation:");
 
         String uid = getUid();
@@ -310,7 +316,7 @@ public class FB {
         DatabaseReference db = FirebaseDatabase.getInstance().getReference();
 
         // location key
-        String key = db.child("locations").push().getKey();
+        final String key = db.child("locations").push().getKey();
 
         GeoHash geoHash = new GeoHash(new GeoLocation(latitude, longitude));
 
@@ -343,7 +349,7 @@ public class FB {
             public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
                 if (databaseError == null) {
                     // success
-                    if (listener != null) listener.onSuccess();
+                    if (listener != null) listener.onSuccess(key);
                 } else {
                     // error
                     if (listener != null) listener.onFail(databaseError.getMessage());

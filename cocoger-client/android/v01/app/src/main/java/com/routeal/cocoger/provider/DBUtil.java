@@ -32,15 +32,15 @@ public class DBUtil {
     private final static int MAX_GEO_LOCATIONS = 1000;
     private final static int MAX_REVERSE_GEO_LOCATIONS = 1000;
 
-    public static void saveSentLocation(Location location, Address address) {
-        saveLocation(location, address, 1);
+    public static void saveSentLocation(Location location, Address address, String key) {
+        saveLocation(location, address, key);
     }
 
     public static void saveUnsentLocation(Location location, Address address) {
-        saveLocation(location, address, 0);
+        saveLocation(location, address, null);
     }
 
-    static void saveLocation(Location location, Address address, int sent) {
+    private static void saveLocation(Location location, Address address, String key) {
         ContentValues values = new ContentValues();
         values.put(DB.Locations.TIMESTAMP, location.getTime());
         values.put(DB.Locations.LATITUDE, location.getLatitude());
@@ -56,29 +56,7 @@ public class DBUtil {
         values.put(DB.Locations.SUBLOCALITY, address.getSubLocality());
         values.put(DB.Locations.THOROUGHFARE, address.getThoroughfare());
         values.put(DB.Locations.SUBTHOROUGHFARE, address.getSubThoroughfare());
-        values.put(DB.Locations.SENT, sent);
-
-        ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
-        contentResolver.insert(DB.Locations.CONTENT_URI, values);
-    }
-
-    public static void saveLocation(LocationAddress la) {
-        ContentValues values = new ContentValues();
-        values.put(DB.Locations.TIMESTAMP, la.getTimestamp());
-        values.put(DB.Locations.LATITUDE, la.getLatitude());
-        values.put(DB.Locations.LONGITUDE, la.getLongitude());
-        values.put(DB.Locations.ALTITUDE, la.getAltitude());
-        values.put(DB.Locations.SPEED, la.getSpeed());
-        values.put(DB.Locations.DESCRIPTION, la.getDescription());
-        values.put(DB.Locations.POSTALCODE, la.getPostalCode());
-        values.put(DB.Locations.COUNTRYNAME, la.getCountryName());
-        values.put(DB.Locations.ADMINAREA, la.getAdminArea());
-        values.put(DB.Locations.SUBADMINAREA, la.getSubAdminArea());
-        values.put(DB.Locations.LOCALITY, la.getLocality());
-        values.put(DB.Locations.SUBLOCALITY, la.getSubLocality());
-        values.put(DB.Locations.THOROUGHFARE, la.getThoroughfare());
-        values.put(DB.Locations.SUBTHOROUGHFARE, la.getSubThoroughfare());
-        values.put(DB.Locations.PLACEID, la.getPlaceId());
+        values.put(DB.Locations.KEY, key);
 
         ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
         contentResolver.insert(DB.Locations.CONTENT_URI, values);
@@ -129,7 +107,7 @@ public class DBUtil {
         Cursor cursor = null;
         try {
             ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
-            String selectionClause = DB.Locations.SENT + " = 0";
+            String selectionClause = DB.Locations.KEY + " is null";
             cursor = contentResolver.query(DB.Locations.CONTENT_URI, null,
                     selectionClause, null,
                     DB.Locations.TIMESTAMP + " ASC");
@@ -157,7 +135,8 @@ public class DBUtil {
         try {
             ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
             String selectionClause = "( " +
-                    DB.Locations.SENT + " = 1 AND " +
+                    DB.Locations.KEY + " is not null AND " +
+                    DB.Locations.KEY + " != '' AND " +
                     DB.Locations.TIMESTAMP + " >= ? AND " +
                     DB.Locations.TIMESTAMP + " <= ? " +
                     ")";
@@ -276,8 +255,7 @@ public class DBUtil {
      * @param bearing Bearing in degrees
      * @return End-point from the source given the desired range and bearing.
      */
-    static PointF calculateDerivedPosition(PointF point,
-                                           double range, double bearing) {
+    static PointF calculateDerivedPosition(PointF point, double range, double bearing) {
         double EarthRadius = 6371000; // m
 
         double latA = Math.toRadians(point.x);
@@ -538,7 +516,7 @@ public class DBUtil {
         saveMessage(key, title, message, picture, 0, date);
     }
 
-    static void saveMessage(String key, String title, String message, String picture, int resouceId, Date date) {
+    private static void saveMessage(String key, String title, String message, String picture, int resouceId, Date date) {
         ContentValues values = new ContentValues();
         values.put(DB.Messages.TITLE, title);
         values.put(DB.Messages.MESSAGE, message);

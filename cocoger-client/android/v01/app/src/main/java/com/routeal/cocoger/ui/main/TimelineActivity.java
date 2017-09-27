@@ -39,6 +39,7 @@ import com.routeal.cocoger.util.Utils;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -111,7 +112,7 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
 
         mDate = null;
         mStartTime = 0;
-        mEndTime = 0;
+        mEndTime = 24;
 
         new AlertDialog.Builder(TimelineActivity.this)
                 .setView(view)
@@ -119,7 +120,7 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        if (mDate == null || mEndTime == 0) {
+                        if (mDate == null) {
                             return;
                         }
                         showTimeline();
@@ -198,27 +199,85 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
         long startAt = timestamp + mStartTime * 60 * 60 * 1000;
         long endAt = timestamp + mEndTime * 60 * 60 * 1000;
 
+        // cleanup the previous timeline if any
         if (mPolyline != null) {
             mPolyline.remove();
         }
-
-        List<LocationAddress> locations = DBUtil.getSentLocations(startAt, endAt);
 
         for (Marker marker : mMarkers) {
             marker.remove();
         }
         mMarkers.clear();
 
-        for (LocationAddress la : locations) {
-            Log.d(TAG, "showTimeline: " + Utils.getAddressLine(Utils.getAddress(la), LocationRange.CURRENT.range) +
-                    " lat:" + la.getLatitude() + " log:" + la.getLongitude());
+        // location raw data
+        List<LocationAddress> locations = DBUtil.getSentLocations(startAt, endAt);
+        Log.d(TAG, "1 size=" + locations.size());
 
+        // removes the negative times and
+        // the speed is less than walking while the moving distance is less than 40 meters
+        Location prevLocation = null;
+        Iterator<LocationAddress> it = locations.iterator();
+        while (it.hasNext()) {
+            LocationAddress la = it.next();
+            Location location = Utils.getLocation(la);
+            if (prevLocation != null) {
+                long time = location.getTime() - prevLocation.getTime();
+                // 20/18 = 4 * 5 / 18 (4 km/h)
+                if ((time <= 0) || (location.getSpeed() < (20/18) && prevLocation.distanceTo(location) < 40)) {
+                    it.remove();
+                }
+            }
+            prevLocation = location;
+        }
+
+        Log.d(TAG, "2 size=" + locations.size());
+
+        // removes p1-pn if p0-pn are within the certain range.
+        List<LocationAddress> jitters = new ArrayList<>();
+        List<LocationAddress> removed = new ArrayList<>();
+        LocationAddress prev = null;
+        it = locations.iterator();
+        while (it.hasNext()) {
+            LocationAddress la = it.next();
+            Location location = Utils.getLocation(la);
+            if (prev != null) {
+                if (jitters.isEmpty()) {
+                    jitters.add(prev);
+                }
+                prevLocation = Utils.getLocation(prev);
+                float currentDistance = prevLocation.distanceTo(location);
+                Location firstLocation = Utils.getLocation(jitters.get(0));
+                float firstDistance = firstLocation.distanceTo(location);
+                if (currentDistance < 100 && firstDistance < 100) {
+                    jitters.add(la);
+                } else {
+                    for (int i = 1; i < jitters.size(); i++) {
+                        removed.add(jitters.get(i));
+                    }
+                    jitters.clear();
+                }
+            }
+            prev = la;
+        }
+        for (LocationAddress la: removed) {
+            locations.remove(la);
+        }
+        Log.d(TAG, "3 size=" + locations.size());
+
+        for (LocationAddress la : locations) {
             Location location = Utils.getLocation(la);
             Address address = Utils.getAddress(la);
+
+            // whole address line
             String addressLine = Utils.getAddressLine(address, LocationRange.CURRENT.range);
 
-            double speed = location.getSpeed() * 18 / 5;  // km / hour
-            String title = String.format("speed=%f", speed);
+            // speed in m/h
+            double speed = location.getSpeed() * 2.23694; //m/h  - 18 / 5;  // km / hour
+
+            // date in short format
+            DateFormat f = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault());
+            String formattedDate = f.format(new Date(location.getTime()));
+            String title = String.format("%s (%f m/h)", formattedDate, speed);
 
             Marker marker = mMap.addMarker(new MarkerOptions().position(new LatLng(la.getLatitude(), la.getLongitude()))
                     .title(title)
