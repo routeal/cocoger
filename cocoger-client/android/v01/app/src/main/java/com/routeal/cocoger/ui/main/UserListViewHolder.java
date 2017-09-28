@@ -64,7 +64,7 @@ public class UserListViewHolder extends RecyclerView.ViewHolder {
         }
 
         // check to see already invited
-        User me = MainApplication.getUser();
+        User me = FB.getUser();
         Map<String, Long> invites = me.getInvites();
         if (invites != null && invites.containsKey(key)) {
             // already invited

@@ -78,7 +78,7 @@ public class AccountActivity extends AppCompatActivity {
         mPictureView = (ImageView) findViewById(R.id.profile_picture);
         mPhotoCameraView = (FloatingActionButton) findViewById(R.id.photo_camera);
 
-        final User user = MainApplication.getUser();
+        final User user = FB.getUser();
 
         if (!mIsSetup) {
             ActionBar ab = getSupportActionBar();
@@ -273,7 +273,7 @@ public class AccountActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (MainApplication.getUser() != null) {
+        if (FB.getUser() != null) {
             getMenuInflater().inflate(R.menu.menu_save, menu);
             return true;
         }
@@ -318,7 +318,7 @@ public class AccountActivity extends AppCompatActivity {
     }
 
     private void save() {
-        final User user = MainApplication.getUser();
+        final User user = FB.getUser();
 
         if (mName != null && mName.equals(user.getDisplayName())) {
             mName = null;
@@ -380,7 +380,7 @@ public class AccountActivity extends AppCompatActivity {
         final ProgressDialog dialog = Utils.getBusySpinner(this);
 
         // get the user in the memory
-        final User user = MainApplication.getUser();
+        final User user = FB.getUser();
         user.setDisplayName(mName);
         user.setSearchedName(mName.toLowerCase());
         user.setGender(mGender.toLowerCase());

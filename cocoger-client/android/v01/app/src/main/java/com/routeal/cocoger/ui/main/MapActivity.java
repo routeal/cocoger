@@ -132,13 +132,13 @@ public class MapActivity extends MapBaseActivity {
                     // first time only
                     if (getLocation() == null) {
                         Log.d(TAG, "Receive Last_location_update: setupMarkers");
-                        if (MainApplication.getUser() != null) {
+                        if (FB.getUser() != null) {
                             mMm.setupMarkers(location, address);
                         }
                         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                                 Utils.getLatLng(location), DEFAULT_ZOOM));
                     } else {
-                        if (MainApplication.getUser() != null) {
+                        if (FB.getUser() != null) {
                             mMm.reposition(FB.getUid(), location, address, LocationRange.CURRENT.range);
                         }
                     }
@@ -146,14 +146,16 @@ public class MapActivity extends MapBaseActivity {
                 setLocation(location);
             } else if (intent.getAction().equals(MapActivity.USER_AVAILABLE)) {
                 Log.d(TAG, "Receive User_available: setupMarkers");
-                mMm.setupMarkers(getLocation(), Utils.getAddress(getLocation()));
+                if (mMm != null) {
+                    mMm.setupMarkers(getLocation(), Utils.getAddress(getLocation()));
+                }
             } else if (intent.getAction().equals(MapActivity.FRIEND_LOCATION_UPDATE)) {
                 final String fid = intent.getStringExtra(MapActivity.FRIEND_KEY);
                 if (fid == null) {
                     return;
                 }
                 Friend friend = null;
-                User user = MainApplication.getUser();
+                User user = FB.getUser();
                 if (user != null && user.getFriends() != null) {
                     friend = user.getFriends().get(fid);
                     if (friend == null || friend.getLocation() == null) {
@@ -183,7 +185,7 @@ public class MapActivity extends MapBaseActivity {
                     return;
                 }
                 Friend friend = null;
-                User user = MainApplication.getUser();
+                User user = FB.getUser();
                 if (user != null && user.getFriends() != null) {
                     friend = user.getFriends().get(fid);
                     if (friend == null || friend.getLocation() == null) {

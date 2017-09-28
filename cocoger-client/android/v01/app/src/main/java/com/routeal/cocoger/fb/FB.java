@@ -56,66 +56,23 @@ import java.util.Map;
 
 public class FB {
 
-    private final static String TAG = "FB";
-
     public static final String ACTION_FRIEND_REQUEST_ACCEPTED = "FRIEND_REQUEST_ACCEPTED";
-
     public static final String ACTION_FRIEND_REQUEST_DECLINED = "FRIEND_REQUEST_DECLINED";
-
     public static final String ACTION_RANGE_REQUEST_ACCEPTED = "RANGE_REQUEST_ACCEPTED";
-
     public static final String ACTION_RANGE_REQUEST_DECLINED = "RANGE_REQUEST_DECLINED";
-
     public static final String NOTIFI_RANGE_REQUETER = "range_requester";
     public static final String NOTIFI_RANGE = "range";
     public static final String NOTIFI_FRIEND_INVITE = "friend_invite";
+    private final static String TAG = "FB";
+    private static boolean monitored = false;
+    private static User mUser;
 
-    public interface SignInListener {
-        void onSuccess();
-
-        void onFail(String err);
+    public static User getUser() {
+        return mUser;
     }
 
-    public interface CreateUserListener {
-        void onSuccess(String key);
-
-        void onFail(String err);
-    }
-
-    public interface ResetPasswordListener {
-        void onSuccess();
-
-        void onFail(String err);
-    }
-
-    public interface UploadImageListener {
-        void onSuccess(String url);
-
-        void onFail(String err);
-    }
-
-    public interface LocationListener {
-        void onSuccess(Location location, Address address);
-
-        void onFail(String err);
-    }
-
-    public interface UserListener {
-        void onSuccess(User user);
-
-        void onFail(String err);
-    }
-
-    public interface CompleteListener {
-        void onSuccess();
-
-        void onFail(String err);
-    }
-
-    public interface SaveLocationListener {
-        void onSuccess(String key);
-
-        void onFail(String err);
+    public static void setUser(User user) {
+        mUser = user;
     }
 
     public static String getUid() {
@@ -124,27 +81,27 @@ public class FB {
         return fUser.getUid();
     }
 
-    static DatabaseReference getDeviceDatabaseReference() {
+    private static DatabaseReference getDeviceDatabaseReference() {
         return FirebaseDatabase.getInstance().getReference().child("devices");
     }
 
-    static DatabaseReference getUserDatabaseReference() {
+    private static DatabaseReference getUserDatabaseReference() {
         return FirebaseDatabase.getInstance().getReference().child("users");
     }
 
-    static DatabaseReference getFriendDatabaseReference(String user) {
+    private static DatabaseReference getFriendDatabaseReference(String user) {
         return getUserDatabaseReference().child(user).child("friends");
     }
 
-    static DatabaseReference getFriendDatabaseReference(String user, String friend) {
+    private static DatabaseReference getFriendDatabaseReference(String user, String friend) {
         return getUserDatabaseReference().child(user).child("friends").child(friend);
     }
 
-    static DatabaseReference getLocationDatabaseReference() {
+    private static DatabaseReference getLocationDatabaseReference() {
         return FirebaseDatabase.getInstance().getReference().child("locations");
     }
 
-    static DatabaseReference getUserLocationDatabaseReference() {
+    private static DatabaseReference getUserLocationDatabaseReference() {
         return FirebaseDatabase.getInstance().getReference().child("user_locations");
     }
 
@@ -153,25 +110,20 @@ public class FB {
     }
 
     public static boolean isCurrentUser(String key) {
-        if (key == null) return false;
-        return key.equals(getUid());
+        return (key != null && key.equals(getUid()));
     }
 
     public static void signOut() {
         FirebaseAuth.getInstance().signOut();
     }
 
-    static boolean monitored = false;
-
     public static void monitorAuthentication() {
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-
         Log.d(TAG, "monitorAuthentication");
 
+        FirebaseAuth auth = FirebaseAuth.getInstance();
         if (auth == null) return;
 
         if (monitored) return;
-
         monitored = true;
 
         // setting up a listener when the user is authenticated
@@ -187,8 +139,8 @@ public class FB {
                     }
                 } else {
                     Log.d(TAG, "Firebase User invalidated");
-                    if (MainApplication.getUser() != null) {
-                        MainApplication.setUser(null);
+                    if (FB.getUser() != null) {
+                        FB.setUser(null);
                         // stop the service
                         MainService.stop();
                     }
@@ -207,7 +159,7 @@ public class FB {
                 Log.d(TAG, "User database changed:" + dataSnapshot.toString());
 
                 User newUser = dataSnapshot.getValue(User.class);
-                User oldUser = MainApplication.getUser();
+                User oldUser = FB.getUser();
 
                 if (newUser == null) {
                     if (oldUser == null) {
@@ -244,7 +196,6 @@ public class FB {
                     }
                 });
     }
-
 
     public static void createUser(Activity activity, String email, String password,
                                   final CreateUserListener listener) {
@@ -333,7 +284,7 @@ public class FB {
         updates.put("users/" + uid + "/location/", key);
 
         if (notifyFriend) {
-            User user = MainApplication.getUser();
+            User user = FB.getUser();
             if (user != null) {
                 Map<String, Friend> friends = user.getFriends();
                 if (friends != null) {
@@ -389,7 +340,7 @@ public class FB {
         Log.d(TAG, "onSignIn:" + user.toString());
 
         // save the user in the memory
-        MainApplication.setUser(user);
+        FB.setUser(user);
 
         // let the map activity know that the user becomes available
         // so that it can have the user pictures.  Sometimes the map
@@ -443,7 +394,7 @@ public class FB {
         user.setEmail(fUser.getEmail());
 
         // save the user in the memory
-        MainApplication.setUser(user);
+        FB.setUser(user);
 
         FirebaseDatabase db = FirebaseDatabase.getInstance();
 
@@ -490,7 +441,7 @@ public class FB {
         Map<String, Friend> oldFriends = ou.getFriends();
 
         if (newFriends == null && oldFriends == null) {
-            MainApplication.setUser(nu);
+            FB.setUser(nu);
             return;
         }
 
@@ -569,7 +520,7 @@ public class FB {
             }
         }
 
-        MainApplication.setUser(nu);
+        FB.setUser(nu);
     }
 
     public static void initUser(User user) throws Exception {
@@ -580,14 +531,18 @@ public class FB {
 
     private static void sendEmailVerification() {
         FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
-        fbUser.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    Log.d(TAG, "sendEmailVerification");
+        try {
+            fbUser.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "sendEmailVerification");
+                    }
                 }
-            }
-        });
+            });
+        } catch (Exception e) {
+            Log.d(TAG, "sendEmailVerification", e);
+        }
     }
 
     public static boolean checkFriendRequest(RecyclerView.Adapter a) {
@@ -595,7 +550,7 @@ public class FB {
                 (FirebaseRecyclerAdapter<User, UserListViewHolder>) a;
         boolean accepted = false;
 
-        User user = MainApplication.getUser();
+        User user = FB.getUser();
 
         Map<String, Long> invitees = user.getInvitees();
 
@@ -621,7 +576,7 @@ public class FB {
         String uid = getUid();
         DatabaseReference userDb = getUserDatabaseReference();
 
-        User user = MainApplication.getUser();
+        User user = FB.getUser();
         Map<String, Friend> friends = user.getFriends();
 
         boolean modified = false;
@@ -691,9 +646,9 @@ public class FB {
         Friend myInfo = new Friend();
         myInfo.setCreated(timestamp);
         myInfo.setRange(defaultLocationChange);
-        myInfo.setDisplayName(MainApplication.getUser().getDisplayName());
-        myInfo.setPicture(MainApplication.getUser().getPicture());
-        myInfo.setLocation(MainApplication.getUser().getLocation());
+        myInfo.setDisplayName(FB.getUser().getDisplayName());
+        myInfo.setPicture(FB.getUser().getPicture());
+        myInfo.setLocation(FB.getUser().getLocation());
 
         DatabaseReference fDb = getFriendDatabaseReference(invite, invitee);
         fDb.setValue(myInfo);
@@ -872,7 +827,6 @@ public class FB {
         return adapter;
     }
 
-
     public static FirebaseRecyclerAdapter<User, UserListViewHolder>
     getUserRecyclerAdapter(String text, final View view) {
         // FIXME:
@@ -1041,8 +995,57 @@ public class FB {
         return rating > 4;
     }
 
-    static String getDeviceUniqueId() {
+    private static String getDeviceUniqueId() {
         return Settings.Secure.getString(MainApplication.getContext().getContentResolver(),
                 Settings.Secure.ANDROID_ID);
+    }
+
+    public interface SignInListener {
+        void onSuccess();
+
+        void onFail(String err);
+    }
+
+
+    public interface CreateUserListener {
+        void onSuccess(String key);
+
+        void onFail(String err);
+    }
+
+    public interface ResetPasswordListener {
+        void onSuccess();
+
+        void onFail(String err);
+    }
+
+    public interface UploadImageListener {
+        void onSuccess(String url);
+
+        void onFail(String err);
+    }
+
+    public interface LocationListener {
+        void onSuccess(Location location, Address address);
+
+        void onFail(String err);
+    }
+
+    public interface UserListener {
+        void onSuccess(User user);
+
+        void onFail(String err);
+    }
+
+    public interface CompleteListener {
+        void onSuccess();
+
+        void onFail(String err);
+    }
+
+    public interface SaveLocationListener {
+        void onSuccess(String key);
+
+        void onFail(String err);
     }
 }

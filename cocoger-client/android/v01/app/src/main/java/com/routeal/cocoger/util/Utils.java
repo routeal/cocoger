@@ -169,16 +169,22 @@ public class Utils {
     }
 
     public static String getAddressLine(Address address, int range) {
-        String locationName = "";
-
         LocationRange value = LocationRange.to(range);
 
+        if (value == LocationRange.NONE) {
+            return "";
+        }
+        if (value == LocationRange.CURRENT) {
+            return getAddressLine(address);
+        }
+        // something wrong
+        if (address == null) {
+            return "";
+        }
+
+        String locationName = "";
+
         switch (value) {
-            case NONE:
-                break;
-            case CURRENT:
-                locationName = getAddressLine(address);
-                break;
             case SUBTHOROUGHFARE:
                 locationName += (address.getSubThoroughfare() == null) ?
                         "" : (address.getSubThoroughfare() + ", ");
@@ -333,6 +339,16 @@ public class Utils {
             }
         }
         return location;
+    }
+
+    public static float getSpeed(Location to, Location from) {
+        double distance = Utils.distanceTo(to, from);
+        double elapsed = Math.abs((float) ((to.getTime() - from.getTime()) / 1000.0));
+        if (elapsed > 0) {
+            double speed = distance / elapsed; // meter / seconds
+            return (float) speed;
+        }
+        return 0;
     }
 
     public static Address getFromLocation(Location location) {

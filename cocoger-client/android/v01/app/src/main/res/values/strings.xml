@@ -121,4 +121,7 @@
     <string name="no_location_timeline">No location history found</string>
     <string name="direction">Direction</string>
     <string name="no_direction_available">No direction available.</string>
+    <string name="time_range">Time Range</string>
+    <string name="speed_rate">2.23694</string>
+    <string name="timeline_marker_title_format" formatted="false">%s (%f m/h)</string>
 </resources>

@@ -24,8 +24,6 @@ public class MainApplication extends Application {
 
     private static String mAppVersion = "0.01";
 
-    private static User mUser;
-
     @Override
     public void onCreate() {
         super.onCreate();
@@ -58,14 +56,6 @@ public class MainApplication extends Application {
 
     public static String getApplicationVersion() {
         return mAppVersion;
-    }
-
-    public static User getUser() {
-        return mUser;
-    }
-
-    public static void setUser(User user) {
-        mUser = user;
     }
 
     public static void putString(String key, String value) {

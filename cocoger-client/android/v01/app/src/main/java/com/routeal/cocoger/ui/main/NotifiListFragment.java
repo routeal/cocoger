@@ -118,7 +118,7 @@ public class NotifiListFragment extends PagerFragment {
     List<Message> createNotifiList() {
         List<Message> messages = new ArrayList<>();
 
-        User user = MainApplication.getUser();
+        User user = FB.getUser();
         if (user != null) {
 
             if (user.getInvitees() != null) {

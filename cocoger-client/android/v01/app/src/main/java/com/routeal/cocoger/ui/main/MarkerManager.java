@@ -197,7 +197,7 @@ class MarkerManager {
         // sometimes, try to reposition with range=0 multiple times
         if (range == 0) return;
 
-        User user = MainApplication.getUser();
+        User user = FB.getUser();
         String name = null;
         String picture = null;
 
@@ -402,7 +402,7 @@ class MarkerManager {
         // run only once
         if (mHasFriendMarkers) return;
 
-        User user = MainApplication.getUser();
+        User user = FB.getUser();
         if (user == null) {
             Log.d(TAG, "setupMarkers: user not available");
             return;

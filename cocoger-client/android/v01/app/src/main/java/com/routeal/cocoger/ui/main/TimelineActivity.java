@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -94,7 +95,8 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
             case android.R.id.home:
                 finish();
                 return true;
-            case R.id.action_save:
+            case R.id.action_send:
+                sendTimeline();
                 return true;
             case R.id.action_date_change:
                 selectDateTime();
@@ -193,44 +195,45 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
 
     }
 
-    private void showTimeline() {
-        Log.d(TAG, "showTimeline: " + mDate.toString() + " start: " + mStartTime + " end: " + mEndTime);
-        long timestamp = mDate.getTime();
-        long startAt = timestamp + mStartTime * 60 * 60 * 1000;
-        long endAt = timestamp + mEndTime * 60 * 60 * 1000;
+    private void removeLocationJitters(List<LocationAddress> locations) {
+        Log.d(TAG, "removeLocationJitters: original size=" + locations.size());
 
-        // cleanup the previous timeline if any
-        if (mPolyline != null) {
-            mPolyline.remove();
+        // remove the same address as the previous one
+        Address prevAddress = null;
+        Iterator<LocationAddress> it = locations.iterator();
+        while (it.hasNext()) {
+            LocationAddress la = it.next();
+            Address address = Utils.getAddress(la);
+            if (prevAddress != null) {
+                String newAddressLine = Utils.getAddressLine(address);
+                String oldAddressLine = Utils.getAddressLine(prevAddress);
+                if (newAddressLine.equals(oldAddressLine)) {
+                    it.remove();
+                }
+            }
+            prevAddress = address;
         }
 
-        for (Marker marker : mMarkers) {
-            marker.remove();
-        }
-        mMarkers.clear();
+        Log.d(TAG, "removeLocationJitters: after address size=" + locations.size());
 
-        // location raw data
-        List<LocationAddress> locations = DBUtil.getSentLocations(startAt, endAt);
-        Log.d(TAG, "1 size=" + locations.size());
-
-        // removes the negative times and
+        // removes the negative times (invalid) and
         // the speed is less than walking while the moving distance is less than 40 meters
         Location prevLocation = null;
-        Iterator<LocationAddress> it = locations.iterator();
+        it = locations.iterator();
         while (it.hasNext()) {
             LocationAddress la = it.next();
             Location location = Utils.getLocation(la);
             if (prevLocation != null) {
                 long time = location.getTime() - prevLocation.getTime();
                 // 20/18 = 4 * 5 / 18 (4 km/h)
-                if ((time <= 0) || (location.getSpeed() < (20/18) && prevLocation.distanceTo(location) < 40)) {
+                if ((time <= 0) || (location.getSpeed() < (20 / 18) && prevLocation.distanceTo(location) < 40)) {
                     it.remove();
                 }
             }
             prevLocation = location;
         }
 
-        Log.d(TAG, "2 size=" + locations.size());
+        Log.d(TAG, "removeLocationJitters: after walking around size=" + locations.size());
 
         // removes p1-pn if p0-pn are within the certain range.
         List<LocationAddress> jitters = new ArrayList<>();
@@ -259,10 +262,33 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
             }
             prev = la;
         }
-        for (LocationAddress la: removed) {
+        for (LocationAddress la : removed) {
             locations.remove(la);
         }
         Log.d(TAG, "3 size=" + locations.size());
+    }
+
+    private void showTimeline() {
+        Log.d(TAG, "showTimeline: " + mDate.toString() + " start: " + mStartTime + " end: " + mEndTime);
+        long timestamp = mDate.getTime();
+        long startAt = timestamp + mStartTime * 60 * 60 * 1000;
+        long endAt = timestamp + mEndTime * 60 * 60 * 1000;
+
+        // cleanup the previous timeline if any
+        if (mPolyline != null) {
+            mPolyline.remove();
+        }
+        // remove the previous markers
+        for (Marker marker : mMarkers) {
+            marker.remove();
+        }
+        mMarkers.clear();
+
+        // location raw data
+        List<LocationAddress> locations = DBUtil.getSentLocations(startAt, endAt);
+
+        // remove the location jitters
+        removeLocationJitters(locations);
 
         for (LocationAddress la : locations) {
             Location location = Utils.getLocation(la);
@@ -272,11 +298,14 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
             String addressLine = Utils.getAddressLine(address, LocationRange.CURRENT.range);
 
             // speed in m/h
-            double speed = location.getSpeed() * 2.23694; //m/h  - 18 / 5;  // km / hour
+            String speedRate = getResources().getString(R.string.speed_rate);
+            double speed = location.getSpeed() * Double.parseDouble(speedRate); //m/h  - 18 / 5;  // km / hour
 
             // date in short format
             DateFormat f = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, Locale.getDefault());
             String formattedDate = f.format(new Date(location.getTime()));
+            String titleFormat = getResources().getString(R.string.timeline_marker_title_format);
+
             String title = String.format("%s (%f m/h)", formattedDate, speed);
 
             Marker marker = mMap.addMarker(new MarkerOptions().position(new LatLng(la.getLatitude(), la.getLongitude()))
@@ -336,5 +365,9 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
+    }
+
+    void sendTimeline() {
+        Toast.makeText(this, "Share Timeline not implemented", Toast.LENGTH_SHORT).show();
     }
 }
