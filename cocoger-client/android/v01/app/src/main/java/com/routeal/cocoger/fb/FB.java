@@ -75,6 +75,17 @@ public class FB {
         mUser = user;
     }
 
+    public static Friend getFriend(String key) {
+        Friend friend = null;
+        if (key != null && !key.isEmpty()) {
+            User user = FB.getUser();
+            if (user != null && user.getFriends() != null) {
+                friend = user.getFriends().get(key);
+            }
+        }
+        return friend;
+    }
+
     public static String getUid() {
         FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
         if (fUser == null) return null;
@@ -418,15 +429,15 @@ public class FB {
         //sendEmailVerification();
     }
 
-    private static void onUpdateUser(User nu /*newUser*/, User ou /*oldUser*/) {
+    private static void onUpdateUser(User newUser, User oldUser) {
         Log.d(TAG, "onUpdateUser");
 
-        Map<String, Long> invitees = nu.getInvitees();
+        Map<String, Long> invitees = newUser.getInvitees();
         if (invitees != null && !invitees.isEmpty()) {
             for (Map.Entry<String, Long> entry : invitees.entrySet()) {
                 if (entry.getValue() > 0) {
-                    if (ou.getInvitees() == null ||
-                            ou.getInvitees().get(entry.getKey()) == null) {
+                    if (oldUser.getInvitees() == null ||
+                            oldUser.getInvitees().get(entry.getKey()) == null) {
                         Log.d(TAG, "received new friends request");
                         //ou.setInvitees(invitees);
                         sendInviteNotification(entry.getKey(), entry.getValue());
@@ -437,22 +448,22 @@ public class FB {
             }
         }
 
-        Map<String, Friend> newFriends = nu.getFriends();
-        Map<String, Friend> oldFriends = ou.getFriends();
+        Map<String, Friend> newFriends = newUser.getFriends();
+        Map<String, Friend> oldFriends = oldUser.getFriends();
 
         if (newFriends == null && oldFriends == null) {
-            FB.setUser(nu);
+            FB.setUser(newUser);
             return;
         }
 
-        if (oldFriends == null && newFriends != null) {
+        if (oldFriends == null) {
             for (Map.Entry<String, Friend> entry : newFriends.entrySet()) {
                 Log.d(TAG, "Friend added: " + entry.getKey());
                 Intent intent = new Intent(MapActivity.FRIEND_LOCATION_UPDATE);
                 intent.putExtra(MapActivity.FRIEND_KEY, entry.getKey());
                 LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
             }
-        } else if (oldFriends != null && newFriends == null) {
+        } else if (newFriends == null) {
             for (Map.Entry<String, Friend> entry : oldFriends.entrySet()) {
                 Log.d(TAG, "Friend deleted: " + entry.getKey());
                 Intent intent = new Intent(MapActivity.FRIEND_LOCATION_REMOVE);
@@ -496,11 +507,6 @@ public class FB {
                     if (oldFriend.getRangeRequest() == null) {
                         sendRangeNotification(friendUid, newFriend, requestRange, currentRange);
                     }
-                    // existing range request, show the notification
-                    // if the timestamp is old
-                    else {
-
-                    }
                 }
 
                 // the range has been update, notify the map acitivity
@@ -515,12 +521,14 @@ public class FB {
                         !newFriend.getLocation().equals(oldFriend.getLocation())) {
                     Intent intent = new Intent(MapActivity.FRIEND_LOCATION_UPDATE);
                     intent.putExtra(MapActivity.FRIEND_KEY, friendUid);
+                    intent.putExtra(MapActivity.NEW_LOCATION, newFriend.getLocation());
+                    intent.putExtra(MapActivity.OLD_LOCATION, oldFriend.getLocation());
                     LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
                 }
             }
         }
 
-        FB.setUser(nu);
+        FB.setUser(newUser);
     }
 
     public static void initUser(User user) throws Exception {

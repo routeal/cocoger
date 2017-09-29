@@ -4,6 +4,7 @@ import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -56,7 +57,7 @@ public class LoginFragment extends Fragment {
 
     private String mDisplayName;
 
-
+    @SuppressWarnings("deprecation")
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -70,7 +71,11 @@ public class LoginFragment extends Fragment {
 
         TextView textView = (TextView) v.findViewById(R.id.term_privacy);
         textView.setMovementMethod(LinkMovementMethod.getInstance());
-        textView.setText(Html.fromHtml(getResources().getString(R.string.signup_note)));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            textView.setText(Html.fromHtml(getResources().getString(R.string.signup_note), Html.FROM_HTML_MODE_LEGACY));
+        } else {
+            textView.setText(Html.fromHtml(getResources().getString(R.string.signup_note)));
+        }
 
         mLoginButton = (Button) v.findViewById(R.id.btn_login);
         mLoginButton.setOnClickListener(new View.OnClickListener() {

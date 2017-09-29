@@ -156,11 +156,11 @@ public class SearchMapActivity extends MapActivity {
         startActivity(intent);
     }
 
-    private void showYourVoice() {
+    private void sendFeedback() {
         FullScreenDialogFragment dialogFragment = new FullScreenDialogFragment.Builder(this)
-                .setTitle(R.string.your_feedback)
+                .setTitle(R.string.feedback)
                 .setConfirmButton(R.string.send)
-                .setContent(UserListFragment.class, new Bundle())
+                .setContent(FeedbackFragment.class, new Bundle())
                 .build();
         dialogFragment.show(getSupportFragmentManager(), "user-dialog");
     }
@@ -178,10 +178,8 @@ public class SearchMapActivity extends MapActivity {
                         showShareTimeline();
                     } else if (id == R.id.nav_account) {
                         showAccount();
-                    } else if (id == R.id.nav_settings) {
-                        showSettings();
                     } else if (id == R.id.nav_send_feedback) {
-                        showYourVoice();
+                        sendFeedback();
                     } else if (id == R.id.nav_logout) {
                         logout();
                     } else if (id == R.id.nav_term_services) {
@@ -313,6 +311,9 @@ public class SearchMapActivity extends MapActivity {
         mSearchView.setOnMenuItemClickListener(new FloatingSearchView.OnMenuItemClickListener() {
             @Override
             public void onActionMenuItemSelected(MenuItem item) {
+                if (item.getItemId() == R.id.action_setting) {
+                    showSettings();
+                }
             }
         });
 

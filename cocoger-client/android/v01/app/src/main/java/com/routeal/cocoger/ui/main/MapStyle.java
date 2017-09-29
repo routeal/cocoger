@@ -127,6 +127,7 @@ class MapStyle {
         AlertDialog dialog = new AlertDialog.Builder(mActivity)
                 .setView(view)
                 .setCancelable(true)
+                .setNegativeButton(R.string.dismiss, null)
                 .show();
         dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
     }

@@ -25,6 +25,7 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.provider.DBUtil;
 
@@ -420,4 +421,63 @@ public class Utils {
         return to;
     }
 
+    /**
+     * Idea of this function to detect the current range movement from one range to another,
+     * then when updating my locations in the friends database, it will update
+     * when the range with the friend is equal or smaller to the current range,
+     * otherwise it won't update.   This way, it can save the unnecessary network cost.
+     */
+    public static int detectRangeMove(Address n, Address o, int range) {
+        if (n == null || o == null) {
+            return LocationRange.NONE.range;
+        }
+        if (n.getCountryName() != null && o.getCountryName() != null) {
+            if (!n.getCountryName().equals(o.getCountryName())) {
+                return LocationRange.COUNTRY.range;
+            }
+        }
+        if (n.getAdminArea() != null && o.getAdminArea() != null) {
+            if (!n.getAdminArea().equals(o.getAdminArea())) {
+                return LocationRange.ADMINAREA.range;
+            }
+        }
+        if (n.getSubAdminArea() != null && o.getSubAdminArea() != null) {
+            if (!n.getSubAdminArea().equals(o.getSubAdminArea())) {
+                return LocationRange.SUBADMINAREA.range;
+            }
+        }
+        if (n.getLocality() != null && o.getLocality() != null) {
+            if (!n.getLocality().equals(o.getLocality())) {
+                return LocationRange.LOCALITY.range;
+            }
+        }
+        if (n.getSubLocality() != null && o.getSubLocality() != null) {
+            if (!n.getSubLocality().equals(o.getSubLocality())) {
+                return LocationRange.SUBLOCALITY.range;
+            }
+        }
+        if (n.getThoroughfare() != null && o.getThoroughfare() != null) {
+            if (!n.getThoroughfare().equals(o.getThoroughfare())) {
+                return LocationRange.THOROUGHFARE.range;
+            }
+        }
+        if (n.getSubThoroughfare() != null && o.getSubThoroughfare() != null) {
+            if (!n.getSubThoroughfare().equals(o.getSubThoroughfare())) {
+                return LocationRange.SUBTHOROUGHFARE.range;
+            }
+        }
+        return LocationRange.CURRENT.range;
+    }
+
+    public static boolean isEqualAddress(Address address1,  Address address2, int range) {
+        return false;
+    }
+
+    public static String getRangeMoveMessage(Friend friend, Address newAddress, Address oldAddress) {
+        String name = friend.getDisplayName();
+        int range = friend.getRange();
+        if (newAddress.getSubThoroughfare() != null && oldAddress.getSubThoroughfare() != null) {
+        }
+        return "";
+    }
 }

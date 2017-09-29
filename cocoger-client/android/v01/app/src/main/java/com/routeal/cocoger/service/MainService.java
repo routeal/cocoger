@@ -295,48 +295,6 @@ public class MainService extends BasePeriodicService {
         }
     };
 
-    private int detectRangeChange(Address n, Address o) {
-        if (n == null || o == null) {
-            return 0;
-        }
-        if (n.getCountryName() != null && o.getCountryName() != null) {
-            if (!n.getCountryName().equals(o.getCountryName())) {
-                return 1;
-            }
-        }
-        if (n.getAdminArea() != null && o.getAdminArea() != null) {
-            if (!n.getAdminArea().equals(o.getAdminArea())) {
-                return 2;
-            }
-        }
-        if (n.getSubAdminArea() != null && o.getSubAdminArea() != null) {
-            if (!n.getSubAdminArea().equals(o.getSubAdminArea())) {
-                return 4;
-            }
-        }
-        if (n.getLocality() != null && o.getLocality() != null) {
-            if (!n.getLocality().equals(o.getLocality())) {
-                return 8;
-            }
-        }
-        if (n.getSubLocality() != null && o.getSubLocality() != null) {
-            if (!n.getSubLocality().equals(o.getSubLocality())) {
-                return 16;
-            }
-        }
-        if (n.getThoroughfare() != null && o.getThoroughfare() != null) {
-            if (!n.getThoroughfare().equals(o.getThoroughfare())) {
-                return 32;
-            }
-        }
-        if (n.getSubThoroughfare() != null && o.getSubThoroughfare() != null) {
-            if (!n.getSubThoroughfare().equals(o.getSubThoroughfare())) {
-                return 64;
-            }
-        }
-        return 128;
-    }
-
     private void saveLocation(final Location location) {
         location.setSpeed(Utils.getSpeed(location, mLastKnownLocation));
 
@@ -344,13 +302,6 @@ public class MainService extends BasePeriodicService {
 
         if (address == null) {
             Log.d(TAG, "address not available from Geocoder");
-            return;
-        }
-
-        int rangeChange = detectRangeChange(address, mLastKnownAddress);
-
-        if (rangeChange == 0) {
-            Log.d(TAG, "range not available");
             return;
         }
 
@@ -399,8 +350,8 @@ public class MainService extends BasePeriodicService {
     private void broadcastLocation(Location location, Address address) {
         // notify both location and address to the activity
         Intent intent = new Intent(MapActivity.USER_LOCATION_UPDATE);
-        intent.putExtra(MapActivity.LOCATION_DATA, location);
-        intent.putExtra(MapActivity.ADDRESS_DATA, address);
+        intent.putExtra(MapActivity.NEW_LOCATION, location);
+        intent.putExtra(MapActivity.NEW_ADDRESS, address);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 }

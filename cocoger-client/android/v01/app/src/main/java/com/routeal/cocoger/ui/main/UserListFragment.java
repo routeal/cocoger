@@ -1,11 +1,13 @@
 package com.routeal.cocoger.ui.main;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,6 +32,8 @@ public class UserListFragment extends Fragment
         View.OnClickListener,
         TextView.OnEditorActionListener {
 
+    private final static String TAG = "UserListFragment";
+
     private FullScreenDialogController mDialogController;
 
     private EditText mSearchText;
@@ -46,11 +50,20 @@ public class UserListFragment extends Fragment
         this.mDialogController = dialogController;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
         View view = getView();
+
+        TextView emptyText = (TextView) view.findViewById(R.id.empty_list_text);
+        String msg = getResources().getString(R.string.user_search_empty_text);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            emptyText.setText(Html.fromHtml(msg, Html.FROM_HTML_MODE_LEGACY));
+        } else {
+            emptyText.setText(Html.fromHtml(msg));
+        }
 
         mSearchText = (EditText) view.findViewById(R.id.search_text);
         mSearchText.setOnEditorActionListener(this);
@@ -82,16 +95,19 @@ public class UserListFragment extends Fragment
     }
 
     private boolean updateDatabaseForFriendRequest() {
-        RecyclerView recyclerView = (RecyclerView) getView().findViewById(R.id.user_list);
-        if (FB.checkFriendRequest(recyclerView.getAdapter())) {
-            new AlertDialog.Builder(getContext())
-                    .setTitle(R.string.friend_request)
-                    .setMessage(R.string.friend_request_failed)
-                    .setPositiveButton(android.R.string.ok, null)
-                    .show();
-            return false;
+        if (getView() != null) {
+            RecyclerView recyclerView = (RecyclerView) getView().findViewById(R.id.user_list);
+            if (FB.checkFriendRequest(recyclerView.getAdapter())) {
+                new AlertDialog.Builder(getContext())
+                        .setTitle(R.string.friend_request)
+                        .setMessage(R.string.friend_request_failed)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show();
+                return false;
+            }
+            return FB.sendFriendRequest(recyclerView.getAdapter());
         }
-        return FB.sendFriendRequest(recyclerView.getAdapter());
+        return false;
     }
 
     @Override
@@ -115,11 +131,13 @@ public class UserListFragment extends Fragment
 
     private void searchUser() {
         String text = mSearchText.getText().toString();
-        text.trim();
+        text = text.trim();
         if (!text.isEmpty()) {
-            RecyclerView recyclerView = (RecyclerView) getView().findViewById(R.id.user_list);
-            recyclerView.setAdapter(FB.getUserRecyclerAdapter(text, getView()));
-            mSearchText.setText("");
+            if (getView() != null) {
+                RecyclerView recyclerView = (RecyclerView) getView().findViewById(R.id.user_list);
+                recyclerView.setAdapter(FB.getUserRecyclerAdapter(text, getView()));
+                mSearchText.setText("");
+            }
         }
         Utils.showSoftKeyboard(getActivity(), mSearchText);
     }

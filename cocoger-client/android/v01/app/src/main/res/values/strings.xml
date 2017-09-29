@@ -45,6 +45,15 @@
         </html>
         ]]>
     </string>
+    <string name="user_search_empty_text">
+        <![CDATA[
+        <html>
+        <h2>Search Friends</h2>
+        <p>a &#8594; Adam Smith</p>
+        <p>j &#8594; John Brown</p>
+        </html>
+        ]]>
+    </string>
     <string-array name="range_items">
         <item>current</item>
         <item>city</item>
@@ -107,7 +116,7 @@
     <string name="decline">Decline</string>
     <string name="settings">Settings</string>
     <string name="send">Send</string>
-    <string name="your_feedback">Your Feedback</string>
+    <string name="feedback">Feedback</string>
     <string name="share">Share</string>
     <string name="location_sharing">Location Sharing</string>
     <string name="receive_friend_request" formatted="false">You received a friend request from %s.</string>
@@ -124,4 +133,9 @@
     <string name="time_range">Time Range</string>
     <string name="speed_rate">2.23694</string>
     <string name="timeline_marker_title_format" formatted="false">%s (%f m/h)</string>
+    <string name="reporting_about">Reporting about:</string>
+    <string name="problem">Problem</string>
+    <string name="suggestion">Suggestion</string>
+    <string name="description">Description</string>
+    <string name="dismiss">Dismiss</string>
 </resources>

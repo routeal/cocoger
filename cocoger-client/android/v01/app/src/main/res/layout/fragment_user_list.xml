@@ -41,7 +41,6 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/header"
         android:padding="16dp"
-        android:text="@string/search_users"
         android:gravity="center_horizontal"
         android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium" />
 

@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
+import android.location.Address;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -37,6 +38,8 @@ public abstract class MapBaseActivity extends FragmentActivity {
     private GoogleApiClient mGoogleApiClient;
 
     private Location mLastKnownLocation;
+
+    private Address mLastKnownAddress;
 
     private final AppLifecycleListener mForegroundListener = new AppLifecycleListener();
 
@@ -192,9 +195,13 @@ public abstract class MapBaseActivity extends FragmentActivity {
         return mLastKnownLocation;
     }
 
+    Address getAddress() { return mLastKnownAddress; }
+
     void setLocation(Location location) {
         mLastKnownLocation = location;
     }
+
+    void setAddress(Address address) { mLastKnownAddress = address; }
 
     public static class AppLifecycleListener implements Application.ActivityLifecycleCallbacks {
         private int numStarted;

@@ -63,6 +63,34 @@ public class Notifi {
         }).execute(icon);
     }
 
+    public static void send(final int nid, final String title, final String content, String icon) {
+        final Context context = MainApplication.getContext();
+
+        new LoadImage.LoadImageAsync(true, new LoadImage.LoadImageListener() {
+            @Override
+            public void onSuccess(Bitmap bitmap) {
+                final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
+                        .setSmallIcon(R.drawable.ic_person_pin_circle_white_48dp)
+                        .setContentTitle(title)
+                        .setContentText(content)
+                        .setAutoCancel(true)
+                        .setDefaults(Notification.DEFAULT_ALL)
+                        .setPriority(Notification.PRIORITY_HIGH)
+                        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                        .setLargeIcon(bitmap);
+
+                // seems not working, use notificationmanager's cancel method
+                Notification notification = mBuilder.build();
+                notification.flags |= Notification.FLAG_AUTO_CANCEL;
+
+                NotificationManager mNotificationManager =
+                        (NotificationManager) context.getSystemService(Service.NOTIFICATION_SERVICE);
+
+                mNotificationManager.notify(nid, notification);
+            }
+        }).execute(icon);
+    }
+
     public static void remove(int id) {
         if (id == 0) return;
         Context context = MainApplication.getContext();
