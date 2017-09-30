@@ -34,7 +34,7 @@ public class FeedbackFragment extends Fragment implements FullScreenDialogConten
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.fragment_feedback, container, false);
+        view = inflater.inflate(R.layout.activity_feedback, container, false);
         radioGroup = (RadioGroup) view.findViewById(R.id.input_button_group);
         problemButton = (RadioButton) view.findViewById(R.id.input_button_problem);
         suggestionButton = (RadioButton) view.findViewById(R.id.input_button_suggestion);

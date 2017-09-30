@@ -42,12 +42,6 @@ import java.util.Random;
 public class Utils {
     private final static String TAG = "Utils";
 
-    private static Random mRand = new Random();
-
-    public static int randInt(int min, int max) {
-        return mRand.nextInt((max - min) + 1) + min;
-    }
-
     public static <K, V> Map<K, V> diffMaps(Map<? extends K, ? extends V> left, Map<? extends K, ? extends V> right) {
         Map<K, V> difference = new HashMap<>();
         difference.putAll(left);
@@ -170,21 +164,17 @@ public class Utils {
     }
 
     public static String getAddressLine(Address address, int range) {
+        if (address == null) {
+            return "";
+        }
         LocationRange value = LocationRange.to(range);
-
         if (value == LocationRange.NONE) {
             return "";
         }
         if (value == LocationRange.CURRENT) {
             return getAddressLine(address);
         }
-        // something wrong
-        if (address == null) {
-            return "";
-        }
-
         String locationName = "";
-
         switch (value) {
             case SUBTHOROUGHFARE:
                 locationName += (address.getSubThoroughfare() == null) ?
@@ -210,26 +200,23 @@ public class Utils {
             default:
                 break;
         }
-
         return locationName;
     }
 
-    public static Location getRangedLocation(Address address, int range) {
-        Location location = null;
-
+    private static Location getRangedLocation(Address address, int range) {
         LocationRange value = LocationRange.to(range);
-
-        if (value == LocationRange.NONE) return null;
-
-        if (value == LocationRange.CURRENT) return Utils.getLocation(address);
-
+        if (value == LocationRange.NONE) {
+            return null;
+        }
+        if (value == LocationRange.CURRENT) {
+            return Utils.getLocation(address);
+        }
+        Location location = null;
         String locationName = Utils.getAddressLine(address, range);
-
         if (locationName != null && !locationName.isEmpty()) {
             Log.d(TAG, "getRangedLocation:" + locationName);
             location = getFromAddress(locationName);
         }
-
         return location;
     }
 
@@ -248,29 +235,16 @@ public class Utils {
                             .getFromLocation(location.getLatitude(), location.getLongitude(), 1);
             address = addresses.get(0);
         } catch (Exception e) {
+            Log.d(TAG, "getAddress:", e);
         }
         return address;
     }
 
     public static double distanceTo(Location a, Location b) {
-        //return distanceImpl(a.getLatitude(), a.getLongitude(), b.getLatitude(), b.getLongitude());
-        return distanceImpl2(a.getLatitude(), a.getLongitude(), b.getLatitude(), b.getLongitude());
+        return distanceImpl(a.getLatitude(), a.getLongitude(), b.getLatitude(), b.getLongitude());
     }
 
-    private static double distanceImpl(double lat1, double lon1, double lat2, double lon2) {
-        double theta = lon1 - lon2;
-        double dist = Math.sin(deg2rad(lat1))
-                * Math.sin(deg2rad(lat2))
-                + Math.cos(deg2rad(lat1))
-                * Math.cos(deg2rad(lat2))
-                * Math.cos(deg2rad(theta));
-        dist = Math.acos(dist);
-        dist = rad2deg(dist);
-        dist = dist * 60 * 1.1515;
-        return (dist * 1.609344 * 1000);
-    }
-
-    private static long distanceImpl2(double lat1, double lng1, double lat2, double lng2) {
+    private static long distanceImpl(double lat1, double lng1, double lat2, double lng2) {
         double dLat = Math.toRadians(lat2 - lat1);
         double dLon = Math.toRadians(lng2 - lng1);
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
@@ -278,8 +252,7 @@ public class Utils {
                 * Math.cos(Math.toRadians(lat2)) * Math.sin(dLon / 2)
                 * Math.sin(dLon / 2);
         double c = 2 * Math.asin(Math.sqrt(a));
-        long distanceInMeters = Math.round(6371000 * c);
-        return distanceInMeters;
+        return Math.round(6371000 * c);
     }
 
     /**
@@ -294,9 +267,7 @@ public class Utils {
      */
     private static double distanceImpl3(double lat1, double lat2, double lon1,
                                         double lon2, double el1, double el2) {
-
         final int R = 6371; // Radius of the earth
-
         double latDistance = Math.toRadians(lat2 - lat1);
         double lonDistance = Math.toRadians(lon2 - lon1);
         double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
@@ -304,21 +275,9 @@ public class Utils {
                 * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         double distance = R * c * 1000; // convert to meters
-
         double height = el1 - el2;
-
         distance = Math.pow(distance, 2) + Math.pow(height, 2);
-
         return Math.sqrt(distance);
-    }
-
-
-    private static double deg2rad(double deg) {
-        return (deg * Math.PI / 180.0);
-    }
-
-    private static double rad2deg(double rad) {
-        return (rad * 180.0 / Math.PI);
     }
 
     public static Location getFromAddress(@NonNull String address) {
@@ -355,10 +314,8 @@ public class Utils {
     public static Address getFromLocation(Location location) {
         // get the address from the database within 25 meter
         Address address = DBUtil.getAddress(location, 25);
-
         if (address == null) {
             List<Address> addressList = null;
-
             try {
                 Log.d(TAG, "getFromLocation: from Geocoder");
                 Geocoder geocoder = new Geocoder(MainApplication.getContext(), Locale.getDefault());
@@ -366,9 +323,7 @@ public class Utils {
             } catch (Exception e) {
                 Log.d(TAG, "getFromLocation: Geocoder failed:" + e.getLocalizedMessage());
             }
-
             address = (addressList != null && addressList.size() > 0) ? addressList.get(0) : null;
-
             if (address != null) {
                 DBUtil.saveAddress(location, address);
             }
@@ -378,7 +333,6 @@ public class Utils {
             address.setLatitude(location.getLatitude());
             address.setLongitude(location.getLongitude());
         }
-
         return address;
     }
 
@@ -397,8 +351,7 @@ public class Utils {
 
         Bitmap to = Bitmap.createBitmap(width, height, from.getConfig());
 
-        BitmapShader shader =
-                new BitmapShader(from, BitmapShader.TileMode.CLAMP, BitmapShader.TileMode.CLAMP);
+        BitmapShader shader = new BitmapShader(from, BitmapShader.TileMode.CLAMP, BitmapShader.TileMode.CLAMP);
 
         Paint paint = new Paint();
         paint.setAntiAlias(true);
@@ -421,56 +374,122 @@ public class Utils {
         return to;
     }
 
-    /**
-     * Idea of this function to detect the current range movement from one range to another,
-     * then when updating my locations in the friends database, it will update
-     * when the range with the friend is equal or smaller to the current range,
-     * otherwise it won't update.   This way, it can save the unnecessary network cost.
-     */
     public static int detectRangeMove(Address n, Address o, int range) {
-        if (n == null || o == null) {
+        if (n == null || o == null || range == 0) {
             return LocationRange.NONE.range;
         }
-        if (n.getCountryName() != null && o.getCountryName() != null) {
-            if (!n.getCountryName().equals(o.getCountryName())) {
-                return LocationRange.COUNTRY.range;
+        if (range >= LocationRange.COUNTRY.range) {
+            if (n.getCountryName() != null && o.getCountryName() != null) {
+                if (!n.getCountryName().equals(o.getCountryName())) {
+                    return LocationRange.COUNTRY.range;
+                }
             }
         }
-        if (n.getAdminArea() != null && o.getAdminArea() != null) {
-            if (!n.getAdminArea().equals(o.getAdminArea())) {
-                return LocationRange.ADMINAREA.range;
+        if (range >= LocationRange.ADMINAREA.range) {
+            if (n.getAdminArea() != null && o.getAdminArea() != null) {
+                if (!n.getAdminArea().equals(o.getAdminArea())) {
+                    return LocationRange.ADMINAREA.range;
+                }
             }
         }
-        if (n.getSubAdminArea() != null && o.getSubAdminArea() != null) {
-            if (!n.getSubAdminArea().equals(o.getSubAdminArea())) {
-                return LocationRange.SUBADMINAREA.range;
+        if (range >= LocationRange.SUBADMINAREA.range) {
+            if (n.getSubAdminArea() != null && o.getSubAdminArea() != null) {
+                if (!n.getSubAdminArea().equals(o.getSubAdminArea())) {
+                    return LocationRange.SUBADMINAREA.range;
+                }
             }
         }
-        if (n.getLocality() != null && o.getLocality() != null) {
-            if (!n.getLocality().equals(o.getLocality())) {
-                return LocationRange.LOCALITY.range;
+        if (range >= LocationRange.LOCALITY.range) {
+            if (n.getLocality() != null && o.getLocality() != null) {
+                if (!n.getLocality().equals(o.getLocality())) {
+                    return LocationRange.LOCALITY.range;
+                }
             }
         }
-        if (n.getSubLocality() != null && o.getSubLocality() != null) {
-            if (!n.getSubLocality().equals(o.getSubLocality())) {
-                return LocationRange.SUBLOCALITY.range;
+        if (range >= LocationRange.SUBLOCALITY.range) {
+            if (n.getSubLocality() != null && o.getSubLocality() != null) {
+                if (!n.getSubLocality().equals(o.getSubLocality())) {
+                    return LocationRange.SUBLOCALITY.range;
+                }
             }
         }
-        if (n.getThoroughfare() != null && o.getThoroughfare() != null) {
-            if (!n.getThoroughfare().equals(o.getThoroughfare())) {
-                return LocationRange.THOROUGHFARE.range;
+        if (range >= LocationRange.THOROUGHFARE.range) {
+            if (n.getThoroughfare() != null && o.getThoroughfare() != null) {
+                if (!n.getThoroughfare().equals(o.getThoroughfare())) {
+                    return LocationRange.THOROUGHFARE.range;
+                }
             }
         }
-        if (n.getSubThoroughfare() != null && o.getSubThoroughfare() != null) {
-            if (!n.getSubThoroughfare().equals(o.getSubThoroughfare())) {
-                return LocationRange.SUBTHOROUGHFARE.range;
+        if (range >= LocationRange.SUBTHOROUGHFARE.range) {
+            if (n.getSubThoroughfare() != null && o.getSubThoroughfare() != null) {
+                if (!n.getSubThoroughfare().equals(o.getSubThoroughfare())) {
+                    return LocationRange.SUBTHOROUGHFARE.range;
+                }
             }
         }
-        return LocationRange.CURRENT.range;
+        if (range >= LocationRange.CURRENT.range) {
+            return LocationRange.CURRENT.range;
+        }
+        return LocationRange.NONE.range;
     }
 
     public static boolean isEqualAddress(Address address1,  Address address2, int range) {
-        return false;
+        if (address1 == null || address2 == null || range == 0) {
+            return false;
+        }
+        if (range >= LocationRange.COUNTRY.range) {
+            if (address1.getCountryName() != null && address2.getCountryName() != null) {
+                if (!address1.getCountryName().equals(address2.getCountryName())) {
+                    return false;
+                }
+            }
+        }
+        if (range >= LocationRange.ADMINAREA.range) {
+            if (address1.getAdminArea() != null && address2.getAdminArea() != null) {
+                if (!address1.getAdminArea().equals(address2.getAdminArea())) {
+                    return false;
+                }
+            }
+        }
+        if (range >= LocationRange.SUBADMINAREA.range) {
+            if (address1.getSubAdminArea() != null && address2.getSubAdminArea() != null) {
+                if (!address1.getSubAdminArea().equals(address2.getSubAdminArea())) {
+                    return false;
+                }
+            }
+        }
+        if (range >= LocationRange.LOCALITY.range) {
+            if (address1.getLocality() != null && address2.getLocality() != null) {
+                if (!address1.getLocality().equals(address2.getLocality())) {
+                    return false;
+                }
+            }
+        }
+        if (range >= LocationRange.SUBLOCALITY.range) {
+            if (address1.getSubLocality() != null && address2.getSubLocality() != null) {
+                if (!address1.getSubLocality().equals(address2.getSubLocality())) {
+                    return false;
+                }
+            }
+        }
+        if (range >= LocationRange.THOROUGHFARE.range) {
+            if (address1.getThoroughfare() != null && address2.getThoroughfare() != null) {
+                if (!address1.getThoroughfare().equals(address2.getThoroughfare())) {
+                    return false;
+                }
+            }
+        }
+        if (range >= LocationRange.SUBTHOROUGHFARE.range) {
+            if (address1.getSubThoroughfare() != null && address2.getSubThoroughfare() != null) {
+                if (!address1.getSubThoroughfare().equals(address2.getSubThoroughfare())) {
+                    return false;
+                }
+            }
+        }
+        if (range >= LocationRange.CURRENT.range) {
+            return true;
+        }
+        return true;
     }
 
     public static String getRangeMoveMessage(Friend friend, Address newAddress, Address oldAddress) {

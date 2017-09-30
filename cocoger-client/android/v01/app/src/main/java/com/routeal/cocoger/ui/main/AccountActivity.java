@@ -17,12 +17,12 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.User;
@@ -132,10 +132,10 @@ public class AccountActivity extends AppCompatActivity {
                 LayoutInflater layoutInflaterAndroid = LayoutInflater.from(AccountActivity.this);
                 View view = layoutInflaterAndroid.inflate(R.layout.dialog_input, null);
                 TextView title = (TextView) view.findViewById(R.id.title);
-                title.setText("Display Name");
+                title.setText(view.getResources().getString(R.string.display_name));
                 final TextView text = (TextView) view.findViewById(R.id.text);
                 text.setText(mNameView.getText().toString());
-                new AlertDialog.Builder(AccountActivity.this)
+                AlertDialog dialog = new AlertDialog.Builder(AccountActivity.this)
                         .setView(view)
                         .setCancelable(false)
                         .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
@@ -155,7 +155,10 @@ public class AccountActivity extends AppCompatActivity {
                             }
                         })
                         .show();
-
+                dialog.getWindow().clearFlags(
+                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                                | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+                dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
             }
         });
 
@@ -187,9 +190,10 @@ public class AccountActivity extends AppCompatActivity {
                         break;
                     }
                 }
+                String title = getResources().getString(R.string.birth_year);
                 final int index = (i == years.length) ? -1 : i;
                 new AlertDialog.Builder(AccountActivity.this)
-                        .setTitle("Birth Year")
+                        .setTitle(title)
                         .setSingleChoiceItems(R.array.years, index, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -233,9 +237,10 @@ public class AccountActivity extends AppCompatActivity {
                         break;
                     }
                 }
+                String title = getResources().getString(R.string.gender);
                 final int index = (i == genders.length) ? -1 : i;
                 new AlertDialog.Builder(AccountActivity.this)
-                        .setTitle("Gender")
+                        .setTitle(title)
                         .setSingleChoiceItems(R.array.genders, index, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -274,7 +279,7 @@ public class AccountActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         if (FB.getUser() != null) {
-            getMenuInflater().inflate(R.menu.menu_save, menu);
+            getMenuInflater().inflate(R.menu.menu_feedback, menu);
             return true;
         }
         return super.onCreateOptionsMenu(menu);
@@ -283,7 +288,7 @@ public class AccountActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_save) {
+        if (id == R.id.action_send) {
             save();
             return true;
         } else if (id == android.R.id.home) {
@@ -344,6 +349,7 @@ public class AccountActivity extends AppCompatActivity {
                     }
                     AccountActivity.this.finish();
                 }
+
                 @Override
                 public void onFail(String err) {
                 }

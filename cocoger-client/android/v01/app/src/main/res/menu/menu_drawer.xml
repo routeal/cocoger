@@ -19,6 +19,11 @@
             android:title="@string/settings" />
         -->
         <item
+            android:id="@+id/nav_send_feedback"
+            android:icon="@drawable/ic_message_black_48dp"
+            android:title="@string/send_feedback" />
+
+        <item
             android:id="@+id/nav_logout"
             android:icon="@drawable/ic_person_pin_circle_white_48dp"
             android:title="@string/logout" />
@@ -39,10 +44,6 @@
             android:id="@+id/nav_open_source"
             android:icon="@drawable/ic_opensource_48"
             android:title="@string/open_source_libraries" />
-        <item
-            android:id="@+id/nav_send_feedback"
-            android:icon="@drawable/ic_message_black_48dp"
-            android:title="@string/send_feedback" />
     </group>
 
 </menu>

@@ -9,7 +9,7 @@
     <string name="logout">Logout</string>
     <string name="signup">Sign Up</string>
     <string name="name">Nick Name</string>
-    <string name="year_birth">Year-ish of Birth</string>
+    <string name="birth_year">Birth Year</string>
     <string name="gender">Gender</string>
     <string name="login_for_member">Already a member? Login</string>
     <string name="create_account">Create Account</string>
@@ -138,4 +138,14 @@
     <string name="suggestion">Suggestion</string>
     <string name="description">Description</string>
     <string name="dismiss">Dismiss</string>
+    <string name="location_update_interval">Location Update Interval</string>
+    <string name="location_update_foreground">Foreground (min)</string>
+    <string name="location_update_background">Background</string>
+    <string name="num_1">1</string>
+    <string name="num_3">3</string>
+    <string name="num_5">5</string>
+    <string name="num_15">15</string>
+    <string name="num_30">30</string>
+    <string name="num_60">60</string>
+    <string name="location_update_warning">It expires in 15 mins and back to 30 mins.</string>
 </resources>

@@ -15,17 +15,21 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AlertDialog;
 import android.text.Html;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.animation.BounceInterpolator;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.SearchSuggestionsAdapter;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.arlib.floatingsearchview.util.Util;
-import com.franmontiel.fullscreendialog.FullScreenDialogFragment;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -42,10 +46,42 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class SearchMapActivity extends MapActivity {
+public class SearchMapActivity extends MapActivity implements NavigationView.OnNavigationItemSelectedListener {
     private final static String TAG = "SearchMapActivity";
-
+    private static List<NameSuggestion> sNameSuggestions =
+            new ArrayList<>(Arrays.asList(
+                    new NameSuggestion("green"),
+                    new NameSuggestion("blue"),
+                    new NameSuggestion("pink")));
     private FloatingSearchView mSearchView;
+    private String mLastQuery = "green";
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        // close the drawer
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        // show the selected activities
+        int id = item.getItemId();
+        if (id == R.id.nav_sharing_timeline) {
+            showShareTimeline();
+        } else if (id == R.id.nav_account) {
+            showAccount();
+        } else if (id == R.id.nav_send_feedback) {
+            sendFeedback();
+        } else if (id == R.id.nav_logout) {
+            logout();
+        } else if (id == R.id.nav_term_services) {
+        } else if (id == R.id.nav_privacy_policy) {
+            Intent intent = new Intent(getApplicationContext(), WebActivity.class);
+            intent.putExtra("url", "http://www.google.com");
+            intent.putExtra("title", "Privacy Policy");
+            startActivity(intent);
+        } else if (id == R.id.nav_open_source) {
+            showOpensourceLibraries();
+        }
+        return true;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,7 +114,7 @@ public class SearchMapActivity extends MapActivity {
         mSearchView.attachNavigationDrawerToMenuButton(drawer);
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(mNavigationItemSelectedListener);
+        navigationView.setNavigationItemSelectedListener(this);
     }
 
     void onMapReady() {
@@ -151,75 +187,79 @@ public class SearchMapActivity extends MapActivity {
         startActivity(intent);
     }
 
-    private void showSettings() {
-        Intent intent = new Intent(getApplicationContext(), SettingsActivity.class);
+    private void sendFeedback() {
+        Intent intent = new Intent(getApplicationContext(), FeedbackActivity.class);
         startActivity(intent);
     }
 
-    private void sendFeedback() {
-        FullScreenDialogFragment dialogFragment = new FullScreenDialogFragment.Builder(this)
-                .setTitle(R.string.feedback)
-                .setConfirmButton(R.string.send)
-                .setContent(FeedbackFragment.class, new Bundle())
-                .build();
-        dialogFragment.show(getSupportFragmentManager(), "user-dialog");
-    }
-
-    NavigationView.OnNavigationItemSelectedListener mNavigationItemSelectedListener =
-            new NavigationView.OnNavigationItemSelectedListener() {
-                @Override
-                public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                    // close the drawer
-                    DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-                    drawer.closeDrawer(GravityCompat.START);
-                    // show the selected activities
-                    int id = item.getItemId();
-                    if (id == R.id.nav_sharing_timeline) {
-                        showShareTimeline();
-                    } else if (id == R.id.nav_account) {
-                        showAccount();
-                    } else if (id == R.id.nav_send_feedback) {
-                        sendFeedback();
-                    } else if (id == R.id.nav_logout) {
-                        logout();
-                    } else if (id == R.id.nav_term_services) {
-                    } else if (id == R.id.nav_privacy_policy) {
-                        Intent intent = new Intent(getApplicationContext(), WebActivity.class);
-                        intent.putExtra("url", "http://www.google.com");
-                        intent.putExtra("title", "Privacy Policy");
-                        startActivity(intent);
-                    } else if (id == R.id.nav_open_source) {
-                        showOpensourceLibraries();
-                    }
-
-                    return true;
+    private void showSettings() {
+        LayoutInflater layoutInflaterAndroid = LayoutInflater.from(this);
+        final View view = layoutInflaterAndroid.inflate(R.layout.dialog_setting, null);
+        final RadioGroup fgIntervalGroup = (RadioGroup) view.findViewById(R.id.foreground_interval);
+        final RadioGroup bgIntervalGroup = (RadioGroup) view.findViewById(R.id.background_interval);
+        final TextView warning = (TextView) view.findViewById(R.id.location_update_warning);
+        RadioButton button1 = (RadioButton) view.findViewById(R.id.bg_interval_1);
+        button1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    warning.setVisibility(View.VISIBLE);
                 }
-            };
-
-    private static List<NameSuggestion> sNameSuggestions =
-            new ArrayList<>(Arrays.asList(
-                    new NameSuggestion("green"),
-                    new NameSuggestion("blue"),
-                    new NameSuggestion("pink")));
-                    /*
-                    new NameSuggestion("purple"),
-                    new NameSuggestion("brown"),
-                    new NameSuggestion("gray"),
-                    new NameSuggestion("Granny Smith Apple"),
-                    new NameSuggestion("Indigo"),
-                    new NameSuggestion("Periwinkle"),
-                    new NameSuggestion("Mahogany"),
-                    new NameSuggestion("Maize"),
-                    new NameSuggestion("Mahogany"),
-                    new NameSuggestion("Outer Space"),
-                    new NameSuggestion("Melon"),
-                    new NameSuggestion("Yellow"),
-                    new NameSuggestion("Orange"),
-                    new NameSuggestion("Red"),
-                    new NameSuggestion("Orchid")));
-                    */
-
-    private String mLastQuery = "green";
+            }
+        });
+        RadioButton button5 = (RadioButton) view.findViewById(R.id.bg_interval_5);
+        button5.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    warning.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+        RadioButton button15 = (RadioButton) view.findViewById(R.id.bg_interval_15);
+        button15.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    warning.setVisibility(View.VISIBLE);
+                }
+            }
+        });
+        RadioButton button30 = (RadioButton) view.findViewById(R.id.bg_interval_30);
+        button30.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    warning.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
+        RadioButton button60 = (RadioButton) view.findViewById(R.id.bg_interval_60);
+        button60.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    warning.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(view)
+                .setCancelable(true)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        RadioButton fg = (RadioButton) view.findViewById(fgIntervalGroup.getCheckedRadioButtonId());
+                        int fgInterval = Integer.valueOf(fg.getText().toString());
+                        RadioButton bg = (RadioButton) view.findViewById(bgIntervalGroup.getCheckedRadioButtonId());
+                        int bgInterval = Integer.valueOf(bg.getText().toString());
+                        Log.d(TAG, "New Location update: fg=" + fgInterval + " bg=" + bgInterval);
+                    }
+                })
+                .show();
+        dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+    }
 
     private void setupFloatingSearch() {
         mSearchView.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {

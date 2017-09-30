@@ -71,7 +71,7 @@
         <activity
             android:name=".ui.main.AccountActivity"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".ui.main.SettingsActivity" />
+        <activity android:name=".ui.main.FeedbackActivity" />
         <activity android:name=".ui.main.WebActivity" />
         <activity android:name=".ui.main.TimelineActivity" />
 
