@@ -24,9 +24,7 @@ public class SplashActivity extends AppCompatActivity {
         DBUtil.purgeGeoLocations();
         DBUtil.purgeReverseGeoLocations();
 
-        // ensure that the service is started
-        Intent intent = new Intent(this, LocationUpdateService.class);
-        startService(intent);
+        Intent intent;
 
         if (FB.isAuthenticated()) {
             intent = new Intent(getApplicationContext(), PanelMapActivity.class);

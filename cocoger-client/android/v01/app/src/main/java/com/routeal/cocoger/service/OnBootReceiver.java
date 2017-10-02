@@ -18,7 +18,7 @@ public class OnBootReceiver extends BroadcastReceiver {
                 @Override
                 public void run() {
                     Intent intent = new Intent(context, LocationUpdateService.class);
-                    intent.putExtra(LocationUpdate.SERVICE_EXTRA_STARTED, LocationUpdate.SERVICE_STARTED_FROM_BOOT);
+                    intent.setAction(Intent.ACTION_BOOT_COMPLETED);
                     context.startService(intent);
                 }
             }).start();

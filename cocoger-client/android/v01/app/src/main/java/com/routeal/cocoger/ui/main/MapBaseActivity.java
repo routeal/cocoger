@@ -73,6 +73,8 @@ public abstract class MapBaseActivity extends FragmentActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        Intent intent = new Intent(this, LocationUpdateService.class);
+        startService(intent);
         checkPermission();
     }
 

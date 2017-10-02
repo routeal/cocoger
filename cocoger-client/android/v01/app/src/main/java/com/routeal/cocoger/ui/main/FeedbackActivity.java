@@ -54,7 +54,7 @@ public class FeedbackActivity extends AppCompatActivity implements RadioGroup.On
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_feedback, menu);
+        getMenuInflater().inflate(R.menu.menu_send, menu);
         return true;
     }
 

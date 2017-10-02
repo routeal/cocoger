@@ -58,7 +58,7 @@ public class LocationUpdate {
     public final static int DEFAULT_LOCATION_UPDATE_INTERVAL = 1 * 60 * 1000;
     public final static String FOREGROUND_LOCATION_UPDATE_INTERVAL = "foreground_location_update_interval";
     public final static String LOCATION_UPDATE_INTERVAL = "location_update_interval";
-    public final static String SERVICE_STARTED_FROM_NOTIFICATION = "notification";
+    public final static String ACTION_START_FROM_NOTIFICATION = "notification";
     public final static String SERVICE_STARTED_FROM_BOOT = "boot";
     static final int NOTIFICATION_ID = (int) System.currentTimeMillis();
     static final String SERVICE_EXTRA_STARTED = "service_extra_started";
@@ -238,7 +238,7 @@ public class LocationUpdate {
             mNotificationManager.notify(NOTIFICATION_ID, getNotification(context));
         } else {
             mLocationQueue.add(new PastLocation(distance, location));
-            long interval = location.getTime() - mLocation.getTime();
+            int interval = (int) (location.getTime() - mLocation.getTime());
             PastLocation pl = mLocationQueue.poll();
             Log.d(TAG, "Interval=" + interval + " Current Interval=" + mCurrentLocationUpdateInterval);
             if (interval > mCurrentLocationUpdateInterval) {
@@ -288,7 +288,7 @@ public class LocationUpdate {
         /*  Not supported
         Intent intent = new Intent(context, LocationUpdateService.class);
         // Extra to help us figure out if we arrived in onStartCommand via the notification or not.
-        intent.putExtra(SERVICE_EXTRA_STARTED, SERVICE_STARTED_FROM_NOTIFICATION);
+        intent.setAction(ACTION_START_FROM_NOTIFICATION);
         // The PendingIntent that leads to a call to onStartCommand() in this service.
         PendingIntent servicePendingIntent = PendingIntent.getService(context, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT);

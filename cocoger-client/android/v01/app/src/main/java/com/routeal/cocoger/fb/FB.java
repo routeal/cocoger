@@ -40,6 +40,7 @@ import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.model.RangeRequest;
 import com.routeal.cocoger.model.User;
+import com.routeal.cocoger.service.LocationUpdateService;
 import com.routeal.cocoger.service.MainReceiver;
 import com.routeal.cocoger.ui.main.FriendListViewHolder;
 import com.routeal.cocoger.ui.main.MapActivity;
@@ -152,7 +153,9 @@ public class FB {
                     if (FB.getUser() != null) {
                         FB.setUser(null);
                         // stop the service
-                        // MainService.stop();
+                        Context context = MainApplication.getContext();
+                        Intent intent = new Intent(context, LocationUpdateService.class);
+                        context.stopService(intent);
                     }
                 }
             }
@@ -538,7 +541,7 @@ public class FB {
 
     private static void sendEmailVerification() {
         FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
-        try {
+        if (fbUser != null) {
             fbUser.sendEmailVerification().addOnCompleteListener(new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
@@ -547,8 +550,6 @@ public class FB {
                     }
                 }
             });
-        } catch (Exception e) {
-            Log.d(TAG, "sendEmailVerification", e);
         }
     }
 
@@ -834,8 +835,7 @@ public class FB {
         return adapter;
     }
 
-    public static FirebaseRecyclerAdapter<User, UserListViewHolder>
-    getUserRecyclerAdapter(String text, final View view) {
+    public static FirebaseRecyclerAdapter<User, UserListViewHolder> getUserRecyclerAdapter(String text, final View view) {
         // FIXME:
         // Need flexible search
 

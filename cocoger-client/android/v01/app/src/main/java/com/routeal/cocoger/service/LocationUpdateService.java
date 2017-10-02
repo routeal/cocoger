@@ -11,11 +11,6 @@ import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
-import com.routeal.cocoger.MainApplication;
-
-import static com.routeal.cocoger.service.LocationUpdate.DEFAULT_FOREGROUND_LOCATION_UPDATE_INTERVAL;
-import static com.routeal.cocoger.service.LocationUpdate.FOREGROUND_LOCATION_UPDATE_INTERVAL;
-
 public class LocationUpdateService extends Service {
     private final static String TAG = "tako";
 
@@ -98,14 +93,14 @@ public class LocationUpdateService extends Service {
         Log.d(TAG, "onStartCommand");
 
         if (intent != null) {
-            String mode = intent.getStringExtra(LocationUpdate.SERVICE_EXTRA_STARTED);
-            if (mode != null) {
-                if (mode.equals(LocationUpdate.SERVICE_STARTED_FROM_NOTIFICATION)) {
-                    Log.d(TAG, "onStartCommand: startedFromNotification");
-                    LocationUpdate.getInstance().removeLocationUpdates();
-                } else if (mode.equals(LocationUpdate.SERVICE_STARTED_FROM_BOOT)) {
+            String action = intent.getAction();
+            if (action != null) {
+                if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
                     Log.d(TAG, "onStartCommand: startedFromBoot");
                     startForeground(LocationUpdate.NOTIFICATION_ID, LocationUpdate.getInstance().getNotification(getApplicationContext()));
+                } else if (action.equals(LocationUpdate.ACTION_START_FROM_NOTIFICATION)) {
+                    Log.d(TAG, "onStartCommand: startedFromNotification");
+                    LocationUpdate.getInstance().removeLocationUpdates();
                 }
             }
         }
@@ -125,6 +120,7 @@ public class LocationUpdateService extends Service {
         mChangingConfiguration = true;
     }
 
+/*
     public void requestLocationUpdate() {
         LocationUpdate update = LocationUpdate.getInstance();
         update.requestLocationUpdates(getApplicationContext());
@@ -134,4 +130,6 @@ public class LocationUpdateService extends Service {
         LocationUpdate update = LocationUpdate.getInstance();
         update.removeLocationUpdates();
     }
+*/
+
 }

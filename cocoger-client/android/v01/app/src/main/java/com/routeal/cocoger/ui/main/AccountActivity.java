@@ -76,7 +76,6 @@ public class AccountActivity extends AppCompatActivity {
         mGenderView = (TextView) findViewById(R.id.gender);
         mStartApp = (Button) findViewById(R.id.start_app);
         mPictureView = (ImageView) findViewById(R.id.profile_picture);
-        mPhotoCameraView = (FloatingActionButton) findViewById(R.id.photo_camera);
 
         final User user = FB.getUser();
 
@@ -100,8 +99,8 @@ public class AccountActivity extends AppCompatActivity {
             }).execute(user.getPicture());
         }
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.photo_camera);
-        fab.setOnClickListener(new View.OnClickListener() {
+        mPhotoCameraView = (FloatingActionButton) findViewById(R.id.photo_camera);
+        mPhotoCameraView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Drawable drawable = Utils.getIconDrawable(AccountActivity.this, R.drawable.ic_photo_camera_white_48dp);
@@ -278,8 +277,8 @@ public class AccountActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (FB.getUser() != null) {
-            getMenuInflater().inflate(R.menu.menu_feedback, menu);
+        if (!mIsSetup) {
+            getMenuInflater().inflate(R.menu.menu_send, menu);
             return true;
         }
         return super.onCreateOptionsMenu(menu);
