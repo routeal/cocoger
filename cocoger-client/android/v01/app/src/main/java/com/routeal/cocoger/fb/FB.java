@@ -41,7 +41,6 @@ import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.model.RangeRequest;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.service.MainReceiver;
-import com.routeal.cocoger.service.MainService;
 import com.routeal.cocoger.ui.main.FriendListViewHolder;
 import com.routeal.cocoger.ui.main.MapActivity;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
@@ -153,7 +152,7 @@ public class FB {
                     if (FB.getUser() != null) {
                         FB.setUser(null);
                         // stop the service
-                        MainService.stop();
+                        // MainService.stop();
                     }
                 }
             }

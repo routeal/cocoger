@@ -24,9 +24,7 @@ import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.User;
-import com.routeal.cocoger.service.MainService;
 import com.routeal.cocoger.util.LocationRange;
-import com.routeal.cocoger.util.Notifi;
 import com.routeal.cocoger.util.Utils;
 
 public class MapActivity extends MapBaseActivity {
@@ -242,11 +240,6 @@ public class MapActivity extends MapBaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // ensure that the service is started
-        //MainService.start(getApplicationContext());
-        // set it in the foreground mode
-        MainService.setForegroundMode();
 
         // retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {

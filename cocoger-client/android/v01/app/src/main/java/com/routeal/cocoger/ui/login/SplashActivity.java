@@ -7,7 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.provider.DBUtil;
-import com.routeal.cocoger.service.MainService;
+import com.routeal.cocoger.service.LocationUpdateService;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 
 /**
@@ -20,14 +20,13 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Intent intent;
-
         DBUtil.purgeImages();
         DBUtil.purgeGeoLocations();
         DBUtil.purgeReverseGeoLocations();
 
         // ensure that the service is started
-        MainService.start(getApplicationContext());
+        Intent intent = new Intent(this, LocationUpdateService.class);
+        startService(intent);
 
         if (FB.isAuthenticated()) {
             intent = new Intent(getApplicationContext(), PanelMapActivity.class);

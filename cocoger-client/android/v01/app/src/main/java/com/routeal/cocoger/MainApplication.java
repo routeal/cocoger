@@ -66,6 +66,14 @@ public class MainApplication extends Application {
         return mInstance.mPreferences.getString(key, null);
     }
 
+    public static void putInt(String key, int value) {
+        mInstance.mPreferences.edit().putInt(key, value).apply();
+    }
+
+    public static int getInt(String key, int value) {
+        return mInstance.mPreferences.getInt(key, value);
+    }
+
     /*
     public static String getString(String key, String value) {
         return mInstance.mPreferences.getString(key, value);

@@ -30,9 +30,11 @@ import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.arlib.floatingsearchview.util.Util;
 import com.mikepenz.aboutlibraries.Libs;
 import com.mikepenz.aboutlibraries.LibsBuilder;
+import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.User;
+import com.routeal.cocoger.service.LocationUpdate;
 import com.routeal.cocoger.ui.login.LoginActivity;
 import com.routeal.cocoger.util.LoadImage;
 
@@ -179,8 +181,11 @@ public class SearchMapActivity extends MapActivity implements NavigationView.OnN
         final RadioGroup fgIntervalGroup = (RadioGroup) view.findViewById(R.id.foreground_interval);
         final RadioGroup bgIntervalGroup = (RadioGroup) view.findViewById(R.id.background_interval);
         final TextView warning = (TextView) view.findViewById(R.id.location_update_warning);
-        RadioButton button1 = (RadioButton) view.findViewById(R.id.bg_interval_1);
-        button1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        RadioButton fgbutton1 = (RadioButton) view.findViewById(R.id.fg_interval_1);
+        RadioButton fgbutton3 = (RadioButton) view.findViewById(R.id.fg_interval_3);
+        RadioButton fgbutton5 = (RadioButton) view.findViewById(R.id.fg_interval_5);
+        RadioButton bgbutton1 = (RadioButton) view.findViewById(R.id.bg_interval_1);
+        bgbutton1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
@@ -188,8 +193,8 @@ public class SearchMapActivity extends MapActivity implements NavigationView.OnN
                 }
             }
         });
-        RadioButton button5 = (RadioButton) view.findViewById(R.id.bg_interval_5);
-        button5.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        RadioButton bgbutton5 = (RadioButton) view.findViewById(R.id.bg_interval_5);
+        bgbutton5.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
@@ -197,8 +202,8 @@ public class SearchMapActivity extends MapActivity implements NavigationView.OnN
                 }
             }
         });
-        RadioButton button15 = (RadioButton) view.findViewById(R.id.bg_interval_15);
-        button15.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        RadioButton bgbutton15 = (RadioButton) view.findViewById(R.id.bg_interval_15);
+        bgbutton15.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
@@ -206,8 +211,8 @@ public class SearchMapActivity extends MapActivity implements NavigationView.OnN
                 }
             }
         });
-        RadioButton button30 = (RadioButton) view.findViewById(R.id.bg_interval_30);
-        button30.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        RadioButton bgbutton30 = (RadioButton) view.findViewById(R.id.bg_interval_30);
+        bgbutton30.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
@@ -215,8 +220,8 @@ public class SearchMapActivity extends MapActivity implements NavigationView.OnN
                 }
             }
         });
-        RadioButton button60 = (RadioButton) view.findViewById(R.id.bg_interval_60);
-        button60.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        RadioButton bgbutton60 = (RadioButton) view.findViewById(R.id.bg_interval_60);
+        bgbutton60.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
@@ -224,6 +229,28 @@ public class SearchMapActivity extends MapActivity implements NavigationView.OnN
                 }
             }
         });
+        int serviceInterval = MainApplication.getInt(LocationUpdate.LOCATION_UPDATE_INTERVAL, LocationUpdate.DEFAULT_LOCATION_UPDATE_INTERVAL);
+        serviceInterval /= 60*1000;
+        if (serviceInterval == 1) {
+            fgbutton1.setChecked(true);
+        } else if (serviceInterval == 3) {
+            fgbutton3.setChecked(true);
+        } else if (serviceInterval == 5) {
+            fgbutton5.setChecked(true);
+        }
+        int fgServiceInterval = MainApplication.getInt(LocationUpdate.FOREGROUND_LOCATION_UPDATE_INTERVAL, LocationUpdate.DEFAULT_FOREGROUND_LOCATION_UPDATE_INTERVAL);
+        fgServiceInterval /= 60*1000;
+        if (fgServiceInterval == 1) {
+            bgbutton1.setChecked(true);
+        } else if (fgServiceInterval == 5) {
+            bgbutton5.setChecked(true);
+        } else if (fgServiceInterval == 15) {
+            bgbutton15.setChecked(true);
+        } else if (fgServiceInterval == 30) {
+            bgbutton30.setChecked(true);
+        } else if (fgServiceInterval == 60) {
+            bgbutton60.setChecked(true);
+        }
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setView(view)
                 .setCancelable(true)
@@ -232,10 +259,19 @@ public class SearchMapActivity extends MapActivity implements NavigationView.OnN
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         RadioButton fg = (RadioButton) view.findViewById(fgIntervalGroup.getCheckedRadioButtonId());
-                        int fgInterval = Integer.valueOf(fg.getText().toString());
+                        int fgInterval = Integer.valueOf(fg.getText().toString()) * 60 * 1000;
                         RadioButton bg = (RadioButton) view.findViewById(bgIntervalGroup.getCheckedRadioButtonId());
-                        int bgInterval = Integer.valueOf(bg.getText().toString());
+                        int bgInterval = Integer.valueOf(bg.getText().toString()) * 60 * 1000;
                         Log.d(TAG, "New Location update: fg=" + fgInterval + " bg=" + bgInterval);
+
+                        int serviceInterval = MainApplication.getInt(LocationUpdate.LOCATION_UPDATE_INTERVAL, LocationUpdate.DEFAULT_LOCATION_UPDATE_INTERVAL);
+                        if (serviceInterval != fgInterval) {
+                            MainApplication.putInt(LocationUpdate.LOCATION_UPDATE_INTERVAL, fgInterval);
+                        }
+                        int fgServiceInterval = MainApplication.getInt(LocationUpdate.FOREGROUND_LOCATION_UPDATE_INTERVAL, LocationUpdate.DEFAULT_FOREGROUND_LOCATION_UPDATE_INTERVAL);
+                        if (fgServiceInterval != bgInterval) {
+                            MainApplication.putInt(LocationUpdate.FOREGROUND_LOCATION_UPDATE_INTERVAL, bgInterval);
+                        }
                     }
                 })
                 .show();

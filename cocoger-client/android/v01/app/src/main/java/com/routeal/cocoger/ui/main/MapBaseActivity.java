@@ -1,20 +1,25 @@
 package com.routeal.cocoger.ui.main;
 
 import android.app.Activity;
-import android.app.Application;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.IntentSender;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.widget.Toast;
@@ -24,68 +29,103 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 import com.routeal.cocoger.R;
-import com.routeal.cocoger.service.MainService;
+import com.routeal.cocoger.service.LocationUpdateService;
 import com.routeal.cocoger.util.Utils;
 
-public abstract class MapBaseActivity extends FragmentActivity {
+public abstract class MapBaseActivity extends FragmentActivity
+        implements GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
     private final static String TAG = "MapBaseActivity";
 
-    private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
-    private final static int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 1000;
+    private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 1234;
+    private final static int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 5678;
 
-    // The entry point to Google Play services, used by the Places API and Fused Location Provider.
     private GoogleApiClient mGoogleApiClient;
 
     private Location mLastKnownLocation;
 
     private Address mLastKnownAddress;
 
-    private final AppLifecycleListener mForegroundListener = new AppLifecycleListener();
+    private LocationUpdateService mService = null;
+
+    private boolean mBound = false;
+
+    private final ServiceConnection mServiceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            LocationUpdateService.LocalBinder binder = (LocationUpdateService.LocalBinder) service;
+            mService = binder.getService();
+            mBound = true;
+            Log.d(TAG, "onServiceConnected");
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mService = null;
+            mBound = false;
+            Log.d(TAG, "onServiceDisconnected");
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getApplication().registerActivityLifecycleCallbacks(mForegroundListener);
         setContentView(R.layout.activity_maps);
         checkPermission();
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        bindService(new Intent(this, LocationUpdateService.class), mServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    @Override
+    protected void onStop() {
+        if (mBound) {
+            // Unbind from the service. This signals to the service that this activity is no longer
+            // in the foreground, and the service can respond by promoting itself to a foreground
+            // service.
+            unbindService(mServiceConnection);
+            mBound = false;
+        }
+        super.onStop();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
-        getApplication().unregisterActivityLifecycleCallbacks(mForegroundListener);
     }
 
     private void checkPermission() {
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this.getApplicationContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             connectGoogleApiClient();
         } else {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
         }
     }
 
-    /**
-     * Handles the result of the request for location permissions.
-     */
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String permissions[],
-                                           @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String permissions[], @NonNull int[] grantResults) {
         switch (requestCode) {
             case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     connectGoogleApiClient();
                 } else {
                     Drawable drawable = Utils.getIconDrawable(this, R.drawable.ic_place_white_36dp,
                             R.color.teal);
-
                     new AlertDialog.Builder(this)
                             .setIcon(drawable)
                             .setTitle(R.string.location_denied_title)
@@ -99,7 +139,7 @@ public abstract class MapBaseActivity extends FragmentActivity {
                             .setNegativeButton(R.string.exit, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    finish();
+                                    exitApp();
                                 }
                             })
                             .show();
@@ -109,52 +149,10 @@ public abstract class MapBaseActivity extends FragmentActivity {
         }
     }
 
-    class GoogleApiClientListeners implements GoogleApiClient.ConnectionCallbacks,
-            GoogleApiClient.OnConnectionFailedListener {
-        Activity activity;
-
-        GoogleApiClientListeners(Activity activity) {
-            this.activity = activity;
-        }
-
-        @Override
-        @SuppressWarnings("MissingPermission")
-        public void onConnected(@Nullable Bundle bundle) {
-            mLastKnownLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            mGoogleApiClient.disconnect();
-            startApp();
-        }
-
-        @Override
-        public void onConnectionSuspended(int i) {
-
-        }
-
-        @Override
-        public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-            if (connectionResult.hasResolution()) {
-                try {
-                    // Start an Activity that tries to resolve the error
-                    connectionResult.startResolutionForResult(activity,
-                            CONNECTION_FAILURE_RESOLUTION_REQUEST);
-                } catch (IntentSender.SendIntentException e) {
-                    e.printStackTrace();
-                }
-            } else {
-                Log.d(TAG, "GoogleApi connection failed without resolution.");
-                Toast.makeText(activity, connectionResult.getErrorMessage(), Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
-    /**
-     * Connects with Google API client
-     */
     private void connectGoogleApiClient() {
-        GoogleApiClientListeners listeners = new GoogleApiClientListeners(this);
         mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addOnConnectionFailedListener(listeners)
-                .addConnectionCallbacks(listeners)
+                .addOnConnectionFailedListener(this)
+                .addConnectionCallbacks(this)
                 .addApi(LocationServices.API)
                 .addApi(Places.GEO_DATA_API)
                 .addApi(Places.PLACE_DETECTION_API)
@@ -171,7 +169,6 @@ public abstract class MapBaseActivity extends FragmentActivity {
                 } else {
                     Drawable drawable = Utils.getIconDrawable(this, R.drawable.ic_place_white_36dp,
                             R.color.teal);
-
                     new AlertDialog.Builder(this)
                             .setIcon(drawable)
                             .setTitle(R.string.googleapi_denied_title)
@@ -179,7 +176,7 @@ public abstract class MapBaseActivity extends FragmentActivity {
                             .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    finish();
+                                    exitApp();
                                 }
                             })
                             .show();
@@ -188,65 +185,54 @@ public abstract class MapBaseActivity extends FragmentActivity {
         }
     }
 
-    // start an app in the extented object
+    void exitApp() {
+        Intent intent = new Intent(this, LocationUpdateService.class);
+        stopService(intent);
+        finish();
+    }
+
     abstract void startApp();
 
     Location getLocation() {
         return mLastKnownLocation;
     }
 
-    Address getAddress() { return mLastKnownAddress; }
-
     void setLocation(Location location) {
         mLastKnownLocation = location;
     }
 
-    void setAddress(Address address) { mLastKnownAddress = address; }
+    Address getAddress() {
+        return mLastKnownAddress;
+    }
 
-    public static class AppLifecycleListener implements Application.ActivityLifecycleCallbacks {
-        private int numStarted;
+    void setAddress(Address address) {
+        mLastKnownAddress = address;
+    }
 
-        @Override
-        public void onActivityStarted(Activity activity) {
-            if (numStarted == 0) {
-                Log.d(TAG, "AppLifecycleListener: Foreground");
-                MainService.setForegroundMode();
+    @Override
+    @SuppressWarnings("MissingPermission")
+    public void onConnected(@Nullable Bundle bundle) {
+        mLastKnownLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        mGoogleApiClient.disconnect();
+        startApp();
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        if (connectionResult.hasResolution()) {
+            try {
+                connectionResult.startResolutionForResult(this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
+            } catch (IntentSender.SendIntentException e) {
+                Log.d(TAG, "onConnectionFailed", e);
             }
-            numStarted++;
-        }
-
-        @Override
-        public void onActivityStopped(Activity activity) {
-            numStarted--;
-            if (numStarted == 0) {
-                Log.d(TAG, "AppLifecycleListener: Background");
-                MainService.setBackgroundMode();
-            }
-        }
-
-        @Override
-        public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-
-        }
-
-        @Override
-        public void onActivityResumed(Activity activity) {
-
-        }
-
-        @Override
-        public void onActivityPaused(Activity activity) {
-
-        }
-
-        @Override
-        public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-
-        }
-
-        @Override
-        public void onActivityDestroyed(Activity activity) {
-
+        } else {
+            Log.d(TAG, "onConnectionFailed: " + connectionResult.getErrorMessage());
+            Toast.makeText(this, connectionResult.getErrorMessage(), Toast.LENGTH_LONG).show();
         }
     }
 }
