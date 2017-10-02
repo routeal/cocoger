@@ -41,7 +41,6 @@ import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.model.RangeRequest;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.service.LocationUpdateService;
-import com.routeal.cocoger.service.MainReceiver;
 import com.routeal.cocoger.ui.main.FriendListViewHolder;
 import com.routeal.cocoger.ui.main.MapActivity;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
@@ -762,7 +761,7 @@ public class FB {
         acceptIntent.putExtra(NOTIFI_RANGE_REQUETER, uid);
         acceptIntent.putExtra(NOTIFI_RANGE, requestRange);
 
-        Intent declineIntent = new Intent(context, MainReceiver.class);
+        Intent declineIntent = new Intent(context, LocationUpdateService.class);
         declineIntent.setAction(ACTION_RANGE_REQUEST_DECLINED);
         declineIntent.putExtra(NOTIFI_RANGE_REQUETER, uid);
 
@@ -795,7 +794,7 @@ public class FB {
                 acceptIntent.setAction(ACTION_FRIEND_REQUEST_ACCEPTED);
                 acceptIntent.putExtra(NOTIFI_FRIEND_INVITE, invite);
 
-                Intent declineIntent = new Intent(context, MainReceiver.class);
+                Intent declineIntent = new Intent(context, LocationUpdateService.class);
                 declineIntent.setAction(ACTION_FRIEND_REQUEST_DECLINED);
                 declineIntent.putExtra(NOTIFI_FRIEND_INVITE, invite);
 

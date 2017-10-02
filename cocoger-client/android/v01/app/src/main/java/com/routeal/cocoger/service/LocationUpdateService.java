@@ -11,6 +11,9 @@ import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.util.Notifi;
+
 public class LocationUpdateService extends Service {
     private final static String TAG = "tako";
 
@@ -95,12 +98,27 @@ public class LocationUpdateService extends Service {
         if (intent != null) {
             String action = intent.getAction();
             if (action != null) {
+                Log.d(TAG, action);
                 if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
-                    Log.d(TAG, "onStartCommand: startedFromBoot");
                     startForeground(LocationUpdate.NOTIFICATION_ID, LocationUpdate.getInstance().getNotification(getApplicationContext()));
                 } else if (action.equals(LocationUpdate.ACTION_START_FROM_NOTIFICATION)) {
-                    Log.d(TAG, "onStartCommand: startedFromNotification");
                     LocationUpdate.getInstance().removeLocationUpdates();
+                } else if (action.equals(FB.ACTION_FRIEND_REQUEST_DECLINED)) {
+                    // delete the invite and invitee from the database
+                    String invite = intent.getStringExtra(FB.NOTIFI_FRIEND_INVITE);
+                    FB.declineFriendRequest(invite);
+                    int nid = intent.getIntExtra(Notifi.ID, 0);
+                    if (nid > 0) {
+                        Notifi.remove(nid);
+                    }
+                } else if (action.equals(FB.ACTION_RANGE_REQUEST_DECLINED)) {
+                    // delete the invite and invitee from the database
+                    String requester = intent.getStringExtra(FB.NOTIFI_RANGE_REQUETER);
+                    FB.declineRangeRequest(requester);
+                    int nid = intent.getIntExtra(Notifi.ID, 0);
+                    if (nid > 0) {
+                        Notifi.remove(nid);
+                    }
                 }
             }
         }

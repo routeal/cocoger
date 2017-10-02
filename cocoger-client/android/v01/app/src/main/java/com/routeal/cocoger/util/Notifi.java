@@ -31,7 +31,7 @@ public class Notifi {
                 context.getResources().getString(R.string.accept), pendingAcceptIntent).build();
 
         PendingIntent pendingDeclineIntent =
-                PendingIntent.getBroadcast(context, nid, decline, PendingIntent.FLAG_CANCEL_CURRENT);
+                PendingIntent.getService(context, nid, decline, PendingIntent.FLAG_CANCEL_CURRENT);
         final NotificationCompat.Action declineAction = new NotificationCompat.Action.Builder(
                 R.drawable.ic_contacts_black_18dp,
                 context.getResources().getString(R.string.decline), pendingDeclineIntent).build();
