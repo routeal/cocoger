@@ -230,7 +230,7 @@ class MarkerManager {
         // add a new marker to map
         mMarkers.add(new ComboMarker(mMap, mInfoWindowManager,
                 key, name, picture, location, address, range));
-        // add(key, name, picture, location, address, range);
+        //add(key, name, picture, location, address, range);
     }
 
     void reposition(String key, int range) {
@@ -346,25 +346,27 @@ class MarkerManager {
     private void zoomOut() {
         if (mMarkers.size() <= 1) return;
 
-        // combine the markers next to each other
-        Iterator<ComboMarker> ite = mMarkers.iterator();
-        ComboMarker p = ite.next();
-        for (; ite.hasNext(); ) {
-            ComboMarker n = ite.next();
+        Log.d(TAG, "zoom out: compare from 0 to n");
+
+        // convert to array to avoid concurrent modification
+        ComboMarker[] markers = mMarkers.toArray(new ComboMarker[0]);
+
+        // compare one to next each other
+        ComboMarker p = markers[0];
+        for (int i = 1; i < markers.length; i++) {
+            ComboMarker n = markers[i];
             if (combineMarkers(n, p)) {
                 mMarkers.remove(p);
             }
             p = n;
         }
 
-        // combine the first and last ones
-        if (mMarkers.size() > 2) {
-            ite = mMarkers.iterator();
-            ComboMarker f = ite.next();
-            ComboMarker l = null;
-            for (; ite.hasNext(); ) {
-                l = ite.next();
-            }
+        markers = mMarkers.toArray(new ComboMarker[0]);
+
+        // compare first and last ones
+        if (markers.length > 1) {
+            ComboMarker f = markers[0];
+            ComboMarker l = markers[markers.length - 1];
             if (combineMarkers(f, l)) {
                 mMarkers.remove(l);
             }
