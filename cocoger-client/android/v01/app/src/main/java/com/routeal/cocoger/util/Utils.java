@@ -23,6 +23,7 @@ import android.view.inputmethod.InputMethodManager;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.maps.android.SphericalUtil;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.Friend;
@@ -241,46 +242,12 @@ public class Utils {
     }
 
     public static double distanceTo(Location a, Location b) {
-        return distanceImpl(a.getLatitude(), a.getLongitude(), b.getLatitude(), b.getLongitude());
+        LatLng point1 = getLatLng(a);
+        LatLng point2 = getLatLng(b);
+        return SphericalUtil.computeDistanceBetween(point1, point2);
     }
 
-    private static long distanceImpl(double lat1, double lng1, double lat2, double lng2) {
-        double dLat = Math.toRadians(lat2 - lat1);
-        double dLon = Math.toRadians(lng2 - lng1);
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-                + Math.cos(Math.toRadians(lat1))
-                * Math.cos(Math.toRadians(lat2)) * Math.sin(dLon / 2)
-                * Math.sin(dLon / 2);
-        double c = 2 * Math.asin(Math.sqrt(a));
-        return Math.round(6371000 * c);
-    }
-
-    /**
-     * Calculate distance between two points in latitude and longitude taking
-     * into account height difference. If you are not interested in height
-     * difference pass 0.0. Uses Haversine method as its base.
-     * <p>
-     * lat1, lon1 Start point lat2, lon2 End point el1 Start altitude in meters
-     * el2 End altitude in meters
-     *
-     * @returns Distance in Meters
-     */
-    private static double distanceImpl3(double lat1, double lat2, double lon1,
-                                        double lon2, double el1, double el2) {
-        final int R = 6371; // Radius of the earth
-        double latDistance = Math.toRadians(lat2 - lat1);
-        double lonDistance = Math.toRadians(lon2 - lon1);
-        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        double distance = R * c * 1000; // convert to meters
-        double height = el1 - el2;
-        distance = Math.pow(distance, 2) + Math.pow(height, 2);
-        return Math.sqrt(distance);
-    }
-
-    public static Location getFromAddress(@NonNull String address) {
+    private static Location getFromAddress(@NonNull String address) {
         Location location = DBUtil.getLocation(address);
         if (location == null) {
             try {

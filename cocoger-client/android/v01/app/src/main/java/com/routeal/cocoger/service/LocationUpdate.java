@@ -93,8 +93,8 @@ public class LocationUpdate {
     }
 
     private static String getLocationTitle(Context context) {
-        return context.getString(R.string.last_location_update,
-                DateFormat.getDateTimeInstance().format(new Date()));
+        DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
+        return context.getString(R.string.last_location_update, formatter.format(new Date()));
     }
 
     void exec(Context context) {
@@ -175,7 +175,6 @@ public class LocationUpdate {
                     Log.d(TAG, "FG Service Interval Not Changed");
                     return;
                 } else {
-                    mForegroundServiceLocationUpdateInterval = interval;
                     Log.d(TAG, "FG Service Interval Changed=" + mForegroundServiceLocationUpdateInterval);
                 }
             } else {
@@ -184,7 +183,6 @@ public class LocationUpdate {
                     Log.d(TAG, "Service Interval Not Changed");
                     return;
                 } else {
-                    mServiceLocationUpdateInterval = interval;
                     Log.d(TAG, "Service Interval Changed=" + mServiceLocationUpdateInterval);
                 }
             }
@@ -217,8 +215,7 @@ public class LocationUpdate {
         LocationUpdateReceiver.setUpdateInterval(mCurrentLocationUpdateInterval/1000);
         LocationUpdateReceiver.scheduleUpdate(context, (AlarmManager) context.getSystemService(ALARM_SERVICE));
 
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApi,
-                mLocationRequest, mLocationCallback, Looper.myLooper());
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApi, mLocationRequest, mLocationCallback, Looper.myLooper());
     }
 
     private void onNewLocation(Context context, Location location) {

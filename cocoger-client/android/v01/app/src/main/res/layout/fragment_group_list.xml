@@ -8,8 +8,8 @@ tools:context="com.routeal.cocoger.ui.main.PanelMapActivity">
 <TextView
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:text="two"
-    android:textSize="40dp"
+    android:text="Group sharing is coming"
+    android:textSize="24dp"
     android:textStyle="bold"
     android:layout_centerInParent="true"/>
 

@@ -1,17 +1,23 @@
 package com.routeal.cocoger.ui.main;
 
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.IdRes;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RatingBar;
+import android.widget.Toast;
 
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.model.Feedback;
+import com.routeal.cocoger.model.User;
 
 /**
  * Created by nabe on 7/25/17.
@@ -76,7 +82,38 @@ public class FeedbackActivity extends AppCompatActivity implements RadioGroup.On
         RadioButton button = (RadioButton) findViewById(radioGroup.getCheckedRadioButtonId());
         String about = button.getText().toString();
         String description = editText.getText().toString();
-        int numStars = ratingBar.getNumStars();
-        finish();
+        int numStars = (int) ratingBar.getRating();
+
+        if (description.isEmpty()) {
+            editText.setError("Please type your feedback");
+            return;
+        }
+
+        User user = FB.getUser();
+
+        Feedback feedback = new Feedback();
+        feedback.setRating(numStars);
+        feedback.setTitle(about);
+        feedback.setDescription(description);
+        feedback.setId(FB.getUid());
+        feedback.setName(user.getDisplayName());
+        feedback.setCreated(System.currentTimeMillis());
+
+        FB.saveFeedback(feedback, new FB.CompleteListener() {
+                    @Override
+                    public void onSuccess() {
+                        Toast.makeText(FeedbackActivity.this, "Thank you very much for the feedback", Toast.LENGTH_LONG).show();
+                        FeedbackActivity.this.finish();
+                    }
+
+                    @Override
+                    public void onFail(String err) {
+                        new AlertDialog.Builder(FeedbackActivity.this)
+                                .setTitle(R.string.feedback)
+                                .setMessage(R.string.failed_feedback)
+                                .setPositiveButton(android.R.string.ok, null)
+                                .show();
+                    }
+                });
     }
 }

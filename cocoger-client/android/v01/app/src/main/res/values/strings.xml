@@ -149,4 +149,6 @@
     <string name="num_60">60</string>
     <string name="location_update_warning">It expires in 15 mins and back to 30 mins.</string>
     <string name="last_location_update">Last Location Updated: %1$s</string>
+    <string name="no_message">You have no message now.</string>
+    <string name="failed_feedback">We are very sorry that your feedback did not reach us due to the network problem.  Please try again later.</string>
 </resources>

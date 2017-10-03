@@ -9,7 +9,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Marker;
-import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.User;
@@ -123,19 +122,19 @@ class MarkerManager {
 
         for (ComboMarker marker : mMarkers) {
             if (marker.contains(id)) {
-                //Log.d(TAG, "add: " + id + " update the location and address");
+                Log.d(TAG, "add: " + id + " update the location and address");
                 marker.setPosition(location, address, range);
                 return;
             }
             Location rangeLocation = Utils.getRangedLocation(location, address, range);
             if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
-                //Log.d(TAG, "add: combined " + id);
+                Log.d(TAG, "add: combined " + id);
                 marker.addUser(id, name, picture, location, address, range);
                 return;
             }
         }
 
-        //Log.d(TAG, "add: create a new marker " + id);
+        Log.d(TAG, "add: create a new marker " + id);
         ComboMarker m = new ComboMarker(mMap, mInfoWindowManager,
                 id, name, picture, location, address, range);
         mMarkers.add(m);
@@ -168,7 +167,8 @@ class MarkerManager {
                 else if (marker.size() == 1) {
                     Log.d(TAG, "reposition: reposition");
                     if (Utils.distanceTo(rangeLocation, location) < mMarkerDistance) {
-                        Log.d(TAG, "reposition: join to another");
+                        Log.d(TAG, "reposition: removed to join to another");
+                        //shouldJoin = true;
                         marker.removeUser(key);
                         ite.remove();
                         break;
@@ -220,7 +220,7 @@ class MarkerManager {
         // find the nearest marker and join
         for (ComboMarker marker : mMarkers) {
             if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
-                Log.d(TAG, "reposition: join to the marker");
+                Log.d(TAG, "reposition: added to join to the marker");
                 marker.addUser(key, name, picture, location, address, range);
                 return;
             }
@@ -228,11 +228,9 @@ class MarkerManager {
 
         Log.d(TAG, "reposition: add a marker for " + key);
         // add a new marker to map
-/*
         mMarkers.add(new ComboMarker(mMap, mInfoWindowManager,
                 key, name, picture, location, address, range));
-*/
-        add(key, name, picture, location, address, range);
+        // add(key, name, picture, location, address, range);
     }
 
     void reposition(String key, int range) {
@@ -348,38 +346,27 @@ class MarkerManager {
     private void zoomOut() {
         if (mMarkers.size() <= 1) return;
 
-        ComboMarker[] markers = mMarkers.toArray(new ComboMarker[0]);
-
-        ComboMarker p = markers[0];
-
-        // compare two markers one by one from 0 to n
-        Log.d(TAG, "zoom out: compare from 0 to n");
-        for (int i = 1; i < markers.length; i++) {
-            ComboMarker n = markers[i];
+        // combine the markers next to each other
+        Iterator<ComboMarker> ite = mMarkers.iterator();
+        ComboMarker p = ite.next();
+        for (; ite.hasNext(); ) {
+            ComboMarker n = ite.next();
             if (combineMarkers(n, p)) {
-                markers[i - 1] = null;
                 mMarkers.remove(p);
             }
             p = n;
         }
 
-        // compare the first and last ones
-        if (markers.length > 2) {
-            int i = markers.length - 1;
-            int j = 0;
-
-            Log.d(TAG, "zoom out: compare first and last");
-
-            // find the first one
-            for (; j < markers.length; j++) {
-                if (markers[j] != null) break;
+        // combine the first and last ones
+        if (mMarkers.size() > 2) {
+            ite = mMarkers.iterator();
+            ComboMarker f = ite.next();
+            ComboMarker l = null;
+            for (; ite.hasNext(); ) {
+                l = ite.next();
             }
-
-            if (i != j && markers[j] != null && markers[i] != null) {
-                // 2nd arg will be removed
-                if (combineMarkers(markers[j], markers[i])) {
-                    mMarkers.remove(markers[i]);
-                }
+            if (combineMarkers(f, l)) {
+                mMarkers.remove(l);
             }
         }
     }

@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Parcel;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.content.res.ResourcesCompat;
@@ -230,7 +231,7 @@ public class SearchMapActivity extends MapActivity implements NavigationView.OnN
             }
         });
         int serviceInterval = MainApplication.getInt(LocationUpdate.LOCATION_UPDATE_INTERVAL, LocationUpdate.DEFAULT_LOCATION_UPDATE_INTERVAL);
-        serviceInterval /= 60*1000;
+        serviceInterval /= 60 * 1000;
         if (serviceInterval == 1) {
             fgbutton1.setChecked(true);
         } else if (serviceInterval == 3) {
@@ -239,7 +240,7 @@ public class SearchMapActivity extends MapActivity implements NavigationView.OnN
             fgbutton5.setChecked(true);
         }
         int fgServiceInterval = MainApplication.getInt(LocationUpdate.FOREGROUND_LOCATION_UPDATE_INTERVAL, LocationUpdate.DEFAULT_FOREGROUND_LOCATION_UPDATE_INTERVAL);
-        fgServiceInterval /= 60*1000;
+        fgServiceInterval /= 60 * 1000;
         if (fgServiceInterval == 1) {
             bgbutton1.setChecked(true);
         } else if (fgServiceInterval == 5) {
@@ -405,4 +406,54 @@ public class SearchMapActivity extends MapActivity implements NavigationView.OnN
         });
 
     }
+
+    static class NameSuggestion implements SearchSuggestion {
+        public static final Creator<NameSuggestion> CREATOR = new Creator<NameSuggestion>() {
+            @Override
+            public NameSuggestion createFromParcel(Parcel in) {
+                return new NameSuggestion(in);
+            }
+
+            @Override
+            public NameSuggestion[] newArray(int size) {
+                return new NameSuggestion[size];
+            }
+        };
+        private String mColorName;
+        private boolean mIsHistory = true;
+
+        public NameSuggestion(String suggestion) {
+            this.mColorName = suggestion.toLowerCase();
+        }
+
+        public NameSuggestion(Parcel source) {
+            this.mColorName = source.readString();
+            this.mIsHistory = source.readInt() != 0;
+        }
+
+        public boolean getIsHistory() {
+            return this.mIsHistory;
+        }
+
+        public void setIsHistory(boolean isHistory) {
+            this.mIsHistory = isHistory;
+        }
+
+        @Override
+        public String getBody() {
+            return mColorName;
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeString(mColorName);
+            dest.writeInt(mIsHistory ? 1 : 0);
+        }
+    }
+
 }

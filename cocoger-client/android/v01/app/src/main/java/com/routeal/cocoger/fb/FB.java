@@ -36,6 +36,7 @@ import com.google.firebase.storage.UploadTask;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.Device;
+import com.routeal.cocoger.model.Feedback;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.model.RangeRequest;
@@ -89,6 +90,10 @@ public class FB {
         FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
         if (fUser == null) return null;
         return fUser.getUid();
+    }
+
+    private static DatabaseReference getFeedbackDatabaseReference() {
+        return FirebaseDatabase.getInstance().getReference().child("feedbacks");
     }
 
     private static DatabaseReference getDeviceDatabaseReference() {
@@ -947,6 +952,22 @@ public class FB {
             public void onCancelled(DatabaseError databaseError) {
                 if (listener != null) {
                     listener.onFail(databaseError.getMessage());
+                }
+            }
+        });
+    }
+
+    public static void saveFeedback(Feedback feedback, final CompleteListener listner) {
+        DatabaseReference feedbackDb = getFeedbackDatabaseReference();
+
+        String newKey = feedbackDb.push().getKey();
+        feedbackDb.child(newKey).setValue(feedback, new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                if (databaseError != null) {
+                    if (listner != null) listner.onFail(databaseError.getMessage());
+                } else {
+                    if (listner != null) listner.onSuccess();
                 }
             }
         });

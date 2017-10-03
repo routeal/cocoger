@@ -47,34 +47,33 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <activity
-            android:name=".ui.login.SplashActivity"
+        <activity android:name=".ui.login.SplashActivity"
             android:theme="@style/SplashTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <activity
-            android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
-            android:theme="@style/Base.Theme.AppCompat" /> <!-- optional (needed if default theme has no action bar) -->
+        <activity android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
+            android:theme="@style/Base.Theme.AppCompat" />
 
-        <activity android:name=".ui.main.PanelMapActivity" />
-
-        <activity
-            android:name=".ui.login.LoginActivity"
+        <activity android:name=".ui.login.LoginActivity"
             android:theme="@style/LoginTheme"
             android:windowSoftInputMode="adjustPan" />
 
-        <activity android:name=".ui.main.StreetViewActivity" />
-        <activity
-            android:name=".ui.main.AccountActivity"
+        <activity android:name=".ui.main.AccountActivity"
             android:theme="@style/AppTheme.NoActionBar" />
+
+        <activity android:name=".ui.main.PanelMapActivity" />
+
         <activity android:name=".ui.main.FeedbackActivity" />
+
         <activity android:name=".ui.main.WebActivity" />
+
         <activity android:name=".ui.main.TimelineActivity" />
+
+        <activity android:name=".ui.main.StreetViewActivity" />
 
         <receiver android:name=".service.OnBootReceiver">
             <intent-filter>
@@ -82,19 +81,9 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".service.MainReceiver">
-            <intent-filter>
-                <action android:name="FRIEND_REQUEST_ACCEPTED" />
-                <action android:name="FRIEND_REQUEST_DECLINED" />
-            </intent-filter>
-        </receiver>
-
         <receiver android:name=".service.LocationUpdateReceiver" />
 
-        <service
-            android:name=".service.LocationUpdateService"
-            android:enabled="true"
-            android:exported="true" />
+        <service android:name=".service.LocationUpdateService" />
 
         <provider
             android:name="com.routeal.cocoger.provider.DatabaseProvider"

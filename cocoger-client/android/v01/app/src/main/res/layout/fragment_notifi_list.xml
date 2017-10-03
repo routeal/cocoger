@@ -20,9 +20,9 @@
         android:layout_height="match_parent"
         android:layout_marginTop="32dp"
         android:gravity="center_horizontal"
-        android:text="no message"
+        android:text="@string/no_message"
         android:textColor="@color/slategray"
-        android:textSize="24sp"
+        android:textSize="20sp"
         android:textStyle="bold"
         android:visibility="gone" />
 

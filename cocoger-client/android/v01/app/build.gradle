@@ -48,6 +48,8 @@ dependencies {
     // firrebase ui database
     compile 'com.firebaseui:firebase-ui-database:2.3.0'
 
+    compile 'com.google.maps.android:android-maps-utils:0.5'
+
     // sliding up panel
     compile 'com.sothree.slidinguppanel:library:3.4.0'
 
