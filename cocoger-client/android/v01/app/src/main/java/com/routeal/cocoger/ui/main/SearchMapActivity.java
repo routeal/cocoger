@@ -29,8 +29,6 @@ import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.SearchSuggestionsAdapter;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.arlib.floatingsearchview.util.Util;
-import com.mikepenz.aboutlibraries.Libs;
-import com.mikepenz.aboutlibraries.LibsBuilder;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
@@ -74,8 +72,6 @@ public class SearchMapActivity extends MapActivity implements NavigationView.OnN
             intent.putExtra("url", "http://www.google.com");
             intent.putExtra("title", "Privacy Policy");
             startActivity(intent);
-        } else if (id == R.id.nav_open_source) {
-            showOpensourceLibraries();
         }
         return true;
     }
@@ -151,14 +147,6 @@ public class SearchMapActivity extends MapActivity implements NavigationView.OnN
                     }
                 })
                 .show();
-    }
-
-    private void showOpensourceLibraries() {
-        new LibsBuilder()
-                //provide a style (optional) (LIGHT, DARK, LIGHT_DARK_TOOLBAR)
-                .withActivityStyle(Libs.ActivityStyle.LIGHT_DARK_TOOLBAR)
-                //start the activity
-                .start(this);
     }
 
     private void showShareTimeline() {

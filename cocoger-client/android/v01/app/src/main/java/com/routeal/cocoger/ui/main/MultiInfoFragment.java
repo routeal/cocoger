@@ -32,6 +32,12 @@ public class MultiInfoFragment extends InfoFragment {
 
     private RecyclerView mFriendList;
 
+    private ComboMarker mMarker;
+
+    void setMarker(ComboMarker marker) {
+        mMarker = marker;
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -83,31 +89,6 @@ public class MultiInfoFragment extends InfoFragment {
             mMarkerInfoList = markerInfoList;
         }
 
-        public class ViewHolder extends RecyclerView.ViewHolder {
-            ImageView picture;
-            TextView name;
-            TextView range;
-
-            View.OnClickListener listener = new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ComboMarker.MarkerInfo info = mMarkerInfoList.get(getLayoutPosition());
-                    showDialog(info);
-                    mMarker.hide();
-                }
-            };
-
-            public ViewHolder(View itemView) {
-                super(itemView);
-                picture = (ImageView) itemView.findViewById(R.id.picture);
-                name = (TextView) itemView.findViewById(R.id.title);
-                range = (TextView) itemView.findViewById(R.id.range);
-                picture.setOnClickListener(listener);
-                name.setOnClickListener(listener);
-                range.setOnClickListener(listener);
-            }
-        }
-
         void showDialog(final ComboMarker.MarkerInfo info) {
             final Dialog dialog = new Dialog(getActivity());
             dialog.setContentView(R.layout.fragment_one_info);
@@ -120,17 +101,10 @@ public class MultiInfoFragment extends InfoFragment {
             setTitle(info.name);
             setAddress(Utils.getAddressLine(info.address, info.range));
 
-            mActionInfoButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    showLocationInfo(info.rangeLocation);
-                    dialog.dismiss();
-                }
-            });
-
             mActionLocationButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    saveLocation();
                     dialog.dismiss();
                 }
             });
@@ -146,6 +120,7 @@ public class MultiInfoFragment extends InfoFragment {
             mActionMessageButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    processMessage();
                     dialog.dismiss();
                 }
             });
@@ -154,6 +129,14 @@ public class MultiInfoFragment extends InfoFragment {
                 @Override
                 public void onClick(View v) {
                     openStreetView(info.rangeLocation, mAddressTextView.getText().toString());
+                    dialog.dismiss();
+                }
+            });
+
+            mActionGoogleMapButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showGoogleMap(info.rangeLocation, null);
                     dialog.dismiss();
                 }
             });
@@ -184,6 +167,31 @@ public class MultiInfoFragment extends InfoFragment {
         @Override
         public int getItemCount() {
             return mMarkerInfoList.size();
+        }
+
+        public class ViewHolder extends RecyclerView.ViewHolder {
+            ImageView picture;
+            TextView name;
+            TextView range;
+
+            View.OnClickListener listener = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ComboMarker.MarkerInfo info = mMarkerInfoList.get(getLayoutPosition());
+                    showDialog(info);
+                    mMarker.hide();
+                }
+            };
+
+            public ViewHolder(View itemView) {
+                super(itemView);
+                picture = (ImageView) itemView.findViewById(R.id.picture);
+                name = (TextView) itemView.findViewById(R.id.title);
+                range = (TextView) itemView.findViewById(R.id.range);
+                picture.setOnClickListener(listener);
+                name.setOnClickListener(listener);
+                range.setOnClickListener(listener);
+            }
         }
     }
 }

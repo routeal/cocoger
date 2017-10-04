@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.location.Location;
+import android.net.Uri;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.AppCompatImageView;
@@ -23,22 +24,14 @@ import com.routeal.cocoger.util.Utils;
  */
 
 public class InfoFragment extends Fragment {
-    protected ComboMarker mMarker;
-    protected ComboMarker.MarkerInfo mMarkerInfo;
 
     protected AppCompatTextView mTitleTextView;
     protected AppCompatImageView mStreetImageView;
     protected AppCompatTextView mAddressTextView;
-    protected ImageButton mActionInfoButton;
     protected ImageButton mActionLocationButton;
     protected ImageButton mActionDirectionButton;
     protected ImageButton mActionMessageButton;
     protected ImageButton mActionGoogleMapButton;
-
-    void setMarker(ComboMarker marker) {
-        mMarker = marker;
-        mMarkerInfo = mMarker.getOwner();
-    }
 
     void setupView(Object parent) {
         if (parent instanceof View) {
@@ -46,23 +39,19 @@ public class InfoFragment extends Fragment {
             mTitleTextView = (AppCompatTextView) view.findViewById(R.id.info_title);
             mStreetImageView = (AppCompatImageView) view.findViewById(R.id.info_street_view);
             mAddressTextView = (AppCompatTextView) view.findViewById(R.id.info_address);
-            mActionInfoButton = (ImageButton) view.findViewById(R.id.action_info);
             mActionLocationButton = (ImageButton) view.findViewById(R.id.action_location);
             mActionDirectionButton = (ImageButton) view.findViewById(R.id.action_direction);
             mActionMessageButton = (ImageButton) view.findViewById(R.id.action_message);
             mActionGoogleMapButton = (ImageButton) view.findViewById(R.id.action_googlemap);
-            mActionGoogleMapButton.setVisibility(View.GONE);
         } else if (parent instanceof Dialog) {
             Dialog dialog = (Dialog) parent;
             mTitleTextView = (AppCompatTextView) dialog.findViewById(R.id.info_title);
             mStreetImageView = (AppCompatImageView) dialog.findViewById(R.id.info_street_view);
             mAddressTextView = (AppCompatTextView) dialog.findViewById(R.id.info_address);
-            mActionInfoButton = (ImageButton) dialog.findViewById(R.id.action_info);
             mActionLocationButton = (ImageButton) dialog.findViewById(R.id.action_location);
             mActionDirectionButton = (ImageButton) dialog.findViewById(R.id.action_direction);
             mActionMessageButton = (ImageButton) dialog.findViewById(R.id.action_message);
             mActionGoogleMapButton = (ImageButton) dialog.findViewById(R.id.action_googlemap);
-            mActionGoogleMapButton.setVisibility(View.GONE);
         }
     }
 
@@ -103,19 +92,6 @@ public class InfoFragment extends Fragment {
         MainApplication.getContext().startActivity(intent);
     }
 
-    void showLocationInfo(Location location) {
-        Toast.makeText(MainApplication.getContext(), "More Info not implemented", Toast.LENGTH_SHORT).show();
-
-        /*
-        String url = String.format("google.streetview:cbll=%s,%s",
-                location.getLatitude(), location.getLongitude());
-        Uri gmmIntentUri = Uri.parse(url);
-        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-        mapIntent.setPackage("com.google.android.apps.maps");
-        MainApplication.getContext().startActivity(mapIntent);
-        */
-    }
-
     void saveLocation() {
         Toast.makeText(MainApplication.getContext(), "Save To Map not implemented", Toast.LENGTH_SHORT).show();
     }
@@ -128,5 +104,19 @@ public class InfoFragment extends Fragment {
 
     void processMessage() {
         Toast.makeText(MainApplication.getContext(), "Send Message not implemented", Toast.LENGTH_SHORT).show();
+    }
+
+    void showGoogleMap(Location location, String title) {
+        Uri gmmIntentUri;
+        if (title == null || title.isEmpty()) {
+            String url = String.format("geo:%f,%f", location.getLatitude(), location.getLongitude());
+            gmmIntentUri = Uri.parse(url);
+        } else {
+            String url = String.format("geo:%f,%f?q=", location.getLatitude(), location.getLongitude());
+            gmmIntentUri = Uri.parse(url + Uri.encode(title));
+        }
+        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+        mapIntent.setPackage("com.google.android.apps.maps");
+        MainApplication.getContext().startActivity(mapIntent);
     }
 }

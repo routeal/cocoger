@@ -69,9 +69,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:paddingTop="8dp"
+                android:paddingEnd="8dp"
                 android:paddingStart="8dp"
-                android:paddingEnd="8dp">
+                android:paddingTop="8dp">
 
                 <RadioButton
                     android:id="@+id/bg_interval_1"
@@ -112,10 +112,10 @@
             android:id="@+id/location_update_warning"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="@color/red"
             android:text="@string/location_update_warning"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
-            android:visibility="invisible"/>
+            android:textColor="@color/red"
+            android:visibility="invisible" />
 
     </LinearLayout>
 

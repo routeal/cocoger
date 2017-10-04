@@ -1,15 +1,12 @@
 package com.routeal.cocoger.ui.main;
 
-import android.content.Intent;
 import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 
 /**
@@ -29,7 +26,6 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
         setupView(view);
 
         mStreetImageView.setOnClickListener(this);
-        mActionInfoButton.setVisibility(View.GONE);
         mActionLocationButton.setOnClickListener(this);
         mActionDirectionButton.setOnClickListener(this);
         mActionMessageButton.setVisibility(View.GONE);
@@ -67,7 +63,7 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
                 }
                 break;
             case R.id.action_googlemap:
-                showGoogleMap();
+                showGoogleMap(mLocation, mTitle);
                 break;
         }
         mPoiManager.removeInfoWindow();
@@ -87,13 +83,5 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
 
     void setPoiManager(PoiManager poiManager) {
         mPoiManager = poiManager;
-    }
-
-    void showGoogleMap() {
-        String url = String.format("geo:%f,%f?q=", mLocation.getLatitude(), mLocation.getLongitude());
-        Uri gmmIntentUri = Uri.parse(url + Uri.encode(mTitle));
-        Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
-        mapIntent.setPackage("com.google.android.apps.maps");
-        MainApplication.getContext().startActivity(mapIntent);
     }
 }

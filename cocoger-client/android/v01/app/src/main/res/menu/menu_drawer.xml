@@ -40,10 +40,6 @@
             android:id="@+id/nav_privacy_policy"
             android:icon="@drawable/ic_lock_black_48dp"
             android:title="@string/privacy_policy" />
-        <item
-            android:id="@+id/nav_open_source"
-            android:icon="@drawable/ic_opensource_48"
-            android:title="@string/open_source_libraries" />
     </group>
 
 </menu>

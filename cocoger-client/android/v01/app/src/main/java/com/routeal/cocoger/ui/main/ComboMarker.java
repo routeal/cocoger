@@ -251,12 +251,15 @@ class ComboMarker { //implements Parcelable {
     void show() {
         InfoFragment infoFragment = null;
         if (mInfoMap.size() == 1) {
-            infoFragment = new OneInfoFragment();
+            OneInfoFragment o = new OneInfoFragment();
+            o.setMarker(this);
+            infoFragment = o;
         } else if (mInfoMap.size() > 1) {
-            infoFragment = new MultiInfoFragment();
+            MultiInfoFragment m = new MultiInfoFragment();
+            m.setMarker(this);
+            infoFragment = m;
         }
         if (infoFragment != null) {
-            infoFragment.setMarker(this);
             mInfoWindow = new InfoWindow(mMarker, mMarkerOffset, infoFragment);
             mInfoWindowManager.setHideOnFling(true);
             mInfoWindowManager.toggle(mInfoWindow, true);

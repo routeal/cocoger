@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.ImageView;
 
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -30,37 +31,41 @@ public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
     @Override
     protected List<Bitmap> doInBackground(String... params) {
         List<Bitmap> bitmaps = new ArrayList<>();
-        for (int i = 0; i < params.length; i++) {
-            if (isCancelled()) return null;
+        try {
+            for (int i = 0; i < params.length; i++) {
+                if (isCancelled()) return null;
 
-            String url = params[i];
+                String url = params[i];
 
-            // get from the database
-            byte[] data = DBUtil.getImage(url);
+                // get from the database
+                byte[] data = DBUtil.getImage(url);
 
-            Bitmap bitmap = null;
+                Bitmap bitmap = null;
 
-            if (data == null) {
-                bitmap = getBitmapFromURL(url);
-                if (bitmap == null) {
-                    continue;
+                if (data == null) {
+                    bitmap = getBitmapFromURL(url);
+                    if (bitmap == null) {
+                        continue;
+                    }
+                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                    byte[] byteArray = stream.toByteArray();
+                    DBUtil.saveImage(url, byteArray);
+                } else {
+                    bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, null);
                 }
-                ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                byte[] byteArray = stream.toByteArray();
-                DBUtil.saveImage(url, byteArray);
-            } else {
-                bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, null);
-            }
 
-            // FIXME: NEED BETTER WAY TO HANDLE THE BIG BITMAP
-            if (bitmap.getHeight() > 1024 || bitmap.getWidth() > 1024) {
-                bitmap = getResizedBitmap(bitmap, 256, 256);
-            }
+                // FIXME: NEED BETTER WAY TO HANDLE THE BIG BITMAP
+                if (bitmap.getHeight() > 1024 || bitmap.getWidth() > 1024) {
+                    bitmap = getResizedBitmap(bitmap, 256, 256);
+                }
 
-            if (bitmap != null) {
-                bitmaps.add(bitmap);
+                if (bitmap != null) {
+                    bitmaps.add(bitmap);
+                }
             }
+        } catch (Throwable t) {
+            Log.d(TAG, "LoadImage: " + t.getLocalizedMessage());
         }
         return bitmaps;
     }

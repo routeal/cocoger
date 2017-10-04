@@ -55,11 +55,6 @@ dependencies {
 
     compile 'com.github.bassaer:chatmessageview:1.3.4'
 
-    // listing open source libraries
-    compile('com.mikepenz:aboutlibraries:5.9.6@aar') {
-        transitive = true
-    }
-
     // will remove in the future
     compile 'com.github.arimorty:floatingsearchview:2.1.1'
     compile 'com.theartofdev.edmodo:android-image-cropper:2.4.+'

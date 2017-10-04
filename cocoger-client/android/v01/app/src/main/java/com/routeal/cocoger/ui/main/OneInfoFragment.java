@@ -17,6 +17,15 @@ import com.routeal.cocoger.util.Utils;
 public class OneInfoFragment extends InfoFragment implements View.OnClickListener {
     private final static String TAG = "OneInfoFragment";
 
+    private ComboMarker mMarker;
+
+    private ComboMarker.MarkerInfo mMarkerInfo;
+
+    void setMarker(ComboMarker marker) {
+        mMarker = marker;
+        mMarkerInfo = marker.getOwner();
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater,
@@ -28,10 +37,10 @@ public class OneInfoFragment extends InfoFragment implements View.OnClickListene
         setupView(view);
 
         mStreetImageView.setOnClickListener(this);
-        mActionInfoButton.setOnClickListener(this);
         mActionLocationButton.setOnClickListener(this);
         mActionDirectionButton.setOnClickListener(this);
         mActionMessageButton.setOnClickListener(this);
+        mActionGoogleMapButton.setOnClickListener(this);
 
         return view;
     }
@@ -53,10 +62,6 @@ public class OneInfoFragment extends InfoFragment implements View.OnClickListene
                 openStreetView(mMarkerInfo.rangeLocation, mAddressTextView.getText().toString());
                 mMarker.hide();
                 break;
-            case R.id.action_info:
-                showLocationInfo(mMarkerInfo.rangeLocation);
-                mMarker.hide();
-                break;
             case R.id.action_location:
                 saveLocation();
                 mMarker.hide();
@@ -67,6 +72,10 @@ public class OneInfoFragment extends InfoFragment implements View.OnClickListene
                 break;
             case R.id.action_message:
                 processMessage();
+                mMarker.hide();
+                break;
+            case R.id.action_googlemap:
+                showGoogleMap(mMarkerInfo.rangeLocation, null);
                 mMarker.hide();
                 break;
         }
