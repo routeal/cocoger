@@ -2,6 +2,7 @@ package com.routeal.cocoger.ui.main;
 
 import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
@@ -32,6 +33,7 @@ public class InfoFragment extends Fragment {
     protected ImageButton mActionLocationButton;
     protected ImageButton mActionDirectionButton;
     protected ImageButton mActionMessageButton;
+    protected ImageButton mActionGoogleMapButton;
 
     void setMarker(ComboMarker marker) {
         mMarker = marker;
@@ -48,6 +50,8 @@ public class InfoFragment extends Fragment {
             mActionLocationButton = (ImageButton) view.findViewById(R.id.action_location);
             mActionDirectionButton = (ImageButton) view.findViewById(R.id.action_direction);
             mActionMessageButton = (ImageButton) view.findViewById(R.id.action_message);
+            mActionGoogleMapButton = (ImageButton) view.findViewById(R.id.action_googlemap);
+            mActionGoogleMapButton.setVisibility(View.GONE);
         } else if (parent instanceof Dialog) {
             Dialog dialog = (Dialog) parent;
             mTitleTextView = (AppCompatTextView) dialog.findViewById(R.id.info_title);
@@ -57,6 +61,8 @@ public class InfoFragment extends Fragment {
             mActionLocationButton = (ImageButton) dialog.findViewById(R.id.action_location);
             mActionDirectionButton = (ImageButton) dialog.findViewById(R.id.action_direction);
             mActionMessageButton = (ImageButton) dialog.findViewById(R.id.action_message);
+            mActionGoogleMapButton = (ImageButton) dialog.findViewById(R.id.action_googlemap);
+            mActionGoogleMapButton.setVisibility(View.GONE);
         }
     }
 
@@ -84,6 +90,10 @@ public class InfoFragment extends Fragment {
         String url = String.format(getResources().getString(R.string.street_view_image_url),
                 location.getLatitude(), location.getLongitude());
         new LoadImage.LoadImageView(mStreetImageView, false).execute(url);
+    }
+
+    void setStreetViewPicture(Bitmap picture) {
+        mStreetImageView.setImageBitmap(picture);
     }
 
     void openStreetView(Location location, String address) {

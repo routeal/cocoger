@@ -14,7 +14,6 @@ import com.routeal.cocoger.provider.DBUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +42,9 @@ public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
 
             if (data == null) {
                 bitmap = getBitmapFromURL(url);
+                if (bitmap == null) {
+                    continue;
+                }
                 ByteArrayOutputStream stream = new ByteArrayOutputStream();
                 bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
                 byte[] byteArray = stream.toByteArray();

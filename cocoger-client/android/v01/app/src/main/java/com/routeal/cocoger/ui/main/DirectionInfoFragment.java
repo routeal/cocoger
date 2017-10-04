@@ -1,6 +1,7 @@
 package com.routeal.cocoger.ui.main;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,6 +16,7 @@ import android.widget.ImageButton;
 
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.util.Utils;
 
 /**
  * Created by nabe on 9/25/17.
@@ -33,6 +35,8 @@ public class DirectionInfoFragment extends Fragment {
         AppCompatTextView mDurationTextView = (AppCompatTextView) view.findViewById(R.id.info_duration);
         ImageButton mActionDirectionButton = (ImageButton) view.findViewById(R.id.action_direction);
         ImageButton mActionRemoveButton = (ImageButton) view.findViewById(R.id.action_remove);
+        Drawable drawable = Utils.getIconDrawable(view.getContext(), R.drawable.ic_directions_white_24dp, R.color.dodgerblue);
+        mActionDirectionButton.setImageDrawable(drawable);
         mActionDirectionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -97,6 +97,15 @@
             android:gravity="center"
             android:src="@drawable/ic_message_black_24dp" />
 
+        <ImageButton
+            android:id="@+id/action_googlemap"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="?android:selectableItemBackground"
+            android:gravity="center"
+            android:src="@drawable/google_maps_24" />
+
     </LinearLayout>
 
 </RelativeLayout>

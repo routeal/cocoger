@@ -216,8 +216,9 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
 
         Log.d(TAG, "removeLocationJitters: after address size=" + locations.size());
 
-        // removes the negative times (invalid) and
-        // the speed is less than walking while the moving distance is less than 40 meters
+        // removes the negative times (invalid) and the speed is less
+        // than walking and also the moving distance is less than 40
+        // meters
         Location prevLocation = null;
         it = locations.iterator();
         while (it.hasNext()) {

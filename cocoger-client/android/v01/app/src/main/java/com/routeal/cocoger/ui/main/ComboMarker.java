@@ -259,7 +259,7 @@ class ComboMarker { //implements Parcelable {
             infoFragment.setMarker(this);
             mInfoWindow = new InfoWindow(mMarker, mMarkerOffset, infoFragment);
             mInfoWindowManager.setHideOnFling(true);
-            mInfoWindowManager.show(mInfoWindow, true);
+            mInfoWindowManager.toggle(mInfoWindow, true);
         }
     }
 

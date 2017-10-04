@@ -151,4 +151,5 @@
     <string name="last_location_update">Last Location Updated: %1$s</string>
     <string name="no_message">You have no message now.</string>
     <string name="failed_feedback">We are very sorry that your feedback did not reach us due to the network problem.  Please try again later.</string>
+    <string name="too_short_direction">Too close for direction.</string>
 </resources>

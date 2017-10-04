@@ -9,13 +9,18 @@ import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 
+import com.appolica.interactiveinfowindow.InfoWindow;
 import com.appolica.interactiveinfowindow.InfoWindowManager;
 import com.appolica.interactiveinfowindow.fragment.MapInfoWindowFragment;
+import com.google.android.gms.location.places.GeoDataClient;
+import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -52,6 +57,8 @@ public class MapActivity extends MapBaseActivity {
 
     protected GoogleMap mMap;
 
+    protected GeoDataClient mGeoDataClient;
+
     private View mapView;
 
     private CameraPosition mCameraPosition;
@@ -73,10 +80,11 @@ public class MapActivity extends MapBaseActivity {
         public void onMapReady(GoogleMap googleMap) {
             mMap = googleMap;
 
+            mGeoDataClient = Places.getGeoDataClient(MapActivity.this, null);
             mMapStyle = new MapStyle(mMap, MapActivity.this);
             mMm = new MarkerManager(mMap, mInfoWindowManager);
             mDirection = new SimpleDirection(mMap, mInfoWindowManager);
-            mPoi = new PoiManager(mMap);
+            mPoi = new PoiManager(mMap, mGeoDataClient, mInfoWindowManager);
 
             MapActivity.this.onMapReady();
 
@@ -229,7 +237,7 @@ public class MapActivity extends MapBaseActivity {
                 closeSlidePanel();
             } else if (intent.getAction().equals(MapActivity.DIRECTION_ROUTE_ADD)) {
                 Location location = intent.getParcelableExtra(MapActivity.NEW_LOCATION);
-                mDirection.addDirection(location, getLocation());
+                mDirection.addDirection(MapActivity.this, location, getLocation());
                 closeSlidePanel();
             } else if (intent.getAction().equals(MapActivity.DIRECTION_ROUTE_REMOVE)) {
                 mDirection.removeDirection();
@@ -287,6 +295,33 @@ public class MapActivity extends MapBaseActivity {
                 (MapInfoWindowFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mInfoWindowManager = mapInfoWindowFragment.infoWindowManager();
         mInfoWindowManager.setHideOnFling(true);
+        mInfoWindowManager.setWindowShowListener(new InfoWindowManager.WindowShowListener() {
+            @Override
+            public void onWindowShowStarted(@NonNull InfoWindow infoWindow) {
+
+            }
+
+            @Override
+            public void onWindowShown(@NonNull InfoWindow infoWindow) {
+
+            }
+
+            @Override
+            public void onWindowHideStarted(@NonNull InfoWindow infoWindow) {
+
+            }
+
+            @Override
+            public void onWindowHidden(@NonNull InfoWindow infoWindow) {
+                Fragment fragment = infoWindow.getWindowFragment();
+                if (fragment != null) {
+                    if (fragment instanceof PoiInfoFragment) {
+                        Log.d(TAG, "InfoWindowManager:onWindowHidden=PoiInfoFragment");
+                        mPoi.removeInfoWindow();
+                    }
+                }
+            }
+        });
         mapView = mapInfoWindowFragment.getView();
 
         // mSpinner will be dismissed in the MapReady callback

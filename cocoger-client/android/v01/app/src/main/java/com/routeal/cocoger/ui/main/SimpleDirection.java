@@ -1,10 +1,12 @@
 package com.routeal.cocoger.ui.main;
 
+import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
+import android.support.v7.app.AlertDialog;
 import android.widget.Toast;
 
 import com.appolica.interactiveinfowindow.InfoWindow;
@@ -20,6 +22,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.PolyUtil;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.util.Utils;
@@ -50,7 +53,7 @@ class SimpleDirection {
         public void onPolylineClick(Polyline polyline) {
             if (mDirectionRoute.line != null && mDirectionRoute.window != null) {
                 if (polyline.getId().equals(mDirectionRoute.line.getId())) {
-                    mInfoWindowManager.show(mDirectionRoute.window, true);
+                    mInfoWindowManager.toggle(mDirectionRoute.window, true);
                 }
             }
         }
@@ -129,7 +132,15 @@ class SimpleDirection {
         return data;
     }
 
-    void addDirection(final Location locationTo, final Location locationFrom) {
+    void addDirection(Activity activity, final Location locationTo, final Location locationFrom) {
+        if (Utils.distanceTo(locationFrom, locationTo) < 100) {
+            new AlertDialog.Builder(activity)
+                    .setTitle(R.string.direction)
+                    .setMessage(R.string.too_short_direction)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
+            return;
+        }
         removeDirection();
         SimpleDirection.getDirection(locationTo, locationFrom, new SimpleDirection.SimpleDirectionListener() {
             @Override
@@ -163,7 +174,7 @@ class SimpleDirection {
                 InfoWindow.MarkerSpecification mMarkerOffset = new InfoWindow.MarkerSpecification(0, 0);
                 mDirectionRoute.window = new InfoWindow(mDirectionRoute.marker, mMarkerOffset, dif);
                 mInfoWindowManager.setHideOnFling(true);
-                mInfoWindowManager.show(mDirectionRoute.window, true);
+                mInfoWindowManager.toggle(mDirectionRoute.window, true);
 
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
                 builder.include(Utils.getLatLng(locationTo));
@@ -342,7 +353,7 @@ class SimpleDirection {
 
                     String polyline = (String) ((JSONObject) ((JSONObject) jRoutes.get(i)).get("overview_polyline")).get("points");
                     if (polyline != null && !polyline.isEmpty()) {
-                        List<LatLng> list = decodePoly(polyline);
+                        List<LatLng> list = PolyUtil.decode(polyline);
                         List<HashMap<String, String>> path = new ArrayList<>();
                         // Traversing all points
                         for (int l = 0; l < list.size(); l++) {
@@ -373,7 +384,7 @@ class SimpleDirection {
                             // Traversing all steps
                             for (int k = 0; k < jSteps.length(); k++) {
                                 polyline = (String) ((JSONObject) ((JSONObject) jSteps.get(k)).get("polyline")).get("points");
-                                List<LatLng> list = decodePoly(polyline);
+                                List<LatLng> list = PolyUtil.decode(polyline);
 
                                 // Traversing all points
                                 for (int l = 0; l < list.size(); l++) {
@@ -392,44 +403,6 @@ class SimpleDirection {
             }
 
             return routes;
-        }
-
-        /**
-         * Method to decode polyline points
-         * Courtesy : http://jeffreysambells.com/2010/05/27/decoding-polylines-from-google-maps-direction-api-with-java
-         */
-        private List<LatLng> decodePoly(String encoded) {
-
-            List<LatLng> poly = new ArrayList<>();
-            int index = 0, len = encoded.length();
-            int lat = 0, lng = 0;
-
-            while (index < len) {
-                int b, shift = 0, result = 0;
-                do {
-                    b = encoded.charAt(index++) - 63;
-                    result |= (b & 0x1f) << shift;
-                    shift += 5;
-                } while (b >= 0x20);
-                int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-                lat += dlat;
-
-                shift = 0;
-                result = 0;
-                do {
-                    b = encoded.charAt(index++) - 63;
-                    result |= (b & 0x1f) << shift;
-                    shift += 5;
-                } while (b >= 0x20);
-                int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-                lng += dlng;
-
-                LatLng p = new LatLng((((double) lat / 1E5)),
-                        (((double) lng / 1E5)));
-                poly.add(p);
-            }
-
-            return poly;
         }
 
         class ResponseRoute {
