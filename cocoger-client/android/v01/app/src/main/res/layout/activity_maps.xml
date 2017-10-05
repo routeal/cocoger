@@ -34,8 +34,7 @@
                 android:id="@+id/map"
                 android:name="com.appolica.interactiveinfowindow.fragment.MapInfoWindowFragment"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                tools:context="com.routeal.cocoger.ui.main.MapActivity" />
+                android:layout_height="match_parent" />
 
             <com.arlib.floatingsearchview.FloatingSearchView xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:id="@+id/floating_search_view"

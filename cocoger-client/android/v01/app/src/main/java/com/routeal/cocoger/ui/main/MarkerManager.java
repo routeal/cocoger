@@ -163,15 +163,12 @@ class MarkerManager {
                     }
                     return;
                 }
-                // simply change the position when theere is only one in the marker
+                // simply change the position when there is only one in the marker
                 else if (marker.size() == 1) {
                     Log.d(TAG, "reposition: reposition");
-                    if (Utils.distanceTo(rangeLocation, location) < mMarkerDistance) {
-                        Log.d(TAG, "reposition: removed to join to another");
-                        //shouldJoin = true;
-                        marker.removeUser(key);
-                        ite.remove();
-                        break;
+                    if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
+                        Log.d(TAG, "reposition: no need to move");
+                        return;
                     } else {
                         Log.d(TAG, "reposition: simply move");
                         marker.setPosition(location, address, range);
@@ -180,6 +177,7 @@ class MarkerManager {
                 } else {
                     // too short to reposition, no need to change at all
                     if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
+                        Log.d(TAG, "reposition: no need to apart from the current marker");
                         return;
                     }
                     Log.d(TAG, "reposition: remove from the current marker");

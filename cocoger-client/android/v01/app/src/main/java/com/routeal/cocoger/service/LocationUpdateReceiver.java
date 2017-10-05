@@ -46,7 +46,7 @@ public class LocationUpdateReceiver extends BroadcastReceiver {
             @Override
             public void run() {
                 LocationUpdate update = LocationUpdate.getInstance();
-                update.exec(context.getApplicationContext());
+                update.exec(context);
             }
         };
         handler.post(periodicUpdate);
