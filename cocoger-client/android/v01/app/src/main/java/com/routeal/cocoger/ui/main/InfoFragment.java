@@ -97,8 +97,8 @@ public class InfoFragment extends Fragment {
     }
 
     void showDirection(Location locationTo) {
-        Intent intent = new Intent(MapActivity.DIRECTION_ROUTE_ADD);
-        intent.putExtra(MapActivity.NEW_LOCATION, locationTo);
+        Intent intent = new Intent(FB.DIRECTION_ROUTE_ADD);
+        intent.putExtra(FB.NEW_LOCATION, locationTo);
         LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
     }
 

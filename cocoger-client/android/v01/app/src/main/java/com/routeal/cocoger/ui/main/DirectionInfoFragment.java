@@ -16,6 +16,7 @@ import android.widget.ImageButton;
 
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.util.Utils;
 
 /**
@@ -81,7 +82,7 @@ public class DirectionInfoFragment extends Fragment {
     }
 
     void removeDirection() {
-        Intent intent = new Intent(MapActivity.DIRECTION_ROUTE_REMOVE);
+        Intent intent = new Intent(FB.DIRECTION_ROUTE_REMOVE);
         LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
     }
 

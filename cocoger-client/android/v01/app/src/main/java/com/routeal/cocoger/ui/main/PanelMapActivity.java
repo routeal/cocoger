@@ -155,7 +155,7 @@ public class PanelMapActivity extends SearchMapActivity {
             mLayout.setPanelState(PanelState.ANCHORED);
         } else if (action.equals(FB.ACTION_RANGE_REQUEST_ACCEPTED)) {
             try {
-                String requester = extras.getString(FB.NOTIFI_RANGE_REQUETER);
+                String requester = extras.getString(FB.NOTIFI_RANGE_REQUESTER);
                 int range = extras.getInt(FB.NOTIFI_RANGE);
                 FB.acceptRangeRequest(requester, range);
             } catch (Exception e) {

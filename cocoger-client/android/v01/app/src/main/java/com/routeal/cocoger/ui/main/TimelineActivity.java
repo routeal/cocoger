@@ -30,6 +30,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.SphericalUtil;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.provider.DBUtil;
@@ -214,7 +215,80 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
             prevAddress = address;
         }
 
-        Log.d(TAG, "removeLocationJitters: after address size=" + locations.size());
+        Log.d(TAG, "removeLocationJitters: same address size=" + locations.size());
+
+        // removes B where B is moved from A and moved to C but A and C is very close and
+        // duration of B and C is within 60 mins
+        LocationAddress A = null;
+        LocationAddress B = null;
+        it = locations.iterator();
+        List<LocationAddress> removed2 = new ArrayList<>();
+        while (it.hasNext()) {
+            LocationAddress C = it.next();
+            if (A == null && B == null) {
+                A = C;
+            } else if (B == null) {
+                B = C;
+            } else {
+                Location a = Utils.getLocation(A);
+                Location b = Utils.getLocation(B);
+                Location c = Utils.getLocation(C);
+                if (Utils.distanceTo(a, c) < 50 &&
+                    (c.getTime() - b.getTime()) < 60*60*1000) {
+                    removed2.add(B);
+                }
+                A = C;
+                B = null;
+            }
+        }
+        for (LocationAddress la : removed2) {
+            locations.remove(la);
+        }
+        Log.d(TAG, "removeLocationJitters: triangle removal size=" + locations.size());
+
+        // removes B where B is moved from A and moved to C but A and C is very close and
+        // duration of B and C is within 60 mins
+        A = null;
+        B = null;
+        it = locations.iterator();
+        removed2 = new ArrayList<>();
+        while (it.hasNext()) {
+            LocationAddress C = it.next();
+            if (A == null && B == null) {
+                A = C;
+            } else if (B == null) {
+                B = C;
+            } else {
+                Location a = Utils.getLocation(A);
+                Location b = Utils.getLocation(B);
+                Location c = Utils.getLocation(C);
+
+                double distance1 = Utils.distanceTo(a, b);
+                double heading1 = SphericalUtil.computeHeading(Utils.getLatLng(a), Utils.getLatLng(b));
+
+                double distance2 = Utils.distanceTo(b, c);
+                double heading2 = SphericalUtil.computeHeading(Utils.getLatLng(b), Utils.getLatLng(c));
+
+                if (Math.abs(distance1 - distance2) < 1000 && Math.abs(heading1 - heading2) < 15) {
+                    removed2.add(B);
+                }
+                /*
+                LatLng l = SphericalUtil.computeOffset(Utils.getLatLng(b), distance, heading);
+                Location ll = Utils.getLocation(l);
+                if (Utils.distanceTo(ll, c) < 100) {
+                    removed2.add(B);
+                }
+                */
+                A = B;
+                B = null;
+            }
+        }
+        for (LocationAddress la : removed2) {
+            locations.remove(la);
+        }
+        Log.d(TAG, "removeLocationJitters: heading removal size=" + locations.size());
+
+
 
         // removes the negative times (invalid) and the speed is less
         // than walking and also the moving distance is less than 40
@@ -227,7 +301,7 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
             if (prevLocation != null) {
                 long time = location.getTime() - prevLocation.getTime();
                 // 20/18 = 4 * 5 / 18 (4 km/h)
-                if ((time <= 0) || (location.getSpeed() < (20 / 18) && prevLocation.distanceTo(location) < 40)) {
+                if ((time <= 0) || (location.getSpeed() < (25 / 18) && Utils.distanceTo(prevLocation, location) < 50)) {
                     it.remove();
                 }
             }
@@ -266,7 +340,7 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
         for (LocationAddress la : removed) {
             locations.remove(la);
         }
-        Log.d(TAG, "3 size=" + locations.size());
+        Log.d(TAG, "removeLocationJitters: jitter removal size=" + locations.size());
     }
 
     private void showTimeline() {
@@ -289,6 +363,7 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
         List<LocationAddress> locations = DBUtil.getSentLocations(startAt, endAt);
 
         // remove the location jitters
+        removeLocationJitters(locations);
         removeLocationJitters(locations);
 
         for (LocationAddress la : locations) {

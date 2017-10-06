@@ -32,22 +32,7 @@ import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Utils;
 
-public class MapActivity extends MapBaseActivity {
-
-    public static final String USER_AVAILABLE = "user_available";
-    public static final String USER_LOCATION_UPDATE = "user_location_update";
-    public final static String FRIEND_LOCATION_UPDATE = "friend_location_update";
-    public final static String FRIEND_LOCATION_REMOVE = "friend_location_remove";
-    public final static String FRIEND_RANGE_UPDATE = "friend_range_update";
-    public final static String FRIEND_MARKER_SHOW = "friend_marker_show";
-    public final static String DIRECTION_ROUTE_ADD = "direction_route_add";
-    public final static String DIRECTION_ROUTE_REMOVE = "direction_route_remove";
-
-    public final static String FRIEND_KEY = "friend_key";
-    public final static String NEW_LOCATION = "new_location";
-    public final static String OLD_LOCATION = "old_location";
-    public final static String NEW_ADDRESS = "new_address";
-    public final static String RANGE_CHANGE = "range_change";
+class MapActivity extends MapBaseActivity {
 
     private final static String TAG = "MapActivity";
     private final static String KEY_CAMERA_POSITION = "camera_position";
@@ -130,9 +115,9 @@ public class MapActivity extends MapBaseActivity {
     private BroadcastReceiver mLocalLocationReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(MapActivity.USER_LOCATION_UPDATE)) {
-                Address address = intent.getParcelableExtra(MapActivity.NEW_ADDRESS);
-                Location location = intent.getParcelableExtra(MapActivity.NEW_LOCATION);
+            if (intent.getAction().equals(FB.USER_LOCATION_UPDATE)) {
+                Address address = intent.getParcelableExtra(FB.NEW_ADDRESS);
+                Location location = intent.getParcelableExtra(FB.NEW_LOCATION);
                 if (location == null || address == null) {
                     return;
                 }
@@ -153,7 +138,7 @@ public class MapActivity extends MapBaseActivity {
                 }
                 setLocation(location);
                 setAddress(address);
-            } else if (intent.getAction().equals(MapActivity.USER_AVAILABLE)) {
+            } else if (intent.getAction().equals(FB.USER_AVAILABLE)) {
                 Log.d(TAG, "Receive User_available: setupMarkers");
                 if (mMm != null) {
                     if (getAddress() == null) {
@@ -161,10 +146,10 @@ public class MapActivity extends MapBaseActivity {
                     }
                     mMm.setupMarkers(getLocation(), getAddress());
                 }
-            } else if (intent.getAction().equals(MapActivity.FRIEND_LOCATION_UPDATE)) {
-                final String fid = intent.getStringExtra(MapActivity.FRIEND_KEY);
-                final String newLocationKey = intent.getStringExtra(MapActivity.NEW_LOCATION);
-                final String oldLocationKey = intent.getStringExtra(MapActivity.OLD_LOCATION);
+            } else if (intent.getAction().equals(FB.FRIEND_LOCATION_UPDATE)) {
+                final String fid = intent.getStringExtra(FB.FRIEND_KEY);
+                final String newLocationKey = intent.getStringExtra(FB.NEW_LOCATION);
+                final String oldLocationKey = intent.getStringExtra(FB.OLD_LOCATION);
                 final Friend friend = FB.getFriend(fid);
                 if (friend == null) return; // shouldn't happen
                 final int range = friend.getRange();
@@ -205,14 +190,14 @@ public class MapActivity extends MapBaseActivity {
                         });
                     }
                 });
-            } else if (intent.getAction().equals(MapActivity.FRIEND_LOCATION_REMOVE)) {
-                String fid = intent.getStringExtra(MapActivity.FRIEND_KEY);
+            } else if (intent.getAction().equals(FB.FRIEND_LOCATION_REMOVE)) {
+                String fid = intent.getStringExtra(FB.FRIEND_KEY);
                 if (fid == null) {
                     return;
                 }
                 mMm.remove(fid);
-            } else if (intent.getAction().equals(MapActivity.FRIEND_RANGE_UPDATE)) {
-                String fid = intent.getStringExtra(MapActivity.FRIEND_KEY);
+            } else if (intent.getAction().equals(FB.FRIEND_RANGE_UPDATE)) {
+                String fid = intent.getStringExtra(FB.FRIEND_KEY);
                 if (fid == null) {
                     return;
                 }
@@ -227,19 +212,19 @@ public class MapActivity extends MapBaseActivity {
                 int range = friend.getRange();
                 Log.d(TAG, "FRIEND_RANGE_UPDATE:" + fid);
                 mMm.reposition(fid, range);
-            } else if (intent.getAction().equals(MapActivity.FRIEND_MARKER_SHOW)) {
-                String fid = intent.getStringExtra(MapActivity.FRIEND_KEY);
+            } else if (intent.getAction().equals(FB.FRIEND_MARKER_SHOW)) {
+                String fid = intent.getStringExtra(FB.FRIEND_KEY);
                 if (fid == null) {
                     return;
                 }
                 Log.d(TAG, "FRIEND_MARKER_SHOW:" + fid);
                 mMm.show(fid);
                 closeSlidePanel();
-            } else if (intent.getAction().equals(MapActivity.DIRECTION_ROUTE_ADD)) {
-                Location location = intent.getParcelableExtra(MapActivity.NEW_LOCATION);
+            } else if (intent.getAction().equals(FB.DIRECTION_ROUTE_ADD)) {
+                Location location = intent.getParcelableExtra(FB.NEW_LOCATION);
                 mDirection.addDirection(MapActivity.this, location, getLocation());
                 closeSlidePanel();
-            } else if (intent.getAction().equals(MapActivity.DIRECTION_ROUTE_REMOVE)) {
+            } else if (intent.getAction().equals(FB.DIRECTION_ROUTE_REMOVE)) {
                 mDirection.removeDirection();
             }
         }
@@ -263,14 +248,14 @@ public class MapActivity extends MapBaseActivity {
 
         // registers the receiver to receive the location updates from the service
         IntentFilter filter = new IntentFilter();
-        filter.addAction(MapActivity.USER_AVAILABLE);
-        filter.addAction(MapActivity.USER_LOCATION_UPDATE);
-        filter.addAction(MapActivity.FRIEND_LOCATION_UPDATE);
-        filter.addAction(MapActivity.FRIEND_LOCATION_REMOVE);
-        filter.addAction(MapActivity.FRIEND_RANGE_UPDATE);
-        filter.addAction(MapActivity.FRIEND_MARKER_SHOW);
-        filter.addAction(MapActivity.DIRECTION_ROUTE_ADD);
-        filter.addAction(MapActivity.DIRECTION_ROUTE_REMOVE);
+        filter.addAction(FB.USER_AVAILABLE);
+        filter.addAction(FB.USER_LOCATION_UPDATE);
+        filter.addAction(FB.FRIEND_LOCATION_UPDATE);
+        filter.addAction(FB.FRIEND_LOCATION_REMOVE);
+        filter.addAction(FB.FRIEND_RANGE_UPDATE);
+        filter.addAction(FB.FRIEND_MARKER_SHOW);
+        filter.addAction(FB.DIRECTION_ROUTE_ADD);
+        filter.addAction(FB.DIRECTION_ROUTE_REMOVE);
         LocalBroadcastManager.getInstance(this).registerReceiver(mLocalLocationReceiver, filter);
     }
 

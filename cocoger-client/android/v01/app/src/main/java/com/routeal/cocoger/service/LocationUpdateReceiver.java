@@ -16,18 +16,18 @@ import android.os.SystemClock;
 public class LocationUpdateReceiver extends BroadcastReceiver {
     private static int mInterval = 3; // seconds
 
-    public static void setUpdateInterval(int interval) {
+    static void setUpdateInterval(int interval) {
         mInterval = interval;
     }
 
-    public static void scheduleUpdate(Context context, AlarmManager alarmManager) {
+    static void scheduleUpdate(Context context, AlarmManager alarmManager) {
         Intent i = new Intent(context, LocationUpdateReceiver.class);
         PendingIntent pi = PendingIntent.getBroadcast(context, 0, i, 0);
         alarmManager.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP,
                 SystemClock.elapsedRealtime() + mInterval * 1000 - SystemClock.elapsedRealtime() % 1000, pi);
     }
 
-    public static void cancelUpdate(Context context, AlarmManager alarmManager) {
+    static void cancelUpdate(Context context, AlarmManager alarmManager) {
         Intent i = new Intent(context, LocationUpdateReceiver.class);
         PendingIntent pi = PendingIntent.getBroadcast(context, 0, i, 0);
         alarmManager.cancel(pi);

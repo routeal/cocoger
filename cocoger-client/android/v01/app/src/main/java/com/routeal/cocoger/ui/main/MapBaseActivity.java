@@ -32,7 +32,7 @@ import com.routeal.cocoger.R;
 import com.routeal.cocoger.service.LocationUpdateService;
 import com.routeal.cocoger.util.Utils;
 
-public abstract class MapBaseActivity extends FragmentActivity
+abstract class MapBaseActivity extends FragmentActivity
         implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 

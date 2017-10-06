@@ -2,6 +2,7 @@ package com.routeal.cocoger.service;
 
 import android.app.AlarmManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -36,8 +37,8 @@ public class LocationUpdateService extends Service {
             new SharedPreferences.OnSharedPreferenceChangeListener() {
         @Override
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-            LocationUpdate update = LocationUpdate.getInstance();
-            update.exec(getApplicationContext());
+            Context context = LocationUpdateService.this;
+            LocationUpdateReceiver.scheduleUpdate(context, (AlarmManager) context.getSystemService(ALARM_SERVICE));
         }
     };
 
@@ -45,11 +46,12 @@ public class LocationUpdateService extends Service {
     public void onDestroy() {
         Log.d(TAG, "onDestroy");
 
-        LocationUpdateReceiver.cancelUpdate(this, (AlarmManager) getSystemService(ALARM_SERVICE));
-        LocationUpdate.getInstance().destroy();
-
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         prefs.unregisterOnSharedPreferenceChangeListener(mSharedPreferenceChangeListener);
+
+        LocationUpdateReceiver.cancelUpdate(this, (AlarmManager) getSystemService(ALARM_SERVICE));
+
+        LocationUpdate.getInstance().destroy();
     }
 
     @Nullable
@@ -104,7 +106,6 @@ public class LocationUpdateService extends Service {
                         startForeground(LocationUpdate.NOTIFICATION_ID, LocationUpdate.getInstance().getNotification(getApplicationContext()));
                         break;
                     case LocationUpdate.ACTION_START_FROM_NOTIFICATION:
-                        LocationUpdate.getInstance().removeLocationUpdates();
                         break;
                     case FB.ACTION_FRIEND_REQUEST_DECLINED: {
                         // delete the invite and invitee from the database
@@ -118,7 +119,7 @@ public class LocationUpdateService extends Service {
                     }
                     case FB.ACTION_RANGE_REQUEST_DECLINED: {
                         // delete the invite and invitee from the database
-                        String requester = intent.getStringExtra(FB.NOTIFI_RANGE_REQUETER);
+                        String requester = intent.getStringExtra(FB.NOTIFI_RANGE_REQUESTER);
                         FB.declineRangeRequest(requester);
                         int nid = intent.getIntExtra(Notifi.ID, 0);
                         if (nid > 0) {

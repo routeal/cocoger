@@ -34,7 +34,6 @@ import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.provider.DBUtil;
-import com.routeal.cocoger.ui.main.MapActivity;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 import com.routeal.cocoger.util.Utils;
 
@@ -59,9 +58,7 @@ public class LocationUpdate {
     public final static String FOREGROUND_LOCATION_UPDATE_INTERVAL = "foreground_location_update_interval";
     public final static String LOCATION_UPDATE_INTERVAL = "location_update_interval";
     public final static String ACTION_START_FROM_NOTIFICATION = "notification";
-    public final static String SERVICE_STARTED_FROM_BOOT = "boot";
     static final int NOTIFICATION_ID = (int) System.currentTimeMillis();
-    static final String SERVICE_EXTRA_STARTED = "service_extra_started";
     private final static long LOCATION_UPDATE_FASTEST_INTERVAL = 5000; // 5 seconds
     private final static float FOREGROUND_MIN_MOVEMENT = 40.0f;
     private final static float BACKGROUND_MIN_MOVEMENT = 100.0f;
@@ -80,9 +77,10 @@ public class LocationUpdate {
     private Location mLocation;
     private Address mAddress;
     private ServiceMode mIsServiceForeground = ServiceMode.NONE;
-    private int mForegroundServiceLocationUpdateInterval = 0;
-    private int mServiceLocationUpdateInterval = 0;
-    private int mCurrentLocationUpdateInterval = 0;
+    private int mForegroundServiceLocationUpdateInterval = -1;
+    private int mServiceLocationUpdateInterval = -1;
+    private int mCurrentLocationUpdateInterval = -1;
+    private long mLocationUpdateIntervalResetTime = 0;
 
     private LocationUpdate() {
         FB.monitorAuthentication();
@@ -146,6 +144,10 @@ public class LocationUpdate {
                 public void onLocationResult(LocationResult locationResult) {
                     super.onLocationResult(locationResult);
                     onNewLocation(context, locationResult.getLastLocation());
+                    if (mLocationUpdateIntervalResetTime < System.currentTimeMillis()) {
+                        MainApplication.putInt(LocationUpdate.FOREGROUND_LOCATION_UPDATE_INTERVAL, 30*60*1000);
+                        mLocationUpdateIntervalResetTime = 0;
+                    }
                 }
             };
         }
@@ -192,30 +194,46 @@ public class LocationUpdate {
 
         LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApi, mLocationCallback);
 
-        if (isForeground == ServiceMode.FOREGROUND) {
+        if (isForeground == ServiceMode.FOREGROUND) { // service foreground is the background process
             mForegroundServiceLocationUpdateInterval = MainApplication.getInt(FOREGROUND_LOCATION_UPDATE_INTERVAL, DEFAULT_FOREGROUND_LOCATION_UPDATE_INTERVAL);
-            mLocationRequest = LocationRequest.create()
-                    .setInterval(mForegroundServiceLocationUpdateInterval)
-                    .setFastestInterval(mForegroundServiceLocationUpdateInterval)
-                    //.setSmallestDisplacement(BACKGROUND_MIN_MOVEMENT)
-                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            if (mForegroundServiceLocationUpdateInterval > 0) {
+                mLocationRequest = LocationRequest.create()
+                        .setInterval(mForegroundServiceLocationUpdateInterval)
+                        .setFastestInterval(mForegroundServiceLocationUpdateInterval)
+                        .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            } else {
+                mLocationRequest = null;
+            }
             mCurrentLocationUpdateInterval = mForegroundServiceLocationUpdateInterval;
-            Log.d(TAG, "start service foreground LocationUpdate");
+            Log.d(TAG, "start service foreground LocationUpdate:"+mCurrentLocationUpdateInterval/1000/60);
         } else {
             mServiceLocationUpdateInterval = MainApplication.getInt(LOCATION_UPDATE_INTERVAL, DEFAULT_LOCATION_UPDATE_INTERVAL);
-            mLocationRequest = LocationRequest.create()
-                    .setInterval(mServiceLocationUpdateInterval)
-                    .setFastestInterval(LOCATION_UPDATE_FASTEST_INTERVAL) // 5 sec
-                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            if (mServiceLocationUpdateInterval > 0) {
+                mLocationRequest = LocationRequest.create()
+                        .setInterval(mServiceLocationUpdateInterval)
+                        .setFastestInterval(LOCATION_UPDATE_FASTEST_INTERVAL) // 5 sec
+                        .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            } else {
+                mLocationRequest = null;
+            }
             mCurrentLocationUpdateInterval = mServiceLocationUpdateInterval;
-            Log.d(TAG, "start service LocationUpdate");
+            Log.d(TAG, "start service LocationUpdate:"+mCurrentLocationUpdateInterval/1000/60);
         }
 
-        Log.d(TAG, "Changed periodic update:" + mCurrentLocationUpdateInterval/1000);
-        LocationUpdateReceiver.setUpdateInterval(mCurrentLocationUpdateInterval/1000);
-        LocationUpdateReceiver.scheduleUpdate(context, (AlarmManager) context.getSystemService(ALARM_SERVICE));
+        Log.d(TAG, "Cancel periodic update");
+        LocationUpdateReceiver.cancelUpdate(context, (AlarmManager) context.getSystemService(ALARM_SERVICE));
 
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApi, mLocationRequest, mLocationCallback, Looper.myLooper());
+        if (mCurrentLocationUpdateInterval < 15*60*1000) {
+            mLocationUpdateIntervalResetTime = System.currentTimeMillis() + 15*60*1000;
+        } else {
+            mLocationUpdateIntervalResetTime = 0;
+        }
+
+        if (mLocationRequest != null) {
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApi, mLocationRequest, mLocationCallback, Looper.myLooper());
+        } else {
+            Log.d(TAG, "LocationUpdate has been canceled.");
+        }
     }
 
     private void onNewLocation(Context context, Location location) {
@@ -345,6 +363,12 @@ public class LocationUpdate {
             mServiceHandler.removeCallbacksAndMessages(null);
             mServiceHandler = null;
         }
+        mForegroundServiceLocationUpdateInterval = -1;
+        mServiceLocationUpdateInterval = -1;
+        mCurrentLocationUpdateInterval = -1;
+        mLocationUpdateIntervalResetTime = 0;
+        mIsServiceForeground = ServiceMode.NONE;
+        mLocationQueue.clear();
     }
 
     private void saveLocation(Context context, final Location location) {
@@ -396,9 +420,9 @@ public class LocationUpdate {
     }
 
     private void broadcastLocation(Context context, Location location, Address address) {
-        Intent intent = new Intent(MapActivity.USER_LOCATION_UPDATE);
-        intent.putExtra(MapActivity.NEW_LOCATION, location);
-        intent.putExtra(MapActivity.NEW_ADDRESS, address);
+        Intent intent = new Intent(FB.USER_LOCATION_UPDATE);
+        intent.putExtra(FB.NEW_LOCATION, location);
+        intent.putExtra(FB.NEW_ADDRESS, address);
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 

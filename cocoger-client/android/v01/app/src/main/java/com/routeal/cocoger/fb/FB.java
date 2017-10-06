@@ -43,7 +43,6 @@ import com.routeal.cocoger.model.RangeRequest;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.service.LocationUpdateService;
 import com.routeal.cocoger.ui.main.FriendListViewHolder;
-import com.routeal.cocoger.ui.main.MapActivity;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 import com.routeal.cocoger.ui.main.UserListViewHolder;
 import com.routeal.cocoger.util.LocationRange;
@@ -56,13 +55,29 @@ import java.util.Map;
 
 public class FB {
 
-    public static final String ACTION_FRIEND_REQUEST_ACCEPTED = "FRIEND_REQUEST_ACCEPTED";
-    public static final String ACTION_FRIEND_REQUEST_DECLINED = "FRIEND_REQUEST_DECLINED";
-    public static final String ACTION_RANGE_REQUEST_ACCEPTED = "RANGE_REQUEST_ACCEPTED";
-    public static final String ACTION_RANGE_REQUEST_DECLINED = "RANGE_REQUEST_DECLINED";
-    public static final String NOTIFI_RANGE_REQUETER = "range_requester";
-    public static final String NOTIFI_RANGE = "range";
-    public static final String NOTIFI_FRIEND_INVITE = "friend_invite";
+    public final static String USER_AVAILABLE = "user_available";
+    public final static String USER_LOCATION_UPDATE = "user_location_update";
+    public final static String FRIEND_LOCATION_UPDATE = "friend_location_update";
+    public final static String FRIEND_LOCATION_REMOVE = "friend_location_remove";
+    public final static String FRIEND_RANGE_UPDATE = "friend_range_update";
+    public final static String FRIEND_MARKER_SHOW = "friend_marker_show";
+    public final static String DIRECTION_ROUTE_ADD = "direction_route_add";
+    public final static String DIRECTION_ROUTE_REMOVE = "direction_route_remove";
+
+    public final static String FRIEND_KEY = "friend_key";
+    public final static String NEW_LOCATION = "new_location";
+    public final static String OLD_LOCATION = "old_location";
+    public final static String NEW_ADDRESS = "new_address";
+    public final static String RANGE_CHANGE = "range_change";
+
+    public final static String ACTION_FRIEND_REQUEST_ACCEPTED = "FRIEND_REQUEST_ACCEPTED";
+    public final static String ACTION_FRIEND_REQUEST_DECLINED = "FRIEND_REQUEST_DECLINED";
+    public final static String ACTION_RANGE_REQUEST_ACCEPTED = "RANGE_REQUEST_ACCEPTED";
+    public final static String ACTION_RANGE_REQUEST_DECLINED = "RANGE_REQUEST_DECLINED";
+    public final static String NOTIFI_RANGE_REQUESTER = "range_requester";
+    public final static String NOTIFI_RANGE = "range";
+    public final static String NOTIFI_FRIEND_INVITE = "friend_invite";
+
     private final static String TAG = "FB";
     private static boolean monitored = false;
     private static User mUser;
@@ -363,7 +378,7 @@ public class FB {
         // so that it can have the user pictures.  Sometimes the map
         // comes faster than the user info from the firebase.
         if (MainApplication.getContext() != null) {
-            Intent intent = new Intent(MapActivity.USER_AVAILABLE);
+            Intent intent = new Intent(FB.USER_AVAILABLE);
             LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
         }
 
@@ -465,15 +480,15 @@ public class FB {
         if (oldFriends == null) {
             for (Map.Entry<String, Friend> entry : newFriends.entrySet()) {
                 Log.d(TAG, "Friend added: " + entry.getKey());
-                Intent intent = new Intent(MapActivity.FRIEND_LOCATION_UPDATE);
-                intent.putExtra(MapActivity.FRIEND_KEY, entry.getKey());
+                Intent intent = new Intent(FB.FRIEND_LOCATION_UPDATE);
+                intent.putExtra(FB.FRIEND_KEY, entry.getKey());
                 LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
             }
         } else if (newFriends == null) {
             for (Map.Entry<String, Friend> entry : oldFriends.entrySet()) {
                 Log.d(TAG, "Friend deleted: " + entry.getKey());
-                Intent intent = new Intent(MapActivity.FRIEND_LOCATION_REMOVE);
-                intent.putExtra(MapActivity.FRIEND_KEY, entry.getKey());
+                Intent intent = new Intent(FB.FRIEND_LOCATION_REMOVE);
+                intent.putExtra(FB.FRIEND_KEY, entry.getKey());
                 LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
             }
         } else if (newFriends.size() != oldFriends.size()) {
@@ -483,15 +498,15 @@ public class FB {
                 // deleted
                 if (newFriends.get(entry.getKey()) == null) {
                     Log.d(TAG, "Friend deleted: " + entry.getKey());
-                    Intent intent = new Intent(MapActivity.FRIEND_LOCATION_REMOVE);
-                    intent.putExtra(MapActivity.FRIEND_KEY, entry.getKey());
+                    Intent intent = new Intent(FB.FRIEND_LOCATION_REMOVE);
+                    intent.putExtra(FB.FRIEND_KEY, entry.getKey());
                     LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
                 }
                 // added
                 else if (oldFriends.get(entry.getKey()) == null) {
                     Log.d(TAG, "Friend added: " + entry.getKey());
-                    Intent intent = new Intent(MapActivity.FRIEND_LOCATION_UPDATE);
-                    intent.putExtra(MapActivity.FRIEND_KEY, entry.getKey());
+                    Intent intent = new Intent(FB.FRIEND_LOCATION_UPDATE);
+                    intent.putExtra(FB.FRIEND_KEY, entry.getKey());
                     LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
                 }
             }
@@ -518,17 +533,17 @@ public class FB {
                 // the range has been update, notify the map acitivity
                 // to change the marker location
                 if (newFriend.getRange() != oldFriend.getRange()) {
-                    Intent intent = new Intent(MapActivity.FRIEND_RANGE_UPDATE);
-                    intent.putExtra(MapActivity.FRIEND_KEY, friendUid);
+                    Intent intent = new Intent(FB.FRIEND_RANGE_UPDATE);
+                    intent.putExtra(FB.FRIEND_KEY, friendUid);
                     LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
                 }
 
                 if (newFriend.getLocation() != null && oldFriend.getLocation() != null &&
                         !newFriend.getLocation().equals(oldFriend.getLocation())) {
-                    Intent intent = new Intent(MapActivity.FRIEND_LOCATION_UPDATE);
-                    intent.putExtra(MapActivity.FRIEND_KEY, friendUid);
-                    intent.putExtra(MapActivity.NEW_LOCATION, newFriend.getLocation());
-                    intent.putExtra(MapActivity.OLD_LOCATION, oldFriend.getLocation());
+                    Intent intent = new Intent(FB.FRIEND_LOCATION_UPDATE);
+                    intent.putExtra(FB.FRIEND_KEY, friendUid);
+                    intent.putExtra(FB.NEW_LOCATION, newFriend.getLocation());
+                    intent.putExtra(FB.OLD_LOCATION, oldFriend.getLocation());
                     LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
                 }
             }
@@ -763,12 +778,12 @@ public class FB {
                 Intent.FLAG_ACTIVITY_SINGLE_TOP
                         | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
         acceptIntent.setAction(ACTION_RANGE_REQUEST_ACCEPTED);
-        acceptIntent.putExtra(NOTIFI_RANGE_REQUETER, uid);
+        acceptIntent.putExtra(NOTIFI_RANGE_REQUESTER, uid);
         acceptIntent.putExtra(NOTIFI_RANGE, requestRange);
 
         Intent declineIntent = new Intent(context, LocationUpdateService.class);
         declineIntent.setAction(ACTION_RANGE_REQUEST_DECLINED);
-        declineIntent.putExtra(NOTIFI_RANGE_REQUETER, uid);
+        declineIntent.putExtra(NOTIFI_RANGE_REQUESTER, uid);
 
         String to = LocationRange.toString(requestRange);
         String from = LocationRange.toString(currentRange);

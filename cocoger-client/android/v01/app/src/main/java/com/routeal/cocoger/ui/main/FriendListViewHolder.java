@@ -36,8 +36,8 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
         mPicture.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MapActivity.FRIEND_MARKER_SHOW);
-                intent.putExtra(MapActivity.FRIEND_KEY, mFriendId);
+                Intent intent = new Intent(FB.FRIEND_MARKER_SHOW);
+                intent.putExtra(FB.FRIEND_KEY, mFriendId);
                 LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
             }
         });
@@ -45,8 +45,8 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
         mName.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MapActivity.FRIEND_MARKER_SHOW);
-                intent.putExtra(MapActivity.FRIEND_KEY, mFriendId);
+                Intent intent = new Intent(FB.FRIEND_MARKER_SHOW);
+                intent.putExtra(FB.FRIEND_KEY, mFriendId);
                 LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
             }
         });

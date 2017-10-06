@@ -36,22 +36,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
-            <com.arlib.floatingsearchview.FloatingSearchView xmlns:app="http://schemas.android.com/apk/res-auto"
-                android:id="@+id/floating_search_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                app:floatingSearch_dismissOnOutsideTouch="true"
-                app:floatingSearch_close_search_on_keyboard_dismiss="true"
-                app:floatingSearch_leftActionMode="showHamburger"
-                app:floatingSearch_menu="@menu/menu_search_view"
-                app:floatingSearch_searchBarMarginLeft="@dimen/search_view_inset"
-                app:floatingSearch_searchBarMarginRight="@dimen/search_view_inset"
-                app:floatingSearch_searchBarMarginTop="@dimen/search_view_inset"
-                app:floatingSearch_searchHint="@string/search_view_hint"
-                app:floatingSearch_showSearchKey="true"
-                app:floatingSearch_dimBackground="false"
-                app:floatingSearch_suggestionsListAnimDuration="250" />
-
             <android.support.design.widget.FloatingActionButton
                 android:id="@+id/map_layer"
                 android:layout_width="wrap_content"
@@ -77,6 +61,22 @@
                 app:elevation="6dp"
                 app:fabSize="normal"
                 app:pressedTranslationZ="12dp" />
+
+            <com.arlib.floatingsearchview.FloatingSearchView xmlns:app="http://schemas.android.com/apk/res-auto"
+                android:id="@+id/floating_search_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:floatingSearch_dismissOnOutsideTouch="true"
+                app:floatingSearch_close_search_on_keyboard_dismiss="true"
+                app:floatingSearch_leftActionMode="showHamburger"
+                app:floatingSearch_menu="@menu/menu_search_view"
+                app:floatingSearch_searchBarMarginLeft="@dimen/search_view_inset"
+                app:floatingSearch_searchBarMarginRight="@dimen/search_view_inset"
+                app:floatingSearch_searchBarMarginTop="@dimen/search_view_inset"
+                app:floatingSearch_searchHint="@string/search_view_hint"
+                app:floatingSearch_showSearchKey="true"
+                app:floatingSearch_dimBackground="false"
+                app:floatingSearch_suggestionsListAnimDuration="250" />
 
         </FrameLayout>
 
