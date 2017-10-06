@@ -278,7 +278,7 @@ public class AccountActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         if (!mIsSetup) {
-            getMenuInflater().inflate(R.menu.menu_send, menu);
+            getMenuInflater().inflate(R.menu.menu_save, menu);
             return true;
         }
         return super.onCreateOptionsMenu(menu);

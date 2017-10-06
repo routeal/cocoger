@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Parcel;
-import android.support.design.widget.NavigationView;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.text.Html;
@@ -25,7 +25,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-class SearchMapActivity extends DrawerMapActivity implements NavigationView.OnNavigationItemSelectedListener {
+class SearchMapActivity extends DrawerMapActivity implements
+        FloatingSearchView.OnQueryChangeListener,
+        FloatingSearchView.OnSearchListener,
+        FloatingSearchView.OnFocusChangeListener,
+        FloatingSearchView.OnSuggestionsListHeightChanged,
+        FloatingSearchView.OnClearSearchActionListener,
+        FloatingSearchView.OnMenuItemClickListener,
+        SearchSuggestionsAdapter.OnBindSuggestionCallback {
     private final static String TAG = "SearchMapActivity";
     private static List<NameSuggestion> sNameSuggestions =
             new ArrayList<>(Arrays.asList(
@@ -38,46 +45,43 @@ class SearchMapActivity extends DrawerMapActivity implements NavigationView.OnNa
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         mSearchView = (FloatingSearchView) findViewById(R.id.floating_search_view);
-
-        setupFloatingSearch();
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         mSearchView.attachNavigationDrawerToMenuButton(drawer);
-
+        mSearchView.setOnQueryChangeListener(this);
+        mSearchView.setOnSearchListener(this);
+        mSearchView.setOnFocusChangeListener(this);
+        mSearchView.setOnSuggestionsListHeightChanged(this);
+        mSearchView.setOnClearSearchActionListener(this);
+        mSearchView.setOnMenuItemClickListener(this);
+        mSearchView.setOnBindSuggestionCallback(this);
     }
 
-    private void setupFloatingSearch() {
-        mSearchView.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
-            @Override
-            public void onSearchTextChanged(String oldQuery, final String newQuery) {
-                if (!oldQuery.equals("") && newQuery.equals("")) {
-                    mSearchView.clearSuggestions();
-                } else {
-                    mSearchView.showProgress();
+    @Override
+    public void onSearchTextChanged(String oldQuery, final String newQuery) {
+        Log.d(TAG, "onSearchTextChanged()");
 
-                    // Retrieves a list of the suggestion for the new query string
-                    Handler handler = new Handler(Looper.getMainLooper());
-                    handler.postDelayed(new Runnable() {
-                        public void run() {
-                            mSearchView.swapSuggestions(sNameSuggestions);
-                            mSearchView.hideProgress();
-                        }
-                    }, 500);
+        if (!oldQuery.equals("") && newQuery.equals("")) {
+            mSearchView.clearSuggestions();
+        } else {
+            mSearchView.showProgress();
+
+            // Retrieves a list of the suggestion for the new query string
+            Handler handler = new Handler(Looper.getMainLooper());
+            handler.postDelayed(new Runnable() {
+                public void run() {
+                    mSearchView.swapSuggestions(sNameSuggestions);
+                    mSearchView.hideProgress();
                 }
+            }, 500);
+        }
+    }
 
-                Log.d(TAG, "onSearchTextChanged()");
-            }
-        });
+    @Override
+    public void onSuggestionClicked(final SearchSuggestion searchSuggestion) {
+        NameSuggestion nameSuggestion = (NameSuggestion) searchSuggestion;
 
-        mSearchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
-            @Override
-            public void onSuggestionClicked(final SearchSuggestion searchSuggestion) {
-
-                NameSuggestion nameSuggestion = (NameSuggestion) searchSuggestion;
-
-                Log.d(TAG, "onSuggestionClicked(): " + nameSuggestion.getBody());
+        Log.d(TAG, "onSuggestionClicked(): " + nameSuggestion.getBody());
 
 /*
                 mSearchView.setSearchBarTitle(nameSuggestion.getBody());
@@ -88,92 +92,87 @@ class SearchMapActivity extends DrawerMapActivity implements NavigationView.OnNa
 
                 //mSearchView.clearSuggestions();
 */
-                mSearchView.setSearchText(nameSuggestion.getBody());
+        mSearchView.setSearchText(nameSuggestion.getBody());
 
-                mLastQuery = searchSuggestion.getBody();
-            }
+        mLastQuery = searchSuggestion.getBody();
+    }
 
-            @Override
-            public void onSearchAction(String query) {
-                mLastQuery = query;
+    @Override
+    public void onSearchAction(String query) {
+        Log.d(TAG, "onSearchAction(): " + query);
+        mLastQuery = query;
+    }
 
-                Log.d(TAG, "onSearchAction(): " + mLastQuery);
-            }
-        });
+    @Override
+    public void onFocus() {
+        Log.d(TAG, "onFocus()");
+        mSearchView.swapSuggestions(sNameSuggestions);
 
-        mSearchView.setOnFocusChangeListener(new FloatingSearchView.OnFocusChangeListener() {
-            @Override
-            public void onFocus() {
-                mSearchView.swapSuggestions(sNameSuggestions);
-                Log.d(TAG, "onFocus()");
-            }
+        FloatingActionButton myLocation = (FloatingActionButton) findViewById(R.id.my_location);
+        FloatingActionButton mapLayer = (FloatingActionButton) findViewById(R.id.map_layer);
+        myLocation.setVisibility(View.INVISIBLE);
+        mapLayer.setVisibility(View.INVISIBLE);
+    }
 
-            @Override
-            public void onFocusCleared() {
-                Log.d(TAG, "onFocusCleared()");
+    @Override
+    public void onFocusCleared() {
+        Log.d(TAG, "onFocusCleared()");
 
-                //set the title of the bar so that when focus is returned a new query begins
-                //mSearchView.setSearchBarTitle(mLastQuery);
+        FloatingActionButton myLocation = (FloatingActionButton) findViewById(R.id.my_location);
+        FloatingActionButton mapLayer = (FloatingActionButton) findViewById(R.id.map_layer);
+        myLocation.setVisibility(View.VISIBLE);
+        mapLayer.setVisibility(View.VISIBLE);
 
-                //you can also set setSearchText(...) to make keep the query there when not focused and when focus returns
-                //mSearchView.setSearchText(searchSuggestion.getBody());
-            }
-        });
+        //set the title of the bar so that when focus is returned a new query begins
+        //mSearchView.setSearchBarTitle(mLastQuery);
 
-        mSearchView.setOnSuggestionsListHeightChanged(new FloatingSearchView.OnSuggestionsListHeightChanged() {
-            @Override
-            public void onSuggestionsListHeightChanged(float newHeight) {
-                //mSearchResultsList.setTranslationY(newHeight);
-            }
-        });
+        //you can also set setSearchText(...) to make keep the query there when not focused and when focus returns
+        //mSearchView.setSearchText(searchSuggestion.getBody());
+    }
 
-        mSearchView.setOnClearSearchActionListener(new FloatingSearchView.OnClearSearchActionListener() {
-            @Override
-            public void onClearSearchClicked() {
+    @Override
+    public void onSuggestionsListHeightChanged(float newHeight) {
+        Log.d(TAG, "onSuggestionsListHeightChanged()");
+        //mSearchResultsList.setTranslationY(newHeight);
+    }
 
-                Log.d(TAG, "onClearSearchClicked()");
-            }
-        });
+    @Override
+    public void onClearSearchClicked() {
+        Log.d(TAG, "onClearSearchClicked()");
+    }
 
-        mSearchView.setOnMenuItemClickListener(new FloatingSearchView.OnMenuItemClickListener() {
-            @Override
-            public void onActionMenuItemSelected(MenuItem item) {
-                if (item.getItemId() == R.id.action_setting) {
-                    showSettings();
-                }
-            }
-        });
+    @Override
+    public void onActionMenuItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_setting) {
+            showSettings();
+        }
+    }
 
-        mSearchView.setOnBindSuggestionCallback(new SearchSuggestionsAdapter.OnBindSuggestionCallback() {
-            @Override
-            public void onBindSuggestion(View suggestionView, ImageView leftIcon,
-                                         TextView textView, SearchSuggestion item, int itemPosition) {
-                NameSuggestion colorSuggestion = (NameSuggestion) item;
+    @Override
+    public void onBindSuggestion(View suggestionView, ImageView leftIcon,
+                                 TextView textView, SearchSuggestion item, int itemPosition) {
+        NameSuggestion colorSuggestion = (NameSuggestion) item;
 
-                boolean mIsDarkSearchTheme = false;
-                String textColor = mIsDarkSearchTheme ? "#ffffff" : "#000000";
-                String textLight = mIsDarkSearchTheme ? "#bfbfbf" : "#787878";
+        boolean mIsDarkSearchTheme = false;
+        String textColor = mIsDarkSearchTheme ? "#ffffff" : "#000000";
+        String textLight = mIsDarkSearchTheme ? "#bfbfbf" : "#787878";
 
-                if (colorSuggestion.getIsHistory()) {
-                    leftIcon.setImageDrawable(ResourcesCompat.getDrawable(getResources(),
-                            R.drawable.ic_history_black_24dp, null));
+        if (colorSuggestion.getIsHistory()) {
+            leftIcon.setImageDrawable(ResourcesCompat.getDrawable(getResources(),
+                    R.drawable.ic_history_black_24dp, null));
 
-                    Util.setIconColor(leftIcon, Color.parseColor(textColor));
-                    leftIcon.setAlpha(.36f);
-                } else {
-                    leftIcon.setAlpha(0.0f);
-                    leftIcon.setImageDrawable(null);
-                }
+            Util.setIconColor(leftIcon, Color.parseColor(textColor));
+            leftIcon.setAlpha(.36f);
+        } else {
+            leftIcon.setAlpha(0.0f);
+            leftIcon.setImageDrawable(null);
+        }
 
-                textView.setTextColor(Color.parseColor(textColor));
-                String text = colorSuggestion.getBody()
-                        .replaceFirst(mSearchView.getQuery(),
-                                "<font color=\"" + textLight + "\">" + mSearchView.getQuery() + "</font>");
-                textView.setText(Html.fromHtml(text));
-            }
-
-        });
-
+        textView.setTextColor(Color.parseColor(textColor));
+        String text = colorSuggestion.getBody()
+                .replaceFirst(mSearchView.getQuery(),
+                        "<font color=\"" + textLight + "\">" + mSearchView.getQuery() + "</font>");
+        textView.setText(Html.fromHtml(text));
     }
 
     static class NameSuggestion implements SearchSuggestion {
