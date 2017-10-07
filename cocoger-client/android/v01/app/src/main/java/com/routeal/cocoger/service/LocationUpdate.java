@@ -145,7 +145,7 @@ public class LocationUpdate {
                     super.onLocationResult(locationResult);
                     onNewLocation(context, locationResult.getLastLocation());
                     if (mLocationUpdateIntervalResetTime < System.currentTimeMillis()) {
-                        MainApplication.putInt(LocationUpdate.FOREGROUND_LOCATION_UPDATE_INTERVAL, 30*60*1000);
+                        MainApplication.putInt(LocationUpdate.FOREGROUND_LOCATION_UPDATE_INTERVAL, 30 * 60 * 1000);
                         mLocationUpdateIntervalResetTime = 0;
                     }
                 }
@@ -205,7 +205,7 @@ public class LocationUpdate {
                 mLocationRequest = null;
             }
             mCurrentLocationUpdateInterval = mForegroundServiceLocationUpdateInterval;
-            Log.d(TAG, "start service foreground LocationUpdate:"+mCurrentLocationUpdateInterval/1000/60);
+            Log.d(TAG, "start service foreground LocationUpdate:" + mCurrentLocationUpdateInterval / 1000 / 60);
         } else {
             mServiceLocationUpdateInterval = MainApplication.getInt(LOCATION_UPDATE_INTERVAL, DEFAULT_LOCATION_UPDATE_INTERVAL);
             if (mServiceLocationUpdateInterval > 0) {
@@ -217,14 +217,14 @@ public class LocationUpdate {
                 mLocationRequest = null;
             }
             mCurrentLocationUpdateInterval = mServiceLocationUpdateInterval;
-            Log.d(TAG, "start service LocationUpdate:"+mCurrentLocationUpdateInterval/1000/60);
+            Log.d(TAG, "start service LocationUpdate:" + mCurrentLocationUpdateInterval / 1000 / 60);
         }
 
         Log.d(TAG, "Cancel periodic update");
         LocationUpdateReceiver.cancelUpdate(context, (AlarmManager) context.getSystemService(ALARM_SERVICE));
 
-        if (mCurrentLocationUpdateInterval < 15*60*1000) {
-            mLocationUpdateIntervalResetTime = System.currentTimeMillis() + 15*60*1000;
+        if (mCurrentLocationUpdateInterval < 15 * 60 * 1000) {
+            mLocationUpdateIntervalResetTime = System.currentTimeMillis() + 15 * 60 * 1000;
         } else {
             mLocationUpdateIntervalResetTime = 0;
         }

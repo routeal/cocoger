@@ -1,6 +1,7 @@
 package com.routeal.cocoger.ui.main;
 
 import android.content.DialogInterface;
+import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
 import android.os.Bundle;
@@ -26,6 +27,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
@@ -116,6 +118,8 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
         mDate = null;
         mStartTime = 0;
         mEndTime = 24;
+        mStartTimeStr = "0 am";
+        mEndTimeStr = "12 pm";
 
         new AlertDialog.Builder(TimelineActivity.this)
                 .setView(view)
@@ -180,8 +184,8 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
                             public void onClick(DialogInterface dialog, int which) {
                                 mStartTime = seekBar.getSelectedMinValue().intValue();
                                 mEndTime = seekBar.getSelectedMaxValue().intValue();
-                                mStartTimeStr = seekBar.getSelectedMaxTime();
-                                mEndTimeStr = seekBar.getSelectedMinTime();
+                                mStartTimeStr = seekBar.getSelectedMinTime();
+                                mEndTimeStr = seekBar.getSelectedMaxTime();
                                 timeText.setText(String.format("%s - %s", mStartTimeStr, mEndTimeStr));
                             }
                         })
@@ -199,7 +203,7 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
     private void removeLocationJitters(List<LocationAddress> locations) {
         Log.d(TAG, "removeLocationJitters: original size=" + locations.size());
 
-        // remove the same address as the previous one
+        // removes the same address as the previous one
         Address prevAddress = null;
         Iterator<LocationAddress> it = locations.iterator();
         while (it.hasNext()) {
@@ -215,7 +219,7 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
             prevAddress = address;
         }
 
-        Log.d(TAG, "removeLocationJitters: same address size=" + locations.size());
+        Log.d(TAG, "removeLocationJitters: removed same address size=" + locations.size());
 
         // removes B where B is moved from A and moved to C but A and C is very close and
         // duration of B and C is within 60 mins
@@ -233,7 +237,7 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
                 Location a = Utils.getLocation(A);
                 Location b = Utils.getLocation(B);
                 Location c = Utils.getLocation(C);
-                if (Utils.distanceTo(a, c) < 50 &&
+                if (Utils.distanceTo(a, c) < 100 &&
                     (c.getTime() - b.getTime()) < 60*60*1000) {
                     removed2.add(B);
                 }
@@ -244,10 +248,9 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
         for (LocationAddress la : removed2) {
             locations.remove(la);
         }
-        Log.d(TAG, "removeLocationJitters: triangle removal size=" + locations.size());
+        Log.d(TAG, "removeLocationJitters: removed triangle errors size=" + locations.size());
 
-        // removes B where B is moved from A and moved to C but A and C is very close and
-        // duration of B and C is within 60 mins
+        // removes B where B is moved from A and B moved to C and the heading angle is same.
         A = null;
         B = null;
         it = locations.iterator();
@@ -263,22 +266,15 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
                 Location b = Utils.getLocation(B);
                 Location c = Utils.getLocation(C);
 
-                double distance1 = Utils.distanceTo(a, b);
+                //double distance1 = Utils.distanceTo(a, b);
                 double heading1 = SphericalUtil.computeHeading(Utils.getLatLng(a), Utils.getLatLng(b));
 
-                double distance2 = Utils.distanceTo(b, c);
+                //double distance2 = Utils.distanceTo(b, c);
                 double heading2 = SphericalUtil.computeHeading(Utils.getLatLng(b), Utils.getLatLng(c));
 
-                if (Math.abs(distance1 - distance2) < 1000 && Math.abs(heading1 - heading2) < 15) {
+                if (/*Math.abs(distance1 - distance2) < 100 &&*/ Math.abs(heading1 - heading2) < 15) {
                     removed2.add(B);
                 }
-                /*
-                LatLng l = SphericalUtil.computeOffset(Utils.getLatLng(b), distance, heading);
-                Location ll = Utils.getLocation(l);
-                if (Utils.distanceTo(ll, c) < 100) {
-                    removed2.add(B);
-                }
-                */
                 A = B;
                 B = null;
             }
@@ -286,7 +282,7 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
         for (LocationAddress la : removed2) {
             locations.remove(la);
         }
-        Log.d(TAG, "removeLocationJitters: heading removal size=" + locations.size());
+        Log.d(TAG, "removeLocationJitters: removed the same directions size=" + locations.size());
 
 
 
@@ -308,7 +304,7 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
             prevLocation = location;
         }
 
-        Log.d(TAG, "removeLocationJitters: after walking around size=" + locations.size());
+        Log.d(TAG, "removeLocationJitters: removed walking distances size=" + locations.size());
 
         // removes p1-pn if p0-pn are within the certain range.
         List<LocationAddress> jitters = new ArrayList<>();
@@ -340,7 +336,7 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
         for (LocationAddress la : removed) {
             locations.remove(la);
         }
-        Log.d(TAG, "removeLocationJitters: jitter removal size=" + locations.size());
+        Log.d(TAG, "removeLocationJitters: removed jitters size=" + locations.size());
     }
 
     private void showTimeline() {
@@ -364,14 +360,13 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
 
         // remove the location jitters
         removeLocationJitters(locations);
-        removeLocationJitters(locations);
 
         for (LocationAddress la : locations) {
             Location location = Utils.getLocation(la);
             Address address = Utils.getAddress(la);
 
             // whole address line
-            String addressLine = Utils.getAddressLine(address, LocationRange.CURRENT.range);
+            String addressLine = Utils.getAddressLine(address, LocationRange.CURRENT.range, true);
 
             // speed in m/h
             String speedRate = getResources().getString(R.string.speed_rate);
@@ -382,10 +377,13 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
             String formattedDate = f.format(new Date(location.getTime()));
             String titleFormat = getResources().getString(R.string.timeline_marker_title_format);
 
-            String title = String.format("%s (%f m/h)", formattedDate, speed);
+            String title = String.format("%s (%.2f m/h)", formattedDate, speed);
+
+            Drawable drawable = Utils.getIconDrawable(this, R.drawable.ic_place_white_24dp, R.color.steelblue);
 
             Marker marker = mMap.addMarker(new MarkerOptions().position(new LatLng(la.getLatitude(), la.getLongitude()))
                     .title(title)
+                    .icon(Utils.getBitmapDescriptor(drawable))
                     .snippet(addressLine));
             mMarkers.add(marker);
         }
@@ -420,8 +418,8 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
 
             // polyline
             lineOptions.addAll(points);
-            lineOptions.width(20);
-            lineOptions.color(R.color.navy);
+            lineOptions.width(10);
+            lineOptions.color(getResources().getColor(R.color.slategray));
             mPolyline = mMap.addPolyline(lineOptions);
         }
 
@@ -441,6 +439,9 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
     @Override
     public void onMapReady(GoogleMap map) {
         mMap = map;
+        MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle_timeline);
+        mMap.setMapStyle(style);
+
     }
 
     void sendTimeline() {

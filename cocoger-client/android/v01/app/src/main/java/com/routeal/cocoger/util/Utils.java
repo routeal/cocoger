@@ -34,7 +34,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * Created by nabe on 7/3/17.
@@ -145,6 +144,10 @@ public class Utils {
     }
 
     public static String getAddressLine(Address a) {
+        return getAddressLine(a, false);
+    }
+
+    public static String getAddressLine(Address a, boolean shortFormat) {
         String str = a.getAddressLine(0);
         if (str != null && !str.isEmpty()) {
             return str;
@@ -157,14 +160,20 @@ public class Utils {
         str += (a.getSubLocality() == null) ? "" : a.getSubLocality();
         if (str.length() > 0 && str.charAt(str.length() - 1) != ' ') str += ", ";
         str += (a.getLocality() == null) ? "" : a.getLocality();
-        if (str.length() > 0 && str.charAt(str.length() - 1) != ' ') str += ", ";
-        str += (a.getAdminArea() == null) ? "" : a.getAdminArea();
-        if (str.length() > 0 && str.charAt(str.length() - 1) != ' ') str += ", ";
-        str += (a.getPostalCode() == null) ? "" : a.getPostalCode();
+        if (!shortFormat) {
+            if (str.length() > 0 && str.charAt(str.length() - 1) != ' ') str += ", ";
+            str += (a.getAdminArea() == null) ? "" : a.getAdminArea();
+            if (str.length() > 0 && str.charAt(str.length() - 1) != ' ') str += ", ";
+            str += (a.getPostalCode() == null) ? "" : a.getPostalCode();
+        }
         return str;
     }
 
     public static String getAddressLine(Address address, int range) {
+        return getAddressLine(address, range, false);
+    }
+
+    public static String getAddressLine(Address address, int range, boolean shortFormat) {
         if (address == null) {
             return "";
         }
@@ -173,7 +182,7 @@ public class Utils {
             return "";
         }
         if (value == LocationRange.CURRENT) {
-            return getAddressLine(address);
+            return getAddressLine(address, shortFormat);
         }
         String locationName = "";
         switch (value) {
@@ -400,7 +409,7 @@ public class Utils {
         return LocationRange.NONE.range;
     }
 
-    public static boolean isEqualAddress(Address address1,  Address address2, int range) {
+    public static boolean isEqualAddress(Address address1, Address address2, int range) {
         if (address1 == null || address2 == null || range == 0) {
             return false;
         }

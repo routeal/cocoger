@@ -1,11 +1,11 @@
 package com.routeal.cocoger.ui.main;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.IntentSender;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
@@ -19,7 +19,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.widget.Toast;
@@ -47,27 +46,7 @@ abstract class MapBaseActivity extends FragmentActivity
 
     private Address mLastKnownAddress;
 
-    private LocationUpdateService mService = null;
-
-    private boolean mBound = false;
-
-    private final ServiceConnection mServiceConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            LocationUpdateService.LocalBinder binder = (LocationUpdateService.LocalBinder) service;
-            mService = binder.getService();
-            mBound = true;
-            Log.d(TAG, "onServiceConnected");
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            mService = null;
-            mBound = false;
-            Log.d(TAG, "onServiceDisconnected");
-        }
-    };
+    private final MapActivityLifecycleCallbacks mCallbacks = new MapActivityLifecycleCallbacks();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,13 +54,13 @@ abstract class MapBaseActivity extends FragmentActivity
         setContentView(R.layout.activity_maps);
         Intent intent = new Intent(this, LocationUpdateService.class);
         startService(intent);
+        getApplication().registerActivityLifecycleCallbacks(mCallbacks);
         checkPermission();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        bindService(new Intent(this, LocationUpdateService.class), mServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -96,18 +75,12 @@ abstract class MapBaseActivity extends FragmentActivity
 
     @Override
     protected void onStop() {
-        if (mBound) {
-            // Unbind from the service. This signals to the service that this activity is no longer
-            // in the foreground, and the service can respond by promoting itself to a foreground
-            // service.
-            unbindService(mServiceConnection);
-            mBound = false;
-        }
         super.onStop();
     }
 
     @Override
     protected void onDestroy() {
+        getApplication().unregisterActivityLifecycleCallbacks(mCallbacks);
         super.onDestroy();
     }
 
@@ -235,6 +208,71 @@ abstract class MapBaseActivity extends FragmentActivity
         } else {
             Log.d(TAG, "onConnectionFailed: " + connectionResult.getErrorMessage());
             Toast.makeText(this, connectionResult.getErrorMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public static class MapActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
+        private LocationUpdateService mService = null;
+
+        private boolean mBound = false;
+
+        private final ServiceConnection mServiceConnection = new ServiceConnection() {
+
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                LocationUpdateService.LocalBinder binder = (LocationUpdateService.LocalBinder) service;
+                mService = binder.getService();
+                mBound = true;
+                Log.d(TAG, "onServiceConnected");
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                mService = null;
+                mBound = false;
+                Log.d(TAG, "onServiceDisconnected");
+            }
+        };
+
+        @Override
+        public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+
+        }
+
+        @Override
+        public void onActivityStarted(Activity activity) {
+            activity.bindService(new Intent(activity, LocationUpdateService.class), mServiceConnection, Context.BIND_AUTO_CREATE);
+        }
+
+        @Override
+        public void onActivityResumed(Activity activity) {
+
+        }
+
+        @Override
+        public void onActivityPaused(Activity activity) {
+
+        }
+
+        @Override
+        public void onActivityStopped(Activity activity) {
+            if (mBound) {
+                // Unbind from the service. This signals to the service that this activity is no longer
+                // in the foreground, and the service can respond by promoting itself to a foreground
+                // service.
+                activity.unbindService(mServiceConnection);
+                mBound = false;
+            }
+        }
+
+        @Override
+        public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+
+        }
+
+        @Override
+        public void onActivityDestroyed(Activity activity) {
+
         }
     }
 }

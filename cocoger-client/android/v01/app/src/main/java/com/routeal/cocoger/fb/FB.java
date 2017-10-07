@@ -862,7 +862,7 @@ public class FB {
 
         Query query = userRef
                 .orderByChild("searchedName")
-                .limitToFirst(20)
+                .limitToFirst(40)
                 .startAt(text)
                 .endAt(text + "~");
 
