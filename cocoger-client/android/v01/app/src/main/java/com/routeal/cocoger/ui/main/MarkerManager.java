@@ -4,6 +4,7 @@ import android.location.Address;
 import android.location.Location;
 import android.util.Log;
 
+import com.appolica.interactiveinfowindow.InfoWindow;
 import com.appolica.interactiveinfowindow.InfoWindowManager;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -21,22 +22,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-class MarkerManager {
+class MarkerManager implements MapActivity.MarkerInterface {
 
     private final static String TAG = "MarkerManager";
 
     private List<ComboMarker> mMarkers = new ArrayList<>();
-    private GoogleMap.OnMarkerClickListener mMarkerClickListener = new GoogleMap.OnMarkerClickListener() {
-        @Override
-        public boolean onMarkerClick(Marker marker) {
-            for (ComboMarker entry : mMarkers) {
-                if (entry.onMarkerClick(marker)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    };
     private GoogleMap mMap;
     private InfoWindowManager mInfoWindowManager;
     private double mMarkerDistance = 10;
@@ -94,9 +84,23 @@ class MarkerManager {
 
     MarkerManager(GoogleMap map, InfoWindowManager infoWindowManager) {
         mMap = map;
-        mMap.setOnMarkerClickListener(mMarkerClickListener);
         mMap.setOnCameraMoveListener(mCameraMoveListener);
         mInfoWindowManager = infoWindowManager;
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        for (ComboMarker entry : mMarkers) {
+            if (entry.onMarkerClick(marker)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void onWindowHidden(InfoWindow infoWindow) {
+
     }
 
     void remove(String id) {

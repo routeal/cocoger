@@ -32,7 +32,7 @@ import com.routeal.cocoger.util.LoadImage;
  * Created by hwatanabe on 10/5/17.
  */
 
-class DrawerMapActivity extends MapActivity implements NavigationView.OnNavigationItemSelectedListener, DrawerLayout.DrawerListener {
+abstract class DrawerMapActivity extends MapActivity implements NavigationView.OnNavigationItemSelectedListener, DrawerLayout.DrawerListener {
     private final static String TAG = "DrawerMapActivity";
 
     @Override

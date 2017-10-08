@@ -42,18 +42,21 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="true"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Button"
                     android:text="@string/num_1" />
 
                 <RadioButton
                     android:id="@+id/fg_interval_3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Button"
                     android:text="@string/num_3" />
 
                 <RadioButton
                     android:id="@+id/fg_interval_5"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Button"
                     android:text="@string/num_5" />
 
             </RadioGroup>
@@ -82,30 +85,35 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checked="true"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Button"
                     android:text="@string/num_1" />
 
                 <RadioButton
                     android:id="@+id/bg_interval_5"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Button"
                     android:text="@string/num_5" />
 
                 <RadioButton
                     android:id="@+id/bg_interval_15"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Button"
                     android:text="@string/num_15" />
 
                 <RadioButton
                     android:id="@+id/bg_interval_30"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Button"
                     android:text="@string/num_30" />
 
                 <RadioButton
                     android:id="@+id/bg_interval_60"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Button"
                     android:text="@string/num_60" />
 
             </RadioGroup>

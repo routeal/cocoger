@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -45,7 +46,7 @@ public class MultiInfoFragment extends InfoFragment {
 
         mFriendList = (RecyclerView) view.findViewById(R.id.friend_list);
 
-        // FIXME: 35 is from nowhere
+        // 4, 16, 32 are from the xml file
         int size = (mMarker.size() > 4) ? 4 : mMarker.size();
         int height = (size * (int) (32 * Resources.getSystem().getDisplayMetrics().density))
                 + (int) (16 * Resources.getSystem().getDisplayMetrics().density);
@@ -96,15 +97,17 @@ public class MultiInfoFragment extends InfoFragment {
             dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
 
             setupView(dialog);
+            mPoiCreatorTextView.setVisibility(View.GONE);
+            mActionEditPoiButton.setVisibility(View.GONE);
             enableMessageButton(info.id);
             setStreetViewPicture(info.rangeLocation);
             setTitle(info.name);
             setAddress(Utils.getAddressLine(info.address, info.range));
 
-            mActionLocationButton.setOnClickListener(new View.OnClickListener() {
+            mActionAddPoiButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    saveLocation();
+                    saveLocation(info.rangeLocation, Utils.getAddressLine(info.address, info.range), info.name);
                     dialog.dismiss();
                 }
             });
@@ -157,8 +160,8 @@ public class MultiInfoFragment extends InfoFragment {
             holder.name.setText(info.name);
             String uid = FB.getUid();
             if (uid != null && uid.equals(info.id)) {
-                //holder.range.setText("me");
-                holder.range.setText("");
+                holder.range.setText(R.string.me);
+                holder.pane.setBackgroundColor(ContextCompat.getColor(getParentFragment().getContext(), R.color.teal50));
             } else {
                 holder.range.setText(LocationRange.toString(info.range));
             }
@@ -173,6 +176,7 @@ public class MultiInfoFragment extends InfoFragment {
             ImageView picture;
             TextView name;
             TextView range;
+            View pane;
 
             View.OnClickListener listener = new View.OnClickListener() {
                 @Override
@@ -185,6 +189,7 @@ public class MultiInfoFragment extends InfoFragment {
 
             public ViewHolder(View itemView) {
                 super(itemView);
+                pane = itemView;
                 picture = (ImageView) itemView.findViewById(R.id.picture);
                 name = (TextView) itemView.findViewById(R.id.title);
                 range = (TextView) itemView.findViewById(R.id.range);

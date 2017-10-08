@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-class SearchMapActivity extends DrawerMapActivity implements
+abstract class SearchMapActivity extends DrawerMapActivity implements
         FloatingSearchView.OnQueryChangeListener,
         FloatingSearchView.OnSearchListener,
         FloatingSearchView.OnFocusChangeListener,

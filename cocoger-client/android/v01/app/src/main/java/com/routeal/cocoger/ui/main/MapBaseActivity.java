@@ -39,14 +39,10 @@ abstract class MapBaseActivity extends FragmentActivity
 
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 1234;
     private final static int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 5678;
-
-    private GoogleApiClient mGoogleApiClient;
-
-    private Location mLastKnownLocation;
-
-    private Address mLastKnownAddress;
-
     private final MapActivityLifecycleCallbacks mCallbacks = new MapActivityLifecycleCallbacks();
+    private GoogleApiClient mGoogleApiClient;
+    private Location mLastKnownLocation;
+    private Address mLastKnownAddress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

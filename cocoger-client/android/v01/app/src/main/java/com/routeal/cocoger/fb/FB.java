@@ -63,12 +63,17 @@ public class FB {
     public final static String FRIEND_MARKER_SHOW = "friend_marker_show";
     public final static String DIRECTION_ROUTE_ADD = "direction_route_add";
     public final static String DIRECTION_ROUTE_REMOVE = "direction_route_remove";
+    public final static String SAVE_LOCATION = "save_location";
 
     public final static String FRIEND_KEY = "friend_key";
     public final static String NEW_LOCATION = "new_location";
     public final static String OLD_LOCATION = "old_location";
     public final static String NEW_ADDRESS = "new_address";
     public final static String RANGE_CHANGE = "range_change";
+    public final static String LOCATION = "location";
+    public final static String ADDRESS = "address";
+    public final static String TITLE = "title";
+    public final static String IMAGE = "image";
 
     public final static String ACTION_FRIEND_REQUEST_ACCEPTED = "FRIEND_REQUEST_ACCEPTED";
     public final static String ACTION_FRIEND_REQUEST_DECLINED = "FRIEND_REQUEST_DECLINED";

@@ -5,13 +5,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
@@ -25,6 +25,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Marker;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
@@ -32,82 +33,25 @@ import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Utils;
 
-class MapActivity extends MapBaseActivity {
+abstract class MapActivity extends MapBaseActivity
+        implements GoogleMap.OnMarkerClickListener, OnMapReadyCallback, View.OnClickListener {
 
     private final static String TAG = "MapActivity";
     private final static String KEY_CAMERA_POSITION = "camera_position";
     private final static String KEY_LOCATION = "location";
-
     private final static int DEFAULT_ZOOM = 16;
 
     protected GoogleMap mMap;
-
     protected GeoDataClient mGeoDataClient;
 
     private View mapView;
-
     private CameraPosition mCameraPosition;
-
     private ProgressDialog mSpinner;
-
     private InfoWindowManager mInfoWindowManager;
-
     private MarkerManager mMm;
-
     private SimpleDirection mDirection;
-
     private MapStyle mMapStyle;
-
     private PoiManager mPoi;
-
-    private OnMapReadyCallback mReadyCallback = new OnMapReadyCallback() {
-        @Override
-        public void onMapReady(GoogleMap googleMap) {
-            mMap = googleMap;
-
-            mGeoDataClient = Places.getGeoDataClient(MapActivity.this, null);
-            mMapStyle = new MapStyle(mMap, MapActivity.this);
-            mMm = new MarkerManager(mMap, mInfoWindowManager);
-            mDirection = new SimpleDirection(mMap, mInfoWindowManager);
-            mPoi = new PoiManager(mMap, mGeoDataClient, mInfoWindowManager);
-
-            MapActivity.this.onMapReady();
-
-            mMap.setPadding(8, 0, 0, 148);
-            mMap.getUiSettings().setCompassEnabled(true);
-            mMap.getUiSettings().setMyLocationButtonEnabled(false);
-            mMap.getUiSettings().setMapToolbarEnabled(false);
-            mMap.setMyLocationEnabled(true);
-
-            mMapStyle.init(MapActivity.this, mMap);
-
-            Log.d(TAG, "onMapReady: location detected from the base object");
-
-            // the location may not be available at this point
-            if (getLocation() != null) {
-                Log.d(TAG, "onMapReady: setupMarkers");
-                mMm.setupMarkers(getLocation(), Utils.getAddress(getLocation()));
-            }
-
-            if (mCameraPosition != null) {
-                mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
-            } else if (getLocation() != null) {
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                        Utils.getLatLng(getLocation()), DEFAULT_ZOOM));
-            }
-
-            mSpinner.dismiss();
-            mSpinner = null;
-        }
-    };
-
-    private View.OnClickListener myLocationButtonListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                    Utils.getLatLng(getLocation()), DEFAULT_ZOOM));
-        }
-    };
 
     /**
      * Receives location updates from the location service
@@ -226,9 +170,75 @@ class MapActivity extends MapBaseActivity {
                 closeSlidePanel();
             } else if (intent.getAction().equals(FB.DIRECTION_ROUTE_REMOVE)) {
                 mDirection.removeDirection();
+            } else if (intent.getAction().equals(FB.SAVE_LOCATION)) {
+                Location location = intent.getParcelableExtra(FB.LOCATION);
+                String address = intent.getStringExtra(FB.ADDRESS);
+                String title = intent.getStringExtra(FB.TITLE);
+                Bitmap bitmap = intent.getParcelableExtra(FB.IMAGE);
+                mPoi.addPlace(MapActivity.this, location, address, title, bitmap);
             }
         }
     };
+
+    @Override
+    public void onClick(View v) {
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                Utils.getLatLng(getLocation()), DEFAULT_ZOOM));
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        mMap = googleMap;
+
+        mGeoDataClient = Places.getGeoDataClient(MapActivity.this, null);
+        mMapStyle = new MapStyle(mMap, MapActivity.this);
+        mMm = new MarkerManager(mMap, mInfoWindowManager);
+        mDirection = new SimpleDirection(mMap, mInfoWindowManager);
+        mPoi = new PoiManager(mMap, mGeoDataClient, mInfoWindowManager);
+
+        mMap.setOnMarkerClickListener(MapActivity.this);
+
+        mMap.setPadding(8, 0, 0, 148);
+        mMap.getUiSettings().setCompassEnabled(true);
+        mMap.getUiSettings().setMyLocationButtonEnabled(false);
+        mMap.getUiSettings().setMapToolbarEnabled(false);
+        mMap.setMyLocationEnabled(true);
+
+        mMapStyle.init(MapActivity.this, mMap);
+
+        Log.d(TAG, "onMapReady: location detected from the base object");
+
+        // the location may not be available at this point
+        if (getLocation() != null) {
+            Log.d(TAG, "onMapReady: setupMarkers");
+            mMm.setupMarkers(getLocation(), Utils.getAddress(getLocation()));
+        }
+
+        if (mCameraPosition != null) {
+            mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
+        } else if (getLocation() != null) {
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                    Utils.getLatLng(getLocation()), DEFAULT_ZOOM));
+        }
+
+        mSpinner.dismiss();
+        mSpinner = null;
+    }
+
+    @Override
+    public boolean onMarkerClick(Marker marker) {
+        if (mMm != null) {
+            if (mMm.onMarkerClick(marker)) {
+                return true;
+            }
+        }
+        if (mPoi != null) {
+            if (mPoi.onMarkerClick(marker)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -244,7 +254,7 @@ class MapActivity extends MapBaseActivity {
         Drawable myLocationDrawable = Utils.getIconDrawable(this, R.drawable.ic_my_location_white_36dp, R.color.gray);
         FloatingActionButton myLocationButton = (FloatingActionButton) findViewById(R.id.my_location);
         myLocationButton.setImageDrawable(myLocationDrawable);
-        myLocationButton.setOnClickListener(myLocationButtonListener);
+        myLocationButton.setOnClickListener(this);
 
         // registers the receiver to receive the location updates from the service
         IntentFilter filter = new IntentFilter();
@@ -256,6 +266,7 @@ class MapActivity extends MapBaseActivity {
         filter.addAction(FB.FRIEND_MARKER_SHOW);
         filter.addAction(FB.DIRECTION_ROUTE_ADD);
         filter.addAction(FB.DIRECTION_ROUTE_REMOVE);
+        filter.addAction(FB.SAVE_LOCATION);
         LocalBroadcastManager.getInstance(this).registerReceiver(mLocalLocationReceiver, filter);
     }
 
@@ -271,6 +282,7 @@ class MapActivity extends MapBaseActivity {
         }
     }
 
+    @Override
     void startApp() {
         // show the mSpinner
         mSpinner = Utils.getBusySpinner(this);
@@ -298,24 +310,25 @@ class MapActivity extends MapBaseActivity {
 
             @Override
             public void onWindowHidden(@NonNull InfoWindow infoWindow) {
-                Fragment fragment = infoWindow.getWindowFragment();
-                if (fragment != null) {
-                    if (fragment instanceof PoiInfoFragment) {
-                        Log.d(TAG, "InfoWindowManager:onWindowHidden=PoiInfoFragment");
-                        mPoi.removeInfoWindow();
-                    }
+                if (mMm != null) {
+                    mMm.onWindowHidden(infoWindow);
+                }
+                if (mPoi != null) {
+                    mPoi.onWindowHidden(infoWindow);
                 }
             }
         });
         mapView = mapInfoWindowFragment.getView();
 
         // mSpinner will be dismissed in the MapReady callback
-        mapInfoWindowFragment.getMapAsync(mReadyCallback);
+        mapInfoWindowFragment.getMapAsync(this);
     }
 
-    void onMapReady() {
-    }
+    abstract void closeSlidePanel();
 
-    void closeSlidePanel() {
+    interface MarkerInterface {
+        boolean onMarkerClick(Marker marker);
+
+        void onWindowHidden(InfoWindow infoWindow);
     }
 }

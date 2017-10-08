@@ -3,6 +3,7 @@ package com.routeal.cocoger.ui.main;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,12 +26,16 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
         View view = inflater.inflate(R.layout.fragment_one_info, container, false);
         setupView(view);
 
+        mPoiCreatorTextView.setVisibility(View.GONE);
+        mActionEditPoiButton.setVisibility(View.GONE);
         mStreetImageView.setOnClickListener(this);
-        mActionLocationButton.setOnClickListener(this);
+        mActionAddPoiButton.setOnClickListener(this);
         mActionDirectionButton.setOnClickListener(this);
         mActionMessageButton.setVisibility(View.GONE);
         mActionGoogleMapButton.setVisibility(View.VISIBLE);
         mActionGoogleMapButton.setOnClickListener(this);
+
+        mTitleTextView.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.peru));
 
         return view;
     }
@@ -54,8 +59,8 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
                     openStreetView(mLocation, mTitle);
                 }
                 break;
-            case R.id.action_location:
-                saveLocation();
+            case R.id.action_add_poi:
+                saveLocation(mLocation, mAddress, mTitle);
                 break;
             case R.id.action_direction:
                 if (mLocation != null) {
@@ -66,15 +71,11 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
                 showGoogleMap(mLocation, mTitle);
                 break;
         }
-        mPoiManager.removeInfoWindow();
+        mPoiManager.removePoiInfoWindow();
     }
 
     void setTitle(String title) {
         mTitle = title;
-    }
-
-    void setLocation(Location location) {
-        mLocation = location;
     }
 
     void setAddress(String address) {
@@ -83,5 +84,13 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
 
     void setPoiManager(PoiManager poiManager) {
         mPoiManager = poiManager;
+    }
+
+    Location getLocation() {
+        return mLocation;
+    }
+
+    void setLocation(Location location) {
+        mLocation = location;
     }
 }

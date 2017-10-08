@@ -36,8 +36,10 @@ public class OneInfoFragment extends InfoFragment implements View.OnClickListene
         View view = inflater.inflate(R.layout.fragment_one_info, container, false);
         setupView(view);
 
+        mPoiCreatorTextView.setVisibility(View.GONE);
+        mActionEditPoiButton.setVisibility(View.GONE);
         mStreetImageView.setOnClickListener(this);
-        mActionLocationButton.setOnClickListener(this);
+        mActionAddPoiButton.setOnClickListener(this);
         mActionDirectionButton.setOnClickListener(this);
         mActionMessageButton.setOnClickListener(this);
         mActionGoogleMapButton.setOnClickListener(this);
@@ -62,8 +64,8 @@ public class OneInfoFragment extends InfoFragment implements View.OnClickListene
                 openStreetView(mMarkerInfo.rangeLocation, mAddressTextView.getText().toString());
                 mMarker.hide();
                 break;
-            case R.id.action_location:
-                saveLocation();
+            case R.id.action_add_poi:
+                saveLocation(mMarkerInfo.rangeLocation, mAddressTextView.getText().toString(), "");
                 mMarker.hide();
                 break;
             case R.id.action_direction:

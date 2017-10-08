@@ -129,7 +129,7 @@
     <string name="delete">Delete</string>
     <string name="no_location_timeline">No location history found</string>
     <string name="direction">Direction</string>
-    <string name="no_direction_available">No direction available.</string>
+    <string name="no_direction_available">No direction available.  Try again later.</string>
     <string name="time_range">Time Range</string>
     <string name="speed_rate">2.23694</string>
     <string name="timeline_marker_title_format" formatted="false">%s (%f m/h)</string>
@@ -152,4 +152,8 @@
     <string name="no_message">You have no message now.</string>
     <string name="failed_feedback">We are very sorry that your feedback did not reach us due to the network problem.  Please try again later.</string>
     <string name="too_short_direction">Too close for direction.</string>
+    <string name="me">me</string>
+    <string name="title">Title</string>
+    <string name="show_friends">Seen by friends</string>
+    <string name="address">Address</string>
 </resources>

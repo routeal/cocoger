@@ -6,6 +6,7 @@ import android.location.Address;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -238,7 +239,7 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
                 Location b = Utils.getLocation(B);
                 Location c = Utils.getLocation(C);
                 if (Utils.distanceTo(a, c) < 100 &&
-                    (c.getTime() - b.getTime()) < 60*60*1000) {
+                        (c.getTime() - b.getTime()) < 60 * 60 * 1000) {
                     removed2.add(B);
                 }
                 A = C;
@@ -283,7 +284,6 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
             locations.remove(la);
         }
         Log.d(TAG, "removeLocationJitters: removed the same directions size=" + locations.size());
-
 
 
         // removes the negative times (invalid) and the speed is less
@@ -419,7 +419,7 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
             // polyline
             lineOptions.addAll(points);
             lineOptions.width(10);
-            lineOptions.color(getResources().getColor(R.color.slategray));
+            lineOptions.color(ContextCompat.getColor(this, R.color.slategray));
             mPolyline = mMap.addPolyline(lineOptions);
         }
 

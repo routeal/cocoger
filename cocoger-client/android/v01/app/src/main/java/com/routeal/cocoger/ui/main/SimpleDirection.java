@@ -6,7 +6,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.AsyncTask;
-import android.support.v7.app.AlertDialog;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
 import com.appolica.interactiveinfowindow.InfoWindow;
@@ -132,13 +135,19 @@ class SimpleDirection {
         return data;
     }
 
-    void addDirection(Activity activity, final Location locationTo, final Location locationFrom) {
+    void addDirection(final Activity activity, final Location locationTo, final Location locationFrom) {
+        if (activity.isFinishing()) {
+            return;
+        }
         if (Utils.distanceTo(locationFrom, locationTo) < 100) {
+            Toast.makeText(activity, R.string.too_short_direction, Toast.LENGTH_SHORT).show();
+            /*
             new AlertDialog.Builder(activity)
                     .setTitle(R.string.direction)
                     .setMessage(R.string.too_short_direction)
                     .setPositiveButton(android.R.string.ok, null)
                     .show();
+            */
             return;
         }
         removeDirection();
@@ -149,7 +158,7 @@ class SimpleDirection {
                 PolylineOptions lineOptions = new PolylineOptions();
                 lineOptions.addAll(route.points);
                 lineOptions.width(10);
-                lineOptions.color(R.color.red);
+                lineOptions.color(ContextCompat.getColor(activity, R.color.dodgerblue));
                 mDirectionRoute.line = mMap.addPolyline(lineOptions);
                 mDirectionRoute.line.setClickable(true);
 
@@ -188,8 +197,10 @@ class SimpleDirection {
             @Override
             public void onFail(String err) {
                 String message = MainApplication.getContext().getResources().getString(R.string.no_direction_available);
-                if (!err.isEmpty()) {
-                    message += " (" + err + ")";
+                if (err != null) {
+                    if (!err.isEmpty()) {
+                        message += " (" + err + ")";
+                    }
                 }
                 Toast.makeText(MainApplication.getContext(), message, Toast.LENGTH_SHORT).show();
             }
@@ -203,6 +214,13 @@ class SimpleDirection {
         }
         if (mDirectionRoute.window != null) {
             mInfoWindowManager.hide(mDirectionRoute.window);
+            Fragment fragment = mDirectionRoute.window.getWindowFragment();
+            FragmentManager fragmentManager = fragment.getFragmentManager();
+            if (fragmentManager != null) {
+                FragmentTransaction trans = fragmentManager.beginTransaction();
+                trans.remove(fragment);
+                trans.commit();
+            }
             mDirectionRoute.window = null;
         }
         if (mDirectionRoute.marker != null) {
