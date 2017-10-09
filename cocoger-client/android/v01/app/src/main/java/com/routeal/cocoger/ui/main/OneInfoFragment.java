@@ -37,9 +37,9 @@ public class OneInfoFragment extends InfoFragment implements View.OnClickListene
         setupView(view);
 
         mPoiCreatorTextView.setVisibility(View.GONE);
-        mActionEditPoiButton.setVisibility(View.GONE);
+        mActionEditPlaceButton.setVisibility(View.GONE);
         mStreetImageView.setOnClickListener(this);
-        mActionAddPoiButton.setOnClickListener(this);
+        mActionAddPlaceButton.setOnClickListener(this);
         mActionDirectionButton.setOnClickListener(this);
         mActionMessageButton.setOnClickListener(this);
         mActionGoogleMapButton.setOnClickListener(this);

@@ -98,13 +98,13 @@ public class MultiInfoFragment extends InfoFragment {
 
             setupView(dialog);
             mPoiCreatorTextView.setVisibility(View.GONE);
-            mActionEditPoiButton.setVisibility(View.GONE);
+            mActionEditPlaceButton.setVisibility(View.GONE);
             enableMessageButton(info.id);
             setStreetViewPicture(info.rangeLocation);
             setTitle(info.name);
             setAddress(Utils.getAddressLine(info.address, info.range));
 
-            mActionAddPoiButton.setOnClickListener(new View.OnClickListener() {
+            mActionAddPlaceButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     saveLocation(info.rangeLocation, Utils.getAddressLine(info.address, info.range), info.name);

@@ -52,6 +52,7 @@ abstract class MapActivity extends MapBaseActivity
     private SimpleDirection mDirection;
     private MapStyle mMapStyle;
     private PoiManager mPoi;
+    private PlaceManager mPlace;
 
     /**
      * Receives location updates from the location service
@@ -175,7 +176,7 @@ abstract class MapActivity extends MapBaseActivity
                 String address = intent.getStringExtra(FB.ADDRESS);
                 String title = intent.getStringExtra(FB.TITLE);
                 Bitmap bitmap = intent.getParcelableExtra(FB.IMAGE);
-                mPoi.addPlace(MapActivity.this, location, address, title, bitmap);
+                mPlace.addPlace(MapActivity.this, location, address, title, bitmap);
             }
         }
     };
@@ -195,6 +196,7 @@ abstract class MapActivity extends MapBaseActivity
         mMm = new MarkerManager(mMap, mInfoWindowManager);
         mDirection = new SimpleDirection(mMap, mInfoWindowManager);
         mPoi = new PoiManager(mMap, mGeoDataClient, mInfoWindowManager);
+        mPlace = new PlaceManager(mMap, mGeoDataClient, mInfoWindowManager);
 
         mMap.setOnMarkerClickListener(MapActivity.this);
 
@@ -234,6 +236,11 @@ abstract class MapActivity extends MapBaseActivity
         }
         if (mPoi != null) {
             if (mPoi.onMarkerClick(marker)) {
+                return true;
+            }
+        }
+        if (mPlace != null) {
+            if (mPlace.onMarkerClick(marker)) {
                 return true;
             }
         }
@@ -315,6 +322,9 @@ abstract class MapActivity extends MapBaseActivity
                 }
                 if (mPoi != null) {
                     mPoi.onWindowHidden(infoWindow);
+                }
+                if (mPlace != null) {
+                    mPlace.onWindowHidden(infoWindow);
                 }
             }
         });

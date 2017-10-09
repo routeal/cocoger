@@ -1,24 +1,27 @@
 package com.routeal.cocoger.ui.main;
 
-import android.location.Location;
-import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+        import android.graphics.Bitmap;
+        import android.location.Location;
+        import android.os.Bundle;
+        import android.support.annotation.Nullable;
+        import android.support.v4.content.ContextCompat;
+        import android.view.LayoutInflater;
+        import android.view.View;
+        import android.view.ViewGroup;
 
-import com.routeal.cocoger.R;
+        import com.routeal.cocoger.R;
 
 /**
- * Created by hwatanabe on 10/2/17.
+ * Created by hwatanabe on 10/8/17.
  */
 
-public class PoiInfoFragment extends InfoFragment implements View.OnClickListener {
+public class PlaceInfoFragment extends InfoFragment implements View.OnClickListener {
     private String mTitle;
     private Location mLocation;
     private String mAddress;
-    private PoiManager mPoiManager;
+    private PlaceManager mPlaceManager;
+    private String mPoiCreator;
+    private Bitmap mCopiedBitmap;
 
     @Nullable
     @Override
@@ -26,14 +29,16 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
         View view = inflater.inflate(R.layout.fragment_one_info, container, false);
         setupView(view);
 
+        mActionAddPlaceButton.setVisibility(View.GONE);
+
+        mPoiCreatorTextView.setVisibility(View.VISIBLE);
+        mActionEditPlaceButton.setVisibility(View.VISIBLE);
         mActionGoogleMapButton.setVisibility(View.VISIBLE);
 
-        mPoiCreatorTextView.setVisibility(View.GONE);
-        mActionEditPlaceButton.setVisibility(View.GONE);
         mActionMessageButton.setVisibility(View.GONE);
 
         mStreetImageView.setOnClickListener(this);
-        mActionAddPlaceButton.setOnClickListener(this);
+        mActionEditPlaceButton.setOnClickListener(this);
         mActionDirectionButton.setOnClickListener(this);
         mActionGoogleMapButton.setOnClickListener(this);
 
@@ -51,6 +56,12 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
         if (mTitle != null && !mTitle.isEmpty()) {
             super.setTitle(mTitle);
         }
+        if (mPoiCreator != null && !mPoiCreator.isEmpty()) {
+            mPoiCreatorTextView.setText(mPoiCreator);
+        }
+        if (mCopiedBitmap != null) {
+            mStreetImageView.setImageBitmap(mCopiedBitmap);
+        }
     }
 
     @Override
@@ -61,8 +72,7 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
                     openStreetView(mLocation, mTitle);
                 }
                 break;
-            case R.id.action_add_poi:
-                saveLocation(mLocation, mAddress, mTitle);
+            case R.id.action_edit_poi:
                 break;
             case R.id.action_direction:
                 if (mLocation != null) {
@@ -73,7 +83,7 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
                 showGoogleMap(mLocation, mTitle);
                 break;
         }
-        mPoiManager.removePoiInfoWindow();
+        mPlaceManager.hideInfoWindow(this);
     }
 
     void setTitle(String title) {
@@ -84,8 +94,8 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
         mAddress = address;
     }
 
-    void setPoiManager(PoiManager poiManager) {
-        mPoiManager = poiManager;
+    void setPlaceManager(PlaceManager placeManager) {
+        mPlaceManager = placeManager;
     }
 
     Location getLocation() {
@@ -94,5 +104,13 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
 
     void setLocation(Location location) {
         mLocation = location;
+    }
+
+    void setPoiCreator(String creator) {
+        mPoiCreator = creator;
+    }
+
+    void setStreetViewPicture(Bitmap bitmap) {
+        mCopiedBitmap = bitmap;
     }
 }
