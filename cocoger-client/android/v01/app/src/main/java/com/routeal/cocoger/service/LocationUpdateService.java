@@ -21,6 +21,14 @@ public class LocationUpdateService extends Service {
     private final IBinder mBinder = new LocalBinder();
 
     private boolean mChangingConfiguration = false;
+    private SharedPreferences.OnSharedPreferenceChangeListener mSharedPreferenceChangeListener =
+            new SharedPreferences.OnSharedPreferenceChangeListener() {
+                @Override
+                public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+                    Context context = LocationUpdateService.this;
+                    LocationUpdateReceiver.scheduleUpdate(context, (AlarmManager) context.getSystemService(ALARM_SERVICE));
+                }
+            };
 
     @Override
     public void onCreate() {
@@ -32,15 +40,6 @@ public class LocationUpdateService extends Service {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         prefs.registerOnSharedPreferenceChangeListener(mSharedPreferenceChangeListener);
     }
-
-    private SharedPreferences.OnSharedPreferenceChangeListener mSharedPreferenceChangeListener =
-            new SharedPreferences.OnSharedPreferenceChangeListener() {
-        @Override
-        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-            Context context = LocationUpdateService.this;
-            LocationUpdateReceiver.scheduleUpdate(context, (AlarmManager) context.getSystemService(ALARM_SERVICE));
-        }
-    };
 
     @Override
     public void onDestroy() {
@@ -134,16 +133,16 @@ public class LocationUpdateService extends Service {
         return START_STICKY;
     }
 
-    public class LocalBinder extends Binder {
-        public LocationUpdateService getService() {
-            return LocationUpdateService.this;
-        }
-    }
-
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         mChangingConfiguration = true;
+    }
+
+    public class LocalBinder extends Binder {
+        public LocationUpdateService getService() {
+            return LocationUpdateService.this;
+        }
     }
 
 /*

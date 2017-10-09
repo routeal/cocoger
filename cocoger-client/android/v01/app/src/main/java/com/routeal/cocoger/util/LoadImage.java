@@ -28,6 +28,31 @@ import java.util.List;
 public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
     private final static String TAG = "LoadImage";
 
+    static Bitmap getBitmapFromURL(String src) {
+        try {
+            java.net.URL url = new java.net.URL(src);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            InputStream input = connection.getInputStream();
+            Bitmap myBitmap = BitmapFactory.decodeStream(input);
+            return myBitmap;
+        } catch (IOException e) {
+            //e.printStackTrace();
+        }
+        return null;
+    }
+
+    static Bitmap combineBitmaps(List<Bitmap> bitmaps, int size) {
+        MultipleDrawable drawable = new MultipleDrawable(bitmaps);
+        if (drawable == null) return null;
+        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+        return bitmap;
+    }
+
     @Override
     protected List<Bitmap> doInBackground(String... params) {
         List<Bitmap> bitmaps = new ArrayList<>();
@@ -70,21 +95,6 @@ public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
         return bitmaps;
     }
 
-    static Bitmap getBitmapFromURL(String src) {
-        try {
-            java.net.URL url = new java.net.URL(src);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setDoInput(true);
-            connection.connect();
-            InputStream input = connection.getInputStream();
-            Bitmap myBitmap = BitmapFactory.decodeStream(input);
-            return myBitmap;
-        } catch (IOException e) {
-            //e.printStackTrace();
-        }
-        return null;
-    }
-
     Bitmap getResizedBitmap(Bitmap bm, int newHeight, int newWidth) {
         int width = bm.getWidth();
         int height = bm.getHeight();
@@ -102,6 +112,10 @@ public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
     @Override
     protected void onPostExecute(List<Bitmap> bitmaps) {
         super.onPostExecute(bitmaps);
+    }
+
+    public interface LoadImageListener {
+        void onSuccess(Bitmap bitmap);
     }
 
     public static class LoadImageView extends LoadImage {
@@ -137,10 +151,6 @@ public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
                 imageView.setImageBitmap(bitmaps.get(0));
             }
         }
-    }
-
-    public interface LoadImageListener {
-        void onSuccess(Bitmap bitmap);
     }
 
     public static class LoadImageAsync extends LoadImage {
@@ -205,16 +215,6 @@ public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
                 marker.setIcon(BitmapDescriptorFactory.fromBitmap(cropped));
             }
         }
-    }
-
-    static Bitmap combineBitmaps(List<Bitmap> bitmaps, int size) {
-        MultipleDrawable drawable = new MultipleDrawable(bitmaps);
-        if (drawable == null) return null;
-        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawable.draw(canvas);
-        return bitmap;
     }
 
 }

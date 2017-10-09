@@ -1,29 +1,12 @@
 package com.routeal.cocoger.ui.main;
 
-import android.content.Context;
-import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.location.Location;
-import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.SwitchCompat;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.WindowManager;
-import android.view.animation.BounceInterpolator;
-import android.widget.CompoundButton;
-import android.widget.ImageView;
-import android.widget.RadioButton;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.appolica.interactiveinfowindow.InfoWindow;
 import com.google.android.gms.location.places.GeoDataClient;
@@ -42,15 +25,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PointOfInterest;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.routeal.cocoger.MainApplication;
-import com.routeal.cocoger.R;
-import com.routeal.cocoger.fb.FB;
-import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.util.Utils;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 /**
  * Created by hwatanabe on 9/27/17.

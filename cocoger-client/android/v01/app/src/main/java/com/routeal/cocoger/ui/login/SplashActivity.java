@@ -7,7 +7,6 @@ import android.support.v7.app.AppCompatActivity;
 
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.provider.DBUtil;
-import com.routeal.cocoger.service.LocationUpdateService;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 
 /**

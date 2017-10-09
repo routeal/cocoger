@@ -13,7 +13,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
@@ -78,41 +77,6 @@ public class NotifiListFragment extends PagerFragment {
             mRecyclerView.setVisibility(View.VISIBLE);
         }
         mRecyclerView.setAdapter(new NotifiListAdapter(messages));
-    }
-
-    class Message {
-        String id;
-        int nid;
-        String date;
-        String message;
-    }
-
-    class OkMessage extends Message {
-        String ok;
-    }
-
-    class OkNoMessage extends OkMessage {
-        String no;
-    }
-
-    class InviteeMessage extends OkNoMessage {
-    }
-
-    class InviteMessage extends OkNoMessage {
-    }
-
-    class RangeMessage extends OkNoMessage {
-        String name;
-        String picture;
-        int rangeTo;
-        int rangeFrom;
-    }
-
-    class InfoMessage extends Message {
-        long dbId;
-        String title;
-        String picture;
-        int resourceId;
     }
 
     List<Message> createNotifiList() {
@@ -189,32 +153,46 @@ public class NotifiListFragment extends PagerFragment {
         return messages;
     }
 
+    class Message {
+        String id;
+        int nid;
+        String date;
+        String message;
+    }
+
+    class OkMessage extends Message {
+        String ok;
+    }
+
+    class OkNoMessage extends OkMessage {
+        String no;
+    }
+
+    class InviteeMessage extends OkNoMessage {
+    }
+
+    class InviteMessage extends OkNoMessage {
+    }
+
+    class RangeMessage extends OkNoMessage {
+        String name;
+        String picture;
+        int rangeTo;
+        int rangeFrom;
+    }
+
+    class InfoMessage extends Message {
+        long dbId;
+        String title;
+        String picture;
+        int resourceId;
+    }
+
     class NotifiListAdapter extends RecyclerView.Adapter<NotifiListAdapter.ViewHolder> {
         List<Message> mMessages;
 
         NotifiListAdapter(List<Message> messages) {
             mMessages = messages;
-        }
-
-        public class ViewHolder extends RecyclerView.ViewHolder {
-            AppCompatImageView action;
-            AppCompatImageView picture;
-            AppCompatTextView title;
-            AppCompatTextView date;
-            AppCompatTextView content;
-            AppCompatButton ok;
-            AppCompatButton no;
-
-            public ViewHolder(View itemView) {
-                super(itemView);
-                //action = (AppCompatImageView) itemView.findViewById(R.id.action_icon);
-                picture = (AppCompatImageView) itemView.findViewById(R.id.picture);
-                title = (AppCompatTextView) itemView.findViewById(R.id.title);
-                date = (AppCompatTextView) itemView.findViewById(R.id.date);
-                content = (AppCompatTextView) itemView.findViewById(R.id.content);
-                ok = (AppCompatButton) itemView.findViewById(R.id.ok);
-                no = (AppCompatButton) itemView.findViewById(R.id.no);
-            }
         }
 
         public NotifiListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -353,6 +331,27 @@ public class NotifiListFragment extends PagerFragment {
         public int getItemCount() {
             Log.d(TAG, "getItemCount:" + mMessages.size());
             return mMessages.size();
+        }
+
+        public class ViewHolder extends RecyclerView.ViewHolder {
+            AppCompatImageView action;
+            AppCompatImageView picture;
+            AppCompatTextView title;
+            AppCompatTextView date;
+            AppCompatTextView content;
+            AppCompatButton ok;
+            AppCompatButton no;
+
+            public ViewHolder(View itemView) {
+                super(itemView);
+                //action = (AppCompatImageView) itemView.findViewById(R.id.action_icon);
+                picture = (AppCompatImageView) itemView.findViewById(R.id.picture);
+                title = (AppCompatTextView) itemView.findViewById(R.id.title);
+                date = (AppCompatTextView) itemView.findViewById(R.id.date);
+                content = (AppCompatTextView) itemView.findViewById(R.id.content);
+                ok = (AppCompatButton) itemView.findViewById(R.id.ok);
+                no = (AppCompatButton) itemView.findViewById(R.id.no);
+            }
         }
     }
 }

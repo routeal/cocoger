@@ -11,30 +11,36 @@ public class Friend implements Serializable {
     private RangeRequest rangeRequest;
     private String location;
 
-    public void setRange(int range) {
-        this.range = range;
-    }
-
     public int getRange() {
         return range;
     }
 
-    public void setCreated(long created) {
-        this.created = created;
+    public void setRange(int range) {
+        this.range = range;
     }
 
     public long getCreated() {
         return created;
     }
 
+    public void setCreated(long created) {
+        this.created = created;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
     public void setLocation(String location) {
         this.location = location;
     }
 
-    public String getLocation() { return location; }
-
     public String getPicture() {
         return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
     }
 
     public String getDisplayName() {
@@ -45,15 +51,11 @@ public class Friend implements Serializable {
         this.displayName = displayName;
     }
 
-    public void setPicture(String picture) {
-        this.picture = picture;
+    public RangeRequest getRangeRequest() {
+        return rangeRequest;
     }
 
     public void setRangeRequest(RangeRequest request) {
         this.rangeRequest = request;
-    }
-
-    public RangeRequest getRangeRequest() {
-        return rangeRequest;
     }
 }

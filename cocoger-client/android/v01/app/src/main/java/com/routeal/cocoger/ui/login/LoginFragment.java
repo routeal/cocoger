@@ -42,12 +42,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class LoginFragment extends Fragment {
 
-    private final String TAG = "LoginFragment";
-
     private static final int RC_HINT = 13;
-
     private static final AtomicInteger SAFE_ID = new AtomicInteger(10);
-
+    private final String TAG = "LoginFragment";
     private Credential mLastCredential;
     private TextInputEditText mEmailText;
     //private TextInputEditText mDisplayName;

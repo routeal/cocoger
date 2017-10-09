@@ -17,15 +17,21 @@ abstract public class PagerFragment extends Fragment {
 
     private ViewPager viewPager;
 
+    SlidingUpPanelLayout getSlidingUpPanelLayout() {
+        return mSlidingUpPanelLayout;
+    }
+
     void setSlidingUpPanelLayout(SlidingUpPanelLayout layout) {
         mSlidingUpPanelLayout = layout;
     }
 
-    SlidingUpPanelLayout getSlidingUpPanelLayout() { return mSlidingUpPanelLayout; }
+    ViewPager getViewPager() {
+        return viewPager;
+    }
 
-    void setViewPager(ViewPager viewPager) { this.viewPager = viewPager; }
-
-    ViewPager getViewPager() { return viewPager; }
+    void setViewPager(ViewPager viewPager) {
+        this.viewPager = viewPager;
+    }
 
     void onSelected() {
         if (getView() != null) {

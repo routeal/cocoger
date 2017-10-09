@@ -1,7 +1,6 @@
 package com.routeal.cocoger.ui.main;
 
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.annotation.IdRes;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.ActionBar;
@@ -100,20 +99,20 @@ public class FeedbackActivity extends AppCompatActivity implements RadioGroup.On
         feedback.setCreated(System.currentTimeMillis());
 
         FB.saveFeedback(feedback, new FB.CompleteListener() {
-                    @Override
-                    public void onSuccess() {
-                        Toast.makeText(FeedbackActivity.this, "Thank you very much for the feedback", Toast.LENGTH_LONG).show();
-                        FeedbackActivity.this.finish();
-                    }
+            @Override
+            public void onSuccess() {
+                Toast.makeText(FeedbackActivity.this, "Thank you very much for the feedback", Toast.LENGTH_LONG).show();
+                FeedbackActivity.this.finish();
+            }
 
-                    @Override
-                    public void onFail(String err) {
-                        new AlertDialog.Builder(FeedbackActivity.this)
-                                .setTitle(R.string.feedback)
-                                .setMessage(R.string.failed_feedback)
-                                .setPositiveButton(android.R.string.ok, null)
-                                .show();
-                    }
-                });
+            @Override
+            public void onFail(String err) {
+                new AlertDialog.Builder(FeedbackActivity.this)
+                        .setTitle(R.string.feedback)
+                        .setMessage(R.string.failed_feedback)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show();
+            }
+        });
     }
 }

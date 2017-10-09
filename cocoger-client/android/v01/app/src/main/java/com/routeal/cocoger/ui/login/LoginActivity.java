@@ -20,10 +20,8 @@ public class LoginActivity extends FragmentActivity
         implements ViewPager.OnPageChangeListener, RadioGroup.OnCheckedChangeListener {
 
     private static final int NUMBER_OF_PAGES = 2;
-
-    private RadioGroup radioGroup;
-
     ViewPager pager;
+    private RadioGroup radioGroup;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {

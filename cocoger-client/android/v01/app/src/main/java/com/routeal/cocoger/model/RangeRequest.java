@@ -8,11 +8,19 @@ public class RangeRequest {
     private long created;
     private int range;
 
-    public long getCreated() { return created; }
+    public long getCreated() {
+        return created;
+    }
 
-    public void setCreated(long created) { this.created = created; }
+    public void setCreated(long created) {
+        this.created = created;
+    }
 
-    public int getRange() { return range; }
+    public int getRange() {
+        return range;
+    }
 
-    public void setRange(int range) { this.range = range; }
+    public void setRange(int range) {
+        this.range = range;
+    }
 }

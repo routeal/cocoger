@@ -1,10 +1,6 @@
 package com.routeal.cocoger.model;
 
-import android.location.Address;
-import android.location.Location;
-
 import java.io.Serializable;
-import java.util.Locale;
 
 public class LocationAddress implements Serializable {
 
@@ -26,9 +22,13 @@ public class LocationAddress implements Serializable {
     private String subThoroughfare; // street number
     private String placeId;
 
-    public long getId() { return id; }
+    public long getId() {
+        return id;
+    }
 
-    public void setId(long id) { this.id = id; }
+    public void setId(long id) {
+        this.id = id;
+    }
 
     public String getUid() {
         return uid;
@@ -70,9 +70,13 @@ public class LocationAddress implements Serializable {
         this.speed = speed;
     }
 
-    public void setDescription(String description) { this.description = description; }
+    public String getDescription() {
+        return description;
+    }
 
-    public String getDescription() { return description; }
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     public long getTimestamp() {
         return timestamp;
@@ -146,7 +150,11 @@ public class LocationAddress implements Serializable {
         this.subThoroughfare = subThoroughfare;
     }
 
-    public void setPlaceId(String placeId) { this.placeId = placeId; }
+    public String getPlaceId() {
+        return placeId;
+    }
 
-    public String getPlaceId() { return placeId; }
+    public void setPlaceId(String placeId) {
+        this.placeId = placeId;
+    }
 }

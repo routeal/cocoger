@@ -44,12 +44,12 @@ import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 import android.widget.ImageView;
 
-//import org.florescu.android.util.BitmapUtil;
-//import org.florescu.android.util.PixelUtil;
-
 import com.routeal.cocoger.R;
 
 import java.math.BigDecimal;
+
+//import org.florescu.android.util.BitmapUtil;
+//import org.florescu.android.util.PixelUtil;
 
 /**
  * Widget that lets users select a minimum and maximum value on a given numerical range.
@@ -77,18 +77,15 @@ public class RangeSeekBar<T extends Number> extends ImageView {
     // Localized constants from MotionEvent for compatibility
     // with API < 8 "Froyo".
     public static final int ACTION_POINTER_INDEX_MASK = 0x0000ff00, ACTION_POINTER_INDEX_SHIFT = 8;
-
-    public static Integer DEFAULT_MINIMUM = 0;
-    public static Integer DEFAULT_MAXIMUM = 100;
     public static final int HEIGHT_IN_DP = 30;
     public static final int TEXT_LATERAL_PADDING_IN_DP = 3;
-
     private static final int INITIAL_PADDING_IN_DP = 8;
     private static final int DEFAULT_TEXT_SIZE_IN_DP = 14;
     private static final int DEFAULT_TEXT_DISTANCE_TO_BUTTON_IN_DP = 8;
     private static final int DEFAULT_TEXT_DISTANCE_TO_TOP_IN_DP = 8;
-
     private static final int LINE_HEIGHT_IN_DP = 15;
+    public static Integer DEFAULT_MINIMUM = 0;
+    public static Integer DEFAULT_MAXIMUM = 100;
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint shadowPaint = new Paint();
 
@@ -155,7 +152,43 @@ public class RangeSeekBar<T extends Number> extends ImageView {
         init(context, attrs);
     }
 
+    static Bitmap drawableToBitmap(Drawable drawable) {
+        if (drawable instanceof BitmapDrawable) {
+            return ((BitmapDrawable) drawable).getBitmap();
+        }
 
+        // We ask for the bounds if they have been set as they would be most
+        // correct, then we check we are  > 0
+        final int width = !drawable.getBounds().isEmpty() ?
+                drawable.getBounds().width() : drawable.getIntrinsicWidth();
+
+        final int height = !drawable.getBounds().isEmpty() ?
+                drawable.getBounds().height() : drawable.getIntrinsicHeight();
+
+        // Now we check we are > 0
+        final Bitmap bitmap = Bitmap.createBitmap(width <= 0 ? 1 : width, height <= 0 ? 1 : height,
+                Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        drawable.draw(canvas);
+
+        return bitmap;
+    }
+
+    public static int dpToPx(Context context, int dp) {
+        int px = Math.round(dp * getPixelScaleFactor(context));
+        return px;
+    }
+
+    public static int pxToDp(Context context, int px) {
+        int dp = Math.round(px / getPixelScaleFactor(context));
+        return dp;
+    }
+
+    private static float getPixelScaleFactor(Context context) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        return (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT);
+    }
 
     private T extractNumericValueFromAttributes(TypedArray a, int attribute, int defaultValue) {
         TypedValue tv = a.peekValue(attribute);
@@ -353,18 +386,6 @@ public class RangeSeekBar<T extends Number> extends ImageView {
         return normalizedToValue(normalizedMinValue);
     }
 
-    private String convertTime(T value) {
-        int v = value.intValue();
-        String t = (v > 12) ? "pm" : "am";
-        v = (v > 12) ? (v - 12) : v;
-        return String.format("%s %s", v, t);
-    }
-
-    public String getSelectedMinTime() {
-        T value = getSelectedMinValue();
-        return convertTime(value);
-    }
-
     /**
      * Sets the currently selected minimum value. The widget will be invalidated and redrawn.
      *
@@ -379,6 +400,18 @@ public class RangeSeekBar<T extends Number> extends ImageView {
         }
     }
 
+    private String convertTime(T value) {
+        int v = value.intValue();
+        String t = (v > 12) ? "pm" : "am";
+        v = (v > 12) ? (v - 12) : v;
+        return String.format("%s %s", v, t);
+    }
+
+    public String getSelectedMinTime() {
+        T value = getSelectedMinValue();
+        return convertTime(value);
+    }
+
     /**
      * Returns the currently selected max value.
      *
@@ -386,11 +419,6 @@ public class RangeSeekBar<T extends Number> extends ImageView {
      */
     public T getSelectedMaxValue() {
         return normalizedToValue(normalizedMaxValue);
-    }
-
-    public String getSelectedMaxTime() {
-        T value = getSelectedMaxValue();
-        return convertTime(value);
     }
 
     /**
@@ -405,6 +433,11 @@ public class RangeSeekBar<T extends Number> extends ImageView {
         } else {
             setNormalizedMaxValue(valueToNormalized(value));
         }
+    }
+
+    public String getSelectedMaxTime() {
+        T value = getSelectedMaxValue();
+        return convertTime(value);
     }
 
     /**
@@ -913,43 +946,5 @@ public class RangeSeekBar<T extends Number> extends ImageView {
     public interface OnRangeSeekBarChangeListener<T> {
 
         void onRangeSeekBarValuesChanged(RangeSeekBar<?> bar, T minValue, T maxValue);
-    }
-
-    static Bitmap drawableToBitmap(Drawable drawable) {
-        if (drawable instanceof BitmapDrawable) {
-            return ((BitmapDrawable) drawable).getBitmap();
-        }
-
-        // We ask for the bounds if they have been set as they would be most
-        // correct, then we check we are  > 0
-        final int width = !drawable.getBounds().isEmpty() ?
-                drawable.getBounds().width() : drawable.getIntrinsicWidth();
-
-        final int height = !drawable.getBounds().isEmpty() ?
-                drawable.getBounds().height() : drawable.getIntrinsicHeight();
-
-        // Now we check we are > 0
-        final Bitmap bitmap = Bitmap.createBitmap(width <= 0 ? 1 : width, height <= 0 ? 1 : height,
-                Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawable.draw(canvas);
-
-        return bitmap;
-    }
-
-    public static int dpToPx(Context context, int dp) {
-        int px = Math.round(dp * getPixelScaleFactor(context));
-        return px;
-    }
-
-    public static int pxToDp(Context context, int px) {
-        int dp = Math.round(px / getPixelScaleFactor(context));
-        return dp;
-    }
-
-    private static float getPixelScaleFactor(Context context) {
-        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-        return (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT);
     }
 }

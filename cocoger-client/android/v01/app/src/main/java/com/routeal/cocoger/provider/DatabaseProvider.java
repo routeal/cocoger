@@ -20,8 +20,6 @@ import java.util.List;
  */
 
 public class DatabaseProvider extends ContentProvider {
-    private ProviderHelper mDbHelper;
-
     private static final int LOCATIONS = 1;
     private static final int LOCATIONS_ID = 2;
     private static final int GEO_LOCATIONS = 3;
@@ -32,7 +30,6 @@ public class DatabaseProvider extends ContentProvider {
     private static final int IMAGES_ID = 8;
     private static final int MESSAGE = 9;
     private static final int MESSAGE_ID = 10;
-
     private static final UriMatcher mUriMatcher;
 
     static {
@@ -48,6 +45,8 @@ public class DatabaseProvider extends ContentProvider {
         mUriMatcher.addURI(DB.AUTHORITY, DB.Messages.PATH, MESSAGE);
         mUriMatcher.addURI(DB.AUTHORITY, DB.Messages.PATH + "/#", MESSAGE_ID);
     }
+
+    private ProviderHelper mDbHelper;
 
     @Override
     public boolean onCreate() {

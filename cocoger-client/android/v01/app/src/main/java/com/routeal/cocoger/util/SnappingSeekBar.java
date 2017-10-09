@@ -64,6 +64,50 @@ public class SnappingSeekBar extends RelativeLayout implements SeekBar.OnSeekBar
         initViewsAfterLayoutPrepared();
     }
 
+    public SnappingSeekBar(final Context context, final AttributeSet attrs) {
+        super(context, attrs);
+        mContext = context;
+        initDensity();
+        handleAttributeSet(attrs);
+        initViews();
+    }
+
+    static void setColor(final Drawable drawable, final int color) {
+        drawable.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.MULTIPLY));
+    }
+
+    static void setLeftMargin(final View view, final int leftMargin) {
+        final RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) view.getLayoutParams();
+        params.leftMargin = leftMargin;
+        view.setLayoutParams(params);
+    }
+
+    static void waitForLayoutPrepared(final View view, final LayoutPreparedListener listener) {
+        final ViewTreeObserver viewTreeObserver = view.getViewTreeObserver();
+        if (viewTreeObserver != null) {
+            viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    invokeLayoutListener();
+                    removeGlobalOnLayoutListenerIfNeeded();
+                }
+
+                private void invokeLayoutListener() {
+                    if (listener != null) {
+                        listener.onLayoutPrepared(view);
+                    }
+                }
+
+                private void removeGlobalOnLayoutListenerIfNeeded() {
+                    final ViewTreeObserver laterViewTreeObserver = view.getViewTreeObserver();
+                    if (laterViewTreeObserver != null && laterViewTreeObserver.isAlive()) {
+                        laterViewTreeObserver.removeOnGlobalLayoutListener(this);
+                    }
+                }
+            });
+        }
+    }
+
     private void initDensity() {
         mDensity = mContext.getResources().getDisplayMetrics().density;
     }
@@ -89,14 +133,6 @@ public class SnappingSeekBar extends RelativeLayout implements SeekBar.OnSeekBar
                 initViews();
             }
         });
-    }
-
-    public SnappingSeekBar(final Context context, final AttributeSet attrs) {
-        super(context, attrs);
-        mContext = context;
-        initDensity();
-        handleAttributeSet(attrs);
-        initViews();
     }
 
     private void handleAttributeSet(final AttributeSet attrs) {
@@ -329,6 +365,10 @@ public class SnappingSeekBar extends RelativeLayout implements SeekBar.OnSeekBar
         return mProgressDrawable;
     }
 
+    public void setProgressDrawable(final int progressDrawableId) {
+        mProgressDrawableId = progressDrawableId;
+    }
+
     public Drawable getThumb() {
         return mThumbDrawable;
     }
@@ -364,10 +404,6 @@ public class SnappingSeekBar extends RelativeLayout implements SeekBar.OnSeekBar
 
     public void setOnItemSelectionListener(final OnItemSelectionListener listener) {
         mOnItemSelectionListener = listener;
-    }
-
-    public void setProgressDrawable(final int progressDrawableId) {
-        mProgressDrawableId = progressDrawableId;
     }
 
     public void setThumbDrawable(final int thumbDrawableId) {
@@ -419,42 +455,6 @@ public class SnappingSeekBar extends RelativeLayout implements SeekBar.OnSeekBar
 
     public interface OnItemSelectionListener {
         public void onItemSelected(final int itemIndex, final String itemString);
-    }
-
-    static void setColor(final Drawable drawable, final int color) {
-        drawable.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.MULTIPLY));
-    }
-
-    static void setLeftMargin(final View view, final int leftMargin) {
-        final RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) view.getLayoutParams();
-        params.leftMargin = leftMargin;
-        view.setLayoutParams(params);
-    }
-
-    static void waitForLayoutPrepared(final View view, final LayoutPreparedListener listener) {
-        final ViewTreeObserver viewTreeObserver = view.getViewTreeObserver();
-        if (viewTreeObserver != null) {
-            viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                @Override
-                public void onGlobalLayout() {
-                    invokeLayoutListener();
-                    removeGlobalOnLayoutListenerIfNeeded();
-                }
-
-                private void invokeLayoutListener() {
-                    if (listener != null) {
-                        listener.onLayoutPrepared(view);
-                    }
-                }
-
-                private void removeGlobalOnLayoutListenerIfNeeded() {
-                    final ViewTreeObserver laterViewTreeObserver = view.getViewTreeObserver();
-                    if (laterViewTreeObserver != null && laterViewTreeObserver.isAlive()) {
-                        laterViewTreeObserver.removeOnGlobalLayoutListener(this);
-                    }
-                }
-            });
-        }
     }
 
     interface LayoutPreparedListener {

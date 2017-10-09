@@ -16,19 +16,59 @@ public class NoticeMessage implements Serializable {
     long id;
     Date date;
 
-    public void setId(long id) { this.id = id; }
-    public void setTitle(String title) { this.title = title; }
-    public void setMessage(String message) { this.message = message; }
-    public void setPicture(String picture) { this.picture = picture; }
-    public void setResourceId(int resourceId) { this.resourceId = resourceId; }
-    public void setKey(String key) { this.key = key; }
-    public void setDate(Date date) { this.date = date; }
+    public long getId() {
+        return id;
+    }
 
-    public long getId() { return id; }
-    public String getTitle() { return title; }
-    public String getMessage() { return message; }
-    public String getPicture() { return picture; }
-    public int getResourceId() { return resourceId; }
-    public String getKey() { return key; }
-    public Date getDate() { return date; }
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
+
+    public int getResourceId() {
+        return resourceId;
+    }
+
+    public void setResourceId(int resourceId) {
+        this.resourceId = resourceId;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public Date getDate() {
+        return date;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
 }

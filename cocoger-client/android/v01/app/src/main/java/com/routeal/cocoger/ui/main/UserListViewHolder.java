@@ -8,14 +8,11 @@ import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
-import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.util.LoadImage;
-import com.routeal.cocoger.util.Utils;
 
 import java.util.Map;
 

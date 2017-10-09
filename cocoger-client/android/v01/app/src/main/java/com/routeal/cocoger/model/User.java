@@ -23,30 +23,31 @@ public class User implements Serializable {
     private Map<String, Long> invites;
     private Map<String, Long> invitees;
 
-    public User() {}
-
-    public void setEmail(String email) {
-        this.email = email;
+    public User() {
     }
 
     public String getEmail() {
         return email;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getFirstName() {
         return firstName;
     }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
     public String getLastName() {
         return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
     }
 
     public String getDisplayName() {
@@ -121,18 +122,20 @@ public class User implements Serializable {
         this.gender = gender;
     }
 
-    public String getLocation() { return location; }
+    public String getLocation() {
+        return location;
+    }
 
     public void setLocation(String location) {
         this.location = location;
     }
 
-    public void setDevices(Map<String, String> devices) {
-        this.devices = devices;
-    }
-
     public Map<String, String> getDevices() {
         return devices;
+    }
+
+    public void setDevices(Map<String, String> devices) {
+        this.devices = devices;
     }
 
     public Map<String, Friend> getFriends() {
@@ -158,8 +161,8 @@ public class User implements Serializable {
     public String toString() {
         return String.format(
                 "email=%s, firstName=%s, lastName=%s, displayName=%s, searchedName=%s, " +
-                "gender=%s, locale=%s, timezone=%s, birth_year=%s, gender=%s, " +
-                "timezone=%s, updated=%s picture=%s",
+                        "gender=%s, locale=%s, timezone=%s, birth_year=%s, gender=%s, " +
+                        "timezone=%s, updated=%s picture=%s",
                 email, firstName, lastName, displayName, searchedName, gender, locale,
                 timezone, birthYear, gender, timezone, updated, picture);
     }

@@ -23,6 +23,7 @@ public class PasswordFragment extends Fragment {
     private final String TAG = "PasswordFragment";
 
     private TextInputEditText mEmailText;
+    private LoginFragment login;
 
     @Nullable
     @Override
@@ -40,8 +41,6 @@ public class PasswordFragment extends Fragment {
         });
         return v;
     }
-
-    private LoginFragment login;
 
     void setLoginFragment(LoginFragment login) {
         this.login = login;
