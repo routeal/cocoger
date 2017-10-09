@@ -193,8 +193,10 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
                                         marker.setIcon(icon);
                                         fragment.setColor(color);
                                     }
-                                    Bitmap bitmap = ((BitmapDrawable) cropImageView.getDrawable()).getBitmap();
-                                    fragment.setStreetViewPicture(bitmap);
+                                    if (cropImageView != null && cropImageView.getDrawable() != null) {
+                                        Bitmap bitmap = ((BitmapDrawable) cropImageView.getDrawable()).getBitmap();
+                                        fragment.setStreetViewPicture(bitmap);
+                                    }
                                 }
                             }
 

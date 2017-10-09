@@ -26,7 +26,8 @@ public class PanelMapActivity extends SearchMapActivity {
     private int[] tabIcons = {
             R.drawable.ic_notifications_black_24dp,
             R.drawable.ic_contacts_black_24dp,
-            R.drawable.ic_group_black_24dp
+            R.drawable.ic_group_black_24dp,
+            R.drawable.ic_pin_drop_black_24dp,
     };
 
     @Override
@@ -68,6 +69,11 @@ public class PanelMapActivity extends SearchMapActivity {
         adapter.addFragment(pagerFragment, null);
 
         pagerFragment = new GroupListFragment();
+        pagerFragment.setSlidingUpPanelLayout(mLayout);
+        pagerFragment.setViewPager(viewPager);
+        adapter.addFragment(pagerFragment, null);
+
+        pagerFragment = new PlaceListFragment();
         pagerFragment.setSlidingUpPanelLayout(mLayout);
         pagerFragment.setViewPager(viewPager);
         adapter.addFragment(pagerFragment, null);
