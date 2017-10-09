@@ -31,6 +31,7 @@ public class InfoFragment extends Fragment {
     protected AppCompatImageView mStreetImageView;
     protected AppCompatTextView mAddressTextView;
     protected AppCompatTextView mPlaceCreatorTextView;
+    protected ImageButton mActionRemovePlaceButton;
     protected ImageButton mActionEditPlaceButton;
     protected ImageButton mActionAddPlaceButton;
     protected ImageButton mActionDirectionButton;
@@ -44,22 +45,24 @@ public class InfoFragment extends Fragment {
             mStreetImageView = (AppCompatImageView) view.findViewById(R.id.info_street_view);
             mAddressTextView = (AppCompatTextView) view.findViewById(R.id.info_address);
             mPlaceCreatorTextView = (AppCompatTextView) view.findViewById(R.id.info_poi_user);
-            mActionAddPlaceButton = (ImageButton) view.findViewById(R.id.action_add_poi);
+            mActionAddPlaceButton = (ImageButton) view.findViewById(R.id.action_add_place);
             mActionDirectionButton = (ImageButton) view.findViewById(R.id.action_direction);
             mActionMessageButton = (ImageButton) view.findViewById(R.id.action_message);
             mActionGoogleMapButton = (ImageButton) view.findViewById(R.id.action_googlemap);
-            mActionEditPlaceButton = (ImageButton) view.findViewById(R.id.action_edit_poi);
+            mActionEditPlaceButton = (ImageButton) view.findViewById(R.id.action_edit_place);
+            mActionRemovePlaceButton = (ImageButton) view.findViewById(R.id.action_remove_place);
         } else if (parent instanceof Dialog) {
             Dialog dialog = (Dialog) parent;
             mTitleTextView = (AppCompatTextView) dialog.findViewById(R.id.info_title);
             mStreetImageView = (AppCompatImageView) dialog.findViewById(R.id.info_street_view);
             mAddressTextView = (AppCompatTextView) dialog.findViewById(R.id.info_address);
             mPlaceCreatorTextView = (AppCompatTextView) dialog.findViewById(R.id.info_poi_user);
-            mActionAddPlaceButton = (ImageButton) dialog.findViewById(R.id.action_add_poi);
+            mActionAddPlaceButton = (ImageButton) dialog.findViewById(R.id.action_add_place);
             mActionDirectionButton = (ImageButton) dialog.findViewById(R.id.action_direction);
             mActionMessageButton = (ImageButton) dialog.findViewById(R.id.action_message);
             mActionGoogleMapButton = (ImageButton) dialog.findViewById(R.id.action_googlemap);
-            mActionEditPlaceButton = (ImageButton) dialog.findViewById(R.id.action_edit_poi);
+            mActionEditPlaceButton = (ImageButton) dialog.findViewById(R.id.action_edit_place);
+            mActionRemovePlaceButton = (ImageButton) dialog.findViewById(R.id.action_remove_place);
         }
     }
 

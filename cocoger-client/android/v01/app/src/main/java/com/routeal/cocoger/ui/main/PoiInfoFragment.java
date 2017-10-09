@@ -31,6 +31,7 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
         mPlaceCreatorTextView.setVisibility(View.GONE);
         mActionEditPlaceButton.setVisibility(View.GONE);
         mActionMessageButton.setVisibility(View.GONE);
+        mActionRemovePlaceButton.setVisibility(View.GONE);
 
         mStreetImageView.setOnClickListener(this);
         mActionAddPlaceButton.setOnClickListener(this);
@@ -61,7 +62,7 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
                     openStreetView(mLocation, mTitle);
                 }
                 break;
-            case R.id.action_add_poi:
+            case R.id.action_add_place:
                 saveLocation(mLocation, mAddress, mTitle);
                 break;
             case R.id.action_direction:

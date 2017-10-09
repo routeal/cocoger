@@ -10,6 +10,8 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.SwitchCompat;
 import android.util.Log;
@@ -84,7 +86,9 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
     }
 
     void addPlace(final Activity activity, String title, final Location location, String address, final Bitmap bitmap) {
-        addPlaceImpl(activity, null, title, location, address, "", false, bitmap, "steelblue", false);
+        if (!activity.isFinishing()) {
+            addPlaceImpl(activity, null, title, location, address, "", false, bitmap, "steelblue", false);
+        }
     }
 
     private void addPlaceImpl(final Activity activity, final PlaceInfoFragment fragment, String title,
@@ -231,6 +235,26 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
                 })
                 .show();
         dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+    }
+
+    void removePlace(PlaceInfoFragment fragment) {
+        for (Iterator<Map.Entry<Marker, InfoWindow>> it = mPlaceMarkers.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Marker, InfoWindow> entry = it.next();
+            InfoWindow infoWindow = entry.getValue();
+            if (infoWindow.getWindowFragment() == fragment) {
+                Marker marker = entry.getKey();
+                mInfoWindowManager.hide(infoWindow, true);
+                FragmentManager fragmentManager = fragment.getFragmentManager();
+                if (fragmentManager != null) {
+                    FragmentTransaction trans = fragmentManager.beginTransaction();
+                    trans.remove(fragment);
+                    trans.commit();
+                }
+                marker.remove();
+                it.remove();
+                break;
+            }
+        }
     }
 
     @Override

@@ -50,7 +50,7 @@ abstract class MapActivity extends MapBaseActivity
     private ProgressDialog mSpinner;
     private InfoWindowManager mInfoWindowManager;
     private MarkerManager mMm;
-    private SimpleDirection mDirection;
+    private MapDirection mDirection;
     private MapStyle mMapStyle;
     private PoiManager mPoi;
     private PlaceManager mPlace;
@@ -195,7 +195,7 @@ abstract class MapActivity extends MapBaseActivity
         mGeoDataClient = Places.getGeoDataClient(MapActivity.this, null);
         mMapStyle = new MapStyle(mMap, MapActivity.this);
         mMm = new MarkerManager(mMap, mInfoWindowManager);
-        mDirection = new SimpleDirection(mMap, mInfoWindowManager);
+        mDirection = new MapDirection(mMap, mInfoWindowManager);
         mPoi = new PoiManager(mMap, mGeoDataClient, mInfoWindowManager);
         mPlace = new PlaceManager(mMap, mGeoDataClient, mInfoWindowManager);
 

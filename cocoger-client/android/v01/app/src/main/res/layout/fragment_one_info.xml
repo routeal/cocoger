@@ -76,7 +76,16 @@
         android:orientation="horizontal">
 
         <ImageButton
-            android:id="@+id/action_edit_poi"
+            android:id="@+id/action_remove_place"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="?android:selectableItemBackground"
+            android:gravity="center"
+            android:src="@drawable/ic_cancel_black_24dp" />
+
+        <ImageButton
+            android:id="@+id/action_edit_place"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -85,7 +94,7 @@
             android:src="@drawable/ic_edit_location_black_24dp" />
 
         <ImageButton
-            android:id="@+id/action_add_poi"
+            android:id="@+id/action_add_place"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"

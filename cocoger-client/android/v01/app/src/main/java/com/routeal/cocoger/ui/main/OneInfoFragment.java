@@ -38,6 +38,7 @@ public class OneInfoFragment extends InfoFragment implements View.OnClickListene
 
         mPlaceCreatorTextView.setVisibility(View.GONE);
         mActionEditPlaceButton.setVisibility(View.GONE);
+        mActionRemovePlaceButton.setVisibility(View.GONE);
         mStreetImageView.setOnClickListener(this);
         mActionAddPlaceButton.setOnClickListener(this);
         mActionDirectionButton.setOnClickListener(this);
@@ -64,7 +65,7 @@ public class OneInfoFragment extends InfoFragment implements View.OnClickListene
                 openStreetView(mMarkerInfo.rangeLocation, mAddressTextView.getText().toString());
                 mMarker.hide();
                 break;
-            case R.id.action_add_poi:
+            case R.id.action_add_place:
                 saveLocation(mMarkerInfo.rangeLocation, mAddressTextView.getText().toString(), "");
                 mMarker.hide();
                 break;

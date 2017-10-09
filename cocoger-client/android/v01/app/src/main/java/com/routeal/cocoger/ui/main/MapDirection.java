@@ -46,8 +46,8 @@ import java.util.List;
  * Created by nabe on 9/24/17.
  */
 
-class SimpleDirection {
-    private final static String TAG = "SimpleDirection";
+class MapDirection {
+    private final static String TAG = "MapDirection";
     private GoogleMap mMap;
     private InfoWindowManager mInfoWindowManager;
     private SimpleDirectionRoute mDirectionRoute = new SimpleDirectionRoute();
@@ -62,7 +62,7 @@ class SimpleDirection {
         }
     };
 
-    SimpleDirection(GoogleMap googleMap, InfoWindowManager infoWindowManager) {
+    MapDirection(GoogleMap googleMap, InfoWindowManager infoWindowManager) {
         mMap = googleMap;
         mMap.setOnPolylineClickListener(mPolylineClickListener);
         mInfoWindowManager = infoWindowManager;
@@ -151,10 +151,10 @@ class SimpleDirection {
             return;
         }
         removeDirection();
-        SimpleDirection.getDirection(locationTo, locationFrom, new SimpleDirection.SimpleDirectionListener() {
+        MapDirection.getDirection(locationTo, locationFrom, new MapDirection.SimpleDirectionListener() {
             @Override
-            public void onSuccess(List<SimpleDirection.Route> routes) {
-                SimpleDirection.Route route = routes.get(0);
+            public void onSuccess(List<MapDirection.Route> routes) {
+                MapDirection.Route route = routes.get(0);
                 PolylineOptions lineOptions = new PolylineOptions();
                 lineOptions.addAll(route.points);
                 lineOptions.width(10);
