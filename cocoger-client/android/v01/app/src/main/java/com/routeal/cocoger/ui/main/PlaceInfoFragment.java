@@ -36,7 +36,6 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
 
         mPlaceCreatorTextView.setVisibility(View.VISIBLE);
         mActionEditPlaceButton.setVisibility(View.VISIBLE);
-        mActionRemovePlaceButton.setVisibility(View.VISIBLE);
         mActionGoogleMapButton.setVisibility(View.VISIBLE);
 
         mActionMessageButton.setVisibility(View.GONE);
@@ -45,7 +44,6 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
         mActionEditPlaceButton.setOnClickListener(this);
         mActionDirectionButton.setOnClickListener(this);
         mActionGoogleMapButton.setOnClickListener(this);
-        mActionRemovePlaceButton.setOnClickListener(this);
 
         mTitleTextView.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.peru));
 
@@ -84,9 +82,6 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
             case R.id.action_edit_place:
                 mPlaceManager.editPlace(this, mTitle, mLocation, mAddress, mDescription,
                         mSeenFriend, mCopiedBitmap, mColor);
-                break;
-            case R.id.action_remove_place:
-                mPlaceManager.removePlace(this);
                 break;
             case R.id.action_direction:
                 if (mLocation != null) {

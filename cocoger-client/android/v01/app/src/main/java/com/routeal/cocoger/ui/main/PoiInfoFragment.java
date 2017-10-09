@@ -31,7 +31,6 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
         mPlaceCreatorTextView.setVisibility(View.GONE);
         mActionEditPlaceButton.setVisibility(View.GONE);
         mActionMessageButton.setVisibility(View.GONE);
-        mActionRemovePlaceButton.setVisibility(View.GONE);
 
         mStreetImageView.setOnClickListener(this);
         mActionAddPlaceButton.setOnClickListener(this);
