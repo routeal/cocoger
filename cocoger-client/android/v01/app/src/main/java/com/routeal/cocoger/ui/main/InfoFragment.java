@@ -30,7 +30,7 @@ public class InfoFragment extends Fragment {
     protected AppCompatTextView mTitleTextView;
     protected AppCompatImageView mStreetImageView;
     protected AppCompatTextView mAddressTextView;
-    protected AppCompatTextView mPoiCreatorTextView;
+    protected AppCompatTextView mPlaceCreatorTextView;
     protected ImageButton mActionEditPlaceButton;
     protected ImageButton mActionAddPlaceButton;
     protected ImageButton mActionDirectionButton;
@@ -43,7 +43,7 @@ public class InfoFragment extends Fragment {
             mTitleTextView = (AppCompatTextView) view.findViewById(R.id.info_title);
             mStreetImageView = (AppCompatImageView) view.findViewById(R.id.info_street_view);
             mAddressTextView = (AppCompatTextView) view.findViewById(R.id.info_address);
-            mPoiCreatorTextView = (AppCompatTextView) view.findViewById(R.id.info_poi_user);
+            mPlaceCreatorTextView = (AppCompatTextView) view.findViewById(R.id.info_poi_user);
             mActionAddPlaceButton = (ImageButton) view.findViewById(R.id.action_add_poi);
             mActionDirectionButton = (ImageButton) view.findViewById(R.id.action_direction);
             mActionMessageButton = (ImageButton) view.findViewById(R.id.action_message);
@@ -54,7 +54,7 @@ public class InfoFragment extends Fragment {
             mTitleTextView = (AppCompatTextView) dialog.findViewById(R.id.info_title);
             mStreetImageView = (AppCompatImageView) dialog.findViewById(R.id.info_street_view);
             mAddressTextView = (AppCompatTextView) dialog.findViewById(R.id.info_address);
-            mPoiCreatorTextView = (AppCompatTextView) dialog.findViewById(R.id.info_poi_user);
+            mPlaceCreatorTextView = (AppCompatTextView) dialog.findViewById(R.id.info_poi_user);
             mActionAddPlaceButton = (ImageButton) dialog.findViewById(R.id.action_add_poi);
             mActionDirectionButton = (ImageButton) dialog.findViewById(R.id.action_direction);
             mActionMessageButton = (ImageButton) dialog.findViewById(R.id.action_message);

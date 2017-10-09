@@ -28,7 +28,7 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
 
         mActionGoogleMapButton.setVisibility(View.VISIBLE);
 
-        mPoiCreatorTextView.setVisibility(View.GONE);
+        mPlaceCreatorTextView.setVisibility(View.GONE);
         mActionEditPlaceButton.setVisibility(View.GONE);
         mActionMessageButton.setVisibility(View.GONE);
 

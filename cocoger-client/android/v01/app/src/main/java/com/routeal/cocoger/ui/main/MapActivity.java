@@ -32,6 +32,7 @@ import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Utils;
+import com.theartofdev.edmodo.cropper.CropImage;
 
 abstract class MapActivity extends MapBaseActivity
         implements GoogleMap.OnMarkerClickListener, OnMapReadyCallback, View.OnClickListener {
@@ -176,7 +177,7 @@ abstract class MapActivity extends MapBaseActivity
                 String address = intent.getStringExtra(FB.ADDRESS);
                 String title = intent.getStringExtra(FB.TITLE);
                 Bitmap bitmap = intent.getParcelableExtra(FB.IMAGE);
-                mPlace.addPlace(MapActivity.this, location, address, title, bitmap);
+                mPlace.addPlace(MapActivity.this, title, location, address, bitmap);
             }
         }
     };
@@ -335,6 +336,18 @@ abstract class MapActivity extends MapBaseActivity
     }
 
     abstract void closeSlidePanel();
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
+            CropImage.ActivityResult result = CropImage.getActivityResult(data);
+            if (resultCode == RESULT_OK) {
+                mPlace.setCropImage(this, result.getUri());
+            } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
+            }
+        }
+    }
 
     interface MarkerInterface {
         boolean onMarkerClick(Marker marker);

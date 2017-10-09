@@ -97,7 +97,7 @@ public class MultiInfoFragment extends InfoFragment {
             dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
 
             setupView(dialog);
-            mPoiCreatorTextView.setVisibility(View.GONE);
+            mPlaceCreatorTextView.setVisibility(View.GONE);
             mActionEditPlaceButton.setVisibility(View.GONE);
             enableMessageButton(info.id);
             setStreetViewPicture(info.rangeLocation);

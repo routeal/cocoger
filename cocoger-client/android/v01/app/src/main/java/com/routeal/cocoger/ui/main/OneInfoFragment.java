@@ -36,7 +36,7 @@ public class OneInfoFragment extends InfoFragment implements View.OnClickListene
         View view = inflater.inflate(R.layout.fragment_one_info, container, false);
         setupView(view);
 
-        mPoiCreatorTextView.setVisibility(View.GONE);
+        mPlaceCreatorTextView.setVisibility(View.GONE);
         mActionEditPlaceButton.setVisibility(View.GONE);
         mStreetImageView.setOnClickListener(this);
         mActionAddPlaceButton.setOnClickListener(this);

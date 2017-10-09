@@ -1,15 +1,15 @@
 package com.routeal.cocoger.ui.main;
 
-        import android.graphics.Bitmap;
-        import android.location.Location;
-        import android.os.Bundle;
-        import android.support.annotation.Nullable;
-        import android.support.v4.content.ContextCompat;
-        import android.view.LayoutInflater;
-        import android.view.View;
-        import android.view.ViewGroup;
+import android.graphics.Bitmap;
+import android.location.Location;
+import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
-        import com.routeal.cocoger.R;
+import com.routeal.cocoger.R;
 
 /**
  * Created by hwatanabe on 10/8/17.
@@ -17,11 +17,14 @@ package com.routeal.cocoger.ui.main;
 
 public class PlaceInfoFragment extends InfoFragment implements View.OnClickListener {
     private String mTitle;
-    private Location mLocation;
     private String mAddress;
-    private PlaceManager mPlaceManager;
-    private String mPoiCreator;
+    private String mPlaceCreator;
+    private String mDescription;
+    private String mColor;
+    private Location mLocation;
     private Bitmap mCopiedBitmap;
+    private PlaceManager mPlaceManager;
+    private boolean mSeenFriend;
 
     @Nullable
     @Override
@@ -31,7 +34,7 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
 
         mActionAddPlaceButton.setVisibility(View.GONE);
 
-        mPoiCreatorTextView.setVisibility(View.VISIBLE);
+        mPlaceCreatorTextView.setVisibility(View.VISIBLE);
         mActionEditPlaceButton.setVisibility(View.VISIBLE);
         mActionGoogleMapButton.setVisibility(View.VISIBLE);
 
@@ -50,14 +53,18 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if (mAddress != null && !mAddress.isEmpty()) {
-            super.setAddress(mAddress);
+        if (mDescription != null && !mDescription.isEmpty()) {
+            super.setAddress(mDescription);
+        } else {
+            if (mAddress != null && !mAddress.isEmpty()) {
+                super.setAddress(mAddress);
+            }
         }
         if (mTitle != null && !mTitle.isEmpty()) {
             super.setTitle(mTitle);
         }
-        if (mPoiCreator != null && !mPoiCreator.isEmpty()) {
-            mPoiCreatorTextView.setText(mPoiCreator);
+        if (mPlaceCreator != null && !mPlaceCreator.isEmpty()) {
+            mPlaceCreatorTextView.setText(mPlaceCreator);
         }
         if (mCopiedBitmap != null) {
             mStreetImageView.setImageBitmap(mCopiedBitmap);
@@ -73,6 +80,8 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
                 }
                 break;
             case R.id.action_edit_poi:
+                mPlaceManager.editPlace(this, mTitle, mLocation, mAddress, mDescription,
+                        mSeenFriend, mCopiedBitmap, mColor);
                 break;
             case R.id.action_direction:
                 if (mLocation != null) {
@@ -88,6 +97,10 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
 
     void setTitle(String title) {
         mTitle = title;
+    }
+
+    void setDescription(String description) {
+        mDescription = description;
     }
 
     void setAddress(String address) {
@@ -106,11 +119,23 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
         mLocation = location;
     }
 
-    void setPoiCreator(String creator) {
-        mPoiCreator = creator;
+    void setPlaceCreator(String creator) {
+        mPlaceCreator = creator;
     }
 
     void setStreetViewPicture(Bitmap bitmap) {
         mCopiedBitmap = bitmap;
+    }
+
+    String getColor() {
+        return mColor;
+    }
+
+    void setColor(String color) {
+        mColor = color;
+    }
+
+    void setSeenFriend(boolean seenFriend) {
+        mSeenFriend = seenFriend;
     }
 }

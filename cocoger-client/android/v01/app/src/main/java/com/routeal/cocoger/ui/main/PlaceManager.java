@@ -1,10 +1,13 @@
 package com.routeal.cocoger.ui.main;
 
-import android.content.Context;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.location.Address;
 import android.location.Location;
+import android.net.Uri;
 import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
@@ -32,7 +35,11 @@ import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.util.Utils;
+import com.theartofdev.edmodo.cropper.CropImage;
+import com.theartofdev.edmodo.cropper.CropImageView;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -61,6 +68,7 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
     private GoogleMap mMap;
     private GeoDataClient mGeoDataClient;
     private InfoWindowManager mInfoWindowManager;
+    private ImageView cropImageView;
 
     PlaceManager(GoogleMap googleMap, GeoDataClient geoDataClient, InfoWindowManager infoWindowManager) {
         mMap = googleMap;
@@ -70,15 +78,24 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
         mInfoWindowManager = infoWindowManager;
     }
 
-    void addPlace(final Context context, final Location location, String address, String title, final Bitmap bitmap) {
-        Toast.makeText(MainApplication.getContext(), "Save To Map:" + title, Toast.LENGTH_SHORT).show();
+    void editPlace(PlaceInfoFragment fragment, String title, Location location, String address, String description,
+                   boolean seenFriend, Bitmap bitmap, String color) {
+        addPlaceImpl(fragment.getActivity(), fragment, title, location, address, description, seenFriend, bitmap, color, true);
+    }
 
-        LayoutInflater layoutInflaterAndroid = LayoutInflater.from(context);
+    void addPlace(final Activity activity, String title, final Location location, String address, final Bitmap bitmap) {
+        addPlaceImpl(activity, null, title, location, address, "", false, bitmap, "steelblue", false);
+    }
+
+    private void addPlaceImpl(final Activity activity, final PlaceInfoFragment fragment, String title,
+                              final Location location, String address, String description,
+                              boolean seenFriend, final Bitmap bitmap, final String markerColor, final boolean isEdit) {
+        LayoutInflater layoutInflaterAndroid = LayoutInflater.from(activity);
         View view = layoutInflaterAndroid.inflate(R.layout.dialog_place, null);
 
         for (PlaceColorButton pc : mPlaceColorButtons) {
             pc.imageView = (ImageView) view.findViewById(pc.imageId);
-            Drawable drawable = Utils.getIconDrawable(context, R.drawable.ic_place_white_18dp, pc.colorId);
+            Drawable drawable = Utils.getIconDrawable(activity, R.drawable.ic_place_white_18dp, pc.colorId);
             pc.imageView.setImageDrawable(drawable);
             pc.radioButton = (RadioButton) view.findViewById(pc.id);
             pc.radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -93,35 +110,59 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
                     }
                 }
             });
+            if (isEdit) {
+                pc.radioButton.setChecked(pc.colorName.equals(markerColor));
+            }
         }
 
         final TextView placeTitle = (TextView) view.findViewById(R.id.place_title);
         placeTitle.setText(title);
 
+        if (address == null || !address.isEmpty()) {
+            Address a = Utils.getAddress(location);
+            address = Utils.getAddressLine(a);
+        }
+
         final TextView placeAddress = (TextView) view.findViewById(R.id.place_address);
         placeAddress.setText(address);
 
         final TextView placeDesc = (TextView) view.findViewById(R.id.place_description);
+        placeDesc.setText(description);
 
         final SwitchCompat placeFriend = (SwitchCompat) view.findViewById(R.id.place_seen_friend);
+        placeFriend.setChecked(seenFriend);
 
-        ImageView placeImage = (ImageView) view.findViewById(R.id.place_image);
+        final ImageView placeImage = (ImageView) view.findViewById(R.id.place_image);
+        placeImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                cropImageView = placeImage;
+                CropImage.activity()
+                        .setGuidelines(CropImageView.Guidelines.ON)
+                        .setActivityTitle(activity.getResources().getString(R.string.picture))
+                        .setCropShape(CropImageView.CropShape.RECTANGLE)
+                        .setRequestedSize(128, 128)
+                        .setFixAspectRatio(true)
+                        .setAspectRatio(100, 100)
+                        .start(activity);
+            }
+        });
 
         if (bitmap != null) {
             placeImage.setImageBitmap(bitmap);
         } else {
-            Drawable drawable = Utils.getIconDrawable(context, R.drawable.ic_place_white_48dp, R.color.steelblue);
+            Drawable drawable = Utils.getIconDrawable(activity, R.drawable.ic_place_white_48dp, R.color.steelblue);
             placeImage.setImageDrawable(drawable);
         }
 
-        AlertDialog dialog = new AlertDialog.Builder(context)
+        AlertDialog dialog = new AlertDialog.Builder(activity)
                 .setView(view)
                 .setCancelable(true)
                 .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        String color = "";
+                        String color = markerColor;
                         for (PlaceColorButton pc : mPlaceColorButtons) {
                             if (pc.radioButton.isChecked()) {
                                 color = pc.colorName;
@@ -132,30 +173,58 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
                         String description = placeDesc.getText().toString();
                         String address = placeAddress.getText().toString();
                         boolean showFriend = placeFriend.isChecked();
-                        Log.d(TAG, String.format("color=%s: title=%s: desc=%s: address=%s: showFriend=%s", color, title, description, address, showFriend ? "true" : "false"));
 
-                        int colorId = mPlaceColorMap.get(color);
-                        Drawable drawable = Utils.getIconDrawable(context, R.drawable.ic_place_white_48dp, colorId);
-                        BitmapDescriptor icon = Utils.getBitmapDescriptor(drawable);
+                        if (isEdit) {
+                            for (Iterator<Map.Entry<Marker, InfoWindow>> it = mPlaceMarkers.entrySet().iterator(); it.hasNext(); ) {
+                                Map.Entry<Marker, InfoWindow> entry = it.next();
+                                InfoWindow infoWindow = entry.getValue();
+                                if (infoWindow.getWindowFragment() == fragment) {
+                                    Marker marker = entry.getKey();
+                                    fragment.setTitle(title);
+                                    fragment.setLocation(location);
+                                    fragment.setDescription(description);
+                                    fragment.setAddress(address);
+                                    fragment.setStreetViewPicture(bitmap);
+                                    fragment.setSeenFriend(showFriend);
+                                    if (fragment.getColor() == null || !fragment.getColor().equals(color)) {
+                                        int colorId = mPlaceColorMap.get(color);
+                                        Drawable drawable = Utils.getIconDrawable(activity, R.drawable.ic_place_white_48dp, colorId);
+                                        BitmapDescriptor icon = Utils.getBitmapDescriptor(drawable);
+                                        marker.setIcon(icon);
+                                        fragment.setColor(color);
+                                    }
+                                    Bitmap bitmap = ((BitmapDrawable) cropImageView.getDrawable()).getBitmap();
+                                    fragment.setStreetViewPicture(bitmap);
+                                }
+                            }
 
-                        Marker marker = mMap.addMarker(new MarkerOptions()
-                                .position(Utils.getLatLng(location))
-                                .draggable(true)
-                                .icon(icon));
-                        dropPinEffect(marker);
+                        } else {
+                            int colorId = mPlaceColorMap.get(color);
+                            Drawable drawable = Utils.getIconDrawable(activity, R.drawable.ic_place_white_48dp, colorId);
+                            BitmapDescriptor icon = Utils.getBitmapDescriptor(drawable);
 
-                        PlaceInfoFragment placeInfoFragment = new PlaceInfoFragment();
-                        placeInfoFragment.setTitle(title);
-                        placeInfoFragment.setLocation(location);
-                        placeInfoFragment.setAddress(address);
-                        placeInfoFragment.setStreetViewPicture(bitmap);
-                        placeInfoFragment.setPlaceManager(PlaceManager.this);
-                        if (FB.getUser() != null && FB.getUser().getDisplayName() != null) {
-                            placeInfoFragment.setPoiCreator(FB.getUser().getDisplayName());
+                            Marker marker = mMap.addMarker(new MarkerOptions()
+                                    .position(Utils.getLatLng(location))
+                                    .draggable(true)
+                                    .icon(icon));
+                            dropPinEffect(marker);
+
+                            PlaceInfoFragment placeInfoFragment = new PlaceInfoFragment();
+                            placeInfoFragment.setTitle(title);
+                            placeInfoFragment.setLocation(location);
+                            placeInfoFragment.setDescription(description);
+                            placeInfoFragment.setAddress(address);
+                            placeInfoFragment.setStreetViewPicture(bitmap);
+                            placeInfoFragment.setColor(color);
+                            placeInfoFragment.setSeenFriend(showFriend);
+                            placeInfoFragment.setPlaceManager(PlaceManager.this);
+                            if (FB.getUser() != null && FB.getUser().getDisplayName() != null) {
+                                placeInfoFragment.setPlaceCreator(FB.getUser().getDisplayName());
+                            }
+                            InfoWindow.MarkerSpecification mMarkerOffset = new InfoWindow.MarkerSpecification(0, 128);
+                            InfoWindow window = new InfoWindow(marker, mMarkerOffset, placeInfoFragment);
+                            mPlaceMarkers.put(marker, window);
                         }
-                        InfoWindow.MarkerSpecification mMarkerOffset = new InfoWindow.MarkerSpecification(0, 128);
-                        InfoWindow window = new InfoWindow(marker, mMarkerOffset, placeInfoFragment);
-                        mPlaceMarkers.put(marker, window);
                     }
                 })
                 .show();
@@ -225,16 +294,30 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
         dropPinEffect(marker);
 
         PlaceInfoFragment placeInfoFragment = new PlaceInfoFragment();
-        placeInfoFragment.setAddress("TBD");
+        placeInfoFragment.setDescription("Place description");
         placeInfoFragment.setTitle("Place Name");
+        placeInfoFragment.setColor("steelblue");
         placeInfoFragment.setLocation(Utils.getLocation(latLng));
         placeInfoFragment.setPlaceManager(PlaceManager.this);
         if (FB.getUser() != null && FB.getUser().getDisplayName() != null) {
-            placeInfoFragment.setPoiCreator(FB.getUser().getDisplayName());
+            placeInfoFragment.setPlaceCreator(FB.getUser().getDisplayName());
         }
         InfoWindow.MarkerSpecification mMarkerOffset = new InfoWindow.MarkerSpecification(0, 128);
         InfoWindow window = new InfoWindow(marker, mMarkerOffset, placeInfoFragment);
         mPlaceMarkers.put(marker, window);
+    }
+
+    void setCropImage(Activity activity, Uri uri) {
+        if (cropImageView != null) {
+            try {
+                InputStream inputStream = activity.getContentResolver().openInputStream(uri);
+                Drawable drawable = Drawable.createFromStream(inputStream, uri.toString());
+                Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
+                cropImageView.setImageBitmap(bitmap);
+            } catch (FileNotFoundException e) {
+
+            }
+        }
     }
 
     void hideInfoWindow(PlaceInfoFragment fragment) {
