@@ -43,7 +43,7 @@ public class InfoFragment extends Fragment {
             mTitleTextView = (AppCompatTextView) view.findViewById(R.id.info_title);
             mStreetImageView = (AppCompatImageView) view.findViewById(R.id.info_street_view);
             mAddressTextView = (AppCompatTextView) view.findViewById(R.id.info_address);
-            mPlaceCreatorTextView = (AppCompatTextView) view.findViewById(R.id.info_poi_user);
+            mPlaceCreatorTextView = (AppCompatTextView) view.findViewById(R.id.info_place_creator);
             mActionAddPlaceButton = (ImageButton) view.findViewById(R.id.action_add_place);
             mActionDirectionButton = (ImageButton) view.findViewById(R.id.action_direction);
             mActionMessageButton = (ImageButton) view.findViewById(R.id.action_message);
@@ -54,7 +54,7 @@ public class InfoFragment extends Fragment {
             mTitleTextView = (AppCompatTextView) dialog.findViewById(R.id.info_title);
             mStreetImageView = (AppCompatImageView) dialog.findViewById(R.id.info_street_view);
             mAddressTextView = (AppCompatTextView) dialog.findViewById(R.id.info_address);
-            mPlaceCreatorTextView = (AppCompatTextView) dialog.findViewById(R.id.info_poi_user);
+            mPlaceCreatorTextView = (AppCompatTextView) dialog.findViewById(R.id.info_place_creator);
             mActionAddPlaceButton = (ImageButton) dialog.findViewById(R.id.action_add_place);
             mActionDirectionButton = (ImageButton) dialog.findViewById(R.id.action_direction);
             mActionMessageButton = (ImageButton) dialog.findViewById(R.id.action_message);
@@ -85,13 +85,23 @@ public class InfoFragment extends Fragment {
     }
 
     void setStreetViewPicture(Location location) {
-        String url = String.format(getResources().getString(R.string.street_view_image_url),
-                location.getLatitude(), location.getLongitude());
-        new LoadImage.LoadImageView(mStreetImageView, false).execute(url);
+        if (location != null) {
+            String url = String.format(getResources().getString(R.string.street_view_image_url),
+                    location.getLatitude(), location.getLongitude());
+            new LoadImage.LoadImageView(mStreetImageView, false).execute(url);
+        }
+    }
+
+    void setStreetViewPicture(String url) {
+        if (url != null) {
+            new LoadImage.LoadImageView(mStreetImageView, false).execute(url);
+        }
     }
 
     void setStreetViewPicture(Bitmap picture) {
-        mStreetImageView.setImageBitmap(picture);
+        if (picture != null) {
+            mStreetImageView.setImageBitmap(picture);
+        }
     }
 
     void openStreetView(Location location, String address) {
@@ -111,7 +121,7 @@ public class InfoFragment extends Fragment {
         } else {
             bitmap = bitmapDrawable.getBitmap();
         }
-        Intent intent = new Intent(FB.SAVE_LOCATION);
+        Intent intent = new Intent(FB.SAVE_PLACE);
         intent.putExtra(FB.LOCATION, location);
         intent.putExtra(FB.ADDRESS, address);
         intent.putExtra(FB.TITLE, title);

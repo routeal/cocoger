@@ -19,6 +19,7 @@ public class User implements Serializable {
     private long updated;
     private long created;
     private Map<String, String> devices;
+    private Map<String, String> places;
     private Map<String, Friend> friends;
     private Map<String, Long> invites;
     private Map<String, Long> invitees;
@@ -156,6 +157,10 @@ public class User implements Serializable {
 
     public void setInvitees(Map<String, Long> invitees) {
         this.invitees = invitees;
+    }
+
+    public Map<String, String> getPlaces() {
+        return places;
     }
 
     public String toString() {

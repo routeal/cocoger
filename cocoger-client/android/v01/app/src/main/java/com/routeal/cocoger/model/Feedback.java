@@ -11,9 +11,6 @@ public class Feedback implements Serializable {
     private String name;
     private long created;
 
-    public Feedback() {
-    }
-
     public int getRating() {
         return rating;
     }

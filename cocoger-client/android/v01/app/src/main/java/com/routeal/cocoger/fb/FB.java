@@ -3,6 +3,7 @@ package com.routeal.cocoger.fb;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.location.Address;
 import android.location.Location;
 import android.net.Uri;
@@ -39,11 +40,13 @@ import com.routeal.cocoger.model.Device;
 import com.routeal.cocoger.model.Feedback;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.LocationAddress;
+import com.routeal.cocoger.model.Place;
 import com.routeal.cocoger.model.RangeRequest;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.service.LocationUpdateService;
 import com.routeal.cocoger.ui.main.FriendListViewHolder;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
+import com.routeal.cocoger.ui.main.PlaceListViewHolder;
 import com.routeal.cocoger.ui.main.UserListViewHolder;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Notifi;
@@ -63,7 +66,8 @@ public class FB {
     public final static String FRIEND_MARKER_SHOW = "friend_marker_show";
     public final static String DIRECTION_ROUTE_ADD = "direction_route_add";
     public final static String DIRECTION_ROUTE_REMOVE = "direction_route_remove";
-    public final static String SAVE_LOCATION = "save_location";
+    public final static String SAVE_PLACE = "save_place";
+    public final static String EDIT_PLACE = "edit_place";
 
     public final static String FRIEND_KEY = "friend_key";
     public final static String NEW_LOCATION = "new_location";
@@ -107,9 +111,12 @@ public class FB {
     }
 
     public static String getUid() {
-        FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
-        if (fUser == null) return null;
-        return fUser.getUid();
+        try {
+            FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
+            return fUser.getUid();
+        } catch (Throwable t) {
+            return "";
+        }
     }
 
     private static DatabaseReference getFeedbackDatabaseReference() {
@@ -118,6 +125,14 @@ public class FB {
 
     private static DatabaseReference getDeviceDatabaseReference() {
         return FirebaseDatabase.getInstance().getReference().child("devices");
+    }
+
+    private static DatabaseReference getPlaceDatabaseReference() {
+        return FirebaseDatabase.getInstance().getReference().child("places");
+    }
+
+    private static DatabaseReference getPlaceDatabaseReference(String user) {
+        return getUserDatabaseReference().child(user).child("places");
     }
 
     private static DatabaseReference getUserDatabaseReference() {
@@ -859,6 +874,49 @@ public class FB {
         return adapter;
     }
 
+    public static FirebaseRecyclerAdapter<String, PlaceListViewHolder> getPlaceRecyclerAdapter() {
+        DatabaseReference db = getPlaceDatabaseReference(getUid());
+
+        FirebaseRecyclerAdapter<String, PlaceListViewHolder> adapter =
+                new FirebaseRecyclerAdapter<String, PlaceListViewHolder>(
+                        String.class,
+                        R.layout.listview_place_list,
+                        PlaceListViewHolder.class,
+                        db
+                ) {
+                    @Override
+                    protected void populateViewHolder(PlaceListViewHolder viewHolder,
+                                                      String uid, int position) {
+                        viewHolder.bind(getRef(position).getKey(), uid);
+                    }
+                };
+
+        return adapter;
+    }
+
+    public static void getPlace(String key, final PlaceListener listener) {
+        DatabaseReference db = getPlaceDatabaseReference();
+        db.child(key).addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Place place = dataSnapshot.getValue(Place.class);
+                        if (listener != null) {
+                            listener.onSuccess(place);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        if (listener != null) {
+                            listener.onFail(databaseError.toException().getLocalizedMessage());
+                        }
+                    }
+                }
+        );
+    }
+
+
     public static FirebaseRecyclerAdapter<User, UserListViewHolder> getUserRecyclerAdapter(String text, final View view) {
         // FIXME:
         // Need flexible search
@@ -977,6 +1035,82 @@ public class FB {
         });
     }
 
+    static void addPlaceImpl(Place place, final CompleteListener listener) {
+        DatabaseReference devDb = getPlaceDatabaseReference();
+        String key = devDb.push().getKey();
+        String uid = FB.getUid();
+
+        place.setKey(key);
+        place.setUid(uid);
+
+        Map<String, Object> updates = new HashMap<>();
+
+        updates.put("places/" + key, place);
+        updates.put("users/" + uid + "/places/" + key, uid);
+
+        if (place.getSeenBy().equals("friends")) {
+            User user = FB.getUser();
+            if (user != null) {
+                Map<String, Friend> friends = user.getFriends();
+                if (friends != null) {
+                    for (Map.Entry<String, Friend> entry : friends.entrySet()) {
+                        updates.put("users/" + entry.getKey() + "/places/" + key, uid);
+                    }
+                }
+            }
+        }
+
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference();
+        db.updateChildren(updates, new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                if (databaseError == null) {
+                    // success
+                    if (listener != null) listener.onSuccess();
+                } else {
+                    // error
+                    if (listener != null) listener.onFail(databaseError.getMessage());
+                }
+            }
+        });
+    }
+
+    public static void addPlace(final Place place, Bitmap bitmap, final CompleteListener listener) {
+        if (bitmap == null) {
+            addPlaceImpl(place, listener);
+            return;
+        }
+
+        Uri uri = Utils.saveBitmap(MainApplication.getContext(), bitmap);
+        if (uri == null) {
+            if (listener != null) listener.onFail("Failed to save a bitmap.");
+            return;
+        }
+
+        String name = "place_" + System.currentTimeMillis() + ".png";
+
+        uploadImageFile(uri, name, new UploadImageListener() {
+            @Override
+            public void onSuccess(String url) {
+                place.setPicture(url);
+                addPlaceImpl(place, listener);
+            }
+
+            @Override
+            public void onFail(String err) {
+                if (listener != null) listener.onFail(err);
+            }
+        });
+    }
+
+    public static void editPlace(Place place, Bitmap bitmap, CompleteListener listener) {
+
+    }
+
+    public static void removePlace() {
+
+    }
+
     public static void saveFeedback(Feedback feedback, final CompleteListener listner) {
         DatabaseReference feedbackDb = getFeedbackDatabaseReference();
 
@@ -1080,6 +1214,12 @@ public class FB {
 
     public interface UserListener {
         void onSuccess(User user);
+
+        void onFail(String err);
+    }
+
+    public interface PlaceListener {
+        void onSuccess(Place place);
 
         void onFail(String err);
     }

@@ -127,6 +127,7 @@
                 android:id="@+id/place_image"
                 android:layout_width="54dp"
                 android:layout_height="54dp"
+                android:background="@android:drawable/btn_default"
                 android:padding="2dp" />
 
             <android.support.design.widget.TextInputLayout

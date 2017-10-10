@@ -92,6 +92,9 @@ abstract class MapActivity extends MapBaseActivity
                     }
                     mMm.setupMarkers(getLocation(), getAddress());
                 }
+                if (mPlace != null) {
+                    mPlace.setup();
+                }
             } else if (intent.getAction().equals(FB.FRIEND_LOCATION_UPDATE)) {
                 final String fid = intent.getStringExtra(FB.FRIEND_KEY);
                 final String newLocationKey = intent.getStringExtra(FB.NEW_LOCATION);
@@ -172,7 +175,7 @@ abstract class MapActivity extends MapBaseActivity
                 closeSlidePanel();
             } else if (intent.getAction().equals(FB.DIRECTION_ROUTE_REMOVE)) {
                 mDirection.removeDirection();
-            } else if (intent.getAction().equals(FB.SAVE_LOCATION)) {
+            } else if (intent.getAction().equals(FB.SAVE_PLACE)) {
                 Location location = intent.getParcelableExtra(FB.LOCATION);
                 String address = intent.getStringExtra(FB.ADDRESS);
                 String title = intent.getStringExtra(FB.TITLE);
@@ -224,6 +227,8 @@ abstract class MapActivity extends MapBaseActivity
                     Utils.getLatLng(getLocation()), DEFAULT_ZOOM));
         }
 
+        mPlace.setup();
+
         mSpinner.dismiss();
         mSpinner = null;
     }
@@ -274,7 +279,7 @@ abstract class MapActivity extends MapBaseActivity
         filter.addAction(FB.FRIEND_MARKER_SHOW);
         filter.addAction(FB.DIRECTION_ROUTE_ADD);
         filter.addAction(FB.DIRECTION_ROUTE_REMOVE);
-        filter.addAction(FB.SAVE_LOCATION);
+        filter.addAction(FB.SAVE_PLACE);
         LocalBroadcastManager.getInstance(this).registerReceiver(mLocalLocationReceiver, filter);
     }
 

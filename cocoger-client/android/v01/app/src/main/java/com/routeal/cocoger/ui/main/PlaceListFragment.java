@@ -1,11 +1,14 @@
 package com.routeal.cocoger.ui.main;
 
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.fb.FB;
 
 /**
  * Created by hwatanabe on 10/8/17.
@@ -21,8 +24,17 @@ public class PlaceListFragment extends PagerFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_place_list, container, false);
+
+        View view = inflater.inflate(R.layout.fragment_place_list, container, false);
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(view.getContext());
+        layoutManager.setReverseLayout(false);
+
+        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setAdapter(FB.getPlaceRecyclerAdapter());
+
+        return view;
     }
 
     @Override

@@ -10,6 +10,9 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.model.Friend;
+import com.routeal.cocoger.model.Place;
 
 /**
  * Created by hwatanabe on 10/8/17.
@@ -21,10 +24,12 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
     private String mPlaceCreator;
     private String mDescription;
     private String mColor;
+    private String mPictureUrl;
     private Location mLocation;
     private Bitmap mCopiedBitmap;
     private PlaceManager mPlaceManager;
     private boolean mSeenFriend;
+    private Place mPlace;
 
     @Nullable
     @Override
@@ -53,21 +58,32 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        if (mDescription != null && !mDescription.isEmpty()) {
-            super.setAddress(mDescription);
+        if (mPlace.getDescription() != null) {
+            super.setAddress(mPlace.getDescription());
         } else {
-            if (mAddress != null && !mAddress.isEmpty()) {
-                super.setAddress(mAddress);
+            if (mPlace.getAddress() != null) {
+                super.setAddress(mPlace.getAddress());
             }
         }
-        if (mTitle != null && !mTitle.isEmpty()) {
-            super.setTitle(mTitle);
-        }
-        if (mPlaceCreator != null && !mPlaceCreator.isEmpty()) {
-            mPlaceCreatorTextView.setText(mPlaceCreator);
+        if (mPlace.getTitle() != null) {
+            super.setTitle(mPlace.getTitle());
         }
         if (mCopiedBitmap != null) {
             mStreetImageView.setImageBitmap(mCopiedBitmap);
+        } else if (mPlace.getPicture() != null) {
+            super.setStreetViewPicture(mPlace.getPicture());
+        }
+        if (FB.getUid().equals(mPlace.getUid())) {
+            String str = String.format(view.getResources().getString(R.string.by_creator),
+                    FB.getUser().getDisplayName());
+            mPlaceCreatorTextView.setText(str);
+        } else {
+            Friend friend = FB.getFriend(mPlace.getUid());
+            if (friend != null) {
+                String str = String.format(view.getResources().getString(R.string.by_creator),
+                        friend.getDisplayName());
+                mPlaceCreatorTextView.setText(str);
+            }
         }
     }
 
@@ -80,8 +96,7 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
                 }
                 break;
             case R.id.action_edit_place:
-                mPlaceManager.editPlace(this, mTitle, mLocation, mAddress, mDescription,
-                        mSeenFriend, mCopiedBitmap, mColor);
+                mPlaceManager.editPlace(this, mPlace, mCopiedBitmap);
                 break;
             case R.id.action_direction:
                 if (mLocation != null) {
@@ -95,6 +110,23 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
         mPlaceManager.hideInfoWindow(this);
     }
 
+    Place getPlace() {
+        return mPlace;
+    }
+
+    void setPlace(Place place) {
+        mPlace = place;
+    }
+
+    void setStreetViewPicture(Bitmap bitmap) {
+        mCopiedBitmap = bitmap;
+    }
+
+    void setPlaceManager(PlaceManager placeManager) {
+        mPlaceManager = placeManager;
+    }
+
+/*
     void setTitle(String title) {
         mTitle = title;
     }
@@ -105,10 +137,6 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
 
     void setAddress(String address) {
         mAddress = address;
-    }
-
-    void setPlaceManager(PlaceManager placeManager) {
-        mPlaceManager = placeManager;
     }
 
     Location getLocation() {
@@ -123,8 +151,8 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
         mPlaceCreator = creator;
     }
 
-    void setStreetViewPicture(Bitmap bitmap) {
-        mCopiedBitmap = bitmap;
+    void setStreetViewPicture(String url) {
+        mPictureUrl = url;
     }
 
     String getColor() {
@@ -138,4 +166,5 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
     void setSeenFriend(boolean seenFriend) {
         mSeenFriend = seenFriend;
     }
+*/
 }

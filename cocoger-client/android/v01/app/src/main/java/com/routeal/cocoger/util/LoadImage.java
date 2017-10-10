@@ -13,9 +13,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.routeal.cocoger.provider.DBUtil;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,21 +24,6 @@ import java.util.List;
 
 public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
     private final static String TAG = "LoadImage";
-
-    static Bitmap getBitmapFromURL(String src) {
-        try {
-            java.net.URL url = new java.net.URL(src);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setDoInput(true);
-            connection.connect();
-            InputStream input = connection.getInputStream();
-            Bitmap myBitmap = BitmapFactory.decodeStream(input);
-            return myBitmap;
-        } catch (IOException e) {
-            //e.printStackTrace();
-        }
-        return null;
-    }
 
     static Bitmap combineBitmaps(List<Bitmap> bitmaps, int size) {
         MultipleDrawable drawable = new MultipleDrawable(bitmaps);
@@ -68,7 +50,7 @@ public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
                 Bitmap bitmap = null;
 
                 if (data == null) {
-                    bitmap = getBitmapFromURL(url);
+                    bitmap = Utils.getBitmapFromURL(url);
                     if (bitmap == null) {
                         continue;
                     }
@@ -142,6 +124,9 @@ public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
         protected void onPostExecute(List<Bitmap> bitmaps) {
             super.onPostExecute(bitmaps);
             if (bitmaps.isEmpty()) {
+                return;
+            }
+            if (imageView == null) {
                 return;
             }
             if (crop) {
