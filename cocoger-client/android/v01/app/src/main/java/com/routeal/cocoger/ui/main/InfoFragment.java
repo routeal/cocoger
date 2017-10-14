@@ -21,6 +21,8 @@ import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.util.LoadImage;
 import com.routeal.cocoger.util.Utils;
 
+import java.util.Locale;
+
 /**
  * Created by nabe on 9/23/17.
  */
@@ -88,13 +90,13 @@ public class InfoFragment extends Fragment {
         if (location != null) {
             String url = String.format(getResources().getString(R.string.street_view_image_url),
                     location.getLatitude(), location.getLongitude());
-            new LoadImage.LoadImageView(mStreetImageView, false).execute(url);
+            new LoadImage(mStreetImageView).loadUrl(url);
         }
     }
 
     void setStreetViewPicture(String url) {
         if (url != null) {
-            new LoadImage.LoadImageView(mStreetImageView, false).execute(url);
+            new LoadImage(mStreetImageView).loadUrl(url);
         }
     }
 
@@ -142,10 +144,10 @@ public class InfoFragment extends Fragment {
     void showGoogleMap(Location location, String title) {
         Uri gmmIntentUri;
         if (title == null || title.isEmpty()) {
-            String url = String.format("geo:%f,%f", location.getLatitude(), location.getLongitude());
+            String url = String.format(Locale.getDefault(), "geo:%f,%f", location.getLatitude(), location.getLongitude());
             gmmIntentUri = Uri.parse(url);
         } else {
-            String url = String.format("geo:%f,%f?q=", location.getLatitude(), location.getLongitude());
+            String url = String.format(Locale.getDefault(), "geo:%f,%f?q=", location.getLatitude(), location.getLongitude());
             gmmIntentUri = Uri.parse(url + Uri.encode(title));
         }
         Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);

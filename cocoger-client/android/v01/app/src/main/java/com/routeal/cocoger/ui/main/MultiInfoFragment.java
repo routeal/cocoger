@@ -156,10 +156,10 @@ public class MultiInfoFragment extends InfoFragment {
         @Override
         public void onBindViewHolder(MarkerAdapter.ViewHolder holder, int position) {
             ComboMarker.MarkerInfo info = mMarkerInfoList.get(position);
-            new LoadImage.LoadImageView(holder.picture).execute(info.picture);
+            new LoadImage(holder.picture).loadProfile(info.id);
             holder.name.setText(info.name);
             String uid = FB.getUid();
-            if (uid != null && uid.equals(info.id)) {
+            if (uid.equals(info.id)) {
                 holder.range.setText(R.string.me);
                 holder.pane.setBackgroundColor(ContextCompat.getColor(getParentFragment().getContext(), R.color.teal50));
             } else {

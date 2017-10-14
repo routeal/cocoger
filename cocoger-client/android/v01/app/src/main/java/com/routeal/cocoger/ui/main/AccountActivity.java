@@ -1,6 +1,5 @@
 package com.routeal.cocoger.ui.main;
 
-import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -13,6 +12,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -41,12 +41,16 @@ import java.util.TimeZone;
 
 public class AccountActivity extends AppCompatActivity {
 
-    private Uri mProfilePictureUri;
+    private final static String TAG = "AccountActivity";
+
+    public final static String DISPLAY_NAME = "displayName";
+    public final static String EMAIL = "email";
+
+    private boolean mIsLogin = false;
     private String mName;
     private String mEmail;
     private String mBod;
     private String mGender;
-    private boolean mIsSetup = false;
     private TextView mNameView;
     private TextView mEmailView;
     private TextView mBodView;
@@ -54,21 +58,22 @@ public class AccountActivity extends AppCompatActivity {
     private Button mStartApp;
     private ImageView mPictureView;
     private FloatingActionButton mPhotoCameraView;
+    private Uri mProfilePictureUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_account);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         Intent intent = getIntent();
-        mName = intent.getStringExtra("displayName");
-        mEmail = intent.getStringExtra("email");
+        mName = intent.getStringExtra(DISPLAY_NAME);
+        mEmail = intent.getStringExtra(EMAIL);
 
-        mIsSetup = (mEmail != null && !mEmail.isEmpty());
+        // mEmail comes only from LoginFragment
+        mIsLogin = (mEmail != null && !mEmail.isEmpty());
 
         mNameView = (TextView) findViewById(R.id.name);
         mEmailView = (TextView) findViewById(R.id.email);
@@ -77,9 +82,9 @@ public class AccountActivity extends AppCompatActivity {
         mStartApp = (Button) findViewById(R.id.start_app);
         mPictureView = (ImageView) findViewById(R.id.profile_picture);
 
-        final User user = FB.getUser();
+        User user = FB.getUser();
 
-        if (!mIsSetup) {
+        if (!mIsLogin) {
             ActionBar ab = getSupportActionBar();
             if (ab != null) {
                 ab.setDisplayHomeAsUpEnabled(true);
@@ -90,13 +95,13 @@ public class AccountActivity extends AppCompatActivity {
             }
         }
 
-        if (user != null && user.getPicture() != null) {
-            new LoadImage.LoadImageAsync(true, new LoadImage.LoadImageListener() {
+        if (user != null) {
+            new LoadImage(new LoadImage.LoadImageListener() {
                 @Override
                 public void onSuccess(Bitmap bitmap) {
                     mPictureView.setImageBitmap(bitmap);
                 }
-            }).execute(user.getPicture());
+            }).loadProfile(FB.getUid());
         }
 
         mPhotoCameraView = (FloatingActionButton) findViewById(R.id.photo_camera);
@@ -123,6 +128,7 @@ public class AccountActivity extends AppCompatActivity {
         } else {
             mNameView.setText(mName);
         }
+
         View view = findViewById(R.id.name_container);
         view.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -148,15 +154,12 @@ public class AccountActivity extends AppCompatActivity {
                                 }
                             }
                         })
-                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                            }
-                        })
+                        .setNegativeButton(android.R.string.no, null)
                         .show();
-                dialog.getWindow().clearFlags(
-                        WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
-                                | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+                if (dialog.getWindow() != null) {
+                    dialog.getWindow().clearFlags(
+                            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
+                }
                 dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
             }
         });
@@ -176,6 +179,7 @@ public class AccountActivity extends AppCompatActivity {
         } else {
             mBodView.setText(mBod);
         }
+
         view = findViewById(R.id.bod_container);
         view.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -223,6 +227,7 @@ public class AccountActivity extends AppCompatActivity {
         } else {
             mGenderView.setText(mGender);
         }
+
         view = findViewById(R.id.gender_container);
         view.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -263,7 +268,7 @@ public class AccountActivity extends AppCompatActivity {
             }
         });
 
-        if (!mIsSetup) {
+        if (!mIsLogin) {
             mStartApp.setVisibility(View.GONE);
         } else {
             mStartApp.setOnClickListener(new View.OnClickListener() {
@@ -277,7 +282,7 @@ public class AccountActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (!mIsSetup) {
+        if (!mIsLogin) {
             getMenuInflater().inflate(R.menu.menu_save, menu);
             return true;
         }
@@ -336,15 +341,20 @@ public class AccountActivity extends AppCompatActivity {
 
         if (mProfilePictureUri == null) {
             if (mName != null || mBod != null || mGender != null) {
-                FB.updateUser(mName, mGender, mBod, null);
+                FB.updateUser(mName, mGender, mBod);
             }
         } else {
-            FB.uploadImageFile(mProfilePictureUri, "profile.jpg", new FB.UploadImageListener() {
+            byte[] bytes = Utils.getBitmapBytes(this, mProfilePictureUri);
+            if (bytes == null) {
+                return;
+            }
+
+            FB.uploadData(bytes, "profile.jpg", new FB.UploadDataListener() {
                 @Override
                 public void onSuccess(String url) {
                     // set the url to the user
                     if (mName != null || mBod != null || mGender != null) {
-                        FB.updateUser(mName, mGender, mBod, url);
+                        FB.updateUser(mName, mGender, mBod);
                     }
                     AccountActivity.this.finish();
                 }
@@ -382,7 +392,7 @@ public class AccountActivity extends AppCompatActivity {
         }
 
         // show the busy cursor
-        final ProgressDialog dialog = Utils.getBusySpinner(this);
+        final Utils.ProgressBarView dialog = Utils.getProgressBar(this);
 
         // get the user in the memory
         final User user = FB.getUser();
@@ -394,18 +404,23 @@ public class AccountActivity extends AppCompatActivity {
         user.setLocale(getResources().getConfiguration().locale.getDisplayLanguage());
         user.setTimezone(TimeZone.getDefault().getID());
 
-        FB.uploadImageFile(mProfilePictureUri, "profile.jpg", new FB.UploadImageListener() {
+        byte bytes[] = Utils.getBitmapBytes(this, mProfilePictureUri);
+
+        if (bytes == null) {
+            dialog.hide();
+            return;
+        }
+
+        FB.uploadData(bytes, FB.PROFILE_IMAGE, new FB.UploadDataListener() {
             @Override
             public void onSuccess(String url) {
-                dialog.dismiss();
-
-                // set the url to the user
-                user.setPicture(url);
+                dialog.hide();
 
                 // save the user to the database
                 try {
                     FB.initUser(user);
                 } catch (Exception e) {
+                    Log.d(TAG, "Failed to save the user object to FB.", e);
                 }
 
                 // start the main map
@@ -416,7 +431,7 @@ public class AccountActivity extends AppCompatActivity {
 
             @Override
             public void onFail(String err) {
-                dialog.dismiss();
+                dialog.hide();
             }
         });
     }

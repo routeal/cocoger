@@ -20,6 +20,7 @@ import java.util.List;
  */
 
 public class DatabaseProvider extends ContentProvider {
+
     private static final int LOCATIONS = 1;
     private static final int LOCATIONS_ID = 2;
     private static final int GEO_LOCATIONS = 3;
@@ -30,6 +31,7 @@ public class DatabaseProvider extends ContentProvider {
     private static final int IMAGES_ID = 8;
     private static final int MESSAGE = 9;
     private static final int MESSAGE_ID = 10;
+
     private static final UriMatcher mUriMatcher;
 
     static {
@@ -239,12 +241,12 @@ public class DatabaseProvider extends ContentProvider {
     }
 
     @Override
-    public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
+    public int update(@NonNull Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         int updates = -1;
 
         switch (mUriMatcher.match(uri)) {
             case IMAGES_ID: {
-                long id = new Long(uri.getLastPathSegment()).longValue();
+                long id = Long.valueOf(uri.getLastPathSegment());
                 String whereclause = DB.Images._ID + " = " + id;
                 SQLiteDatabase db = mDbHelper.getWritableDatabase();
                 updates = db.update(DB.Images.TABLE, values, whereclause, null);
@@ -255,7 +257,7 @@ public class DatabaseProvider extends ContentProvider {
                 break;
             }
             case MESSAGE_ID: {
-                long id = new Long(uri.getLastPathSegment()).longValue();
+                long id = Long.valueOf(uri.getLastPathSegment());
                 String whereclause = DB.Messages._ID + " = " + id;
                 SQLiteDatabase db = mDbHelper.getWritableDatabase();
                 updates = db.update(DB.Messages.TABLE, values, whereclause, null);
@@ -266,7 +268,7 @@ public class DatabaseProvider extends ContentProvider {
                 break;
             }
             case GEO_LOCATIONS_ID: {
-                long id = new Long(uri.getLastPathSegment()).longValue();
+                long id = Long.valueOf(uri.getLastPathSegment());
                 String whereclause = DB.GeoLocations._ID + " = " + id;
                 SQLiteDatabase db = mDbHelper.getWritableDatabase();
                 updates = db.update(DB.GeoLocations.TABLE, values, whereclause, null);
@@ -277,7 +279,7 @@ public class DatabaseProvider extends ContentProvider {
                 break;
             }
             case REVERSE_GEO_LOCATIONS_ID: {
-                long id = new Long(uri.getLastPathSegment()).longValue();
+                long id = Long.valueOf(uri.getLastPathSegment());
                 String whereclause = DB.ReverseGeoLocations._ID + " = " + id;
                 SQLiteDatabase db = mDbHelper.getWritableDatabase();
                 updates = db.update(DB.ReverseGeoLocations.TABLE, values, whereclause, null);
@@ -308,7 +310,7 @@ public class DatabaseProvider extends ContentProvider {
             }
 
             case LOCATIONS_ID: {
-                long id = new Long(uri.getLastPathSegment()).longValue();
+                long id = Long.valueOf(uri.getLastPathSegment());
                 affected = db.delete(DB.Locations.TABLE, DB.Locations._ID + "= ?",
                         new String[]{String.valueOf(id)});
                 ContentResolver resolver = getContext().getContentResolver();
@@ -326,7 +328,7 @@ public class DatabaseProvider extends ContentProvider {
             }
 
             case GEO_LOCATIONS_ID: {
-                long id = new Long(uri.getLastPathSegment()).longValue();
+                long id = Long.valueOf(uri.getLastPathSegment());
                 affected = db.delete(DB.GeoLocations.TABLE, DB.GeoLocations._ID + "= ?",
                         new String[]{String.valueOf(id)});
                 ContentResolver resolver = getContext().getContentResolver();
@@ -344,7 +346,7 @@ public class DatabaseProvider extends ContentProvider {
             }
 
             case REVERSE_GEO_LOCATIONS_ID: {
-                long id = new Long(uri.getLastPathSegment()).longValue();
+                long id = Long.valueOf(uri.getLastPathSegment());
                 affected = db.delete(DB.ReverseGeoLocations.TABLE, DB.ReverseGeoLocations._ID + "= ?",
                         new String[]{String.valueOf(id)});
                 ContentResolver resolver = getContext().getContentResolver();
@@ -362,7 +364,7 @@ public class DatabaseProvider extends ContentProvider {
             }
 
             case IMAGES_ID: {
-                long id = new Long(uri.getLastPathSegment()).longValue();
+                long id = Long.valueOf(uri.getLastPathSegment());
                 affected = db.delete(DB.Images.TABLE, DB.Images._ID + "= ?",
                         new String[]{String.valueOf(id)});
                 ContentResolver resolver = getContext().getContentResolver();
@@ -380,7 +382,7 @@ public class DatabaseProvider extends ContentProvider {
             }
 
             case MESSAGE_ID: {
-                long id = new Long(uri.getLastPathSegment()).longValue();
+                long id = Long.valueOf(uri.getLastPathSegment());
                 affected = db.delete(DB.Messages.TABLE, DB.Messages._ID + "= ?",
                         new String[]{String.valueOf(id)});
                 ContentResolver resolver = getContext().getContentResolver();

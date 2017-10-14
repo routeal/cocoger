@@ -4,8 +4,8 @@ import java.io.Serializable;
 
 public class LocationAddress implements Serializable {
 
-    private long id;
-    private String uid;
+    private long id; // local database id
+    private String uid; // user key
     private long timestamp;
     private double latitude;
     private double longitude;

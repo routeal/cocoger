@@ -12,6 +12,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.util.Notifi;
 
@@ -145,16 +146,16 @@ public class LocationUpdateService extends Service {
         }
     }
 
-/*
-    public void requestLocationUpdate() {
-        LocationUpdate update = LocationUpdate.getInstance();
-        update.requestLocationUpdates(getApplicationContext());
+    public static void start() {
+        Context context = MainApplication.getContext();
+        Intent intent = new Intent(context, LocationUpdateService.class);
+        context.startService(intent);
     }
 
-    public void removeLocationUpdate() {
-        LocationUpdate update = LocationUpdate.getInstance();
-        update.removeLocationUpdates();
+    public static void stop() {
+        // stop the location update service
+        Context context = MainApplication.getContext();
+        Intent intent = new Intent(context, LocationUpdateService.class);
+        context.stopService(intent);
     }
-*/
-
 }

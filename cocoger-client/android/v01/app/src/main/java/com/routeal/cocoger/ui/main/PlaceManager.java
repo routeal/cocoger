@@ -93,7 +93,7 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
         }
 
         Map<String, String> places = user.getPlaces();
-        if (places.isEmpty()) {
+        if (places == null || places.isEmpty()) {
             return; // empty
         }
 

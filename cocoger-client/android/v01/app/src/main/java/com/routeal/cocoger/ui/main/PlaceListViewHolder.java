@@ -59,7 +59,7 @@ public class PlaceListViewHolder extends RecyclerView.ViewHolder {
                 mTitleText.setText(place.getTitle());
                 mAddressText.setText(place.getAddress());
                 if (place.getPicture() != null) {
-                    new LoadImage.LoadImageView(mPictureImage, false).execute(place.getPicture());
+                    new LoadImage(mPictureImage).loadPlace(place.getKey(), place.getCreated());
                 }
             }
 

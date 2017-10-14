@@ -77,7 +77,7 @@
             android:orientation="horizontal">
 
             <android.support.v7.widget.AppCompatButton
-                android:id="@+id/btn_signup"
+                android:id="@+id/action_signup"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -85,7 +85,7 @@
                 android:textSize="18dp" />
 
             <android.support.v7.widget.AppCompatButton
-                android:id="@+id/btn_login"
+                android:id="@+id/action_login"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -95,7 +95,7 @@
         </TableRow>
 
         <TextView
-            android:id="@+id/term_privacy"
+            android:id="@+id/text_term_privacy"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"

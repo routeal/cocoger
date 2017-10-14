@@ -1,7 +1,6 @@
 package com.routeal.cocoger.ui.login;
 
 import android.app.PendingIntent;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Build;
@@ -28,12 +27,13 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.provider.DBUtil;
 import com.routeal.cocoger.ui.main.AccountActivity;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 import com.routeal.cocoger.util.Utils;
 
-import java.util.Date;
+import java.util.EnumMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -42,39 +42,36 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class LoginFragment extends Fragment {
 
+    private final String TAG = "LoginFragment";
+
     private static final int RC_HINT = 13;
     private static final AtomicInteger SAFE_ID = new AtomicInteger(10);
-    private final String TAG = "LoginFragment";
-    private Credential mLastCredential;
+
     private TextInputEditText mEmailText;
-    //private TextInputEditText mDisplayName;
-    private TextInputEditText mPassword;
+    private TextInputEditText mPasswordText;
     private Button mLoginButton;
     private Button mSignupButton;
-
     private String mDisplayName;
 
-    @SuppressWarnings("deprecation")
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_login, container, false);
+        View view = inflater.inflate(R.layout.fragment_login, container, false);
 
-        mEmailText = (TextInputEditText) v.findViewById(R.id.input_email);
-        //mDisplayName = (TextInputEditText) v.findViewById(R.id.display_name);
-        mPassword = (TextInputEditText) v.findViewById(R.id.input_password);
+        mEmailText = (TextInputEditText) view.findViewById(R.id.input_email);
+        mPasswordText = (TextInputEditText) view.findViewById(R.id.input_password);
 
-        TextView textView = (TextView) v.findViewById(R.id.term_privacy);
-        textView.setMovementMethod(LinkMovementMethod.getInstance());
+        TextView noteView = (TextView) view.findViewById(R.id.text_term_privacy);
+        noteView.setMovementMethod(LinkMovementMethod.getInstance());
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            textView.setText(Html.fromHtml(getResources().getString(R.string.signup_note), Html.FROM_HTML_MODE_LEGACY));
+            noteView.setText(Html.fromHtml(getResources().getString(R.string.signup_note), Html.FROM_HTML_MODE_LEGACY));
         } else {
-            textView.setText(Html.fromHtml(getResources().getString(R.string.signup_note)));
+            noteView.setText(Html.fromHtml(getResources().getString(R.string.signup_note)));
         }
 
-        mLoginButton = (Button) v.findViewById(R.id.btn_login);
+        mLoginButton = (Button) view.findViewById(R.id.action_login);
         mLoginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -82,14 +79,15 @@ public class LoginFragment extends Fragment {
             }
         });
 
-        mSignupButton = (Button) v.findViewById(R.id.btn_signup);
+        mSignupButton = (Button) view.findViewById(R.id.action_signup);
         mSignupButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 signup(v);
             }
         });
-        return v;
+
+        return view;
     }
 
     @Override
@@ -104,11 +102,10 @@ public class LoginFragment extends Fragment {
         switch (requestCode) {
             case RC_HINT:
                 if (data != null) {
-                    mLastCredential = data.getParcelableExtra(Credential.EXTRA_KEY);
-                    if (mLastCredential != null) {
-                        mEmailText.setText(mLastCredential.getId());
-                        //mDisplayName.setText(mLastCredential.getName());
-                        mDisplayName = mLastCredential.getName();
+                    Credential credential = data.getParcelableExtra(Credential.EXTRA_KEY);
+                    if (credential != null) {
+                        mEmailText.setText(credential.getId());
+                        mDisplayName = credential.getName();
                     }
                 }
                 break;
@@ -161,26 +158,26 @@ public class LoginFragment extends Fragment {
         mSignupButton.setEnabled(false);
 
         String email = mEmailText.getText().toString();
-        String password = mPassword.getText().toString();
+        String password = mPasswordText.getText().toString();
 
         if (email.isEmpty()) {
-            mEmailText.setError("Email not entered");
+            mEmailText.setError(getResources().getString(R.string.email_not_entered));
             return;
         }
         if (password.isEmpty()) {
-            mPassword.setError("Password not entered");
+            mPasswordText.setError(getResources().getString(R.string.password_not_entered));
             return;
         }
 
         mEmailText.setError(null);
-        mPassword.setError(null);
+        mPasswordText.setError(null);
 
-        final ProgressDialog dialog = Utils.getBusySpinner(getContext());
+        final Utils.ProgressBarView dialog = Utils.getProgressBar(getActivity());
 
         FB.signIn(getActivity(), email, password, new FB.SignInListener() {
             @Override
             public void onSuccess() {
-                dialog.dismiss();
+                dialog.hide();
                 Intent intent = new Intent(getContext(), PanelMapActivity.class);
                 startActivity(intent);
                 getActivity().finish();
@@ -188,7 +185,7 @@ public class LoginFragment extends Fragment {
 
             @Override
             public void onFail(String err) {
-                dialog.dismiss();
+                dialog.hide();
                 onFailed(err);
             }
         });
@@ -199,30 +196,55 @@ public class LoginFragment extends Fragment {
         mSignupButton.setEnabled(false);
 
         final String email = mEmailText.getText().toString();
-        String password = mPassword.getText().toString();
+        String password = mPasswordText.getText().toString();
 
-        final ProgressDialog dialog = Utils.getBusySpinner(getContext());
+        if (email.isEmpty()) {
+            mEmailText.setError(getResources().getString(R.string.email_not_entered));
+            return;
+        }
+        if (password.isEmpty()) {
+            mPasswordText.setError(getResources().getString(R.string.password_not_entered));
+            return;
+        }
+
+        mEmailText.setError(null);
+        mPasswordText.setError(null);
+
+        final Utils.ProgressBarView dialog = Utils.getProgressBar(getActivity());
 
         FB.createUser(getActivity(), email, password, new FB.CreateUserListener() {
             @Override
             public void onSuccess(String key) {
-                dialog.dismiss();
+                dialog.hide();
+
+                /*
+                User user = new User();
+                user.setDisplayName(mDisplayName);
+                user.setEmail(email);
+                FB.setUser(user);
+                */
+
                 // start the setup
                 Intent intent = new Intent(getActivity(), AccountActivity.class);
+                intent.putExtra(AccountActivity.EMAIL, email);
                 if (mDisplayName != null && !mDisplayName.isEmpty()) {
-                    intent.putExtra("displayName", mDisplayName);
+                    intent.putExtra(AccountActivity.DISPLAY_NAME, mDisplayName);
                 }
-                intent.putExtra("email", email);
                 startActivity(intent);
+
+                // remove the activity
                 getActivity().finish();
 
-                DBUtil.saveMessage(key, "Welcome", "Hope that you enjoy cocoger!!!",
-                        R.drawable.ic_person_pin_circle_white_48dp, new Date());
+                DBUtil.saveMessage(key,
+                        getResources().getString(R.string.welcome),
+                        getResources().getString(R.string.welcome_message),
+                        R.drawable.ic_person_pin_circle_white_48dp,
+                        System.currentTimeMillis());
             }
 
             @Override
             public void onFail(String err) {
-                dialog.dismiss();
+                dialog.hide();
                 onFailed(err);
             }
         });

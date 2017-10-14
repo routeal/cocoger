@@ -89,7 +89,7 @@ abstract class DrawerMapActivity extends MapActivity implements NavigationView.O
         textView.setText(user.getEmail());
 
         ImageView imageView = (ImageView) findViewById(R.id.my_picture);
-        new LoadImage.LoadImageView(imageView).execute(user.getPicture());
+        new LoadImage(imageView).loadProfile(FB.getUid());
     }
 
     @Override
@@ -108,11 +108,11 @@ abstract class DrawerMapActivity extends MapActivity implements NavigationView.O
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         FB.signOut();
-
                         // start the login screen
                         Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
                         startActivity(intent);
-                        finish();
+                        // exit the current activity
+                        DrawerMapActivity.this.exitApp();
                     }
                 })
                 .setPositiveButton(android.R.string.no, new DialogInterface.OnClickListener() {
@@ -278,6 +278,8 @@ abstract class DrawerMapActivity extends MapActivity implements NavigationView.O
                     }
                 })
                 .show();
-        dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        }
     }
 }

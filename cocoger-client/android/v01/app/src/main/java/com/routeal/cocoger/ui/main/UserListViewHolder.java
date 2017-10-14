@@ -50,7 +50,7 @@ public class UserListViewHolder extends RecyclerView.ViewHolder {
 
     public void bind(User user, String key /* user's key */) {
         setName(user.getDisplayName());
-        setPicture(user.getPicture());
+        setPicture(key);
 
         // FIXME:
         // disable myself, don't know how to remove myself from the searched list
@@ -101,8 +101,8 @@ public class UserListViewHolder extends RecyclerView.ViewHolder {
         mLocation.setText(location);
     }
 
-    private void setPicture(String url) {
-        new LoadImage.LoadImageView(mPicture).execute(url);
+    private void setPicture(String key) {
+        new LoadImage(mPicture).loadProfile(key);
     }
 }
 

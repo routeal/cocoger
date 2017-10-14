@@ -20,7 +20,7 @@ public class LoginActivity extends FragmentActivity
         implements ViewPager.OnPageChangeListener, RadioGroup.OnCheckedChangeListener {
 
     private static final int NUMBER_OF_PAGES = 2;
-    ViewPager pager;
+    private ViewPager pager;
     private RadioGroup radioGroup;
 
     @Override
@@ -74,13 +74,11 @@ public class LoginActivity extends FragmentActivity
     }
 
     private class LoginPagerAdapter extends FragmentPagerAdapter {
-
         LoginFragment login = new LoginFragment();
         PasswordFragment password = new PasswordFragment();
 
         LoginPagerAdapter(FragmentManager fm) {
             super(fm);
-            password.setLoginFragment(login);
         }
 
         @Override

@@ -47,7 +47,7 @@ abstract class MapActivity extends MapBaseActivity
 
     private View mapView;
     private CameraPosition mCameraPosition;
-    private ProgressDialog mSpinner;
+    private Utils.ProgressBarView mSpinner;
     private InfoWindowManager mInfoWindowManager;
     private MarkerManager mMm;
     private MapDirection mDirection;
@@ -191,6 +191,7 @@ abstract class MapActivity extends MapBaseActivity
                 Utils.getLatLng(getLocation()), DEFAULT_ZOOM));
     }
 
+    @SuppressWarnings({"MissingPermission"})
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -229,7 +230,7 @@ abstract class MapActivity extends MapBaseActivity
 
         mPlace.setup();
 
-        mSpinner.dismiss();
+        mSpinner.hide();
         mSpinner = null;
     }
 
@@ -298,7 +299,7 @@ abstract class MapActivity extends MapBaseActivity
     @Override
     void startApp() {
         // show the mSpinner
-        mSpinner = Utils.getBusySpinner(this);
+        mSpinner = Utils.getProgressBar(this);
 
         // set up the info window manager
         MapInfoWindowFragment mapInfoWindowFragment =

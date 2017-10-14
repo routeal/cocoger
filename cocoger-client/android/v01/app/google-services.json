@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "573577906713-tu2mcq02ejhtlfco3pv4eb608qsa9gst.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.routeal.cocoger",
+            "certificate_hash": "a8930a00cc77ef10aee74779ddb79040cdfb2392"
+          }
+        },
+        {
           "client_id": "573577906713-6gvd6pv2ml2j21thmn239a3c7ggi0cja.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
@@ -30,6 +38,9 @@
       "api_key": [
         {
           "current_key": "AIzaSyAQNdh-1Tyg15HqCIyET5GunnA0aRe1J9c"
+        },
+        {
+          "current_key": "AIzaSyB7a95HNPxrwNSNsuH_wB8518tWuqCmpvs"
         }
       ],
       "services": {

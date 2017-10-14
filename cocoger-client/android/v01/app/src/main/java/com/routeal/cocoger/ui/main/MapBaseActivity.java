@@ -25,9 +25,14 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.service.LocationUpdate;
 import com.routeal.cocoger.service.LocationUpdateService;
 import com.routeal.cocoger.util.Utils;
 
@@ -35,11 +40,13 @@ abstract class MapBaseActivity extends FragmentActivity
         implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
-    private final static String TAG = "MapBaseActivity";
+    private final static String TAG = "tako";
 
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 1234;
     private final static int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 5678;
+
     private final MapActivityLifecycleCallbacks mCallbacks = new MapActivityLifecycleCallbacks();
+
     private GoogleApiClient mGoogleApiClient;
     private Location mLastKnownLocation;
     private Address mLastKnownAddress;
@@ -48,35 +55,12 @@ abstract class MapBaseActivity extends FragmentActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        Intent intent = new Intent(this, LocationUpdateService.class);
-        startService(intent);
-        getApplication().registerActivityLifecycleCallbacks(mCallbacks);
+        LocationUpdateService.start();
         checkPermission();
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-    }
-
-    @Override
     protected void onDestroy() {
-        getApplication().unregisterActivityLifecycleCallbacks(mCallbacks);
         super.onDestroy();
     }
 
@@ -157,8 +141,9 @@ abstract class MapBaseActivity extends FragmentActivity
     }
 
     void exitApp() {
-        Intent intent = new Intent(this, LocationUpdateService.class);
-        stopService(intent);
+        Log.d(TAG, "unregisterActivityLifecycleCallbacks");
+        getApplication().unregisterActivityLifecycleCallbacks(mCallbacks);
+        LocationUpdateService.stop();
         finish();
     }
 
@@ -183,9 +168,24 @@ abstract class MapBaseActivity extends FragmentActivity
     @Override
     @SuppressWarnings("MissingPermission")
     public void onConnected(@Nullable Bundle bundle) {
-        mLastKnownLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        getApplication().registerActivityLifecycleCallbacks(mCallbacks);
+
+        FusedLocationProviderClient m = LocationServices.getFusedLocationProviderClient(this);
+        m.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
+            @Override
+            public void onComplete(@NonNull Task<Location> task) {
+                Location location = task.getResult();
+                if (location != null) {
+                    mLastKnownLocation = location;
+                    startApp();
+                } else {
+                    // error
+                    startApp();
+                }
+            }
+        });
+
         mGoogleApiClient.disconnect();
-        startApp();
     }
 
     @Override
@@ -207,7 +207,7 @@ abstract class MapBaseActivity extends FragmentActivity
         }
     }
 
-    public static class MapActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
+    private static class MapActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
         private LocationUpdateService mService = null;
 
         private boolean mBound = false;
@@ -218,7 +218,6 @@ abstract class MapBaseActivity extends FragmentActivity
             public void onServiceConnected(ComponentName name, IBinder service) {
                 LocationUpdateService.LocalBinder binder = (LocationUpdateService.LocalBinder) service;
                 mService = binder.getService();
-                mBound = true;
                 Log.d(TAG, "onServiceConnected");
             }
 
@@ -237,7 +236,10 @@ abstract class MapBaseActivity extends FragmentActivity
 
         @Override
         public void onActivityStarted(Activity activity) {
+            Log.d(TAG, "onActivityStarted");
+            if (mBound) return;
             activity.bindService(new Intent(activity, LocationUpdateService.class), mServiceConnection, Context.BIND_AUTO_CREATE);
+            mBound = true;
         }
 
         @Override
@@ -252,6 +254,7 @@ abstract class MapBaseActivity extends FragmentActivity
 
         @Override
         public void onActivityStopped(Activity activity) {
+            Log.d(TAG, "onActivityStopped");
             if (mBound) {
                 // Unbind from the service. This signals to the service that this activity is no longer
                 // in the foreground, and the service can respond by promoting itself to a foreground
@@ -268,7 +271,6 @@ abstract class MapBaseActivity extends FragmentActivity
 
         @Override
         public void onActivityDestroyed(Activity activity) {
-
         }
     }
 }

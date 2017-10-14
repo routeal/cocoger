@@ -18,7 +18,6 @@ import com.routeal.cocoger.model.NoticeMessage;
 import com.routeal.cocoger.util.Utils;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -508,21 +507,21 @@ public class DBUtil {
         }
     }
 
-    public static void saveMessage(String key, String title, String message, int resouceId, Date date) {
-        saveMessage(key, title, message, null, resouceId, date);
+    public static void saveMessage(String key, String title, String message, int resourceId, long created) {
+        saveMessage(key, title, message, null, resourceId, created);
     }
 
-    public static void saveMessage(String key, String title, String message, String picture, Date date) {
-        saveMessage(key, title, message, picture, 0, date);
+    public static void saveMessage(String key, String title, String message, String picture, long created) {
+        saveMessage(key, title, message, picture, 0, created);
     }
 
-    private static void saveMessage(String key, String title, String message, String picture, int resouceId, Date date) {
+    private static void saveMessage(String key, String title, String message, String picture, int resourceId, long created) {
         ContentValues values = new ContentValues();
         values.put(DB.Messages.TITLE, title);
         values.put(DB.Messages.MESSAGE, message);
         values.put(DB.Messages.PICTURE, picture);
-        values.put(DB.Messages.RESOURCEID, resouceId);
-        values.put(DB.Messages.DATE, date.getTime());
+        values.put(DB.Messages.RESOURCEID, resourceId);
+        values.put(DB.Messages.CREATED, created);
         values.put(DB.Messages.KEY, key);
         ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
         contentResolver.insert(DB.Messages.CONTENT_URI, values);
@@ -557,9 +556,8 @@ public class DBUtil {
                     message.setResourceId(cursor.getInt(index));
                     index = cursor.getColumnIndex(DB.Messages.KEY);
                     message.setKey(cursor.getString(index));
-                    index = cursor.getColumnIndex(DB.Messages.DATE);
-                    Date date = new Date(cursor.getLong(index));
-                    message.setDate(date);
+                    index = cursor.getColumnIndex(DB.Messages.CREATED);
+                    message.setCreated(cursor.getLong(index));
                 } while (cursor.moveToNext());
             }
         } catch (Exception e) {

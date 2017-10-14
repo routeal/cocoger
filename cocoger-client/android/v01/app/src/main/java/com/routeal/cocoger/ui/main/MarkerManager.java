@@ -115,7 +115,7 @@ class MarkerManager implements MapActivity.MarkerInterface {
     }
 
     // add a new user or friend
-    private void add(String id, String name, String picture, Location location, Address address, int range) {
+    private void add(String id, String name, Location location, Address address, int range) {
         if (range == 0) return;
 
         if (address != null) {
@@ -133,14 +133,13 @@ class MarkerManager implements MapActivity.MarkerInterface {
             Location rangeLocation = Utils.getRangedLocation(location, address, range);
             if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
                 Log.d(TAG, "add: combined " + id);
-                marker.addUser(id, name, picture, location, address, range);
+                marker.addUser(id, name, location, address, range);
                 return;
             }
         }
 
         Log.d(TAG, "add: create a new marker " + id);
-        ComboMarker m = new ComboMarker(mMap, mInfoWindowManager,
-                id, name, picture, location, address, range);
+        ComboMarker m = new ComboMarker(mMap, mInfoWindowManager, id, name, location, address, range);
         mMarkers.add(m);
     }
 
@@ -201,37 +200,33 @@ class MarkerManager implements MapActivity.MarkerInterface {
 
         User user = FB.getUser();
         String name = null;
-        String picture = null;
 
         if (key.equals(FB.getUid())) {
             name = user.getDisplayName();
-            picture = user.getPicture();
         } else {
             if (user.getFriends() != null) {
                 Friend friend = user.getFriends().get(key);
                 if (friend != null) {
                     name = friend.getDisplayName();
-                    picture = friend.getPicture();
                 }
             }
         }
 
         // should not happen
-        if (name == null || picture == null) return;
+        if (name == null) return;
 
         // find the nearest marker and join
         for (ComboMarker marker : mMarkers) {
             if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
                 Log.d(TAG, "reposition: added to join to the marker");
-                marker.addUser(key, name, picture, location, address, range);
+                marker.addUser(key, name, location, address, range);
                 return;
             }
         }
 
         Log.d(TAG, "reposition: add a marker for " + key);
         // add a new marker to map
-        mMarkers.add(new ComboMarker(mMap, mInfoWindowManager,
-                key, name, picture, location, address, range));
+        mMarkers.add(new ComboMarker(mMap, mInfoWindowManager, key, name, location, address, range));
         //add(key, name, picture, location, address, range);
     }
 
@@ -294,8 +289,7 @@ class MarkerManager implements MapActivity.MarkerInterface {
 
         Log.d(TAG, "reposition range: add a marker for " + key);
         // add a new marker to map
-        mMarkers.add(new ComboMarker(mMap, mInfoWindowManager,
-                key, info.name, info.picture, info.location, info.address, range));
+        mMarkers.add(new ComboMarker(mMap, mInfoWindowManager, key, info.name, info.location, info.address, range));
     }
 
     // apart users from one marker when the distance between them is
@@ -314,7 +308,7 @@ class MarkerManager implements MapActivity.MarkerInterface {
         ComboMarker[] markers = mMarkers.toArray(new ComboMarker[0]);
         for (int i = 0; i < markers.length; i++) {
             ComboMarker m = markers[i];
-            Log.d(TAG, "zoomIn: apart=" + i + " for " + m.getOwner().id + " size=" + m.size());
+            Log.d(TAG, "zoomIn: apart=" + i + " for " + m.getOwner().key + " size=" + m.size());
             m.apart(aparted, mMarkerDistance);
         }
         */
@@ -322,7 +316,7 @@ class MarkerManager implements MapActivity.MarkerInterface {
         if (!aparted.isEmpty()) {
             for (Map.Entry<String, ComboMarker.MarkerInfo> entry : aparted.entrySet()) {
                 ComboMarker.MarkerInfo info = entry.getValue();
-                add(info.id, info.name, info.picture, info.location, info.address, info.range);
+                add(info.id, info.name, info.location, info.address, info.range);
             }
         }
     }
@@ -408,8 +402,7 @@ class MarkerManager implements MapActivity.MarkerInterface {
 
         mHasFriendMarkers = true;
 
-        add(FB.getUid(), user.getDisplayName(), user.getPicture(), location, address,
-                LocationRange.CURRENT.range);
+        add(FB.getUid(), user.getDisplayName(), location, address, LocationRange.CURRENT.range);
 
         Map<String, Friend> friends = user.getFriends();
         if (friends == null || friends.isEmpty()) {
@@ -426,8 +419,7 @@ class MarkerManager implements MapActivity.MarkerInterface {
                 FB.getLocation(friend.getLocation(), new FB.LocationListener() {
                     @Override
                     public void onSuccess(Location location, Address address) {
-                        add(key, friend.getDisplayName(), friend.getPicture(),
-                                location, address, friend.getRange());
+                        add(key, friend.getDisplayName(), location, address, friend.getRange());
                     }
 
                     @Override

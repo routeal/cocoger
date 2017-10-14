@@ -1,42 +1,42 @@
 package com.routeal.cocoger.util;
 
 import android.app.Activity;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Build;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.maps.android.SphericalUtil;
 import com.routeal.cocoger.MainApplication;
-import com.routeal.cocoger.R;
+import com.routeal.cocoger.model.Device;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.provider.DBUtil;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -71,26 +71,14 @@ public class Utils {
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
 
-    public static ProgressDialog getBusySpinner(Context context) {
-        ProgressDialog dialog = ProgressDialog.show(context, null, null, false, true);
+/*
+    public static ProgressBar getBusySpinner(Context context) {
+        ProgressBar spinner = ProgressBar.show(context, null, null, false, true);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         dialog.setContentView(R.layout.progressbar_spinner);
         return dialog;
     }
-
-    public static Bitmap getBitmapFromURL(String src) {
-        try {
-            java.net.URL url = new java.net.URL(src);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setDoInput(true);
-            connection.connect();
-            InputStream input = connection.getInputStream();
-            return BitmapFactory.decodeStream(input);
-        } catch (IOException e) {
-            //e.printStackTrace();
-        }
-        return null;
-    }
+*/
 
     public static BitmapDescriptor getBitmapDescriptor(Drawable drawable) {
         Canvas canvas = new Canvas();
@@ -114,25 +102,41 @@ public class Utils {
         return getIconDrawable(context, resourceId, -1);
     }
 
-    public static Uri saveBitmap(Context context, Bitmap bitmap) {
-        File file = null;
-        FileOutputStream out = null;
+    public static byte[] getBitmapBytes(Context context, Bitmap bitmap) {
+        byte[] bytes = null;
         try {
-            file = File.createTempFile("bitmap", null, context.getCacheDir());
-            out = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+            bytes = stream.toByteArray();
         } catch (Exception e) {
-            file = null;
-            e.printStackTrace();
-        } finally {
-            try {
-                if (out != null) {
-                    out.close();
-                }
-            } catch (IOException e) {
-            }
+            Log.d(TAG, "Failed to convert bitmap into byte array");
         }
-        return (file == null) ? null : Uri.fromFile(file);
+        return bytes;
+    }
+
+    public static byte[] getBitmapBytes(Context context, Uri uri) {
+        byte[] bytes = null;
+        try {
+            InputStream is = context.getContentResolver().openInputStream(uri);
+            if (is == null) {
+                return null;
+            }
+
+            ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+
+            int bufferSize = 1024;
+            byte[] buffer = new byte[bufferSize];
+
+            int len = 0;
+            while ((len = is.read(buffer)) != -1) {
+                byteBuffer.write(buffer, 0, len);
+            }
+
+            bytes = byteBuffer.toByteArray();
+        } catch (Throwable e) {
+            Log.d(TAG, "Failed to convert bitmap into byte array");
+        }
+        return bytes;
     }
 
     public static LatLng getLatLng(Location location) {
@@ -381,7 +385,7 @@ public class Utils {
         canvas.drawColor(Color.TRANSPARENT);
         canvas.drawCircle(width / 2, height / 2, radius, paint);
 
-        if (borderColor >= 0) {
+        if (borderColor > 0) {
             paint.setShader(null);
             paint.setStyle(Paint.Style.STROKE);
             paint.setColor(Color.BLUE);
@@ -516,5 +520,92 @@ public class Utils {
         if (newAddress.getSubThoroughfare() != null && oldAddress.getSubThoroughfare() != null) {
         }
         return "";
+    }
+
+    // For now, the device is saved into the memory
+    public static Device getDevice() {
+        Device mDevice = new Device();
+        mDevice.setDeviceId(getDeviceUniqueId());
+        mDevice.setBrand(Build.BRAND);
+        mDevice.setModel(Build.MODEL);
+        mDevice.setPlatformVersion(Build.VERSION.RELEASE);
+        mDevice.setSimulator(isEmulator());
+        mDevice.setToken(""); // empty for now
+        mDevice.setStatus(Device.FOREGROUND);
+        mDevice.setAppVersion(MainApplication.getApplicationVersion());
+        mDevice.setTimestamp(System.currentTimeMillis());
+        mDevice.setCreated(System.currentTimeMillis());
+        return mDevice;
+    }
+
+    static boolean isEmulator() {
+        int rating = 0;
+
+        if ((Build.PRODUCT.equals("sdk")) || (Build.PRODUCT.equals("google_sdk"))
+                || (Build.PRODUCT.equals("sdk_x86")) || (Build.PRODUCT.equals("vbox86p"))) {
+            rating++;
+        }
+        if ((Build.MANUFACTURER.equals("unknown")) || (Build.MANUFACTURER.equals("Genymotion"))) {
+            rating++;
+        }
+        if ((Build.BRAND.equals("generic")) || (Build.BRAND.equals("generic_x86"))) {
+            rating++;
+        }
+        if ((Build.DEVICE.equals("generic")) || (Build.DEVICE.equals("generic_x86")) ||
+                (Build.DEVICE.equals("vbox86p"))) {
+            rating++;
+        }
+        if ((Build.MODEL.equals("sdk")) || (Build.MODEL.equals("google_sdk"))
+                || (Build.MODEL.equals("Android SDK built for x86"))) {
+            rating++;
+        }
+        if ((Build.HARDWARE.equals("goldfish")) || (Build.HARDWARE.equals("vbox86"))) {
+            rating++;
+        }
+        if ((Build.FINGERPRINT.contains("generic/sdk/generic"))
+                || (Build.FINGERPRINT.contains("generic_x86/sdk_x86/generic_x86"))
+                || (Build.FINGERPRINT.contains("generic/google_sdk/generic"))
+                || (Build.FINGERPRINT.contains("generic/vbox86p/vbox86p"))) {
+            rating++;
+        }
+
+        return rating > 4;
+    }
+
+    private static String getDeviceUniqueId() {
+        return Settings.Secure.getString(MainApplication.getContext().getContentResolver(),
+                Settings.Secure.ANDROID_ID);
+    }
+
+    public static class ProgressBarView {
+        private ProgressBar mProgressBar;
+
+        ProgressBarView(Activity activity) {
+            ViewGroup layout = (ViewGroup) activity.findViewById(android.R.id.content).getRootView();
+
+            mProgressBar = new ProgressBar(activity, null, android.R.attr.progressBarStyleLarge);
+            mProgressBar.setIndeterminate(true);
+
+            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+                    RelativeLayout.LayoutParams.MATCH_PARENT, RelativeLayout.LayoutParams.MATCH_PARENT);
+
+            RelativeLayout rl = new RelativeLayout(activity);
+            rl.setGravity(Gravity.CENTER);
+            rl.addView(mProgressBar);
+
+            layout.addView(rl, params);
+        }
+
+        public void show() {
+            mProgressBar.setVisibility(View.VISIBLE);
+        }
+
+        public void hide() {
+            mProgressBar.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    public static ProgressBarView getProgressBar(Activity activity) {
+        return new ProgressBarView(activity);
     }
 }

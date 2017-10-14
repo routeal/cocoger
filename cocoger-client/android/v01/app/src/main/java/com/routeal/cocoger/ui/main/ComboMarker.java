@@ -17,7 +17,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
-import com.routeal.cocoger.util.LoadImage;
+import com.routeal.cocoger.util.LoadMarkerImage;
 import com.routeal.cocoger.util.Utils;
 
 import java.util.HashMap;
@@ -40,22 +40,20 @@ class ComboMarker {
     private Map<String, MarkerInfo> mInfoMap = new HashMap<>();
     private Marker mMarker;
     private MarkerInfo mOwner;
-    private LoadImage.LoadMarkerImage mImageTask;
+    private LoadMarkerImage mImageTask;
     private GoogleMap mMap;
     private InfoWindowManager mInfoWindowManager;
     private InfoWindow mInfoWindow;
 
     ComboMarker(GoogleMap map, InfoWindowManager infoWindowManager,
-                String id, String name, String picture,
-                Location location, Address address, int range) {
-        //Log.d(TAG, "ComboMarker: new " + id);
+                String id, String name, Location location, Address address, int range) {
+        //Log.d(TAG, "ComboMarker: new " + key);
         mMap = map;
         mInfoWindowManager = infoWindowManager;
 
         MarkerInfo markerInfo = new MarkerInfo();
         markerInfo.id = id;
         markerInfo.name = name;
-        markerInfo.picture = picture;
         markerInfo.location = location;
         markerInfo.address = address;
         markerInfo.range = range;
@@ -134,10 +132,10 @@ class ComboMarker {
     // simply remove this from the map
     void remove() {
         if (mImageTask != null) {
-            mImageTask.cancel(true);
+            mImageTask.cancel();
             mImageTask = null;
         }
-        //Log.d(TAG, "remove: from the map " + mOwner.id);
+        //Log.d(TAG, "remove: from the map " + mOwner.key);
         mMarker.remove();
         mMarker = null;
         if (mInfoWindow != null) {
@@ -163,7 +161,7 @@ class ComboMarker {
 
     // apart the users in the marker when the distance is longer
     void apart(Map<String, MarkerInfo> aparted, double minDistance) {
-        //Log.d(TAG, "apart: " + mOwner.id);
+        //Log.d(TAG, "apart: " + mOwner.key);
         // no need to apart
         if (mInfoMap.size() == 1) {
             //Log.d(TAG, "NOP apart: no need to apart - only one");
@@ -177,7 +175,7 @@ class ComboMarker {
             if (mOwner == info) continue;
             // remove from this marker and put into the list argument
             if (Utils.distanceTo(mOwner.rangeLocation, info.rangeLocation) > minDistance) {
-                //Log.d(TAG, "apart: removed and added " + info.id + " size=" + mInfoList.size());
+                //Log.d(TAG, "apart: removed and added " + info.key + " size=" + mInfoList.size());
                 it.remove();
                 //Log.d(TAG, "apart: removed and added after size=" + mInfoList.size());
                 getPicture();
@@ -194,41 +192,39 @@ class ComboMarker {
         getPicture();
     }
 
-    void addUser(String id, String name, String picture,
-                 Location location, Address address, int range) {
+    void addUser(String id, String name, Location location, Address address, int range) {
         boolean hasInfo = contains(id);
         if (hasInfo) return;
 
         MarkerInfo markerInfo = new MarkerInfo();
         markerInfo.id = id;
         markerInfo.name = name;
-        markerInfo.picture = picture;
         markerInfo.location = location;
         markerInfo.address = address;
         markerInfo.range = range;
         markerInfo.rangeLocation = Utils.getRangedLocation(location, address, range);
         mInfoMap.put(id, markerInfo);
 
-        //Log.d(TAG, "addUsr: " + id);
+        //Log.d(TAG, "addUsr: " + key);
         getPicture();
     }
 
     void getPicture() {
-        if (mMarker == null) return;
-        if (mInfoMap.isEmpty()) return;
-        String[] pictures = new String[mInfoMap.size()];
+        if (mMarker == null) {
+            return;
+        }
+        if (mInfoMap.isEmpty()) {
+            return;
+        }
+        String[] uids = new String[mInfoMap.size()];
         int i = 0;
         for (Object value : mInfoMap.values()) {
             MarkerInfo info = (MarkerInfo) value;
-            pictures[i++] = info.picture;
+            uids[i++] = info.id;
         }
-        if (mImageTask != null) {
-            mImageTask.cancel(true);
-            mImageTask = null;
-        }
-        //Log.d(TAG, "getPicture: owner=" + mOwner.id);
-        mImageTask = new LoadImage.LoadMarkerImage(mMarker);
-        mImageTask.execute(pictures);
+        //Log.d(TAG, "getPicture: owner=" + mOwner.key);
+        mImageTask = new LoadMarkerImage(mMarker);
+        mImageTask.load(uids);
     }
 
     boolean onMarkerClick(Marker marker) {
@@ -280,7 +276,6 @@ class ComboMarker {
     class MarkerInfo {
         String id;
         String name;
-        String picture;
         Location location;
         Location rangeLocation;
         Address address;

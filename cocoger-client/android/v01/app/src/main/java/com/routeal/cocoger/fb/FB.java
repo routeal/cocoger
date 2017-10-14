@@ -7,18 +7,19 @@ import android.graphics.Bitmap;
 import android.location.Address;
 import android.location.Location;
 import android.net.Uri;
-import android.os.Build;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.core.GeoHash;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -33,6 +34,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
@@ -87,9 +89,17 @@ public class FB {
     public final static String NOTIFI_RANGE = "range";
     public final static String NOTIFI_FRIEND_INVITE = "friend_invite";
 
+    public final static String PROFILE_IMAGE = "profile.jpg";
+    public final static String PLACE_IMAGE = "place-%s.jpg";
+
     private final static String TAG = "FB";
-    private static boolean monitored = false;
+
     private static User mUser;
+
+    // set up the auth state listener as soon as the app is started
+    static {
+        monitorAuthentication();
+    }
 
     public static User getUser() {
         return mUser;
@@ -111,12 +121,11 @@ public class FB {
     }
 
     public static String getUid() {
-        try {
-            FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
-            return fUser.getUid();
-        } catch (Throwable t) {
-            return "";
+        FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (fUser == null) {
+            throw new RuntimeException("Fatal error: current user not available.");
         }
+        return fUser.getUid();
     }
 
     private static DatabaseReference getFeedbackDatabaseReference() {
@@ -171,41 +180,27 @@ public class FB {
         Log.d(TAG, "monitorAuthentication");
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
-        if (auth == null) return;
 
-        if (monitored) return;
-        monitored = true;
-
-        // setting up a listener when the user is authenticated
         auth.addAuthStateListener(new FirebaseAuth.AuthStateListener() {
             @Override
             public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
-                    Log.d(TAG, "Firebase User authenticated");
-                    try {
-                        onUserAuth();
-                    } catch (Exception e) {
-                    }
+                    Log.d(TAG, "Firebase User authenticated:" + user.getEmail());
+                    monitorUserDatabase();
                 } else {
                     Log.d(TAG, "Firebase User invalidated");
-                    if (FB.getUser() != null) {
-                        FB.setUser(null);
-                        // stop the service
-                        Context context = MainApplication.getContext();
-                        Intent intent = new Intent(context, LocationUpdateService.class);
-                        context.stopService(intent);
-                    }
+                    FB.setUser(null);
+                    LocationUpdateService.stop();
                 }
             }
         });
     }
 
-    private static void onUserAuth() throws Exception {
-        DatabaseReference userDb = getUserDatabaseReference();
+    private static void monitorUserDatabase() {
+        DatabaseReference db = getUserDatabaseReference();
 
-        // called whenever the user database is updated
-        userDb.child(getUid()).addValueEventListener(new ValueEventListener() {
+        db.child(getUid()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Log.d(TAG, "User database changed:" + dataSnapshot.toString());
@@ -213,10 +208,8 @@ public class FB {
                 User newUser = dataSnapshot.getValue(User.class);
                 User oldUser = FB.getUser();
 
-                if (newUser == null) {
-                    if (oldUser == null) {
-                        onCreateUser(dataSnapshot.getKey());
-                    }
+                if (newUser == null && oldUser == null) {
+                    onCreateUser(dataSnapshot.getKey());
                 } else {
                     if (oldUser != null) {
                         onUpdateUser(newUser, oldUser);
@@ -228,29 +221,34 @@ public class FB {
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
+                Log.d(TAG, "monitorUserDatabase: error", databaseError.toException());
             }
         });
     }
 
-    public static void signIn(Activity ctx, String email, String password,
-                              final SignInListener listener) {
+    public static void signIn(Activity activity, String email, String password, final SignInListener listener) {
         FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(ctx, new OnCompleteListener<AuthResult>() {
+                .addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             if (listener != null) listener.onSuccess();
                         } else {
-                            if (listener != null)
-                                listener.onFail(task.getException().getLocalizedMessage());
+                            Exception e = task.getException();
+                            Log.d(TAG, "Failed to sign in", e);
+                            if (listener != null) {
+                                if (e != null) {
+                                    listener.onFail(e.getLocalizedMessage());
+                                } else {
+                                    listener.onFail("Failed to sign in.  Try again.");
+                                }
+                            }
                         }
                     }
                 });
     }
 
-    public static void createUser(Activity activity, String email, String password,
-                                  final CreateUserListener listener) {
+    public static void createUser(Activity activity, String email, String password, final CreateUserListener listener) {
         FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
                     @Override
@@ -259,8 +257,15 @@ public class FB {
                             FirebaseUser user = task.getResult().getUser();
                             if (listener != null) listener.onSuccess(user.getUid());
                         } else {
-                            if (listener != null)
-                                listener.onFail(task.getException().getLocalizedMessage());
+                            Exception e = task.getException();
+                            Log.d(TAG, "Failed to create a user", e);
+                            if (listener != null) {
+                                if (e != null) {
+                                    listener.onFail(e.getLocalizedMessage());
+                                } else {
+                                    listener.onFail("Failed to create a user.  Try again.");
+                                }
+                            }
                         }
                     }
                 });
@@ -274,8 +279,15 @@ public class FB {
                         if (task.isSuccessful()) {
                             if (listener != null) listener.onSuccess();
                         } else {
-                            if (listener != null)
-                                listener.onFail(task.getException().getLocalizedMessage());
+                            Exception e = task.getException();
+                            Log.d(TAG, "Failed to reset a password", e);
+                            if (listener != null) {
+                                if (e != null) {
+                                    listener.onFail(e.getLocalizedMessage());
+                                } else {
+                                    listener.onFail("Failed to reset a password.  Try again.");
+                                }
+                            }
                         }
                     }
                 });
@@ -285,7 +297,6 @@ public class FB {
         saveLocation(location, address, null);
     }
 
-    // Note: this may call before login
     public static void saveLocation(Location location, Address address, SaveLocationListener listener) {
         saveLocation(location, address, true, listener);
     }
@@ -294,13 +305,16 @@ public class FB {
                                     final SaveLocationListener listener) {
         Log.d(TAG, "saveLocation:");
 
-        String uid = getUid();
-        if (uid == null) return;
+        // very first location update comes before getting the user
+        if (getUser() == null) {
+            return;
+        }
 
         double latitude = location.getLatitude();
         double longitude = location.getLongitude();
 
         LocationAddress loc = new LocationAddress();
+        loc.setUid(getUid());
         loc.setTimestamp(location.getTime());
         loc.setLatitude(latitude);
         loc.setLongitude(longitude);
@@ -315,6 +329,9 @@ public class FB {
         loc.setThoroughfare(address.getThoroughfare());
         loc.setSubThoroughfare(address.getSubThoroughfare());
 
+        // uid
+        String uid = getUid();
+
         // top level database reference
         DatabaseReference db = FirebaseDatabase.getInstance().getReference();
 
@@ -324,14 +341,12 @@ public class FB {
         GeoHash geoHash = new GeoHash(new GeoLocation(latitude, longitude));
 
         Map<String, Object> updates = new HashMap<>();
-        // location detail
+        // location
         updates.put("locations/" + key, loc);
         // geo location
         updates.put("geo_locations/" + key + "/g", geoHash.getGeoHashString());
-        // geo location
         updates.put("geo_locations/" + key + "/l", Arrays.asList(latitude, longitude));
         // user locations
-        //updates.put("users/" + getUid() + "/locations/" + key, loc.getTimestamp());
         updates.put("user_locations/" + uid + "/" + key, loc.getTimestamp());
         updates.put("users/" + uid + "/location/", key);
 
@@ -351,37 +366,33 @@ public class FB {
             @Override
             public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
                 if (databaseError == null) {
-                    // success
                     if (listener != null) listener.onSuccess(key);
                 } else {
-                    // error
                     if (listener != null) listener.onFail(databaseError.getMessage());
                 }
             }
         });
     }
 
-    public static void updateUser(String name, String gender, String bob, String url) {
+    public static void updateUser(String displayName, String gender, String birthYear) {
         String uid = getUid();
-        if (uid == null) return;
 
         DatabaseReference db = FirebaseDatabase.getInstance().getReference();
+
         Map<String, Object> updates = new HashMap<>();
-        if (name != null) {
-            name = name.trim();
-            updates.put("users/" + uid + "/displayName/", name);
-            updates.put("users/" + uid + "/searchedName/", name.toLowerCase());
+
+        if (displayName != null) {
+            displayName = displayName.trim();
+            updates.put("users/" + uid + "/displayName/", displayName);
+            updates.put("users/" + uid + "/searchedName/", displayName.toLowerCase());
         }
         if (gender != null) {
             gender = gender.trim();
             updates.put("users/" + uid + "/gender/", gender.toLowerCase());
         }
-        if (bob != null) {
-            bob = bob.trim();
-            updates.put("users/" + uid + "/birthYear/", bob.toLowerCase());
-        }
-        if (url != null) {
-            updates.put("users/" + uid + "/picture/", url);
+        if (birthYear != null) {
+            birthYear = birthYear.trim();
+            updates.put("users/" + uid + "/birthYear/", birthYear.toLowerCase());
         }
         if (updates.size() > 0) {
             db.updateChildren(updates);
@@ -395,41 +406,39 @@ public class FB {
         FB.setUser(user);
 
         // let the map activity know that the user becomes available
-        // so that it can have the user pictures.  Sometimes the map
-        // comes faster than the user info from the firebase.
-        if (MainApplication.getContext() != null) {
-            Intent intent = new Intent(FB.USER_AVAILABLE);
-            LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
-        }
+        // so that the map can really get started.  Sometimes the map
+        // comes faster than the user available from the database.
+        Intent intent = new Intent(FB.USER_AVAILABLE);
+        LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
 
         // the current device
-        Device currentDevice = getDevice();
+        Device currentDevice = Utils.getDevice();
 
-        String devKey = null;
+        String key = null;
 
-        // get the device key to match the device id in the user database
-        Map<String, String> devList = user.getDevices();
-        if (devList != null && !devList.isEmpty()) {
-            for (Map.Entry<String, String> entry : devList.entrySet()) {
+        // find the device key to match the device id in the user database
+        Map<String, String> devices = user.getDevices();
+        if (devices != null && !devices.isEmpty()) {
+            for (Map.Entry<String, String> entry : devices.entrySet()) {
                 // the values is a device id
                 if (entry.getValue().equals(currentDevice.getDeviceId())) {
-                    devKey = entry.getKey();
+                    key = entry.getKey();
                 }
             }
         }
 
-        DatabaseReference devDb = getDeviceDatabaseReference();
+        DatabaseReference deviceDb = getDeviceDatabaseReference();
 
-        if (devKey != null) {
+        if (key != null) {
             // update the timestamp of the device
-            devDb.child(devKey).child("timestamp").setValue(currentDevice.getTimestamp());
+            deviceDb.child(key).child("timestamp").setValue(currentDevice.getTimestamp());
         } else {
             // set the uid to the device before save
             currentDevice.setUid(uid);
 
             // add it as a new device
-            String newKey = devDb.push().getKey();
-            devDb.child(newKey).setValue(currentDevice);
+            String newKey = deviceDb.push().getKey();
+            deviceDb.child(newKey).setValue(currentDevice);
 
             // also add it to the user database under 'devices'
             DatabaseReference userDb = getUserDatabaseReference();
@@ -438,24 +447,25 @@ public class FB {
     }
 
     private static void onCreateUser(String uid) {
-        Log.d(TAG, "signup: uid=" + uid);
+        Log.d(TAG, "onCreateUser: uid=" + uid);
 
-        FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
+        FirebaseUser fbUser = FirebaseAuth.getInstance().getCurrentUser();
 
         User user = new User();
-        user.setEmail(fUser.getEmail());
+        if (fbUser != null) {
+            user.setEmail(fbUser.getEmail());
+        }
 
         // save the user in the memory
         FB.setUser(user);
 
-        FirebaseDatabase db = FirebaseDatabase.getInstance();
-
         // save the device info
-        Device device = getDevice();
+        Device device = Utils.getDevice();
         device.setUid(uid);
-        DatabaseReference devDb = getDeviceDatabaseReference();
-        String key = devDb.push().getKey();
-        devDb.child(key).setValue(device);
+
+        DatabaseReference deviceDb = getDeviceDatabaseReference();
+        String key = deviceDb.push().getKey();
+        deviceDb.child(key).setValue(device);
 
         // save the user info to the remote database
         DatabaseReference userDb = getUserDatabaseReference();
@@ -574,8 +584,8 @@ public class FB {
 
     public static void initUser(User user) throws Exception {
         String uid = getUid();
-        DatabaseReference userDb = getUserDatabaseReference();
-        userDb.child(uid).setValue(user);
+        DatabaseReference db = getUserDatabaseReference();
+        db.child(uid).setValue(user);
     }
 
     private static void sendEmailVerification() {
@@ -585,21 +595,20 @@ public class FB {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     if (task.isSuccessful()) {
-                        Log.d(TAG, "sendEmailVerification");
+                        Log.d(TAG, "sendEmailVerification: successfully sent");
                     }
                 }
             });
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static boolean checkFriendRequest(RecyclerView.Adapter a) {
         FirebaseRecyclerAdapter<User, UserListViewHolder> adapter =
                 (FirebaseRecyclerAdapter<User, UserListViewHolder>) a;
         boolean accepted = false;
 
-        User user = FB.getUser();
-
-        Map<String, Long> invitees = user.getInvitees();
+        Map<String, Long> invitees = FB.getUser().getInvitees();
 
         if (invitees != null) {
             for (int i = 0; i < adapter.getItemCount(); i++) {
@@ -614,11 +623,12 @@ public class FB {
         return accepted;
     }
 
+    @SuppressWarnings("unchecked")
     public static boolean sendFriendRequest(RecyclerView.Adapter a) {
         FirebaseRecyclerAdapter<User, UserListViewHolder> adapter =
                 (FirebaseRecyclerAdapter<User, UserListViewHolder>) a;
 
-        if (adapter == null) return false;
+        boolean modified = false;
 
         String uid = getUid();
         DatabaseReference userDb = getUserDatabaseReference();
@@ -626,11 +636,9 @@ public class FB {
         User user = FB.getUser();
         Map<String, Friend> friends = user.getFriends();
 
-        boolean modified = false;
-
         for (int i = 0; i < adapter.getItemCount(); i++) {
-            DatabaseReference fDb = adapter.getRef(i);
-            if (fDb.getKey().equals(uid)) {
+            DatabaseReference friendDb = adapter.getRef(i);
+            if (friendDb.getKey().equals(uid)) {
                 // trying to add myself to friends
                 continue;
             }
@@ -646,7 +654,7 @@ public class FB {
             long timestamp = System.currentTimeMillis();
 
             // add myself to friend
-            fDb.child("invitees").child(uid).setValue(timestamp);
+            friendDb.child("invitees").child(uid).setValue(timestamp);
 
             // add friends to myself
             userDb.child(uid).child("invites").child(key).setValue(timestamp);
@@ -677,11 +685,10 @@ public class FB {
                         friend.setCreated(timestamp);
                         friend.setRange(defaultLocationChange);
                         friend.setDisplayName(inviteUser.getDisplayName());
-                        friend.setPicture(inviteUser.getPicture());
                         friend.setLocation(inviteUser.getLocation());
 
-                        DatabaseReference fDb = getFriendDatabaseReference(invitee, invite);
-                        fDb.setValue(friend);
+                        DatabaseReference friendDb = getFriendDatabaseReference(invitee, invite);
+                        friendDb.setValue(friend);
                     }
 
                     @Override
@@ -694,17 +701,15 @@ public class FB {
         myInfo.setCreated(timestamp);
         myInfo.setRange(defaultLocationChange);
         myInfo.setDisplayName(FB.getUser().getDisplayName());
-        myInfo.setPicture(FB.getUser().getPicture());
         myInfo.setLocation(FB.getUser().getLocation());
 
-        DatabaseReference fDb = getFriendDatabaseReference(invite, invitee);
-        fDb.setValue(myInfo);
+        DatabaseReference friendDb = getFriendDatabaseReference(invite, invitee);
+        friendDb.setValue(myInfo);
     }
 
     public static void declineFriendRequest(String invite) {
         // delete the invite and invitee from the database
         String invitee = getUid();
-
         DatabaseReference userDb = getUserDatabaseReference();
         userDb.child(invitee).child("invitees").child(invite).removeValue();
         userDb.child(invite).child("invites").child(invitee).removeValue();
@@ -730,7 +735,6 @@ public class FB {
 
     public static void declineRangeRequest(String requester) {
         String responder = getUid(); // myself
-
         DatabaseReference resDb = getFriendDatabaseReference(responder, requester);
         resDb.child("rangeRequest").removeValue();
     }
@@ -738,11 +742,11 @@ public class FB {
     public static void changeRange(String fid, int range) {
         String uid = getUid();
 
-        DatabaseReference myside = getFriendDatabaseReference(uid, fid);
-        myside.child("range").setValue(range);
+        DatabaseReference myDb = getFriendDatabaseReference(uid, fid);
+        myDb.child("range").setValue(range);
 
-        DatabaseReference hisside = getFriendDatabaseReference(fid, uid);
-        hisside.child("range").setValue(range);
+        DatabaseReference friendDb = getFriendDatabaseReference(fid, uid);
+        friendDb.child("range").setValue(range);
     }
 
     public static void sendChangeRequest(String fid, int range) {
@@ -752,31 +756,34 @@ public class FB {
         rangeRequest.setCreated(System.currentTimeMillis());
         rangeRequest.setRange(range);
 
-        DatabaseReference hisside = getFriendDatabaseReference(fid, uid);
-        hisside.child("rangeRequest").setValue(rangeRequest);
+        DatabaseReference friendDb = getFriendDatabaseReference(fid, uid);
+        friendDb.child("rangeRequest").setValue(rangeRequest);
     }
 
     public static void unfriend(String fid) {
         String uid = getUid();
-        DatabaseReference hisside = getFriendDatabaseReference(fid, uid);
-        hisside.removeValue();
 
-        DatabaseReference myside = getFriendDatabaseReference(uid, fid);
-        myside.removeValue();
+        DatabaseReference friendDb = getFriendDatabaseReference(fid, uid);
+        friendDb.removeValue();
+
+        DatabaseReference myDb = getFriendDatabaseReference(uid, fid);
+        myDb.removeValue();
     }
 
-    public static void uploadImageFile(Uri localFile, String name,
-                                       final UploadImageListener listener) {
+    public static void uploadData(byte[] bytes, String name, final UploadDataListener listener) {
         String uid = getUid();
-        String refName = "users/" + uid + "/image/" + name;
-        FirebaseStorage.getInstance().getReference().child(refName).putFile(localFile)
+        String refName = "users/" + uid + "/" + name;
+        StorageReference ref = FirebaseStorage.getInstance().getReference().child(refName);
+        ref.putBytes(bytes)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        @SuppressWarnings("VisibleForTests")
                         Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                        String picture = downloadUrl.toString();
-                        if (listener != null) listener.onSuccess(picture);
+                        String url = null;
+                        if (downloadUrl != null) {
+                            url = downloadUrl.toString();
+                        }
+                        if (listener != null) listener.onSuccess(url);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -785,18 +792,51 @@ public class FB {
                         if (listener != null) listener.onFail(e.getLocalizedMessage());
                     }
                 });
-
     }
 
-    private static void sendRangeNotification(String uid, Friend friend,
-                                              int requestRange, int currentRange) {
+    public static void downloadData(String name, String uid, final DownloadDataListener listener) {
+        String refName = "users/" + uid + "/" + name;
+        long ONE_MEGABYTE = 1024 * 1024;
+        StorageReference ref = FirebaseStorage.getInstance().getReference().child(refName);
+        ref.getBytes(ONE_MEGABYTE)
+                .addOnSuccessListener(new OnSuccessListener<byte[]>() {
+                    @Override
+                    public void onSuccess(byte[] bytes) {
+                        if (listener != null) listener.onSuccess(bytes);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        if (listener != null) listener.onFail(e.getLocalizedMessage());
+                    }
+                });
+    }
+
+    public static void deleteData(String name, final DeleteDataListener listener) {
+        String uid = getUid();
+        String refName = "users/" + uid + "/" + name;
+        StorageReference ref = FirebaseStorage.getInstance().getReference().child(refName);
+        ref.delete()
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        if (listener != null) listener.onSuccess();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        if (listener != null) listener.onFail(e.getLocalizedMessage());
+                    }
+                });
+    }
+
+    private static void sendRangeNotification(String uid, Friend friend, int requestRange, int currentRange) {
         Context context = MainApplication.getContext();
 
         Intent acceptIntent = new Intent(context, PanelMapActivity.class);
-        acceptIntent.addFlags(//Intent.FLAG_ACTIVITY_CLEAR_TOP
-//                | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
-                Intent.FLAG_ACTIVITY_SINGLE_TOP
-                        | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+        acceptIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
         acceptIntent.setAction(ACTION_RANGE_REQUEST_ACCEPTED);
         acceptIntent.putExtra(NOTIFI_RANGE_REQUESTER, uid);
         acceptIntent.putExtra(NOTIFI_RANGE, requestRange);
@@ -811,26 +851,30 @@ public class FB {
         String content = String.format(pattern, to, from);
         int nid = Math.abs((int) friend.getRangeRequest().getCreated());
 
-        Notifi.send(nid, friend.getDisplayName(), content, friend.getPicture(),
-                acceptIntent, declineIntent);
+        Notifi.send(nid, uid, friend.getDisplayName(), content, acceptIntent, declineIntent);
     }
 
     private static void sendInviteNotification(final String invite, final long timestamp) {
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
+        DatabaseReference userRef = getUserDatabaseReference();
 
         userRef.child(invite).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 User inviteUser = dataSnapshot.getValue(User.class);
 
+                String displayName = "";
+
+                if (inviteUser == null) {
+                    Log.d(TAG, "Failed to get a friend info for friend request");
+                } else {
+                    displayName = inviteUser.getDisplayName();
+                }
+
                 Context context = MainApplication.getContext();
 
                 // accept starts the main activity with the friend view
                 Intent acceptIntent = new Intent(context, PanelMapActivity.class);
-                acceptIntent.addFlags(//Intent.FLAG_ACTIVITY_CLEAR_TOP
-//                        | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP
-                                | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                acceptIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
                 acceptIntent.setAction(ACTION_FRIEND_REQUEST_ACCEPTED);
                 acceptIntent.putExtra(NOTIFI_FRIEND_INVITE, invite);
 
@@ -839,12 +883,11 @@ public class FB {
                 declineIntent.putExtra(NOTIFI_FRIEND_INVITE, invite);
 
                 String pattern = context.getResources().getString(R.string.receive_friend_request);
-                String content = String.format(pattern, inviteUser.getDisplayName());
+                String content = String.format(pattern, displayName);
 
                 int nid = Math.abs((int) timestamp);
 
-                Notifi.send(nid, inviteUser.getDisplayName(), content, inviteUser.getPicture(),
-                        acceptIntent, declineIntent);
+                Notifi.send(nid, invite, displayName, content, acceptIntent, declineIntent);
             }
 
             @Override
@@ -855,43 +898,53 @@ public class FB {
     }
 
     public static FirebaseRecyclerAdapter<Friend, FriendListViewHolder> getFriendRecyclerAdapter() {
-        DatabaseReference fDb = getFriendDatabaseReference(getUid());
+        DatabaseReference db = getFriendDatabaseReference(getUid());
 
-        FirebaseRecyclerAdapter<Friend, FriendListViewHolder> adapter =
-                new FirebaseRecyclerAdapter<Friend, FriendListViewHolder>(
-                        Friend.class,
-                        R.layout.listview_friend_list,
-                        FriendListViewHolder.class,
-                        fDb
-                ) {
-                    @Override
-                    protected void populateViewHolder(FriendListViewHolder viewHolder,
-                                                      Friend model, int position) {
-                        viewHolder.bind(model, getRef(position).getKey());
-                    }
-                };
+        Query query = db.orderByChild("range");
 
-        return adapter;
+        FirebaseRecyclerOptions<Friend> options =
+                new FirebaseRecyclerOptions.Builder<Friend>()
+                        .setQuery(query, Friend.class)
+                        .build();
+
+        return new FirebaseRecyclerAdapter<Friend, FriendListViewHolder>(options) {
+            @Override
+            public FriendListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                View view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.listview_friend_list, parent, false);
+                return new FriendListViewHolder(view);
+            }
+
+            @Override
+            protected void onBindViewHolder(FriendListViewHolder holder, int position, Friend model) {
+                holder.bind(model, getRef(position).getKey());
+            }
+        };
     }
 
     public static FirebaseRecyclerAdapter<String, PlaceListViewHolder> getPlaceRecyclerAdapter() {
         DatabaseReference db = getPlaceDatabaseReference(getUid());
 
-        FirebaseRecyclerAdapter<String, PlaceListViewHolder> adapter =
-                new FirebaseRecyclerAdapter<String, PlaceListViewHolder>(
-                        String.class,
-                        R.layout.listview_place_list,
-                        PlaceListViewHolder.class,
-                        db
-                ) {
-                    @Override
-                    protected void populateViewHolder(PlaceListViewHolder viewHolder,
-                                                      String uid, int position) {
-                        viewHolder.bind(getRef(position).getKey(), uid);
-                    }
-                };
+        Query query = db.orderByValue();
 
-        return adapter;
+        FirebaseRecyclerOptions<String> options =
+                new FirebaseRecyclerOptions.Builder<String>()
+                        .setQuery(query, String.class)
+                        .build();
+
+        return new FirebaseRecyclerAdapter<String, PlaceListViewHolder>(options) {
+            @Override
+            public PlaceListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                View view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.listview_place_list, parent, false);
+                return new PlaceListViewHolder(view);
+            }
+
+            @Override
+            protected void onBindViewHolder(PlaceListViewHolder holder, int position, String model) {
+                holder.bind(getRef(position).getKey(), model);
+            }
+        };
     }
 
     public static void getPlace(String key, final PlaceListener listener) {
@@ -916,83 +969,106 @@ public class FB {
         );
     }
 
-
     public static FirebaseRecyclerAdapter<User, UserListViewHolder> getUserRecyclerAdapter(String text, final View view) {
-        // FIXME:
-        // Need flexible search
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference().child("users");
 
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
-
-        Query query = userRef
+        Query query = db
                 .orderByChild("searchedName")
                 .limitToFirst(40)
                 .startAt(text)
                 .endAt(text + "~");
 
-        FirebaseRecyclerAdapter<User, UserListViewHolder> adapter =
-                new FirebaseRecyclerAdapter<User, UserListViewHolder>(
-                        User.class,
-                        R.layout.listview_user_list,
-                        UserListViewHolder.class,
-                        query) {
+        FirebaseRecyclerOptions<User> options =
+                new FirebaseRecyclerOptions.Builder<User>()
+                        .setQuery(query, User.class)
+                        .build();
 
-                    @Override
-                    public void populateViewHolder(UserListViewHolder holder,
-                                                   User user, int position) {
-                        holder.bind(user, getRef(position).getKey());
-                    }
+        return new FirebaseRecyclerAdapter<User, UserListViewHolder>(options) {
+            @Override
+            public UserListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                View view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.listview_user_list, parent, false);
+                return new UserListViewHolder(view);
+            }
 
-                    @Override
-                    public void onDataChanged() {
-                        // NOTE: this gets called when new people are added to the friends
-                        TextView emptyListMessage = (TextView) view.findViewById(R.id.empty_list_text);
-                        emptyListMessage.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
-                    }
-                };
+            @Override
+            protected void onBindViewHolder(UserListViewHolder holder, int position, User model) {
+                holder.bind(model, getRef(position).getKey());
+            }
 
-        return adapter;
+            @Override
+            public void onDataChanged() {
+                // NOTE: this gets called when new people are added to the friends
+                TextView emptyListMessage = (TextView) view.findViewById(R.id.empty_list_text);
+                emptyListMessage.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
+            }
+        };
     }
 
     public static void getUser(String key, final UserListener listener) {
-        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
-        userRef.child(key).addListenerForSingleValueEvent(
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference().child("users");
+        db.child(key).addListenerForSingleValueEvent(
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         User user = dataSnapshot.getValue(User.class);
-                        if (listener != null) {
-                            listener.onSuccess(user);
+                        if (user != null) {
+                            if (listener != null) {
+                                listener.onSuccess(user);
+                            }
+                        } else {
+                            if (listener != null) {
+                                listener.onFail("Failed to get a User object");
+                            }
                         }
                     }
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
+                        Exception e = databaseError.toException();
+                        Log.d(TAG, "Failed to get a User object", e);
                         if (listener != null) {
-                            listener.onFail(databaseError.toException().getLocalizedMessage());
+                            if (e != null) {
+                                listener.onFail(e.getLocalizedMessage());
+                            } else {
+                                listener.onFail("Failed to get a User object.");
+                            }
                         }
                     }
                 }
         );
     }
 
-    public static void getLocation(String location, final LocationListener listener) {
-        DatabaseReference locDb = getLocationDatabaseReference();
-        locDb.child(location).addListenerForSingleValueEvent(
+    public static void getLocation(String locationKey, final LocationListener listener) {
+        DatabaseReference db = getLocationDatabaseReference();
+        db.child(locationKey).addListenerForSingleValueEvent(
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         LocationAddress la = dataSnapshot.getValue(LocationAddress.class);
-                        if (listener != null) {
-                            Location location = Utils.getLocation(la);
-                            Address address = Utils.getAddress(location);
-                            listener.onSuccess(location, address);
+                        if (la != null) {
+                            if (listener != null) {
+                                Location location = Utils.getLocation(la);
+                                Address address = Utils.getAddress(location);
+                                listener.onSuccess(location, address);
+                            }
+                        } else {
+                            if (listener != null) {
+                                listener.onFail("Failed to get a location object.");
+                            }
                         }
                     }
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
+                        Exception e = databaseError.toException();
+                        Log.d(TAG, "Failed to get a location object", e);
                         if (listener != null) {
-                            listener.onFail(databaseError.toException().getLocalizedMessage());
+                            if (e != null) {
+                                listener.onFail(e.getLocalizedMessage());
+                            } else {
+                                listener.onFail("Failed to get a location object.");
+                            }
                         }
                     }
                 });
@@ -1007,8 +1083,8 @@ public class FB {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 for (DataSnapshot childDataSnapshot : dataSnapshot.getChildren()) {
                     Log.d(TAG, "getTimelineLocations: " + childDataSnapshot.getKey());
-                    String location = childDataSnapshot.getKey();
-                    getLocation(location, new LocationListener() {
+                    String locationKey = childDataSnapshot.getKey();
+                    getLocation(locationKey, new LocationListener() {
                         @Override
                         public void onSuccess(Location location, Address address) {
                             if (listener != null) {
@@ -1036,8 +1112,9 @@ public class FB {
     }
 
     static void addPlaceImpl(Place place, final CompleteListener listener) {
-        DatabaseReference devDb = getPlaceDatabaseReference();
-        String key = devDb.push().getKey();
+        DatabaseReference placeDb = getPlaceDatabaseReference();
+
+        String key = placeDb.push().getKey();
         String uid = FB.getUid();
 
         place.setKey(key);
@@ -1081,15 +1158,15 @@ public class FB {
             return;
         }
 
-        Uri uri = Utils.saveBitmap(MainApplication.getContext(), bitmap);
-        if (uri == null) {
+        byte bytes[] = Utils.getBitmapBytes(MainApplication.getContext(), bitmap);
+        if (bytes == null) {
             if (listener != null) listener.onFail("Failed to save a bitmap.");
             return;
         }
 
         String name = "place_" + System.currentTimeMillis() + ".png";
 
-        uploadImageFile(uri, name, new UploadImageListener() {
+        uploadData(bytes, name, new UploadDataListener() {
             @Override
             public void onSuccess(String url) {
                 place.setPicture(url);
@@ -1103,8 +1180,34 @@ public class FB {
         });
     }
 
-    public static void editPlace(Place place, Bitmap bitmap, CompleteListener listener) {
+    public static void editPlace(final Place place, Bitmap bitmap, final CompleteListener listener) {
+        if (bitmap == null) {
+            //editPlaceImpl(place, listener);
+            return;
+        }
 
+/*
+        Uri uri = Utils.getBitmapBytes(MainApplication.getContext(), bitmap);
+        if (uri == null) {
+            if (listener != null) listener.onFail("Failed to save a bitmap.");
+            return;
+        }
+
+        String name = "place_" + System.currentTimeMillis() + ".jpg";
+
+        uploadImageFile(uri, name, new UploadImageListener() {
+            @Override
+            public void onSuccess(String url) {
+                place.setPicture(url);
+                //editPlaceImpl(place, listener);
+            }
+
+            @Override
+            public void onFail(String err) {
+                if (listener != null) listener.onFail(err);
+            }
+        });
+*/
     }
 
     public static void removePlace() {
@@ -1112,10 +1215,10 @@ public class FB {
     }
 
     public static void saveFeedback(Feedback feedback, final CompleteListener listner) {
-        DatabaseReference feedbackDb = getFeedbackDatabaseReference();
+        DatabaseReference db = getFeedbackDatabaseReference();
 
-        String newKey = feedbackDb.push().getKey();
-        feedbackDb.child(newKey).setValue(feedback, new DatabaseReference.CompletionListener() {
+        String newKey = db.push().getKey();
+        db.child(newKey).setValue(feedback, new DatabaseReference.CompletionListener() {
             @Override
             public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
                 if (databaseError != null) {
@@ -1127,58 +1230,22 @@ public class FB {
         });
     }
 
-    // For now, the device is saved into the memory
-    static Device getDevice() {
-        Device mDevice = new Device();
-        mDevice.setDeviceId(getDeviceUniqueId());
-        mDevice.setBrand(Build.BRAND);
-        mDevice.setModel(Build.MODEL);
-        mDevice.setPlatformVersion(Build.VERSION.RELEASE);
-        mDevice.setSimulator(isEmulator());
-        mDevice.setToken(""); // empty for now
-        mDevice.setStatus(Device.FOREGROUND);
-        mDevice.setAppVersion(MainApplication.getApplicationVersion());
-        mDevice.setTimestamp(System.currentTimeMillis());
-        return mDevice;
+    public interface UploadDataListener {
+        void onSuccess(String url);
+
+        void onFail(String err);
     }
 
-    static boolean isEmulator() {
-        int rating = 0;
+    public interface DownloadDataListener {
+        void onSuccess(byte[] bytes);
 
-        if ((Build.PRODUCT.equals("sdk")) || (Build.PRODUCT.equals("google_sdk"))
-                || (Build.PRODUCT.equals("sdk_x86")) || (Build.PRODUCT.equals("vbox86p"))) {
-            rating++;
-        }
-        if ((Build.MANUFACTURER.equals("unknown")) || (Build.MANUFACTURER.equals("Genymotion"))) {
-            rating++;
-        }
-        if ((Build.BRAND.equals("generic")) || (Build.BRAND.equals("generic_x86"))) {
-            rating++;
-        }
-        if ((Build.DEVICE.equals("generic")) || (Build.DEVICE.equals("generic_x86")) ||
-                (Build.DEVICE.equals("vbox86p"))) {
-            rating++;
-        }
-        if ((Build.MODEL.equals("sdk")) || (Build.MODEL.equals("google_sdk"))
-                || (Build.MODEL.equals("Android SDK built for x86"))) {
-            rating++;
-        }
-        if ((Build.HARDWARE.equals("goldfish")) || (Build.HARDWARE.equals("vbox86"))) {
-            rating++;
-        }
-        if ((Build.FINGERPRINT.contains("generic/sdk/generic"))
-                || (Build.FINGERPRINT.contains("generic_x86/sdk_x86/generic_x86"))
-                || (Build.FINGERPRINT.contains("generic/google_sdk/generic"))
-                || (Build.FINGERPRINT.contains("generic/vbox86p/vbox86p"))) {
-            rating++;
-        }
-
-        return rating > 4;
+        void onFail(String err);
     }
 
-    private static String getDeviceUniqueId() {
-        return Settings.Secure.getString(MainApplication.getContext().getContentResolver(),
-                Settings.Secure.ANDROID_ID);
+    public interface DeleteDataListener {
+        void onSuccess();
+
+        void onFail(String err);
     }
 
     public interface SignInListener {

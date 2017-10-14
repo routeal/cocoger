@@ -84,7 +84,7 @@ public class FeedbackActivity extends AppCompatActivity implements RadioGroup.On
         int numStars = (int) ratingBar.getRating();
 
         if (description.isEmpty()) {
-            editText.setError("Please type your feedback");
+            editText.setError(getResources().getString(R.string.no_feedback_warning));
             return;
         }
 
@@ -101,7 +101,7 @@ public class FeedbackActivity extends AppCompatActivity implements RadioGroup.On
         FB.saveFeedback(feedback, new FB.CompleteListener() {
             @Override
             public void onSuccess() {
-                Toast.makeText(FeedbackActivity.this, "Thank you very much for the feedback", Toast.LENGTH_LONG).show();
+                Toast.makeText(FeedbackActivity.this, R.string.thanks_feedback, Toast.LENGTH_LONG).show();
                 FeedbackActivity.this.finish();
             }
 

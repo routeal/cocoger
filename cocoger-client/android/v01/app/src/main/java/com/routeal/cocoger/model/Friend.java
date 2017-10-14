@@ -7,7 +7,6 @@ public class Friend implements Serializable {
     private int range;
     private long created;
     private String displayName;
-    private String picture;
     private RangeRequest rangeRequest;
     private String location;
 
@@ -33,14 +32,6 @@ public class Friend implements Serializable {
 
     public void setLocation(String location) {
         this.location = location;
-    }
-
-    public String getPicture() {
-        return picture;
-    }
-
-    public void setPicture(String picture) {
-        this.picture = picture;
     }
 
     public String getDisplayName() {

@@ -87,7 +87,7 @@ abstract class SearchMapActivity extends DrawerMapActivity implements
                 mSearchView.setSearchBarTitle(nameSuggestion.getBody());
 
                 SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                        .findFragmentById(R.id.map);
+                        .findFragmentById(R.key.map);
                 mapFragment.getView().requestFocus();
 
                 //mSearchView.clearSuggestions();

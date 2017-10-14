@@ -2,204 +2,154 @@ package com.routeal.cocoger.util;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Matrix;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.widget.ImageView;
 
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.Marker;
+import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.provider.DBUtil;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
 
 /**
  * Created by nabe on 9/5/17.
  */
+public class LoadImage {
+    private ImageView imageView;
+    private boolean crop;
+    private int borderColor;
+    private LoadImageListener listener;
 
-// FIXME: SIZE SHOULD BE IN THE ARGUMENT
-
-public class LoadImage extends AsyncTask<String, Void, List<Bitmap>> {
-    private final static String TAG = "LoadImage";
-
-    static Bitmap combineBitmaps(List<Bitmap> bitmaps, int size) {
-        MultipleDrawable drawable = new MultipleDrawable(bitmaps);
-        if (drawable == null) return null;
-        Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bitmap);
-        drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-        drawable.draw(canvas);
-        return bitmap;
+    public LoadImage(ImageView imageView, boolean crop, int borderColor, LoadImageListener listener) {
+        this.imageView = imageView;
+        this.crop = crop;
+        this.borderColor = borderColor;
+        this.listener = listener;
     }
 
-    @Override
-    protected List<Bitmap> doInBackground(String... params) {
-        List<Bitmap> bitmaps = new ArrayList<>();
-        try {
-            for (int i = 0; i < params.length; i++) {
-                if (isCancelled()) return null;
+    public LoadImage(ImageView imageView) {
+        this(imageView, false, 0, null);
+    }
 
-                String url = params[i];
+    public LoadImage(LoadImageListener listener) {
+        this(null, true, 0, listener);
+    }
 
-                // get from the database
-                byte[] data = DBUtil.getImage(url);
+    public LoadImage(LoadImageListener listener, boolean crop) {
+        this(null, crop, 0, listener);
+    }
 
-                Bitmap bitmap = null;
-
-                if (data == null) {
-                    bitmap = Utils.getBitmapFromURL(url);
-                    if (bitmap == null) {
-                        continue;
-                    }
-                    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                    byte[] byteArray = stream.toByteArray();
-                    DBUtil.saveImage(url, byteArray);
+    private void onDone(byte bytes[]) {
+        if (bytes != null && bytes.length > 0) {
+            Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, null);
+            if (imageView != null) {
+                if (crop) {
+                    Bitmap cropped = Utils.cropCircle(bitmap, borderColor);
+                    imageView.setImageBitmap(cropped);
                 } else {
-                    bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, null);
-                }
-
-                // FIXME: NEED BETTER WAY TO HANDLE THE BIG BITMAP
-                if (bitmap.getHeight() > 1024 || bitmap.getWidth() > 1024) {
-                    bitmap = getResizedBitmap(bitmap, 256, 256);
-                }
-
-                if (bitmap != null) {
-                    bitmaps.add(bitmap);
+                    imageView.setImageBitmap(bitmap);
                 }
             }
-        } catch (Throwable t) {
-            Log.d(TAG, "LoadImage: " + t.getLocalizedMessage());
+            if (listener != null) {
+                if (crop) {
+                    Bitmap cropped = Utils.cropCircle(bitmap, borderColor);
+                    listener.onSuccess(cropped);
+                } else {
+                    listener.onSuccess(bitmap);
+                }
+            }
         }
-        return bitmaps;
     }
 
-    Bitmap getResizedBitmap(Bitmap bm, int newHeight, int newWidth) {
-        int width = bm.getWidth();
-        int height = bm.getHeight();
-        float scaleWidth = ((float) newWidth) / width;
-        float scaleHeight = ((float) newHeight) / height;
-        // CREATE A MATRIX FOR THE MANIPULATION
-        Matrix matrix = new Matrix();
-        // RESIZE THE BIT MAP
-        matrix.postScale(scaleWidth, scaleHeight);
-        // "RECREATE" THE NEW BITMAP
-        Bitmap resizedBitmap = Bitmap.createBitmap(bm, 0, 0, width, height, matrix, false);
-        return resizedBitmap;
+    public void loadPlace(String key, long created) {
+        String str = String.format(FB.PLACE_IMAGE, created);
+        load(str, key);
     }
 
-    @Override
-    protected void onPostExecute(List<Bitmap> bitmaps) {
-        super.onPostExecute(bitmaps);
+    public void loadProfile(String key) {
+        load(FB.PROFILE_IMAGE, key);
+    }
+
+    public void loadUrl(String url) {
+        load(url);
+    }
+
+    private void load(String filename, String key) {
+        // get from the database
+        final String dbname = key + "_" + filename;
+        byte[] bytes = DBUtil.getImage(dbname);
+        if (bytes != null) {
+            onDone(bytes);
+        } else {
+            // if not found in the local database, get it from the FB storage
+            FB.downloadData(filename, key, new FB.DownloadDataListener() {
+                @Override
+                public void onSuccess(byte[] bytes) {
+                    onDone(bytes);
+                    DBUtil.saveImage(dbname, bytes);
+                }
+
+                @Override
+                public void onFail(String err) {
+                    onDone(null);
+                }
+            });
+        }
+    }
+
+    private void load(String url) {
+        new DownloadTask().execute(url);
     }
 
     public interface LoadImageListener {
         void onSuccess(Bitmap bitmap);
     }
 
-    public static class LoadImageView extends LoadImage {
-        ImageView imageView;
-        boolean crop;
-        int borderColor = -1;
+    private class DownloadTask extends AsyncTask<String, Void, byte[]> {
+        @Override
+        protected byte[] doInBackground(String... params) {
+            try {
+                byte[] bytes = DBUtil.getImage(params[0]);
 
-        public LoadImageView(ImageView imageView) {
-            this(imageView, true);
-        }
+                if (bytes != null) {
+                    return bytes;
+                }
 
-        public LoadImageView(ImageView imageView, boolean crop) {
-            this.imageView = imageView;
-            this.crop = crop;
-        }
+                URL url = new URL(params[0]);
+                URLConnection connection = url.openConnection();
+                connection.connect();
 
-        public LoadImageView(ImageView imageView, boolean crop, int borderColor) {
-            this.imageView = imageView;
-            this.crop = crop;
-            this.borderColor = borderColor;
+                InputStream input = new BufferedInputStream(url.openStream());
+
+                ByteArrayOutputStream byteBuffer = new ByteArrayOutputStream();
+
+                int bufferSize = 1024;
+                byte[] buffer = new byte[bufferSize];
+
+                int len = 0;
+                while ((len = input.read(buffer)) != -1) {
+                    byteBuffer.write(buffer, 0, len);
+                }
+
+                input.close();
+
+                bytes = byteBuffer.toByteArray();
+
+                DBUtil.saveImage(params[0], bytes);
+
+                return bytes;
+            } catch (Exception e) {
+                /* empty */
+            }
+            return new byte[0];
         }
 
         @Override
-        protected void onPostExecute(List<Bitmap> bitmaps) {
-            super.onPostExecute(bitmaps);
-            if (bitmaps.isEmpty()) {
-                return;
-            }
-            if (imageView == null) {
-                return;
-            }
-            if (crop) {
-                Bitmap cropped = Utils.cropCircle(bitmaps.get(0), borderColor);
-                imageView.setImageBitmap(cropped);
-            } else {
-                imageView.setImageBitmap(bitmaps.get(0));
-            }
+        protected void onPostExecute(byte[] bytes) {
+            onDone(bytes);
         }
     }
-
-    public static class LoadImageAsync extends LoadImage {
-        boolean crop;
-        LoadImageListener listener;
-        int borderColor = -1;
-
-        public LoadImageAsync(LoadImageListener listener) {
-            this(true, listener);
-        }
-
-        public LoadImageAsync(boolean crop, LoadImageListener listener) {
-            this.crop = crop;
-            this.listener = listener;
-        }
-
-        public LoadImageAsync(boolean crop, int borderColor, LoadImageListener listener) {
-            this.crop = crop;
-            this.listener = listener;
-            this.borderColor = borderColor;
-        }
-
-        @Override
-        protected void onPostExecute(List<Bitmap> bitmaps) {
-            super.onPostExecute(bitmaps);
-            if (bitmaps.isEmpty()) {
-                return;
-            }
-            if (crop) {
-                Bitmap cropped = Utils.cropCircle(bitmaps.get(0), borderColor);
-                listener.onSuccess(cropped);
-            } else {
-                listener.onSuccess(bitmaps.get(0));
-            }
-        }
-    }
-
-    public static class LoadMarkerImage extends LoadImage {
-        private final static int MARKER_SZIE = 128;
-
-        Marker marker;
-        int borderColor = -1;
-
-        public LoadMarkerImage(Marker marker) {
-            this(marker, -1);
-        }
-
-        public LoadMarkerImage(Marker marker, int borderColor) {
-            this.marker = marker;
-            this.borderColor = borderColor;
-        }
-
-        @Override
-        protected void onPostExecute(List<Bitmap> bitmaps) {
-            if (isCancelled()) return;
-            //super.onPostExecute(bitmaps);
-            Bitmap combined = combineBitmaps(bitmaps, MARKER_SZIE);
-            if (combined == null) return;
-            Bitmap cropped = Utils.cropCircle(combined, borderColor);
-            combined.recycle();
-            if (marker.isVisible()) {
-                marker.setIcon(BitmapDescriptorFactory.fromBitmap(cropped));
-            }
-        }
-    }
-
 }

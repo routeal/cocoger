@@ -52,7 +52,7 @@
         </android.support.design.widget.TextInputLayout>
 
         <android.support.v7.widget.AppCompatButton
-            android:id="@+id/btn_reset_password"
+            android:id="@+id/reset_passwd"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"

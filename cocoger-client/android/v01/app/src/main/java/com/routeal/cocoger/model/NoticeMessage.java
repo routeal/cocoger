@@ -8,13 +8,13 @@ import java.util.Date;
  */
 
 public class NoticeMessage implements Serializable {
-    String title;
-    String message;
-    String picture;
-    int resourceId;
-    String key;
-    long id;
-    Date date;
+    private String title;
+    private String message;
+    private String picture;  // picture url
+    private int resourceId; // local resource picture
+    private String key; // user key (uid)
+    private long id; // local database id
+    private long created;
 
     public long getId() {
         return id;
@@ -64,11 +64,11 @@ public class NoticeMessage implements Serializable {
         this.key = key;
     }
 
-    public Date getDate() {
-        return date;
+    public long getCreated() {
+        return created;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public void setCreated(long created) {
+        this.created = created;
     }
 }

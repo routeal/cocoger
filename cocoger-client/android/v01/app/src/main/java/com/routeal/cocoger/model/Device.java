@@ -10,7 +10,7 @@ public class Device implements Serializable {
     public final static int BACKGROUND = 1;
     public final static int FOREGROUND = 2;
 
-    private String uid;
+    private String uid; // user key
     private String deviceId; // device unique id
     private String type = "mobile"; // device type - 'mobile', 'desktop', 'settop'
     private String platform = "android"; // platform - 'android', 'ios', 'windows'
@@ -22,6 +22,7 @@ public class Device implements Serializable {
     private String token; // device token to be used for notification
     private int status; // unavailable, background, foreground
     private long timestamp; // last used
+    private long created;
 
     public String getUid() {
         return uid;
@@ -117,6 +118,14 @@ public class Device implements Serializable {
 
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public void setCreated(long created) {
+        this.created = created;
+    }
+
+    public long getCreated() {
+        return created;
     }
 
     public String toString() {

@@ -18,7 +18,7 @@ public class Notifi {
 
     public final static String TAG = "Notifi";
 
-    public static void send(final int nid, final String title, final String content, String icon, Intent accept, Intent decline) {
+    public static void send(final int nid, String id, final String title, final String content, Intent accept, Intent decline) {
         final Context context = MainApplication.getContext();
 
         accept.putExtra(ID, nid);
@@ -36,7 +36,7 @@ public class Notifi {
                 R.drawable.ic_contacts_black_18dp,
                 context.getResources().getString(R.string.decline), pendingDeclineIntent).build();
 
-        new LoadImage.LoadImageAsync(true, new LoadImage.LoadImageListener() {
+        new LoadImage(new LoadImage.LoadImageListener() {
             @Override
             public void onSuccess(Bitmap bitmap) {
                 final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
@@ -60,13 +60,13 @@ public class Notifi {
 
                 mNotificationManager.notify(nid, notification);
             }
-        }).execute(icon);
+        }).loadProfile(id);
     }
 
-    public static void send(final int nid, final String title, final String content, String icon) {
+    public static void send(final int nid, String id, final String title, final String content) {
         final Context context = MainApplication.getContext();
 
-        new LoadImage.LoadImageAsync(true, new LoadImage.LoadImageListener() {
+        new LoadImage(new LoadImage.LoadImageListener() {
             @Override
             public void onSuccess(Bitmap bitmap) {
                 final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context)
@@ -88,7 +88,7 @@ public class Notifi {
 
                 mNotificationManager.notify(nid, notification);
             }
-        }).execute(icon);
+        }).loadProfile(id);
     }
 
     public static void remove(int id) {

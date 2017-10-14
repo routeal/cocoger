@@ -14,7 +14,6 @@ import android.location.Location;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
-import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -27,8 +26,7 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
@@ -53,24 +51,27 @@ import static android.content.Context.NOTIFICATION_SERVICE;
 
 public class LocationUpdate {
 
-    public final static int DEFAULT_FOREGROUND_LOCATION_UPDATE_INTERVAL = 15 * 60 * 1000;
+    public final static int DEFAULT_FOREGROUND_LOCATION_UPDATE_INTERVAL = 30 * 60 * 1000;
     public final static int DEFAULT_LOCATION_UPDATE_INTERVAL = 1 * 60 * 1000;
     public final static String FOREGROUND_LOCATION_UPDATE_INTERVAL = "foreground_location_update_interval";
     public final static String LOCATION_UPDATE_INTERVAL = "location_update_interval";
-    public final static String ACTION_START_FROM_NOTIFICATION = "notification";
-    static final int NOTIFICATION_ID = (int) System.currentTimeMillis();
+    final static String ACTION_START_FROM_NOTIFICATION = "notification";
+    final static String NOTIFICATION_CHANNEL_ID = "location_update_notification";
+    final static int NOTIFICATION_ID = (int) System.currentTimeMillis();
+    private final static String TAG = "tako";
     private final static long LOCATION_UPDATE_FASTEST_INTERVAL = 5000; // 5 seconds
     private final static float FOREGROUND_MIN_MOVEMENT = 40.0f;
     private final static float BACKGROUND_MIN_MOVEMENT = 100.0f;
-    private final static String TAG = "tako";
     private final static int PAST_LOCATION_QUEUE_MAX = 100;
+    private final static int MAX_FOREGROUND_LOCATION_UPDATE_INTERVAL = 15 * 60 * 1000;
+
     private static LocationUpdate thisInstance = new LocationUpdate();
     private static PriorityQueue<PastLocation> mLocationQueue =
             new PriorityQueue<>(PAST_LOCATION_QUEUE_MAX, new LocationAscendingOrder());
+
     private GoogleApiClient mGoogleApi;
     private Geocoder mGeocoder;
     private NotificationManager mNotificationManager;
-    private LocationRequest mLocationRequest;
     private FusedLocationProviderClient mFusedLocationClient;
     private LocationCallback mLocationCallback;
     private Handler mServiceHandler;
@@ -83,21 +84,22 @@ public class LocationUpdate {
     private long mLocationUpdateIntervalResetTime = 0;
 
     private LocationUpdate() {
-        FB.monitorAuthentication();
+        //FB.monitorAuthentication();
     }
 
     static LocationUpdate getInstance() {
+        /*
+        if (thisInstance == null) {
+            thisInstance = new LocationUpdate();
+        }
+        */
         return thisInstance;
-    }
-
-    private static String getLocationTitle(Context context) {
-        DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-        return context.getString(R.string.last_location_update, formatter.format(new Date()));
     }
 
     void exec(Context context) {
         //Log.d(TAG, "exec");
         connectGoogleApi(context);
+
         startLocationUpdate(context);
     }
 
@@ -145,7 +147,7 @@ public class LocationUpdate {
                     super.onLocationResult(locationResult);
                     onNewLocation(context, locationResult.getLastLocation());
                     if (mLocationUpdateIntervalResetTime < System.currentTimeMillis()) {
-                        MainApplication.putInt(LocationUpdate.FOREGROUND_LOCATION_UPDATE_INTERVAL, 30 * 60 * 1000);
+                        MainApplication.putInt(LocationUpdate.FOREGROUND_LOCATION_UPDATE_INTERVAL, DEFAULT_FOREGROUND_LOCATION_UPDATE_INTERVAL);
                         mLocationUpdateIntervalResetTime = 0;
                     }
                 }
@@ -163,7 +165,7 @@ public class LocationUpdate {
         }
 
         if (mLocation == null) {
-            getLastLocation();
+            getLastLocation(context);
         }
 
         if (!FB.isAuthenticated()) return;
@@ -192,29 +194,31 @@ public class LocationUpdate {
             mIsServiceForeground = isForeground;
         }
 
-        LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApi, mLocationCallback);
+        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+
+        LocationRequest locationRequest = null;
 
         if (isForeground == ServiceMode.FOREGROUND) { // service foreground is the background process
             mForegroundServiceLocationUpdateInterval = MainApplication.getInt(FOREGROUND_LOCATION_UPDATE_INTERVAL, DEFAULT_FOREGROUND_LOCATION_UPDATE_INTERVAL);
             if (mForegroundServiceLocationUpdateInterval > 0) {
-                mLocationRequest = LocationRequest.create()
+                locationRequest = LocationRequest.create()
                         .setInterval(mForegroundServiceLocationUpdateInterval)
                         .setFastestInterval(mForegroundServiceLocationUpdateInterval)
                         .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
             } else {
-                mLocationRequest = null;
+                locationRequest = null;
             }
             mCurrentLocationUpdateInterval = mForegroundServiceLocationUpdateInterval;
             Log.d(TAG, "start service foreground LocationUpdate:" + mCurrentLocationUpdateInterval / 1000 / 60);
         } else {
             mServiceLocationUpdateInterval = MainApplication.getInt(LOCATION_UPDATE_INTERVAL, DEFAULT_LOCATION_UPDATE_INTERVAL);
             if (mServiceLocationUpdateInterval > 0) {
-                mLocationRequest = LocationRequest.create()
+                locationRequest = LocationRequest.create()
                         .setInterval(mServiceLocationUpdateInterval)
                         .setFastestInterval(LOCATION_UPDATE_FASTEST_INTERVAL) // 5 sec
                         .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
             } else {
-                mLocationRequest = null;
+                locationRequest = null;
             }
             mCurrentLocationUpdateInterval = mServiceLocationUpdateInterval;
             Log.d(TAG, "start service LocationUpdate:" + mCurrentLocationUpdateInterval / 1000 / 60);
@@ -223,14 +227,14 @@ public class LocationUpdate {
         Log.d(TAG, "Cancel periodic update");
         LocationUpdateReceiver.cancelUpdate(context, (AlarmManager) context.getSystemService(ALARM_SERVICE));
 
-        if (mCurrentLocationUpdateInterval < 15 * 60 * 1000) {
-            mLocationUpdateIntervalResetTime = System.currentTimeMillis() + 15 * 60 * 1000;
+        if (mCurrentLocationUpdateInterval < MAX_FOREGROUND_LOCATION_UPDATE_INTERVAL) {
+            mLocationUpdateIntervalResetTime = System.currentTimeMillis() + MAX_FOREGROUND_LOCATION_UPDATE_INTERVAL;
         } else {
             mLocationUpdateIntervalResetTime = 0;
         }
 
-        if (mLocationRequest != null) {
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApi, mLocationRequest, mLocationCallback, Looper.myLooper());
+        if (locationRequest != null) {
+            mFusedLocationClient.requestLocationUpdates(locationRequest, mLocationCallback, Looper.myLooper());
         } else {
             Log.d(TAG, "LocationUpdate has been canceled.");
         }
@@ -267,19 +271,16 @@ public class LocationUpdate {
         }
     }
 
-    private void getLastLocation() {
+    private void getLastLocation(Context context) {
         try {
             mFusedLocationClient.getLastLocation()
-                    .addOnCompleteListener(new OnCompleteListener<Location>() {
+                    .addOnSuccessListener(new OnSuccessListener<Location>() {
                         @Override
-                        public void onComplete(@NonNull Task<Location> task) {
-                            if (task.isSuccessful() && task.getResult() != null) {
-                                mLocation = task.getResult();
-                            } else {
-                                Log.w(TAG, "Failed to get location.");
-                            }
+                        public void onSuccess(Location location) {
+                            mLocation = location;
                         }
                     });
+
         } catch (SecurityException unlikely) {
             Log.e(TAG, "Lost location permission." + unlikely);
         }
@@ -300,65 +301,28 @@ public class LocationUpdate {
     }
 
     Notification getNotification(Context context) {
-        /*  Not supported
-        Intent intent = new Intent(context, LocationUpdateService.class);
-        // Extra to help us figure out if we arrived in onStartCommand via the notification or not.
-        intent.setAction(ACTION_START_FROM_NOTIFICATION);
-        // The PendingIntent that leads to a call to onStartCommand() in this service.
-        PendingIntent servicePendingIntent = PendingIntent.getService(context, 0, intent,
-                PendingIntent.FLAG_UPDATE_CURRENT);
-        */
-
         Intent intent = new Intent(context, PanelMapActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
 
-        // The PendingIntent to launch activity.
         PendingIntent activityPendingIntent = PendingIntent.getActivity(context, NOTIFICATION_ID, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
-        CharSequence text = getLocationTitle(context);
+        DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
+        String text = context.getString(R.string.last_location_update, formatter.format(new Date()));
 
-        return new NotificationCompat.Builder(context)
-                /* Not supported
-                .addAction(android.R.drawable.ic_menu_view, "launch app",
-                        activityPendingIntent)
-                .addAction(android.R.drawable.ic_delete, "remove update",
-                        servicePendingIntent)
-                */
+        return new NotificationCompat.Builder(context, NOTIFICATION_CHANNEL_ID)
                 .setContentIntent(activityPendingIntent)
-                //.setContentText(text)
                 .setContentTitle(text)
                 .setOngoing(true)
-                .setPriority(Notification.PRIORITY_LOW)
+                .setPriority(NotificationCompat.PRIORITY_MIN)
                 .setSmallIcon(R.drawable.ic_person_pin_circle_white_48dp)
                 .setTicker(text)
                 .setWhen(System.currentTimeMillis()).build();
     }
 
-    void requestLocationUpdates(Context context) {
-        Log.i(TAG, "Requesting location updates");
-        context.startService(new Intent(context, LocationUpdateService.class));
-        try {
-            mFusedLocationClient.requestLocationUpdates(mLocationRequest,
-                    mLocationCallback, Looper.myLooper());
-        } catch (SecurityException unlikely) {
-            Log.e(TAG, "Lost location permission. Could not request updates. " + unlikely);
-        }
-    }
-
-    void removeLocationUpdates() {
-        Log.i(TAG, "Removing location updates");
-        try {
-            if (mFusedLocationClient != null) {
-                mFusedLocationClient.removeLocationUpdates(mLocationCallback);
-            }
-            //stopSelf();
-        } catch (SecurityException unlikely) {
-            Log.e(TAG, "Lost location permission. Could not remove updates. " + unlikely);
-        }
-    }
-
     void destroy() {
-        removeLocationUpdates();
+        if (mFusedLocationClient != null) {
+            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+        }
         if (mServiceHandler != null) {
             mServiceHandler.removeCallbacksAndMessages(null);
             mServiceHandler = null;

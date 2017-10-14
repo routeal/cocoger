@@ -143,7 +143,7 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
         mFriendId = key;
         setRange(friend.getRange());
         setName(friend.getDisplayName());
-        setPicture(friend.getPicture());
+        setPicture();
     }
 
     private void setName(String name) {
@@ -155,8 +155,8 @@ public class FriendListViewHolder extends RecyclerView.ViewHolder {
         mSeekBar.setProgressToIndex(mCurrentRange);
     }
 
-    private void setPicture(String url) {
-        new LoadImage.LoadImageView(mPicture).execute(url);
+    private void setPicture() {
+        new LoadImage(mPicture).loadProfile(mFriendId);
     }
 
     private void changeRange(int index) {

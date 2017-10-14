@@ -89,7 +89,7 @@ public class NotifiListFragment extends PagerFragment {
                 Map<String, Long> invitees = user.getInvitees();
                 for (Map.Entry<String, Long> entry : invitees.entrySet()) {
                     InviteeMessage m = new InviteeMessage();
-                    m.id = entry.getKey();
+                    m.key = entry.getKey();
                     DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
                     m.date = df.format(new Date(entry.getValue()));
                     m.message = "Friend Invited";
@@ -102,7 +102,7 @@ public class NotifiListFragment extends PagerFragment {
                 Map<String, Long> invites = user.getInvites();
                 for (Map.Entry<String, Long> entry : invites.entrySet()) {
                     InviteMessage m = new InviteMessage();
-                    m.id = entry.getKey();
+                    m.key = entry.getKey();
                     DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
                     m.date = df.format(new Date(entry.getValue()));
                     m.message = "Friend Invite";
@@ -114,18 +114,17 @@ public class NotifiListFragment extends PagerFragment {
             Map<String, Friend> friends = user.getFriends();
             if (friends != null) {
                 for (Map.Entry<String, Friend> entry : friends.entrySet()) {
-                    String id = entry.getKey();
+                    String key = entry.getKey();
                     Friend friend = entry.getValue();
                     if (friend.getRangeRequest() != null) {
                         RangeRequest request = friend.getRangeRequest();
                         RangeMessage m = new RangeMessage();
-                        m.id = id;
+                        m.key = key;
                         DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
                         m.date = df.format(new Date(request.getCreated()));
                         m.rangeTo = request.getRange();
                         m.rangeFrom = friend.getRange();
                         m.name = friend.getDisplayName();
-                        m.picture = friend.getPicture();
                         String to = LocationRange.toString(m.rangeTo);
                         String from = LocationRange.toString(m.rangeFrom);
                         String pattern = getResources().getString(R.string.receive_range_request);
@@ -139,12 +138,12 @@ public class NotifiListFragment extends PagerFragment {
             List<NoticeMessage> noticeMessages = DBUtil.getMessages();
             for (NoticeMessage nm : noticeMessages) {
                 InfoMessage m = new InfoMessage();
-                m.dbId = nm.getId();
+                m.key = nm.getKey();
+                m.id = nm.getId();
                 m.title = nm.getTitle();
                 m.message = nm.getMessage();
                 DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-                m.date = df.format(nm.getDate());
-                m.picture = nm.getPicture();
+                m.date = df.format(new Date(nm.getCreated()));
                 m.resourceId = nm.getResourceId();
                 messages.add(m);
             }
@@ -154,7 +153,7 @@ public class NotifiListFragment extends PagerFragment {
     }
 
     class Message {
-        String id;
+        String key;
         int nid;
         String date;
         String message;
@@ -176,15 +175,13 @@ public class NotifiListFragment extends PagerFragment {
 
     class RangeMessage extends OkNoMessage {
         String name;
-        String picture;
         int rangeTo;
         int rangeFrom;
     }
 
     class InfoMessage extends Message {
-        long dbId;
+        long id;
         String title;
-        String picture;
         int resourceId;
     }
 
@@ -208,10 +205,10 @@ public class NotifiListFragment extends PagerFragment {
                 final InviteeMessage im = (InviteeMessage) m;
                 holder.content.setText(im.message);
                 holder.date.setText(im.date);
-                FB.getUser(im.id, new FB.UserListener() {
+                FB.getUser(im.key, new FB.UserListener() {
                     @Override
                     public void onSuccess(User user) {
-                        new LoadImage.LoadImageView(holder.picture).execute(user.getPicture());
+                        new LoadImage(holder.picture).loadProfile(im.key);
                         holder.title.setText(user.getDisplayName());
                         String pattern = getResources().getString(R.string.receive_friend_request);
                         String content = String.format(pattern, user.getDisplayName());
@@ -226,7 +223,7 @@ public class NotifiListFragment extends PagerFragment {
                 holder.ok.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        FB.acceptFriendRequest(im.id);
+                        FB.acceptFriendRequest(im.key);
                         Notifi.remove(im.nid);
                         //NotifiListAdapter.this.notifyItemRemoved(position);
                         ViewPager page = getViewPager();
@@ -237,7 +234,7 @@ public class NotifiListFragment extends PagerFragment {
                 holder.no.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        FB.declineFriendRequest(im.id);
+                        FB.declineFriendRequest(im.key);
                         Notifi.remove(im.nid);
                         //NotifiListAdapter.this.notifyItemRemoved(position);
                         SlidingUpPanelLayout slidingUpPanelLayout = getSlidingUpPanelLayout();
@@ -249,10 +246,10 @@ public class NotifiListFragment extends PagerFragment {
                 final InviteMessage im = (InviteMessage) m;
                 holder.content.setText(im.message);
                 holder.date.setText(im.date);
-                FB.getUser(im.id, new FB.UserListener() {
+                FB.getUser(im.key, new FB.UserListener() {
                     @Override
                     public void onSuccess(User user) {
-                        new LoadImage.LoadImageView(holder.picture).execute(user.getPicture());
+                        new LoadImage(holder.picture).loadProfile(im.key);
                         holder.title.setText(user.getDisplayName());
                         String pattern = getResources().getString(R.string.send_friend_request);
                         String content = String.format(pattern, user.getDisplayName());
@@ -267,7 +264,7 @@ public class NotifiListFragment extends PagerFragment {
                 holder.ok.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        FB.cancelFriendRequest(im.id);
+                        FB.cancelFriendRequest(im.key);
                         Notifi.remove(im.nid);
                         ViewPager page = getViewPager();
                         page.setCurrentItem(1);
@@ -276,7 +273,7 @@ public class NotifiListFragment extends PagerFragment {
                 holder.no.setVisibility(View.INVISIBLE);
             } else if (m instanceof RangeMessage) {
                 final RangeMessage rm = (RangeMessage) m;
-                new LoadImage.LoadImageView(holder.picture).execute(rm.picture);
+                new LoadImage(holder.picture).loadProfile(rm.key);
                 holder.title.setText(rm.name);
                 holder.date.setText(rm.date);
                 holder.content.setText(rm.message);
@@ -284,7 +281,7 @@ public class NotifiListFragment extends PagerFragment {
                 holder.ok.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        FB.acceptRangeRequest(rm.id, rm.rangeTo);
+                        FB.acceptRangeRequest(rm.key, rm.rangeTo);
                         Notifi.remove(rm.nid);
                         //NotifiListAdapter.this.notifyItemRemoved(position);
                         ViewPager page = getViewPager();
@@ -295,7 +292,7 @@ public class NotifiListFragment extends PagerFragment {
                 holder.no.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        FB.declineRangeRequest(rm.id);
+                        FB.declineRangeRequest(rm.key);
                         Notifi.remove(rm.nid);
                         //NotifiListAdapter.this.notifyItemRemoved(position);
                         //SlidingUpPanelLayout slidingUpPanelLayout = getSlidingUpPanelLayout();
@@ -306,9 +303,7 @@ public class NotifiListFragment extends PagerFragment {
                 });
             } else if (m instanceof InfoMessage) {
                 final InfoMessage im = (InfoMessage) m;
-                if (im.picture != null && !im.picture.isEmpty()) {
-                    new LoadImage.LoadImageView(holder.picture).execute(im.picture);
-                }
+                new LoadImage(holder.picture).loadProfile(im.key);
                 if (im.resourceId > 0) {
                     holder.picture.setBackgroundResource(im.resourceId);
                 }
@@ -319,7 +314,7 @@ public class NotifiListFragment extends PagerFragment {
                 holder.ok.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        DBUtil.deleteMessage(im.dbId);
+                        DBUtil.deleteMessage(im.id);
                         onSelected();
                     }
                 });
@@ -344,7 +339,7 @@ public class NotifiListFragment extends PagerFragment {
 
             public ViewHolder(View itemView) {
                 super(itemView);
-                //action = (AppCompatImageView) itemView.findViewById(R.id.action_icon);
+                //action = (AppCompatImageView) itemView.findViewById(R.key.action_icon);
                 picture = (AppCompatImageView) itemView.findViewById(R.id.picture);
                 title = (AppCompatTextView) itemView.findViewById(R.id.title);
                 date = (AppCompatTextView) itemView.findViewById(R.id.date);

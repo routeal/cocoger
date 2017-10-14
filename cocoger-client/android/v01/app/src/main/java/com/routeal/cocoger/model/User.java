@@ -12,7 +12,6 @@ public class User implements Serializable {
     private String displayName;
     private String searchedName;
     private String gender;
-    private String picture;
     private String locale;
     private String timezone;
     private String location;
@@ -23,9 +22,6 @@ public class User implements Serializable {
     private Map<String, Friend> friends;
     private Map<String, Long> invites;
     private Map<String, Long> invitees;
-
-    public User() {
-    }
 
     public String getEmail() {
         return email;
@@ -81,14 +77,6 @@ public class User implements Serializable {
 
     public void setLocale(String locale) {
         this.locale = locale;
-    }
-
-    public String getPicture() {
-        return picture;
-    }
-
-    public void setPicture(String picture) {
-        this.picture = picture;
     }
 
     public String getTimezone() {
@@ -167,8 +155,8 @@ public class User implements Serializable {
         return String.format(
                 "email=%s, firstName=%s, lastName=%s, displayName=%s, searchedName=%s, " +
                         "gender=%s, locale=%s, timezone=%s, birth_year=%s, gender=%s, " +
-                        "timezone=%s, updated=%s picture=%s",
+                        "timezone=%s, updated=%s",
                 email, firstName, lastName, displayName, searchedName, gender, locale,
-                timezone, birthYear, gender, timezone, updated, picture);
+                timezone, birthYear, gender, timezone, updated);
     }
 }

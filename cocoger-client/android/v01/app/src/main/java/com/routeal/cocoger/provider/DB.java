@@ -111,7 +111,7 @@ public final class DB {
         public static final String MESSAGE = "message";
         public static final String PICTURE = "picture";
         public static final String RESOURCEID = "resourceid";
-        public static final String DATE = "date";
+        public static final String CREATED = "date";
         public static final String KEY = "key";
 
         static final String TITLE_TYPE = "TEXT";
@@ -136,7 +136,7 @@ public final class DB {
                 "," + " " + MESSAGE + " " + MESSAGE_TYPE +
                 "," + " " + PICTURE + " " + PICTURE_TYPE +
                 "," + " " + RESOURCEID + " " + RESOURCEID_TYPE +
-                "," + " " + DATE + " " + DATE_TYPE +
+                "," + " " + CREATED + " " + DATE_TYPE +
                 "," + " " + KEY + " " + KEY_TYPE +
                 ");";
     }

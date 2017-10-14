@@ -7,8 +7,8 @@ import java.io.Serializable;
  */
 
 public class Place implements Serializable {
-    private String key;
-    private String uid;
+    private String key; // firebase database key string
+    private String uid; // user key (uid)
     private String title;
     private String description;
     private double latitude;
