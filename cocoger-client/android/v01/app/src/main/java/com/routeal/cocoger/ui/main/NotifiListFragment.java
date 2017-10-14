@@ -23,11 +23,10 @@ import com.routeal.cocoger.provider.DBUtil;
 import com.routeal.cocoger.util.LoadImage;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Notifi;
+import com.routeal.cocoger.util.Utils;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
-import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -60,16 +59,16 @@ public class NotifiListFragment extends PagerFragment {
         mRecyclerView = (RecyclerView) view.findViewById(R.id.list);
         mRecyclerView.setLayoutManager(layoutManager);
 
-        selected();
+        onViewPageSelected();
 
         return view;
     }
 
     @Override
-    void selected() {
+    void onViewPageSelected() {
         Log.d(TAG, "NotifiListFragment selected");
         List<Message> messages = createNotifiList();
-        if (messages == null || messages.isEmpty()) {
+        if (messages.isEmpty()) {
             mEmptyText.setVisibility(View.VISIBLE);
             mRecyclerView.setVisibility(View.GONE);
         } else {
@@ -90,9 +89,7 @@ public class NotifiListFragment extends PagerFragment {
                 for (Map.Entry<String, Long> entry : invitees.entrySet()) {
                     InviteeMessage m = new InviteeMessage();
                     m.key = entry.getKey();
-                    DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-                    m.date = df.format(new Date(entry.getValue()));
-                    m.message = "Friend Invited";
+                    m.date = Utils.getShortDateTime(entry.getValue());
                     m.nid = Math.abs((int) entry.getValue().longValue());
                     messages.add(m);
                 }
@@ -103,16 +100,14 @@ public class NotifiListFragment extends PagerFragment {
                 for (Map.Entry<String, Long> entry : invites.entrySet()) {
                     InviteMessage m = new InviteMessage();
                     m.key = entry.getKey();
-                    DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-                    m.date = df.format(new Date(entry.getValue()));
-                    m.message = "Friend Invite";
+                    m.date = Utils.getShortDateTime(entry.getValue());
                     m.nid = Math.abs((int) entry.getValue().longValue());
                     messages.add(m);
                 }
             }
 
-            Map<String, Friend> friends = user.getFriends();
-            if (friends != null) {
+            Map<String, Friend> friends = FB.getFriends();
+            if (!friends.isEmpty()) {
                 for (Map.Entry<String, Friend> entry : friends.entrySet()) {
                     String key = entry.getKey();
                     Friend friend = entry.getValue();
@@ -120,8 +115,7 @@ public class NotifiListFragment extends PagerFragment {
                         RangeRequest request = friend.getRangeRequest();
                         RangeMessage m = new RangeMessage();
                         m.key = key;
-                        DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-                        m.date = df.format(new Date(request.getCreated()));
+                        m.date = Utils.getShortDateTime(request.getCreated());
                         m.rangeTo = request.getRange();
                         m.rangeFrom = friend.getRange();
                         m.name = friend.getDisplayName();
@@ -142,8 +136,7 @@ public class NotifiListFragment extends PagerFragment {
                 m.id = nm.getId();
                 m.title = nm.getTitle();
                 m.message = nm.getMessage();
-                DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-                m.date = df.format(new Date(nm.getCreated()));
+                m.date = Utils.getShortDateTime(nm.getCreated());
                 m.resourceId = nm.getResourceId();
                 messages.add(m);
             }
@@ -198,6 +191,16 @@ public class NotifiListFragment extends PagerFragment {
             return new ViewHolder(itemView);
         }
 
+        void showFriendViewPage() {
+            ViewPager page = getViewPager();
+            page.setCurrentItem(1);
+        }
+
+        void closeViewPage() {
+            SlidingUpPanelLayout slidingUpPanelLayout = getSlidingUpPanelLayout();
+            slidingUpPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        }
+
         @Override
         public void onBindViewHolder(final NotifiListAdapter.ViewHolder holder, final int position) {
             Message m = mMessages.get(position);
@@ -225,9 +228,7 @@ public class NotifiListFragment extends PagerFragment {
                     public void onClick(View v) {
                         FB.acceptFriendRequest(im.key);
                         Notifi.remove(im.nid);
-                        //NotifiListAdapter.this.notifyItemRemoved(position);
-                        ViewPager page = getViewPager();
-                        page.setCurrentItem(1);
+                        showFriendViewPage();
                     }
                 });
                 holder.no.setText(R.string.decline);
@@ -236,10 +237,7 @@ public class NotifiListFragment extends PagerFragment {
                     public void onClick(View v) {
                         FB.declineFriendRequest(im.key);
                         Notifi.remove(im.nid);
-                        //NotifiListAdapter.this.notifyItemRemoved(position);
-                        SlidingUpPanelLayout slidingUpPanelLayout = getSlidingUpPanelLayout();
-                        slidingUpPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
-
+                        closeViewPage();
                     }
                 });
             } else if (m instanceof InviteMessage) {
@@ -266,8 +264,7 @@ public class NotifiListFragment extends PagerFragment {
                     public void onClick(View v) {
                         FB.cancelFriendRequest(im.key);
                         Notifi.remove(im.nid);
-                        ViewPager page = getViewPager();
-                        page.setCurrentItem(1);
+                        showFriendViewPage();
                     }
                 });
                 holder.no.setVisibility(View.INVISIBLE);
@@ -283,9 +280,7 @@ public class NotifiListFragment extends PagerFragment {
                     public void onClick(View v) {
                         FB.acceptRangeRequest(rm.key, rm.rangeTo);
                         Notifi.remove(rm.nid);
-                        //NotifiListAdapter.this.notifyItemRemoved(position);
-                        ViewPager page = getViewPager();
-                        page.setCurrentItem(1);
+                        showFriendViewPage();
                     }
                 });
                 holder.no.setText(R.string.decline);
@@ -294,19 +289,12 @@ public class NotifiListFragment extends PagerFragment {
                     public void onClick(View v) {
                         FB.declineRangeRequest(rm.key);
                         Notifi.remove(rm.nid);
-                        //NotifiListAdapter.this.notifyItemRemoved(position);
-                        //SlidingUpPanelLayout slidingUpPanelLayout = getSlidingUpPanelLayout();
-                        //slidingUpPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
-                        ViewPager page = getViewPager();
-                        page.setCurrentItem(1);
+                        showFriendViewPage();
                     }
                 });
             } else if (m instanceof InfoMessage) {
                 final InfoMessage im = (InfoMessage) m;
                 new LoadImage(holder.picture).loadProfile(im.key);
-                if (im.resourceId > 0) {
-                    holder.picture.setBackgroundResource(im.resourceId);
-                }
                 holder.title.setText(im.title);
                 holder.date.setText(im.date);
                 holder.content.setText(im.message);
@@ -315,7 +303,7 @@ public class NotifiListFragment extends PagerFragment {
                     @Override
                     public void onClick(View v) {
                         DBUtil.deleteMessage(im.id);
-                        onSelected();
+                        closeViewPage();
                     }
                 });
                 holder.no.setVisibility(View.INVISIBLE);
@@ -328,8 +316,7 @@ public class NotifiListFragment extends PagerFragment {
             return mMessages.size();
         }
 
-        public class ViewHolder extends RecyclerView.ViewHolder {
-            AppCompatImageView action;
+        class ViewHolder extends RecyclerView.ViewHolder {
             AppCompatImageView picture;
             AppCompatTextView title;
             AppCompatTextView date;
@@ -337,9 +324,8 @@ public class NotifiListFragment extends PagerFragment {
             AppCompatButton ok;
             AppCompatButton no;
 
-            public ViewHolder(View itemView) {
+            ViewHolder(View itemView) {
                 super(itemView);
-                //action = (AppCompatImageView) itemView.findViewById(R.key.action_icon);
                 picture = (AppCompatImageView) itemView.findViewById(R.id.picture);
                 title = (AppCompatTextView) itemView.findViewById(R.id.title);
                 date = (AppCompatTextView) itemView.findViewById(R.id.date);

@@ -101,7 +101,7 @@
     <string name="range_changed_broad">The range has been changed successfully.</string>
     <string name="term_services">Terms of Services</string>
     <string name="privacy_policy">Privacy Policy</string>
-    <string name="not_available">N/A</string>
+    <string name="no_message_available">No message</string>
     <string name="friend">Friend</string>
     <string name="pending">Pending</string>
     <string name="unfriend">Unfriend</string>

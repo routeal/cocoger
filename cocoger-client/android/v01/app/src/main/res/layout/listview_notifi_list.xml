@@ -11,7 +11,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="4dp"
-        android:padding="2dp"
         card_view:cardBackgroundColor="@color/floralwhite"
         card_view:cardCornerRadius="8dp"
         card_view:cardElevation="8dp">
@@ -21,63 +20,57 @@
             android:layout_height="wrap_content"
             android:descendantFocusability="blocksDescendants"
             android:orientation="vertical"
-            android:paddingLeft="4dp"
-            android:paddingRight="4dp"
-            android:paddingTop="2dp">
+            android:padding="4dp">
 
             <android.support.v7.widget.AppCompatImageView
                 android:id="@+id/picture"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignBottom="@+id/content_container"
-                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true"
                 android:layout_alignParentTop="true"
-                android:paddingRight="8dp"
-                android:src="@drawable/ic_face_black_48dp" />
+                android:padding="8dp" />
 
             <android.support.v7.widget.AppCompatTextView
                 android:id="@+id/title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
-                android:layout_toLeftOf="@+id/date"
-                android:layout_toRightOf="@+id/picture"
-                android:text="@string/name"
-                android:textColor="@color/black"
-                android:textSize="16dp" />
+                android:layout_toStartOf="@+id/date"
+                android:layout_toEndOf="@+id/picture"
+                android:text="@string/title"
+                android:textSize="16sp" />
 
             <android.support.v7.widget.AppCompatTextView
                 android:id="@+id/date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignBottom="@+id/title"
-                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
                 android:layout_alignParentTop="true"
                 android:layout_alignTop="@+id/title"
-                android:paddingRight="4dp"
-                android:text=""
-                android:textColor="@color/black"
-                android:textSize="12dp" />
+                style="@android:style/Widget.Material.Light.TextView"
+                android:textSize="12sp" />
 
             <RelativeLayout
                 android:id="@+id/content_container"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
                 android:layout_below="@+id/title"
                 android:layout_marginTop="8dp"
-                android:layout_toRightOf="@+id/picture">
+                android:layout_toEndOf="@+id/picture">
 
                 <android.support.v7.widget.AppCompatTextView
                     android:id="@+id/content"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentRight="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentEnd="true"
                     android:layout_alignParentTop="true"
-                    android:text="@string/not_available"
-                    android:textColor="@color/black"
-                    android:textSize="14dp" />
+                    android:text="@string/no_message_available"
+                    style="@android:style/Widget.Material.Light.TextView"
+                    android:textSize="14sp" />
 
                 <android.support.v7.widget.AppCompatButton
                     android:id="@+id/no"
@@ -85,17 +78,17 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_below="@+id/content"
-                    android:layout_toLeftOf="@+id/ok"
-                    android:text="Cancel" />
+                    android:layout_toStartOf="@+id/ok"
+                    android:text="@android:string/cancel" />
 
                 <android.support.v7.widget.AppCompatButton
                     android:id="@+id/ok"
                     style="@android:style/Widget.Material.Light.Button.Borderless.Colored"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
+                    android:layout_alignParentEnd="true"
                     android:layout_below="@+id/content"
-                    android:text="OK" />
+                    android:text="@android:string/ok" />
 
             </RelativeLayout>
 

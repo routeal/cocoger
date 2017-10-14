@@ -95,14 +95,29 @@ abstract class MapActivity extends MapBaseActivity
                 if (mPlace != null) {
                     mPlace.setup();
                 }
+            } else if (intent.getAction().equals(FB.FRIEND_LOCATION_ADD)) {
+                final String fid = intent.getStringExtra(FB.FRIEND_KEY);
+                final Friend friend = FB.getFriend(fid);
+                if (friend == null) return; // shouldn't happen
+                FB.getLocation(friend.getLocation(), new FB.LocationListener() {
+                    @Override
+                    public void onFail(String err) {
+                        Log.d(TAG, "Failed to get location for added Friend: " + err);
+                    }
+
+                    @Override
+                    public void onSuccess(Location location, final Address address) {
+                        mMm.reposition(fid, location, address, friend.getRange());
+                    }
+                });
             } else if (intent.getAction().equals(FB.FRIEND_LOCATION_UPDATE)) {
                 final String fid = intent.getStringExtra(FB.FRIEND_KEY);
-                final String newLocationKey = intent.getStringExtra(FB.NEW_LOCATION);
-                final String oldLocationKey = intent.getStringExtra(FB.OLD_LOCATION);
+                //final String newLocationKey = intent.getStringExtra(FB.NEW_LOCATION);
+                //final String oldLocationKey = intent.getStringExtra(FB.OLD_LOCATION);
                 final Friend friend = FB.getFriend(fid);
                 if (friend == null) return; // shouldn't happen
                 final int range = friend.getRange();
-                FB.getLocation(newLocationKey, new FB.LocationListener() {
+                FB.getLocation(friend.getLocation(), new FB.LocationListener() {
                     @Override
                     public void onFail(String err) {
                         Log.d(TAG, "Friend new location: " + err);
@@ -112,6 +127,8 @@ abstract class MapActivity extends MapBaseActivity
                     public void onSuccess(Location newLocation, final Address newAddress) {
                         // move the cursor
                         mMm.reposition(fid, newLocation, newAddress, range);
+
+                        /*
                         // compare the new location with the old location to issue the range movement
                         FB.getLocation(oldLocationKey, new FB.LocationListener() {
                             @Override
@@ -123,7 +140,6 @@ abstract class MapActivity extends MapBaseActivity
                             public void onSuccess(Location oldLocation, Address oldAddress) {
                                 // detect move in the range or above
                                 // TODO
-                                /*
                                 int movedRange = Utils.detectRangeMove(newAddress, oldAddress, range);
                                 if (movedRange > 0) {
                                     // if the address is the same as the user, send a notification
@@ -134,9 +150,9 @@ abstract class MapActivity extends MapBaseActivity
                                         Notifi.send(nid, friend.getDisplayName(), message, friend.getPicture());
                                     }
                                 }
-                                */
                             }
                         });
+                        */
                     }
                 });
             } else if (intent.getAction().equals(FB.FRIEND_LOCATION_REMOVE)) {
@@ -150,13 +166,9 @@ abstract class MapActivity extends MapBaseActivity
                 if (fid == null) {
                     return;
                 }
-                Friend friend = null;
-                User user = FB.getUser();
-                if (user != null && user.getFriends() != null) {
-                    friend = user.getFriends().get(fid);
-                    if (friend == null || friend.getLocation() == null) {
-                        return;
-                    }
+                Friend friend = FB.getFriend(fid);
+                if (friend == null || friend.getLocation() == null) {
+                    return;
                 }
                 int range = friend.getRange();
                 Log.d(TAG, "FRIEND_RANGE_UPDATE:" + fid);
@@ -274,6 +286,7 @@ abstract class MapActivity extends MapBaseActivity
         IntentFilter filter = new IntentFilter();
         filter.addAction(FB.USER_AVAILABLE);
         filter.addAction(FB.USER_LOCATION_UPDATE);
+        filter.addAction(FB.FRIEND_LOCATION_ADD);
         filter.addAction(FB.FRIEND_LOCATION_UPDATE);
         filter.addAction(FB.FRIEND_LOCATION_REMOVE);
         filter.addAction(FB.FRIEND_RANGE_UPDATE);

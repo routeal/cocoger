@@ -17,6 +17,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.franmontiel.fullscreendialog.FullScreenDialogContent;
 import com.franmontiel.fullscreendialog.FullScreenDialogController;
 import com.routeal.cocoger.R;
@@ -37,25 +38,15 @@ public class UserListFragment extends Fragment
     private FullScreenDialogController mDialogController;
 
     private EditText mSearchText;
+    private RecyclerView mRecyclerView;
+    private FirebaseRecyclerAdapter mAdapter;
 
+    @SuppressWarnings("deprecation")
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_user_list, container, false);
-    }
-
-    @Override
-    public void onDialogCreated(FullScreenDialogController dialogController) {
-        this.mDialogController = dialogController;
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
-        View view = getView();
+        View view = inflater.inflate(R.layout.fragment_user_list, container, false);
 
         TextView emptyText = (TextView) view.findViewById(R.id.empty_list_text);
         String msg = getResources().getString(R.string.user_search_empty_text);
@@ -67,7 +58,6 @@ public class UserListFragment extends Fragment
 
         mSearchText = (EditText) view.findViewById(R.id.search_text);
         mSearchText.setOnEditorActionListener(this);
-        Utils.showSoftKeyboard(getActivity(), mSearchText);
 
         Button searchButton = (Button) view.findViewById(R.id.search_button);
         searchButton.setOnClickListener(this);
@@ -75,9 +65,29 @@ public class UserListFragment extends Fragment
         LinearLayoutManager layoutManager = new LinearLayoutManager(view.getContext());
         layoutManager.setReverseLayout(false);
 
-        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.user_list);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(layoutManager);
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.user_list);
+        mRecyclerView.setLayoutManager(layoutManager);
+
+        return view;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Utils.showSoftKeyboard(getActivity(), mSearchText);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (mAdapter != null) {
+            mAdapter.stopListening();
+        }
+    }
+
+    @Override
+    public void onDialogCreated(FullScreenDialogController dialogController) {
+        this.mDialogController = dialogController;
     }
 
     @Override
@@ -95,19 +105,15 @@ public class UserListFragment extends Fragment
     }
 
     private boolean updateDatabaseForFriendRequest() {
-        if (getView() != null) {
-            RecyclerView recyclerView = (RecyclerView) getView().findViewById(R.id.user_list);
-            if (FB.checkFriendRequest(recyclerView.getAdapter())) {
-                new AlertDialog.Builder(getContext())
-                        .setTitle(R.string.friend_request)
-                        .setMessage(R.string.friend_request_failed)
-                        .setPositiveButton(android.R.string.ok, null)
-                        .show();
-                return false;
-            }
-            return FB.sendFriendRequest(recyclerView.getAdapter());
+        if (FB.checkFriendRequest(mRecyclerView.getAdapter())) {
+            new AlertDialog.Builder(getContext())
+                    .setTitle(R.string.friend_request)
+                    .setMessage(R.string.friend_request_failed)
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
+            return false;
         }
-        return false;
+        return FB.sendFriendRequest(mRecyclerView.getAdapter());
     }
 
     @Override
@@ -133,13 +139,14 @@ public class UserListFragment extends Fragment
         String text = mSearchText.getText().toString();
         text = text.trim();
         if (!text.isEmpty()) {
-            if (getView() != null) {
-                RecyclerView recyclerView = (RecyclerView) getView().findViewById(R.id.user_list);
-                recyclerView.setAdapter(FB.getUserRecyclerAdapter(text, getView()));
-                mSearchText.setText("");
+            if (mAdapter != null) {
+                mAdapter.stopListening();
             }
+            mAdapter = FB.getUserRecyclerAdapter(text, getView());
+            mAdapter.startListening();
+            mRecyclerView.setAdapter(mAdapter);
+            mSearchText.setText("");
         }
-        Utils.showSoftKeyboard(getActivity(), mSearchText);
     }
 
 }

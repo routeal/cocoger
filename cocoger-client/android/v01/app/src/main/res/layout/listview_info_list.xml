@@ -35,7 +35,7 @@
         android:layout_alignParentRight="true"
         android:layout_alignTop="@+id/picture"
         android:gravity="center_vertical"
-        android:text="@string/not_available"
+        android:text="@string/no_message_available"
         android:textColor="@color/black"
         android:textSize="14dp" />
 

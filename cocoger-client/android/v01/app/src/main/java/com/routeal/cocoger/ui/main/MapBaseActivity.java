@@ -1,7 +1,6 @@
 package com.routeal.cocoger.ui.main;
 
 import android.app.Activity;
-import android.app.Application;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -29,10 +28,8 @@ import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.routeal.cocoger.R;
-import com.routeal.cocoger.service.LocationUpdate;
 import com.routeal.cocoger.service.LocationUpdateService;
 import com.routeal.cocoger.util.Utils;
 
@@ -45,11 +42,30 @@ abstract class MapBaseActivity extends FragmentActivity
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 1234;
     private final static int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 5678;
 
-    private final MapActivityLifecycleCallbacks mCallbacks = new MapActivityLifecycleCallbacks();
-
     private GoogleApiClient mGoogleApiClient;
     private Location mLastKnownLocation;
     private Address mLastKnownAddress;
+
+    private LocationUpdateService mService = null;
+    private boolean mBound = false;
+
+    private final ServiceConnection mServiceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            LocationUpdateService.LocalBinder binder = (LocationUpdateService.LocalBinder) service;
+            mService = binder.getService();
+            mBound = true;
+            Log.d(TAG, "onServiceConnected");
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mService = null;
+            mBound = false;
+            Log.d(TAG, "onServiceDisconnected");
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +78,24 @@ abstract class MapBaseActivity extends FragmentActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        bindService(new Intent(this, LocationUpdateService.class), mServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
+        if (mBound) {
+            // Unbind from the service. This signals to the service that this activity is no longer
+            // in the foreground, and the service can respond by promoting itself to a foreground
+            // service.
+            unbindService(mServiceConnection);
+            mBound = false;
+        }
+        super.onStop();
     }
 
     private void checkPermission() {
@@ -142,7 +176,6 @@ abstract class MapBaseActivity extends FragmentActivity
 
     void exitApp() {
         Log.d(TAG, "unregisterActivityLifecycleCallbacks");
-        getApplication().unregisterActivityLifecycleCallbacks(mCallbacks);
         LocationUpdateService.stop();
         finish();
     }
@@ -168,8 +201,7 @@ abstract class MapBaseActivity extends FragmentActivity
     @Override
     @SuppressWarnings("MissingPermission")
     public void onConnected(@Nullable Bundle bundle) {
-        getApplication().registerActivityLifecycleCallbacks(mCallbacks);
-
+        // get the last known location
         FusedLocationProviderClient m = LocationServices.getFusedLocationProviderClient(this);
         m.getLastLocation().addOnCompleteListener(new OnCompleteListener<Location>() {
             @Override
@@ -185,6 +217,7 @@ abstract class MapBaseActivity extends FragmentActivity
             }
         });
 
+        // disconnect
         mGoogleApiClient.disconnect();
     }
 
@@ -204,73 +237,6 @@ abstract class MapBaseActivity extends FragmentActivity
         } else {
             Log.d(TAG, "onConnectionFailed: " + connectionResult.getErrorMessage());
             Toast.makeText(this, connectionResult.getErrorMessage(), Toast.LENGTH_LONG).show();
-        }
-    }
-
-    private static class MapActivityLifecycleCallbacks implements Application.ActivityLifecycleCallbacks {
-        private LocationUpdateService mService = null;
-
-        private boolean mBound = false;
-
-        private final ServiceConnection mServiceConnection = new ServiceConnection() {
-
-            @Override
-            public void onServiceConnected(ComponentName name, IBinder service) {
-                LocationUpdateService.LocalBinder binder = (LocationUpdateService.LocalBinder) service;
-                mService = binder.getService();
-                Log.d(TAG, "onServiceConnected");
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName name) {
-                mService = null;
-                mBound = false;
-                Log.d(TAG, "onServiceDisconnected");
-            }
-        };
-
-        @Override
-        public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-
-        }
-
-        @Override
-        public void onActivityStarted(Activity activity) {
-            Log.d(TAG, "onActivityStarted");
-            if (mBound) return;
-            activity.bindService(new Intent(activity, LocationUpdateService.class), mServiceConnection, Context.BIND_AUTO_CREATE);
-            mBound = true;
-        }
-
-        @Override
-        public void onActivityResumed(Activity activity) {
-
-        }
-
-        @Override
-        public void onActivityPaused(Activity activity) {
-
-        }
-
-        @Override
-        public void onActivityStopped(Activity activity) {
-            Log.d(TAG, "onActivityStopped");
-            if (mBound) {
-                // Unbind from the service. This signals to the service that this activity is no longer
-                // in the foreground, and the service can respond by promoting itself to a foreground
-                // service.
-                activity.unbindService(mServiceConnection);
-                mBound = false;
-            }
-        }
-
-        @Override
-        public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-
-        }
-
-        @Override
-        public void onActivityDestroyed(Activity activity) {
         }
     }
 }

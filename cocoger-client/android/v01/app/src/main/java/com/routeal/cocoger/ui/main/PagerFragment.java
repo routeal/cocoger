@@ -36,9 +36,9 @@ abstract public class PagerFragment extends Fragment {
     void onSelected() {
         if (getView() != null) {
             Log.d(TAG, "selected");
-            selected();
+            onViewPageSelected();
         }
     }
 
-    abstract void selected();
+    abstract void onViewPageSelected();
 }

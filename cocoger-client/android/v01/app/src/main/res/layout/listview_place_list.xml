@@ -79,7 +79,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 android:layout_toEndOf="@+id/place_picture"
-                android:text="@string/not_available"
+                android:text="@string/no_message_available"
                 android:textColor="@color/black"
                 android:textSize="14sp" />
 

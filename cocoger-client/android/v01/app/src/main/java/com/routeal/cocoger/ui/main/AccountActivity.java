@@ -41,11 +41,9 @@ import java.util.TimeZone;
 
 public class AccountActivity extends AppCompatActivity {
 
-    private final static String TAG = "AccountActivity";
-
     public final static String DISPLAY_NAME = "displayName";
     public final static String EMAIL = "email";
-
+    private final static String TAG = "AccountActivity";
     private boolean mIsLogin = false;
     private String mName;
     private String mEmail;
@@ -313,12 +311,14 @@ public class AccountActivity extends AppCompatActivity {
                     mProfilePictureUri = result.getUri();
                     InputStream inputStream = getContentResolver().openInputStream(mProfilePictureUri);
                     Drawable drawable = Drawable.createFromStream(inputStream, result.getUri().toString());
-                    //drawable.setBounds(0, 0, 512, 512);
-                    Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
-                    Bitmap cropped = Utils.cropCircle(bitmap);
-                    ImageView imageView = (ImageView) findViewById(R.id.profile_picture);
-                    imageView.setImageBitmap(cropped);
+                    if (drawable instanceof BitmapDrawable) {
+                        Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
+                        Bitmap cropped = Utils.cropCircle(bitmap);
+                        ImageView imageView = (ImageView) findViewById(R.id.profile_picture);
+                        imageView.setImageBitmap(cropped);
+                    }
                 } catch (FileNotFoundException e) {
+                    Log.d(TAG, "CropImage not found file", e);
                 }
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 Toast.makeText(this, "Cropping onFail: " + result.getError(), Toast.LENGTH_LONG).show();
@@ -327,7 +327,7 @@ public class AccountActivity extends AppCompatActivity {
     }
 
     private void save() {
-        final User user = FB.getUser();
+        User user = FB.getUser();
 
         if (mName != null && mName.equals(user.getDisplayName())) {
             mName = null;
@@ -341,7 +341,17 @@ public class AccountActivity extends AppCompatActivity {
 
         if (mProfilePictureUri == null) {
             if (mName != null || mBod != null || mGender != null) {
-                FB.updateUser(mName, mGender, mBod);
+                FB.updateUser(mName, mGender, mBod, new FB.CompleteListener() {
+                    @Override
+                    public void onSuccess() {
+                        AccountActivity.this.finish();
+                    }
+
+                    @Override
+                    public void onFail(String err) {
+                        Log.d(TAG, err);
+                    }
+                });
             }
         } else {
             byte[] bytes = Utils.getBitmapBytes(this, mProfilePictureUri);
@@ -354,18 +364,26 @@ public class AccountActivity extends AppCompatActivity {
                 public void onSuccess(String url) {
                     // set the url to the user
                     if (mName != null || mBod != null || mGender != null) {
-                        FB.updateUser(mName, mGender, mBod);
+                        FB.updateUser(mName, mGender, mBod, new FB.CompleteListener() {
+                            @Override
+                            public void onSuccess() {
+                                AccountActivity.this.finish();
+                            }
+
+                            @Override
+                            public void onFail(String err) {
+                                Log.d(TAG, err);
+                            }
+                        });
                     }
-                    AccountActivity.this.finish();
                 }
 
                 @Override
                 public void onFail(String err) {
+                    Log.d(TAG, err);
                 }
             });
         }
-
-        finish();
     }
 
     private void setup() {
@@ -426,7 +444,8 @@ public class AccountActivity extends AppCompatActivity {
                 // start the main map
                 Intent intent = new Intent(getApplicationContext(), PanelMapActivity.class);
                 startActivity(intent);
-                finish();
+
+                AccountActivity.this.finish();
             }
 
             @Override

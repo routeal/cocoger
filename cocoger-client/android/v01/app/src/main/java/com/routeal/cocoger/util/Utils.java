@@ -37,6 +37,8 @@ import com.routeal.cocoger.provider.DBUtil;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -48,6 +50,11 @@ import java.util.Map;
 
 public class Utils {
     private final static String TAG = "Utils";
+
+    public static String getShortDateTime(long epoch) {
+        DateFormat df = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
+        return df.format(new Date(epoch));
+    }
 
     public static <K, V> Map<K, V> diffMaps(Map<? extends K, ? extends V> left, Map<? extends K, ? extends V> right) {
         Map<K, V> difference = new HashMap<>();
@@ -70,15 +77,6 @@ public class Utils {
                 activity.getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
     }
-
-/*
-    public static ProgressBar getBusySpinner(Context context) {
-        ProgressBar spinner = ProgressBar.show(context, null, null, false, true);
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-        dialog.setContentView(R.layout.progressbar_spinner);
-        return dialog;
-    }
-*/
 
     public static BitmapDescriptor getBitmapDescriptor(Drawable drawable) {
         Canvas canvas = new Canvas();
@@ -577,6 +575,10 @@ public class Utils {
                 Settings.Secure.ANDROID_ID);
     }
 
+    public static ProgressBarView getProgressBar(Activity activity) {
+        return new ProgressBarView(activity);
+    }
+
     public static class ProgressBarView {
         private ProgressBar mProgressBar;
 
@@ -603,9 +605,5 @@ public class Utils {
         public void hide() {
             mProgressBar.setVisibility(View.INVISIBLE);
         }
-    }
-
-    public static ProgressBarView getProgressBar(Activity activity) {
-        return new ProgressBarView(activity);
     }
 }

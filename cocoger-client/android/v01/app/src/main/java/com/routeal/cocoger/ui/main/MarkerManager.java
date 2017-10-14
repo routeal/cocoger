@@ -204,11 +204,9 @@ class MarkerManager implements MapActivity.MarkerInterface {
         if (key.equals(FB.getUid())) {
             name = user.getDisplayName();
         } else {
-            if (user.getFriends() != null) {
-                Friend friend = user.getFriends().get(key);
-                if (friend != null) {
-                    name = friend.getDisplayName();
-                }
+            Friend friend = FB.getFriend(key);
+            if (friend != null) {
+                name = friend.getDisplayName();
             }
         }
 
@@ -404,8 +402,8 @@ class MarkerManager implements MapActivity.MarkerInterface {
 
         add(FB.getUid(), user.getDisplayName(), location, address, LocationRange.CURRENT.range);
 
-        Map<String, Friend> friends = user.getFriends();
-        if (friends == null || friends.isEmpty()) {
+        Map<String, Friend> friends = FB.getFriends();
+        if (friends.isEmpty()) {
             Log.d(TAG, "setupMarkers: empty friend");
             return;
         }

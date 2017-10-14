@@ -38,7 +38,7 @@ public class PlaceListFragment extends PagerFragment {
     }
 
     @Override
-    void selected() {
+    void onViewPageSelected() {
         // empty
     }
 

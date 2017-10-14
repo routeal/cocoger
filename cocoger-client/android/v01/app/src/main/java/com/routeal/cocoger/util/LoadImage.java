@@ -3,6 +3,7 @@ package com.routeal.cocoger.util;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.widget.ImageView;
 
 import com.routeal.cocoger.fb.FB;
@@ -18,6 +19,8 @@ import java.net.URLConnection;
  * Created by nabe on 9/5/17.
  */
 public class LoadImage {
+    private final static String TAG = "LoadImage";
+
     private ImageView imageView;
     private boolean crop;
     private int borderColor;
@@ -70,6 +73,7 @@ public class LoadImage {
     }
 
     public void loadProfile(String key) {
+        crop = true;
         load(FB.PROFILE_IMAGE, key);
     }
 
@@ -80,6 +84,7 @@ public class LoadImage {
     private void load(String filename, String key) {
         // get from the database
         final String dbname = key + "_" + filename;
+        Log.d(TAG, "load:" + dbname);
         byte[] bytes = DBUtil.getImage(dbname);
         if (bytes != null) {
             onDone(bytes);

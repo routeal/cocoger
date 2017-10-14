@@ -27,7 +27,7 @@ public class GroupListFragment extends PagerFragment {
     }
 
     @Override
-    void selected() {
+    void onViewPageSelected() {
         // empty
     }
 }

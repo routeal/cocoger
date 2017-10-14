@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.franmontiel.fullscreendialog.FullScreenDialogFragment;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
@@ -21,7 +22,7 @@ public class FriendListFragment extends PagerFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        final View view = inflater.inflate(R.layout.fragment_friend_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_friend_list, container, false);
 
         Button addFriend = (Button) view.findViewById(R.id.add_friend);
         addFriend.setOnClickListener(new View.OnClickListener() {
@@ -50,13 +51,16 @@ public class FriendListFragment extends PagerFragment {
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
         recyclerView.setLayoutManager(layoutManager);
 
-        recyclerView.setAdapter(FB.getFriendRecyclerAdapter());
+        FirebaseRecyclerAdapter adapter = FB.getFriendRecyclerAdapter();
+        adapter.startListening();
+
+        recyclerView.setAdapter(adapter);
 
         return view;
     }
 
     @Override
-    void selected() {
+    void onViewPageSelected() {
         // empty
     }
 }
