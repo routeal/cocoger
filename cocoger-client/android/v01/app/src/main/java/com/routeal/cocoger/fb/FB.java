@@ -71,18 +71,15 @@ public class FB {
     public final static String FRIEND_MARKER_SHOW = "friend_marker_show";
     public final static String DIRECTION_ROUTE_ADD = "direction_route_add";
     public final static String DIRECTION_ROUTE_REMOVE = "direction_route_remove";
-    public final static String SAVE_PLACE = "save_place";
-    public final static String EDIT_PLACE = "edit_place";
+    public final static String PLACE_SAVE = "place_save";
+    public final static String PLACE_EDIT = "place_edit";
 
-    public final static String FRIEND_KEY = "friend_key";
-    public final static String NEW_LOCATION = "new_location";
-    public final static String OLD_LOCATION = "old_location";
-    public final static String NEW_ADDRESS = "new_address";
-    public final static String RANGE_CHANGE = "range_change";
+    public final static String KEY = "key";
     public final static String LOCATION = "location";
     public final static String ADDRESS = "address";
     public final static String TITLE = "title";
     public final static String IMAGE = "image";
+    public final static String PLACE = "place";
 
     public final static String ACTION_FRIEND_REQUEST_ACCEPTED = "FRIEND_REQUEST_ACCEPTED";
     public final static String ACTION_FRIEND_REQUEST_DECLINED = "FRIEND_REQUEST_DECLINED";
@@ -149,6 +146,10 @@ public class FB {
 
     private static DatabaseReference getPlaceDatabaseReference(String user) {
         return getUserDatabaseReference().child(user).child("places");
+    }
+
+    private static DatabaseReference getPlaceDatabaseReference(String user, String key) {
+        return getUserDatabaseReference().child(user).child("places").child(key);
     }
 
     private static DatabaseReference getUserDatabaseReference() {
@@ -261,7 +262,7 @@ public class FB {
                 mFriendList.put(key, friend);
 
                 Intent intent = new Intent(FB.FRIEND_LOCATION_ADD);
-                intent.putExtra(FB.FRIEND_KEY, key);
+                intent.putExtra(FB.KEY, key);
                 LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
             }
 
@@ -286,14 +287,14 @@ public class FB {
                 // to change the marker location
                 if (newFriend.getRange() != oldFriend.getRange()) {
                     Intent intent = new Intent(FB.FRIEND_RANGE_UPDATE);
-                    intent.putExtra(FB.FRIEND_KEY, key);
+                    intent.putExtra(FB.KEY, key);
                     LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
                 }
 
                 if (newFriend.getLocation() != null && oldFriend.getLocation() != null &&
                         !newFriend.getLocation().equals(oldFriend.getLocation())) {
                     Intent intent = new Intent(FB.FRIEND_LOCATION_UPDATE);
-                    intent.putExtra(FB.FRIEND_KEY, key);
+                    intent.putExtra(FB.KEY, key);
                     /* Range movement not implemented
                     intent.putExtra(FB.NEW_LOCATION, newFriend.getLocation());
                     intent.putExtra(FB.OLD_LOCATION, oldFriend.getLocation());
@@ -312,7 +313,7 @@ public class FB {
                 mFriendList.remove(key);
 
                 Intent intent = new Intent(FB.FRIEND_LOCATION_REMOVE);
-                intent.putExtra(FB.FRIEND_KEY, key);
+                intent.putExtra(FB.KEY, key);
                 LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
             }
 
@@ -871,13 +872,13 @@ public class FB {
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        if (listener != null) listener.onSuccess();
+                        if (listener != null) listener.onDone(null);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        if (listener != null) listener.onFail(e.getLocalizedMessage());
+                        if (listener != null) listener.onDone(e.getLocalizedMessage());
                     }
                 });
     }
@@ -998,22 +999,23 @@ public class FB {
         };
     }
 
-    public static void getPlace(String key, final PlaceListener listener) {
+    public static void getPlace(String uid, final PlaceListener listener) {
         DatabaseReference db = getPlaceDatabaseReference();
-        db.child(key).addListenerForSingleValueEvent(
+        db.child(uid).addListenerForSingleValueEvent(
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
+                        String key = dataSnapshot.getKey();
                         Place place = dataSnapshot.getValue(Place.class);
                         if (listener != null) {
-                            listener.onSuccess(place);
+                            listener.onSuccess(key, place);
                         }
                     }
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
                         if (listener != null) {
-                            listener.onFail(databaseError.toException().getLocalizedMessage());
+                            listener.onFail(databaseError.getMessage());
                         }
                     }
                 }
@@ -1167,7 +1169,7 @@ public class FB {
         });
     }
 
-    public static void addPlace(Place place, final Bitmap bitmap, final CompleteListener listener) {
+    public static void addPlace(final Place place, final Bitmap bitmap, final PlaceListener listener) {
         DatabaseReference placeDb = getPlaceDatabaseReference();
         final String key = placeDb.push().getKey();
 
@@ -1193,9 +1195,10 @@ public class FB {
                     // success
                     byte bytes[] = Utils.getBitmapBytes(MainApplication.getContext(), bitmap);
                     if (bytes != null) {
+                        // no error handling
                         uploadPlaceImage(bytes, key, null);
                     }
-                    if (listener != null) listener.onSuccess();
+                    if (listener != null) listener.onSuccess(key, place);
                 } else {
                     // error
                     if (listener != null) listener.onFail(databaseError.getMessage());
@@ -1204,38 +1207,56 @@ public class FB {
         });
     }
 
-    public static void editPlace(final Place place, Bitmap bitmap, final CompleteListener listener) {
+    public static void editPlace(final String key, Place place, Bitmap bitmap, final CompleteListener listener) {
+        DatabaseReference db = getPlaceDatabaseReference();
+        db.child(key).setValue(place);
+
         if (bitmap == null) {
-            //editPlaceImpl(place, listener);
+            if (listener != null) listener.onSuccess();
             return;
         }
 
-/*
-        Uri uri = Utils.getBitmapBytes(MainApplication.getContext(), bitmap);
-        if (uri == null) {
-            if (listener != null) listener.onFail("Failed to save a bitmap.");
+        final byte bytes[] = Utils.getBitmapBytes(MainApplication.getContext(), bitmap);
+        if (bytes == null) {
+            if (listener != null) listener.onSuccess();
             return;
         }
 
-        String name = "place_" + System.currentTimeMillis() + ".jpg";
+        deletePlaceImage(getUid(), key, null);
 
-        uploadImageFile(uri, name, new UploadImageListener() {
-            @Override
-            public void onSuccess(String url) {
-                place.setPicture(url);
-                //editPlaceImpl(place, listener);
-            }
+        uploadPlaceImage(bytes, key, null);
 
-            @Override
-            public void onFail(String err) {
-                if (listener != null) listener.onFail(err);
-            }
-        });
-*/
+        if (listener != null) listener.onSuccess();
     }
 
-    public static void removePlace() {
+    public static void deletePlace(final String key, Place place, final CompleteListener listener) {
+        final String uid = getUid();
 
+        Map<String, Object> updates = new HashMap<>();
+
+        updates.put("places/" + key, null);
+        updates.put("users/" + uid + "/places/" + key, null);
+
+        if (place.getSeenBy().equals("friends")) {
+            for (Map.Entry<String, Friend> entry : mFriendList.entrySet()) {
+                updates.put("users/" + entry.getKey() + "/places/" + key, null);
+            }
+        }
+
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference();
+        db.updateChildren(updates, new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                if (databaseError == null) {
+                    // success
+                    deletePlaceImage(uid, key, null);
+                    if (listener != null) listener.onSuccess();
+                } else {
+                    // error
+                    if (listener != null) listener.onFail(databaseError.getMessage());
+                }
+            }
+        });
     }
 
     public static void saveFeedback(Feedback feedback, final CompleteListener listner) {
@@ -1267,9 +1288,7 @@ public class FB {
     }
 
     public interface DeleteDataListener {
-        void onSuccess();
-
-        void onFail(String err);
+        void onDone(String err);
     }
 
     public interface SignInListener {
@@ -1310,7 +1329,7 @@ public class FB {
     }
 
     public interface PlaceListener {
-        void onSuccess(Place place);
+        void onSuccess(String key, Place place);
 
         void onFail(String err);
     }

@@ -30,6 +30,7 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
     private PlaceManager mPlaceManager;
     private boolean mSeenFriend;
     private Place mPlace;
+    private String mKey;
 
     @Nullable
     @Override
@@ -98,7 +99,7 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
                 }
                 break;
             case R.id.action_edit_place:
-                mPlaceManager.editPlace(this, mPlace, mCopiedBitmap);
+                mPlaceManager.editPlace(getActivity(), mPlace, mKey);
                 break;
             case R.id.action_direction:
                 if (mLocation != null) {
@@ -127,4 +128,6 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
     void setPlaceManager(PlaceManager placeManager) {
         mPlaceManager = placeManager;
     }
+
+    void setKey(String key) { mKey = key; }
 }

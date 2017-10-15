@@ -3,7 +3,6 @@ package com.routeal.cocoger.ui.main;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -28,6 +27,8 @@ public class PlaceListViewHolder extends RecyclerView.ViewHolder {
     private TextView mAddressText;
     private ImageButton mEditButton;
     private ImageButton mRemoveButton;
+    private Place mPlace;
+    private String mKey;
 
     public PlaceListViewHolder(View itemView) {
         super(itemView);
@@ -43,14 +44,20 @@ public class PlaceListViewHolder extends RecyclerView.ViewHolder {
         mEditButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(FB.EDIT_PLACE);
-                //intent.putExtra(FB.LOCATION, location);
+                Intent intent = new Intent(FB.PLACE_EDIT);
+                intent.putExtra(FB.KEY, mKey);
+                intent.putExtra(FB.PLACE, mPlace);
                 LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
             }
         });
     }
 
     public void bind(String key, Place place) {
+        mKey = key;
+        mPlace = place;
+        if (!key.equals(FB.getUid())) {
+            mRemoveButton.setVisibility(View.INVISIBLE);
+        }
         mTitleText.setText(place.getTitle());
         mAddressText.setText(place.getAddress());
         new LoadImage(mPictureImage).loadPlace(place.getUid(), key);

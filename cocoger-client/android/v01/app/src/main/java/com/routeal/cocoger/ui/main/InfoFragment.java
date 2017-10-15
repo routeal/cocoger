@@ -123,7 +123,7 @@ public class InfoFragment extends Fragment {
         } else {
             bitmap = bitmapDrawable.getBitmap();
         }
-        Intent intent = new Intent(FB.SAVE_PLACE);
+        Intent intent = new Intent(FB.PLACE_SAVE);
         intent.putExtra(FB.LOCATION, location);
         intent.putExtra(FB.ADDRESS, address);
         intent.putExtra(FB.TITLE, title);
@@ -133,7 +133,7 @@ public class InfoFragment extends Fragment {
 
     void showDirection(Location locationTo) {
         Intent intent = new Intent(FB.DIRECTION_ROUTE_ADD);
-        intent.putExtra(FB.NEW_LOCATION, locationTo);
+        intent.putExtra(FB.LOCATION, locationTo);
         LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
     }
 

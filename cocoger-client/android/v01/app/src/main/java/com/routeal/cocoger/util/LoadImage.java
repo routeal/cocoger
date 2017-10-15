@@ -64,6 +64,8 @@ public class LoadImage {
                     listener.onSuccess(bitmap);
                 }
             }
+        } else {
+            if (listener != null) listener.onSuccess(null);
         }
     }
 

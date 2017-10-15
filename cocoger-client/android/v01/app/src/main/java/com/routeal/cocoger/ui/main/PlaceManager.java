@@ -38,6 +38,7 @@ import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Place;
 import com.routeal.cocoger.model.User;
+import com.routeal.cocoger.util.LoadImage;
 import com.routeal.cocoger.util.Utils;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
@@ -102,11 +103,10 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
         for (Iterator<Map.Entry<String, String>> it = places.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<String, String> entry = it.next();
             String key = entry.getKey();
-            String uid = entry.getValue();
             FB.getPlace(key, new FB.PlaceListener() {
                 @Override
-                public void onSuccess(Place place) {
-                    addMarker(place, null);
+                public void onSuccess(String key, Place place) {
+                    addMarker(place, key, null);
                 }
 
                 @Override
@@ -117,14 +117,18 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
     }
 
     // edit a place or add a new place but the marker is already created by long press
-    void editPlace(final PlaceInfoFragment fragment, final Place place, final Bitmap bitmap) {
-        final Activity activity = fragment.getActivity();
+    void editPlace(final Activity activity, final Place place, final String key) {
         if (activity == null || activity.isFinishing()) {
             return;
         }
 
+        final PlaceInfoFragment fragment = getPlaceInfoFragment(place);
+        if (fragment == null) {
+            return;
+        }
+
         // place is from database or not
-        final boolean isEdit = false; // (place.getKey() != null);
+        final boolean isEdit = (key == null || key.isEmpty());
 
         LatLng latLng = new LatLng(place.getLatitude(), place.getLongitude());
         Location location = Utils.getLocation(latLng);
@@ -188,12 +192,17 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
             }
         });
 
-        if (bitmap != null) {
-            placeImage.setImageBitmap(bitmap);
-        } else {
-            Drawable drawable = Utils.getIconDrawable(activity, R.drawable.ic_place_white_48dp, R.color.steelblue);
-            placeImage.setImageDrawable(drawable);
-        }
+        new LoadImage(new LoadImage.LoadImageListener() {
+            @Override
+            public void onSuccess(Bitmap bitmap) {
+                if (bitmap != null) {
+                    placeImage.setImageBitmap(bitmap);
+                } else {
+                    Drawable drawable = Utils.getIconDrawable(activity, R.drawable.ic_place_white_48dp, R.color.steelblue);
+                    placeImage.setImageDrawable(drawable);
+                }
+            }
+        }).loadPlace(place.getUid(), key);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(activity);
         builder.setView(view);
@@ -202,7 +211,7 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
         builder.setNeutralButton(R.string.delete, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                removePlace(fragment);
+                removePlace(place, key, fragment);
             }
         });
 
@@ -217,11 +226,11 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
                     }
                 }
                 String markerColor2 = tmp;
-                Bitmap tmp2 = bitmap;
+                Bitmap bitmap = null;
                 if (cropImageView != null && cropImageView.getDrawable() != null) {
-                    tmp2 = ((BitmapDrawable) cropImageView.getDrawable()).getBitmap();
+                    bitmap = ((BitmapDrawable) cropImageView.getDrawable()).getBitmap();
                 }
-                final Bitmap bitmap2 = tmp2;
+                final Bitmap updateBitmap = bitmap;
 
                 place.setTitle(placeTitle.getText().toString());
                 place.setDescription(placeDesc.getText().toString());
@@ -245,7 +254,7 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
                         Map.Entry<Marker, InfoWindow> entry = it.next();
                         InfoWindow infoWindow = entry.getValue();
                         if (infoWindow.getWindowFragment() == fragment) {
-                            FB.editPlace(place, (bitmap == bitmap2) ? null : bitmap2, new FB.CompleteListener() {
+                            FB.editPlace(key, place, updateBitmap, new FB.CompleteListener() {
                                 @Override
                                 public void onSuccess() {
                                     if (marker != null) {
@@ -264,10 +273,10 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
                         }
                     }
                 } else {
-                    FB.addPlace(place, bitmap2,
-                            new FB.CompleteListener() {
+                    FB.addPlace(place, updateBitmap,
+                            new FB.PlaceListener() {
                                 @Override
-                                public void onSuccess() {
+                                public void onSuccess(String key, Place place) {
                                     if (marker != null) {
                                         int colorId = mPlaceColorMap.get(place.getMarkerColor());
                                         Drawable drawable = Utils.getIconDrawable(activity, R.drawable.ic_place_white_48dp, colorId);
@@ -325,11 +334,12 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
         final TextView placeDesc = (TextView) view.findViewById(R.id.place_description);
 
         final TextView placeAddress = (TextView) view.findViewById(R.id.place_address);
+        String tmpAddress = address;
         if (address == null || !address.isEmpty()) {
             Address a = Utils.getAddress(location);
-            address = Utils.getAddressLine(a);
+            tmpAddress = Utils.getAddressLine(a);
         }
-        placeAddress.setText(address);
+        placeAddress.setText(tmpAddress);
 
         final SwitchCompat seenFriend = (SwitchCompat) view.findViewById(R.id.place_seen_friend);
 
@@ -387,10 +397,10 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
                 place.setCreated(System.currentTimeMillis());
 
                 FB.addPlace(place, bitmap2,
-                        new FB.CompleteListener() {
+                        new FB.PlaceListener() {
                             @Override
-                            public void onSuccess() {
-                                addMarker(place, bitmap2);
+                            public void onSuccess(String key, Place place) {
+                                addMarker(place, key, bitmap2);
                             }
 
                             @Override
@@ -404,7 +414,7 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
         dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
     }
 
-    private void addMarker(Place place, Bitmap bitmap) {
+    private void addMarker(Place place, String key, Bitmap bitmap) {
         int colorId = mPlaceColorMap.get(place.getMarkerColor());
         Drawable drawable = Utils.getIconDrawable(MainApplication.getContext(), R.drawable.ic_place_white_48dp, colorId);
         BitmapDescriptor icon = Utils.getBitmapDescriptor(drawable);
@@ -416,6 +426,7 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
         dropPinEffect(marker);
 
         PlaceInfoFragment placeInfoFragment = new PlaceInfoFragment();
+        placeInfoFragment.setKey(key);
         placeInfoFragment.setPlace(place);
         placeInfoFragment.setStreetViewPicture(bitmap);
         placeInfoFragment.setPlaceManager(PlaceManager.this);
@@ -424,7 +435,7 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
         mPlaceMarkers.put(marker, window);
     }
 
-    void removePlace(PlaceInfoFragment fragment) {
+    void removeFragment(PlaceInfoFragment fragment) {
         for (Iterator<Map.Entry<Marker, InfoWindow>> it = mPlaceMarkers.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<Marker, InfoWindow> entry = it.next();
             InfoWindow infoWindow = entry.getValue();
@@ -442,6 +453,38 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
                 break;
             }
         }
+    }
+
+    void removePlace(Place place, String key, final PlaceInfoFragment fragment) {
+        FB.deletePlace(key, place, new FB.CompleteListener() {
+            @Override
+            public void onSuccess() {
+                removeFragment(fragment);
+            }
+
+            @Override
+            public void onFail(String err) {
+
+            }
+        });
+    }
+
+    PlaceInfoFragment getPlaceInfoFragment(Place place) {
+        for (Iterator<Map.Entry<Marker, InfoWindow>> it = mPlaceMarkers.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Marker, InfoWindow> entry = it.next();
+            InfoWindow window = entry.getValue();
+            if (window.getWindowFragment() instanceof PlaceInfoFragment) {
+                PlaceInfoFragment fragment = (PlaceInfoFragment) window.getWindowFragment();
+                Place place2 = fragment.getPlace();
+                if (place.getUid().equals(place2.getUid()) &&
+                        place.getCreated() == place2.getCreated() &&
+                        place.getLatitude() == place2.getLatitude() &&
+                        place.getLongitude() == place2.getLongitude()) {
+                    return fragment;
+                }
+            }
+        }
+        return null;
     }
 
     @Override
@@ -508,7 +551,7 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
         place.setLongitude(latLng.longitude);
         place.setUid(FB.getUid());
 
-        addMarker(place, null);
+        addMarker(place, null, null);
     }
 
     void setCropImage(Activity activity, Uri uri) {

@@ -385,8 +385,8 @@ public class LocationUpdate {
 
     private void broadcastLocation(Context context, Location location, Address address) {
         Intent intent = new Intent(FB.USER_LOCATION_UPDATE);
-        intent.putExtra(FB.NEW_LOCATION, location);
-        intent.putExtra(FB.NEW_ADDRESS, address);
+        intent.putExtra(FB.LOCATION, location);
+        intent.putExtra(FB.ADDRESS, address);
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 

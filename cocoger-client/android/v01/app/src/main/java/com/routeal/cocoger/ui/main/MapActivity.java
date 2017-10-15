@@ -1,6 +1,5 @@
 package com.routeal.cocoger.ui.main;
 
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -29,7 +28,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
-import com.routeal.cocoger.model.User;
+import com.routeal.cocoger.model.Place;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Utils;
 import com.theartofdev.edmodo.cropper.CropImage;
@@ -62,8 +61,8 @@ abstract class MapActivity extends MapBaseActivity
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent.getAction().equals(FB.USER_LOCATION_UPDATE)) {
-                Address address = intent.getParcelableExtra(FB.NEW_ADDRESS);
-                Location location = intent.getParcelableExtra(FB.NEW_LOCATION);
+                Address address = intent.getParcelableExtra(FB.ADDRESS);
+                Location location = intent.getParcelableExtra(FB.LOCATION);
                 if (location == null || address == null) {
                     return;
                 }
@@ -96,7 +95,7 @@ abstract class MapActivity extends MapBaseActivity
                     mPlace.setup();
                 }
             } else if (intent.getAction().equals(FB.FRIEND_LOCATION_ADD)) {
-                final String fid = intent.getStringExtra(FB.FRIEND_KEY);
+                final String fid = intent.getStringExtra(FB.KEY);
                 final Friend friend = FB.getFriend(fid);
                 if (friend == null) return; // shouldn't happen
                 FB.getLocation(friend.getLocation(), new FB.LocationListener() {
@@ -111,7 +110,7 @@ abstract class MapActivity extends MapBaseActivity
                     }
                 });
             } else if (intent.getAction().equals(FB.FRIEND_LOCATION_UPDATE)) {
-                final String fid = intent.getStringExtra(FB.FRIEND_KEY);
+                final String fid = intent.getStringExtra(FB.KEY);
                 //final String newLocationKey = intent.getStringExtra(FB.NEW_LOCATION);
                 //final String oldLocationKey = intent.getStringExtra(FB.OLD_LOCATION);
                 final Friend friend = FB.getFriend(fid);
@@ -156,13 +155,13 @@ abstract class MapActivity extends MapBaseActivity
                     }
                 });
             } else if (intent.getAction().equals(FB.FRIEND_LOCATION_REMOVE)) {
-                String fid = intent.getStringExtra(FB.FRIEND_KEY);
+                String fid = intent.getStringExtra(FB.KEY);
                 if (fid == null) {
                     return;
                 }
                 mMm.remove(fid);
             } else if (intent.getAction().equals(FB.FRIEND_RANGE_UPDATE)) {
-                String fid = intent.getStringExtra(FB.FRIEND_KEY);
+                String fid = intent.getStringExtra(FB.KEY);
                 if (fid == null) {
                     return;
                 }
@@ -174,7 +173,7 @@ abstract class MapActivity extends MapBaseActivity
                 Log.d(TAG, "FRIEND_RANGE_UPDATE:" + fid);
                 mMm.reposition(fid, range);
             } else if (intent.getAction().equals(FB.FRIEND_MARKER_SHOW)) {
-                String fid = intent.getStringExtra(FB.FRIEND_KEY);
+                String fid = intent.getStringExtra(FB.KEY);
                 if (fid == null) {
                     return;
                 }
@@ -182,17 +181,21 @@ abstract class MapActivity extends MapBaseActivity
                 mMm.show(fid);
                 closeSlidePanel();
             } else if (intent.getAction().equals(FB.DIRECTION_ROUTE_ADD)) {
-                Location location = intent.getParcelableExtra(FB.NEW_LOCATION);
+                Location location = intent.getParcelableExtra(FB.LOCATION);
                 mDirection.addDirection(MapActivity.this, location, getLocation());
                 closeSlidePanel();
             } else if (intent.getAction().equals(FB.DIRECTION_ROUTE_REMOVE)) {
                 mDirection.removeDirection();
-            } else if (intent.getAction().equals(FB.SAVE_PLACE)) {
+            } else if (intent.getAction().equals(FB.PLACE_SAVE)) {
                 Location location = intent.getParcelableExtra(FB.LOCATION);
                 String address = intent.getStringExtra(FB.ADDRESS);
                 String title = intent.getStringExtra(FB.TITLE);
                 Bitmap bitmap = intent.getParcelableExtra(FB.IMAGE);
                 mPlace.addPlace(MapActivity.this, title, location, address, bitmap);
+            } else if (intent.getAction().equals(FB.PLACE_EDIT)) {
+                String key = intent.getStringExtra(FB.KEY);
+                Place place = (Place) intent.getSerializableExtra(FB.PLACE);
+                mPlace.editPlace(MapActivity.this, place, key);
             }
         }
     };
@@ -293,7 +296,7 @@ abstract class MapActivity extends MapBaseActivity
         filter.addAction(FB.FRIEND_MARKER_SHOW);
         filter.addAction(FB.DIRECTION_ROUTE_ADD);
         filter.addAction(FB.DIRECTION_ROUTE_REMOVE);
-        filter.addAction(FB.SAVE_PLACE);
+        filter.addAction(FB.PLACE_SAVE);
         LocalBroadcastManager.getInstance(this).registerReceiver(mLocalLocationReceiver, filter);
     }
 
