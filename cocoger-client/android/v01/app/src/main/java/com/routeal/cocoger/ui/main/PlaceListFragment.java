@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 
@@ -32,7 +33,10 @@ public class PlaceListFragment extends PagerFragment {
 
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
         recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setAdapter(FB.getPlaceRecyclerAdapter());
+
+        FirebaseRecyclerAdapter adapter = FB.getPlaceRecyclerAdapter();
+        adapter.startListening();
+        recyclerView.setAdapter(adapter);
 
         return view;
     }

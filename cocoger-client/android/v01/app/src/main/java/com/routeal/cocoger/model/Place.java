@@ -7,25 +7,15 @@ import java.io.Serializable;
  */
 
 public class Place implements Serializable {
-    private String key; // firebase database key string
     private String uid; // user key (uid)
     private String title;
     private String description;
     private double latitude;
     private double longitude;
     private String address;
-    private String picture;
     private String markerColor;
     private String seenBy;
     private long created;
-
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
 
     public String getUid() {
         return uid;
@@ -73,14 +63,6 @@ public class Place implements Serializable {
 
     public void setAddress(String address) {
         this.address = address;
-    }
-
-    public String getPicture() {
-        return picture;
-    }
-
-    public void setPicture(String picture) {
-        this.picture = picture;
     }
 
     public String getMarkerColor() {

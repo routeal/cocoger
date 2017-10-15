@@ -92,8 +92,11 @@ public class FB {
     public final static String NOTIFI_RANGE = "range";
     public final static String NOTIFI_FRIEND_INVITE = "friend_invite";
 
+    public final static String USER_CATEGORY = "users";
+    public final static String PLACE_CATEGORY = "places";
+
     public final static String PROFILE_IMAGE = "profile.jpg";
-    public final static String PLACE_IMAGE = "place-%s.jpg";
+    public final static String PLACE_IMAGE = "place.jpg";
 
     private final static String TAG = "FB";
 
@@ -153,11 +156,11 @@ public class FB {
     }
 
     private static DatabaseReference getFriendDatabaseReference(String user) {
-        return getUserDatabaseReference().child(user).child("friends");
+        return FirebaseDatabase.getInstance().getReference().child("friends").child(user);
     }
 
     private static DatabaseReference getFriendDatabaseReference(String user, String friend) {
-        return getUserDatabaseReference().child(user).child("friends").child(friend);
+        return FirebaseDatabase.getInstance().getReference().child("friends").child(user).child(friend);
     }
 
     private static DatabaseReference getLocationDatabaseReference() {
@@ -249,7 +252,6 @@ public class FB {
             }
         });
 
-        //DatabaseReference db = getFriendDatabaseReference(getUid());
         db.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -450,7 +452,7 @@ public class FB {
 
         if (notifyFriend) {
             for (Map.Entry<String, Friend> entry : mFriendList.entrySet()) {
-                updates.put("users/" + entry.getKey() + "/friends/" + uid + "/location", key);
+                updates.put("friends/" + entry.getKey() + "/" + uid + "/location", key);
             }
         }
 
@@ -790,9 +792,40 @@ public class FB {
         myDb.removeValue();
     }
 
-    public static void uploadData(byte[] bytes, String name, final UploadDataListener listener) {
-        String uid = getUid();
-        String refName = "users/" + uid + "/" + name;
+    public static void uploadPlaceImage(byte[] bytes, String key, UploadDataListener listener) {
+        String filename = key + "_" + FB.PLACE_IMAGE;
+        String refName = FB.PLACE_CATEGORY + "/" + FB.getUid() + "/" + filename;
+        uploadData(bytes, refName, listener);
+    }
+
+    public static void downloadPlaceImage(String uid, String key, DownloadDataListener listener) {
+        String filename = key + "_" + FB.PLACE_IMAGE;
+        String refName = FB.PLACE_CATEGORY + "/" + uid + "/" + filename;
+        downloadData(refName, listener);
+    }
+
+    public static void deletePlaceImage(String uid, String key, DeleteDataListener listener) {
+        String filename = key + "_" + FB.PLACE_IMAGE;
+        String refName = FB.PLACE_CATEGORY + "/" + uid + "/" + filename;
+        deleteData(refName, listener);
+    }
+
+    public static void uploadProfileImage(byte[] bytes, UploadDataListener listener) {
+        String refName = FB.USER_CATEGORY + "/" + FB.getUid() + "/" + FB.PROFILE_IMAGE;
+        uploadData(bytes, refName, listener);
+    }
+
+    public static void downloadProfileImage(String key, DownloadDataListener listener) {
+        String refName = FB.USER_CATEGORY + "/" + key + "/" + FB.PROFILE_IMAGE;
+        downloadData(refName, listener);
+    }
+
+    public static void deleteProfileImage(String key, DeleteDataListener listener) {
+        String refName = FB.USER_CATEGORY + "/" + key + "/" + FB.PROFILE_IMAGE;
+        deleteData(refName, listener);
+    }
+
+    public static void uploadData(byte[] bytes, String refName, final UploadDataListener listener) {
         StorageReference ref = FirebaseStorage.getInstance().getReference().child(refName);
         ref.putBytes(bytes)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
@@ -814,8 +847,7 @@ public class FB {
                 });
     }
 
-    public static void downloadData(String name, String uid, final DownloadDataListener listener) {
-        String refName = "users/" + uid + "/" + name;
+    public static void downloadData(String refName, final DownloadDataListener listener) {
         long ONE_MEGABYTE = 1024 * 1024;
         StorageReference ref = FirebaseStorage.getInstance().getReference().child(refName);
         ref.getBytes(ONE_MEGABYTE)
@@ -833,9 +865,7 @@ public class FB {
                 });
     }
 
-    public static void deleteData(String name, final DeleteDataListener listener) {
-        String uid = getUid();
-        String refName = "users/" + uid + "/" + name;
+    public static void deleteData(String refName, final DeleteDataListener listener) {
         StorageReference ref = FirebaseStorage.getInstance().getReference().child(refName);
         ref.delete()
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -942,17 +972,18 @@ public class FB {
         };
     }
 
-    public static FirebaseRecyclerAdapter<String, PlaceListViewHolder> getPlaceRecyclerAdapter() {
+    public static FirebaseRecyclerAdapter<Place, PlaceListViewHolder> getPlaceRecyclerAdapter() {
         DatabaseReference db = getPlaceDatabaseReference(getUid());
+        Query keyQuery = db.orderByValue();
 
-        Query query = db.orderByValue();
+        DatabaseReference dbRef = getPlaceDatabaseReference();
 
-        FirebaseRecyclerOptions<String> options =
-                new FirebaseRecyclerOptions.Builder<String>()
-                        .setQuery(query, String.class)
+        FirebaseRecyclerOptions<Place> options =
+                new FirebaseRecyclerOptions.Builder<Place>()
+                        .setIndexedQuery(keyQuery, dbRef, Place.class)
                         .build();
 
-        return new FirebaseRecyclerAdapter<String, PlaceListViewHolder>(options) {
+        return new FirebaseRecyclerAdapter<Place, PlaceListViewHolder>(options) {
             @Override
             public PlaceListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
                 View view = LayoutInflater.from(parent.getContext())
@@ -961,7 +992,7 @@ public class FB {
             }
 
             @Override
-            protected void onBindViewHolder(PlaceListViewHolder holder, int position, String model) {
+            protected void onBindViewHolder(PlaceListViewHolder holder, int position, Place model) {
                 holder.bind(getRef(position).getKey(), model);
             }
         };
@@ -1136,13 +1167,11 @@ public class FB {
         });
     }
 
-    static void addPlaceImpl(Place place, final CompleteListener listener) {
+    public static void addPlace(Place place, final Bitmap bitmap, final CompleteListener listener) {
         DatabaseReference placeDb = getPlaceDatabaseReference();
+        final String key = placeDb.push().getKey();
 
-        String key = placeDb.push().getKey();
         String uid = FB.getUid();
-
-        place.setKey(key);
         place.setUid(uid);
 
         Map<String, Object> updates = new HashMap<>();
@@ -1162,39 +1191,15 @@ public class FB {
             public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
                 if (databaseError == null) {
                     // success
+                    byte bytes[] = Utils.getBitmapBytes(MainApplication.getContext(), bitmap);
+                    if (bytes != null) {
+                        uploadPlaceImage(bytes, key, null);
+                    }
                     if (listener != null) listener.onSuccess();
                 } else {
                     // error
                     if (listener != null) listener.onFail(databaseError.getMessage());
                 }
-            }
-        });
-    }
-
-    public static void addPlace(final Place place, Bitmap bitmap, final CompleteListener listener) {
-        if (bitmap == null) {
-            addPlaceImpl(place, listener);
-            return;
-        }
-
-        byte bytes[] = Utils.getBitmapBytes(MainApplication.getContext(), bitmap);
-        if (bytes == null) {
-            if (listener != null) listener.onFail("Failed to save a bitmap.");
-            return;
-        }
-
-        String name = "place_" + System.currentTimeMillis() + ".png";
-
-        uploadData(bytes, name, new UploadDataListener() {
-            @Override
-            public void onSuccess(String url) {
-                place.setPicture(url);
-                addPlaceImpl(place, listener);
-            }
-
-            @Override
-            public void onFail(String err) {
-                if (listener != null) listener.onFail(err);
             }
         });
     }

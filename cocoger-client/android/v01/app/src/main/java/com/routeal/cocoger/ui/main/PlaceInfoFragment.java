@@ -70,8 +70,10 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
         }
         if (mCopiedBitmap != null) {
             mStreetImageView.setImageBitmap(mCopiedBitmap);
+/*
         } else if (mPlace.getPicture() != null) {
             super.setStreetViewPicture(mPlace.getPicture());
+*/
         }
         if (FB.getUid().equals(mPlace.getUid())) {
             String str = String.format(view.getResources().getString(R.string.by_creator),
@@ -125,46 +127,4 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
     void setPlaceManager(PlaceManager placeManager) {
         mPlaceManager = placeManager;
     }
-
-/*
-    void setTitle(String title) {
-        mTitle = title;
-    }
-
-    void setDescription(String description) {
-        mDescription = description;
-    }
-
-    void setAddress(String address) {
-        mAddress = address;
-    }
-
-    Location getLocation() {
-        return mLocation;
-    }
-
-    void setLocation(Location location) {
-        mLocation = location;
-    }
-
-    void setPlaceCreator(String creator) {
-        mPlaceCreator = creator;
-    }
-
-    void setStreetViewPicture(String url) {
-        mPictureUrl = url;
-    }
-
-    String getColor() {
-        return mColor;
-    }
-
-    void setColor(String color) {
-        mColor = color;
-    }
-
-    void setSeenFriend(boolean seenFriend) {
-        mSeenFriend = seenFriend;
-    }
-*/
 }

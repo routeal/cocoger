@@ -54,6 +54,7 @@ import java.util.Map;
 
 public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerDragListener {
     private final static String TAG = "PlaceManager";
+
     private static PlaceColorButton mPlaceColorButtons[] = {
             new PlaceColorButton(R.id.place_1, R.id.place_image_1, R.color.steelblue, "steelblue"),
             new PlaceColorButton(R.id.place_2, R.id.place_image_2, R.color.yellowgreen, "yellowgreen"),
@@ -68,7 +69,8 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
         put("gold", R.color.gold);
         put("hotpink", R.color.hotpink);
     }};
-    Map<Marker, InfoWindow> mPlaceMarkers = new HashMap<Marker, InfoWindow>();
+
+    private Map<Marker, InfoWindow> mPlaceMarkers = new HashMap<Marker, InfoWindow>();
     private GoogleMap mMap;
     private GeoDataClient mGeoDataClient;
     private InfoWindowManager mInfoWindowManager;
@@ -122,7 +124,7 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
         }
 
         // place is from database or not
-        final boolean isEdit = (place.getKey() != null);
+        final boolean isEdit = false; // (place.getKey() != null);
 
         LatLng latLng = new LatLng(place.getLatitude(), place.getLongitude());
         Location location = Utils.getLocation(latLng);
@@ -284,7 +286,9 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
         });
         AlertDialog dialog = builder.create();
         dialog.show();
-        dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        }
     }
 
     // add a new place to create a new marker

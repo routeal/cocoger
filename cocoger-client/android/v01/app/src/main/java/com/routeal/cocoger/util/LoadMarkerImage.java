@@ -80,7 +80,7 @@ public class LoadMarkerImage {
                 onDone();
             } else {
                 // if not found in the local database, get it from the FB storage
-                FB.downloadData(FB.PROFILE_IMAGE, key, new FB.DownloadDataListener() {
+                FB.downloadProfileImage(key, new FB.DownloadDataListener() {
                     @Override
                     public void onSuccess(byte[] bytes) {
                         DBUtil.saveImage(dbname, bytes);

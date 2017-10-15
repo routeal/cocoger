@@ -224,8 +224,8 @@ class MarkerManager implements MapActivity.MarkerInterface {
 
         Log.d(TAG, "reposition: add a marker for " + key);
         // add a new marker to map
-        mMarkers.add(new ComboMarker(mMap, mInfoWindowManager, key, name, location, address, range));
-        //add(key, name, picture, location, address, range);
+        //mMarkers.add(new ComboMarker(mMap, mInfoWindowManager, key, name, location, address, range));
+        add(key, name, location, address, range);
     }
 
     void reposition(String key, int range) {

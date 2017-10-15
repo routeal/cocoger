@@ -359,7 +359,9 @@ public class AccountActivity extends AppCompatActivity {
                 return;
             }
 
-            FB.uploadData(bytes, "profile.jpg", new FB.UploadDataListener() {
+            String uid = FB.getUid();
+
+            FB.uploadProfileImage(bytes, new FB.UploadDataListener() {
                 @Override
                 public void onSuccess(String url) {
                     // set the url to the user
@@ -413,7 +415,14 @@ public class AccountActivity extends AppCompatActivity {
         final Utils.ProgressBarView dialog = Utils.getProgressBar(this);
 
         // get the user in the memory
-        final User user = FB.getUser();
+        User tmp;
+        if (FB.getUser() == null) {
+            // when the network is slow, the user may not be created in the background by the time
+            tmp = new User();
+        } else {
+            tmp = FB.getUser();
+        }
+        final User user = tmp;
         user.setDisplayName(mName);
         user.setSearchedName(mName.toLowerCase());
         user.setGender(mGender.toLowerCase());
@@ -429,7 +438,7 @@ public class AccountActivity extends AppCompatActivity {
             return;
         }
 
-        FB.uploadData(bytes, FB.PROFILE_IMAGE, new FB.UploadDataListener() {
+        FB.uploadProfileImage(bytes, new FB.UploadDataListener() {
             @Override
             public void onSuccess(String url) {
                 dialog.hide();

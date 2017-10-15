@@ -50,23 +50,9 @@ public class PlaceListViewHolder extends RecyclerView.ViewHolder {
         });
     }
 
-    public void bind(String key, String uid) {
-        Log.d(TAG, "key:" + key + " uid=" + uid);
-
-        FB.getPlace(key, new FB.PlaceListener() {
-            @Override
-            public void onSuccess(Place place) {
-                mTitleText.setText(place.getTitle());
-                mAddressText.setText(place.getAddress());
-                if (place.getPicture() != null) {
-                    new LoadImage(mPictureImage).loadPlace(place.getKey(), place.getCreated());
-                }
-            }
-
-            @Override
-            public void onFail(String err) {
-
-            }
-        });
+    public void bind(String key, Place place) {
+        mTitleText.setText(place.getTitle());
+        mAddressText.setText(place.getAddress());
+        new LoadImage(mPictureImage).loadPlace(place.getUid(), key);
     }
 }

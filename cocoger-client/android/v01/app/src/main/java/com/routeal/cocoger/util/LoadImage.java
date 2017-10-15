@@ -67,34 +67,19 @@ public class LoadImage {
         }
     }
 
-    public void loadPlace(String key, long created) {
-        String str = String.format(FB.PLACE_IMAGE, created);
-        load(str, key);
-    }
-
-    public void loadProfile(String key) {
-        crop = true;
-        load(FB.PROFILE_IMAGE, key);
-    }
-
-    public void loadUrl(String url) {
-        load(url);
-    }
-
-    private void load(String filename, String key) {
-        // get from the database
-        final String dbname = key + "_" + filename;
-        Log.d(TAG, "load:" + dbname);
-        byte[] bytes = DBUtil.getImage(dbname);
+    public void loadPlace(String uid, String key) {
+        final String dbName = uid + "_" + key + "_" + FB.PLACE_IMAGE;
+        Log.d(TAG, "load:" + dbName);
+        byte[] bytes = DBUtil.getImage(dbName);
         if (bytes != null) {
             onDone(bytes);
         } else {
             // if not found in the local database, get it from the FB storage
-            FB.downloadData(filename, key, new FB.DownloadDataListener() {
+            FB.downloadPlaceImage(uid, key, new FB.DownloadDataListener() {
                 @Override
                 public void onSuccess(byte[] bytes) {
                     onDone(bytes);
-                    DBUtil.saveImage(dbname, bytes);
+                    DBUtil.saveImage(dbName, bytes);
                 }
 
                 @Override
@@ -103,6 +88,34 @@ public class LoadImage {
                 }
             });
         }
+    }
+
+    public void loadProfile(String key) {
+        crop = true;
+        final String dbName = key + "_" + FB.PROFILE_IMAGE;
+        Log.d(TAG, "load:" + dbName);
+        byte[] bytes = DBUtil.getImage(dbName);
+        if (bytes != null) {
+            onDone(bytes);
+        } else {
+            // if not found in the local database, get it from the FB storage
+            FB.downloadProfileImage(key, new FB.DownloadDataListener() {
+                @Override
+                public void onSuccess(byte[] bytes) {
+                    onDone(bytes);
+                    DBUtil.saveImage(dbName, bytes);
+                }
+
+                @Override
+                public void onFail(String err) {
+                    onDone(null);
+                }
+            });
+        }
+    }
+
+    public void loadUrl(String url) {
+        load(url);
     }
 
     private void load(String url) {
