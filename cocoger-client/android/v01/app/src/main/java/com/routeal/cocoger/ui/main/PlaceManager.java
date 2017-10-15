@@ -128,7 +128,7 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
         }
 
         // place is from database or not
-        final boolean isEdit = (key == null || key.isEmpty());
+        final boolean isEdit = (key != null && !key.isEmpty());
 
         LatLng latLng = new LatLng(place.getLatitude(), place.getLongitude());
         Location location = Utils.getLocation(latLng);

@@ -13,6 +13,7 @@ import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.Place;
+import com.routeal.cocoger.util.LoadImage;
 
 /**
  * Created by hwatanabe on 10/8/17.
@@ -71,21 +72,20 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
         }
         if (mCopiedBitmap != null) {
             mStreetImageView.setImageBitmap(mCopiedBitmap);
-/*
-        } else if (mPlace.getPicture() != null) {
-            super.setStreetViewPicture(mPlace.getPicture());
-*/
         }
-        if (FB.getUid().equals(mPlace.getUid())) {
-            String str = String.format(view.getResources().getString(R.string.by_creator),
-                    FB.getUser().getDisplayName());
-            mPlaceCreatorTextView.setText(str);
-        } else {
-            Friend friend = FB.getFriend(mPlace.getUid());
-            if (friend != null) {
-                String str = String.format(view.getResources().getString(R.string.by_creator),
-                        friend.getDisplayName());
+
+        if (mPlace.getUid() != null) {
+            new LoadImage(mStreetImageView).loadPlace(mPlace.getUid(), mKey);
+
+            if (FB.getUid().equals(mPlace.getUid())) {
+                String str = String.format(view.getResources().getString(R.string.by_creator), FB.getUser().getDisplayName());
                 mPlaceCreatorTextView.setText(str);
+            } else {
+                Friend friend = FB.getFriend(mPlace.getUid());
+                if (friend != null) {
+                    String str = String.format(view.getResources().getString(R.string.by_creator), friend.getDisplayName());
+                    mPlaceCreatorTextView.setText(str);
+                }
             }
         }
     }
