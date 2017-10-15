@@ -53,7 +53,7 @@ import java.util.Map;
  * Created by hwatanabe on 10/8/17.
  */
 
-public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerDragListener {
+public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerDragListener {
     private final static String TAG = "PlaceManager";
 
     private static PlaceColorButton mPlaceColorButtons[] = {
@@ -456,6 +456,11 @@ public class PlaceManager implements MapActivity.MarkerInterface, GoogleMap.OnMa
     }
 
     void removePlace(Place place, String key, final PlaceInfoFragment fragment) {
+        if (key == null || key.isEmpty()) {
+            removeFragment(fragment);
+            return;
+        }
+
         FB.deletePlace(key, place, new FB.CompleteListener() {
             @Override
             public void onSuccess() {

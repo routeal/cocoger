@@ -31,7 +31,7 @@ import com.routeal.cocoger.util.Utils;
  * Created by hwatanabe on 9/27/17.
  */
 
-class PoiManager implements MapActivity.MarkerInterface, GoogleMap.OnPoiClickListener {
+class PoiManager implements MarkerInterface, GoogleMap.OnPoiClickListener {
     private final static String TAG = "PoiManager";
     private GoogleMap mMap;
     private GeoDataClient mGeoDataClient;

@@ -34,7 +34,8 @@ import com.routeal.cocoger.service.LocationUpdateService;
 import com.routeal.cocoger.util.Utils;
 
 abstract class MapBaseActivity extends FragmentActivity
-        implements GoogleApiClient.ConnectionCallbacks,
+        implements
+        GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
     private final static String TAG = "tako";
@@ -43,8 +44,6 @@ abstract class MapBaseActivity extends FragmentActivity
     private final static int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 5678;
 
     private GoogleApiClient mGoogleApiClient;
-    private Location mLastKnownLocation;
-    private Address mLastKnownAddress;
 
     private LocationUpdateService mService = null;
     private boolean mBound = false;
@@ -175,28 +174,11 @@ abstract class MapBaseActivity extends FragmentActivity
     }
 
     void exitApp() {
-        Log.d(TAG, "unregisterActivityLifecycleCallbacks");
         LocationUpdateService.stop();
         finish();
     }
 
-    abstract void startApp();
-
-    Location getLocation() {
-        return mLastKnownLocation;
-    }
-
-    void setLocation(Location location) {
-        mLastKnownLocation = location;
-    }
-
-    Address getAddress() {
-        return mLastKnownAddress;
-    }
-
-    void setAddress(Address address) {
-        mLastKnownAddress = address;
-    }
+    abstract void startApp(Location location);
 
     @Override
     @SuppressWarnings("MissingPermission")
@@ -208,17 +190,19 @@ abstract class MapBaseActivity extends FragmentActivity
             public void onComplete(@NonNull Task<Location> task) {
                 Location location = task.getResult();
                 if (location != null) {
-                    mLastKnownLocation = location;
-                    startApp();
+                    Log.d(TAG, "Got a last known location");
+                    startApp(location);
                 } else {
                     // error
-                    startApp();
+                    Log.d(TAG, "Got no last known location");
+                    startApp(null);
                 }
             }
         });
 
         // disconnect
         mGoogleApiClient.disconnect();
+        mGoogleApiClient = null;
     }
 
     @Override
