@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.android.gms.maps.model.Marker;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
@@ -130,4 +131,9 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
     }
 
     void setKey(String key) { mKey = key; }
+
+    String getKey() {
+        return mKey;
+    }
 }
+

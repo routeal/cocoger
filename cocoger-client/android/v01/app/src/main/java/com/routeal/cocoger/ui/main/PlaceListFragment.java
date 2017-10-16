@@ -10,12 +10,20 @@ import android.view.ViewGroup;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.model.Place;
 
 /**
  * Created by hwatanabe on 10/8/17.
  */
 
 public class PlaceListFragment extends PagerFragment {
+
+    FirebaseRecyclerAdapter adapter;
+
+    public PlaceListFragment() {
+        adapter = FB.getPlaceRecyclerAdapter();
+        adapter.startListening();
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -34,8 +42,6 @@ public class PlaceListFragment extends PagerFragment {
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
         recyclerView.setLayoutManager(layoutManager);
 
-        FirebaseRecyclerAdapter adapter = FB.getPlaceRecyclerAdapter();
-        adapter.startListening();
         recyclerView.setAdapter(adapter);
 
         return view;

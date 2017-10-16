@@ -53,11 +53,15 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
         filter.addAction(FB.DIRECTION_ROUTE_ADD);
         filter.addAction(FB.DIRECTION_ROUTE_REMOVE);
         filter.addAction(FB.PLACE_SAVE);
+        filter.addAction(FB.PLACE_EDIT);
+        filter.addAction(FB.PLACE_REMOVE);
+        filter.addAction(FB.PLACE_SHOW);
         LocalBroadcastManager.getInstance(activity).registerReceiver(this, filter);
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        Log.d(TAG, "Action=" + intent.getAction());
         if (intent.getAction().equals(FB.USER_LOCATION_UPDATE)) {
             Address address = intent.getParcelableExtra(FB.ADDRESS);
             Location location = intent.getParcelableExtra(FB.LOCATION);
@@ -90,7 +94,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
                 mMm.setupMarkers(mLocation, mAddress);
             }
             if (mPlace != null) {
-                mPlace.setup();
+                mPlace.init();
             }
         } else if (intent.getAction().equals(FB.FRIEND_LOCATION_ADD)) {
             final String fid = intent.getStringExtra(FB.KEY);
@@ -194,8 +198,23 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             String key = intent.getStringExtra(FB.KEY);
             Place place = (Place) intent.getSerializableExtra(FB.PLACE);
             mPlace.editPlace(mActivity, place, key);
+        } else if (intent.getAction().equals(FB.PLACE_REMOVE)) {
+            String key = intent.getStringExtra(FB.KEY);
+            Place place = (Place) intent.getSerializableExtra(FB.PLACE);
+            mPlace.removePlace(place, key);
+        } else if (intent.getAction().equals(FB.PLACE_SHOW)) {
+            String key = intent.getStringExtra(FB.KEY);
+            Place place = (Place) intent.getSerializableExtra(FB.PLACE);
+            mPlace.showPlace(key);
+            mActivity.closeSlidePanel();
         }
     }
 
-    Location getLocation() { return mLocation; }
+    Location getLocation() {
+        return mLocation;
+    }
+
+    void setLocation(Location location) {
+        mLocation = location;
+    }
 }

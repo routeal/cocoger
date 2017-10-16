@@ -164,4 +164,6 @@
     <string name="thanks_feedback">Thank you very much for the feedback!!!</string>
     <string name="welcome">Welcome</string>
     <string name="welcome_message">Thank you for the installation.  We hope that you enjoy the app.</string>
+    <string name="place_remove">Saved Location</string>
+    <string name="confirm_place_remove">Do you really want to remove this saved location?</string>
 </resources>

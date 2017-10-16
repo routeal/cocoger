@@ -28,6 +28,7 @@ import android.widget.Toast;
 import com.appolica.interactiveinfowindow.InfoWindow;
 import com.appolica.interactiveinfowindow.InfoWindowManager;
 import com.google.android.gms.location.places.GeoDataClient;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.LatLng;
@@ -56,14 +57,17 @@ import java.util.Map;
 public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickListener, GoogleMap.OnMarkerDragListener {
     private final static String TAG = "PlaceManager";
 
-    private static PlaceColorButton mPlaceColorButtons[] = {
+    private final static String DEFAULT_MARKER_COLOR = "steelblue";
+
+    private final static PlaceColorButton mPlaceColorButtons[] = {
             new PlaceColorButton(R.id.place_1, R.id.place_image_1, R.color.steelblue, "steelblue"),
             new PlaceColorButton(R.id.place_2, R.id.place_image_2, R.color.yellowgreen, "yellowgreen"),
             new PlaceColorButton(R.id.place_3, R.id.place_image_3, R.color.firebrick, "firebrick"),
             new PlaceColorButton(R.id.place_4, R.id.place_image_4, R.color.gold, "gold"),
             new PlaceColorButton(R.id.place_5, R.id.place_image_5, R.color.hotpink, "hotpink"),
     };
-    private static HashMap<String, Integer> mPlaceColorMap = new HashMap<String, Integer>() {{
+
+    private final static HashMap<String, Integer> mPlaceColorMap = new HashMap<String, Integer>() {{
         put("steelblue", R.color.steelblue);
         put("yellowgreen", R.color.yellowgreen);
         put("firebrick", R.color.firebrick);
@@ -76,8 +80,10 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
     private GeoDataClient mGeoDataClient;
     private InfoWindowManager mInfoWindowManager;
     private ImageView cropImageView;
+    private MapActivity mActivity;
 
-    PlaceManager(GoogleMap googleMap, GeoDataClient geoDataClient, InfoWindowManager infoWindowManager) {
+    PlaceManager(MapActivity activity, GoogleMap googleMap, GeoDataClient geoDataClient, InfoWindowManager infoWindowManager) {
+        mActivity = activity;
         mMap = googleMap;
         mMap.setOnMapLongClickListener(this);
         mMap.setOnMarkerDragListener(this);
@@ -85,7 +91,7 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
         mInfoWindowManager = infoWindowManager;
     }
 
-    void setup() {
+    void init() {
         if (!mPlaceMarkers.isEmpty()) {
             return;
         }
@@ -192,7 +198,7 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
             }
         });
 
-        new LoadImage(new LoadImage.LoadImageListener() {
+        new LoadImage(false, new LoadImage.LoadImageListener() {
             @Override
             public void onSuccess(Bitmap bitmap) {
                 if (bitmap != null) {
@@ -238,46 +244,35 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
                 place.setSeenBy(placeFriend.isChecked() ? "friends" : "none");
                 place.setMarkerColor(markerColor2);
 
-                Marker tmpMarker = null;
-                for (Iterator<Map.Entry<Marker, InfoWindow>> it = mPlaceMarkers.entrySet().iterator(); it.hasNext(); ) {
-                    Map.Entry<Marker, InfoWindow> entry = it.next();
-                    InfoWindow infoWindow = entry.getValue();
-                    if (infoWindow.getWindowFragment() == fragment) {
-                        tmpMarker = entry.getKey();
-                        break;
-                    }
-                }
-                final Marker marker = tmpMarker;
+                final Marker marker = getMarker(fragment);
 
                 if (isEdit) {
-                    for (Iterator<Map.Entry<Marker, InfoWindow>> it = mPlaceMarkers.entrySet().iterator(); it.hasNext(); ) {
-                        Map.Entry<Marker, InfoWindow> entry = it.next();
-                        InfoWindow infoWindow = entry.getValue();
-                        if (infoWindow.getWindowFragment() == fragment) {
-                            FB.editPlace(key, place, updateBitmap, new FB.CompleteListener() {
-                                @Override
-                                public void onSuccess() {
-                                    if (marker != null) {
-                                        int colorId = mPlaceColorMap.get(place.getMarkerColor());
-                                        Drawable drawable = Utils.getIconDrawable(activity, R.drawable.ic_place_white_48dp, colorId);
-                                        BitmapDescriptor icon = Utils.getBitmapDescriptor(drawable);
-                                        marker.setIcon(icon);
-                                    }
-                                }
-
-                                @Override
-                                public void onFail(String err) {
-
-                                }
-                            });
+                    FB.editPlace(key, place, updateBitmap, new FB.CompleteListener() {
+                        @Override
+                        public void onSuccess() {
+                            if (marker != null) {
+                                int colorId = mPlaceColorMap.get(place.getMarkerColor());
+                                Drawable drawable = Utils.getIconDrawable(activity, R.drawable.ic_place_white_48dp, colorId);
+                                BitmapDescriptor icon = Utils.getBitmapDescriptor(drawable);
+                                marker.setIcon(icon);
+                            }
                         }
-                    }
+
+                        @Override
+                        public void onFail(String err) {
+                            Log.d(TAG, "editPlace: edit a place:" + err);
+                        }
+                    });
                 } else {
                     FB.addPlace(place, updateBitmap,
                             new FB.PlaceListener() {
                                 @Override
                                 public void onSuccess(String key, Place place) {
                                     if (marker != null) {
+                                        // update the info window's fragment
+                                        fragment.setKey(key);
+                                        fragment.setPlace(place);
+                                        // update the marker color
                                         int colorId = mPlaceColorMap.get(place.getMarkerColor());
                                         Drawable drawable = Utils.getIconDrawable(activity, R.drawable.ic_place_white_48dp, colorId);
                                         BitmapDescriptor icon = Utils.getBitmapDescriptor(drawable);
@@ -287,7 +282,7 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
 
                                 @Override
                                 public void onFail(String err) {
-
+                                    Log.d(TAG, "editPlace: add a place:" + err);
                                 }
                             });
                 }
@@ -372,7 +367,7 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
         builder.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                String tmp = "steelblue";
+                String tmp = DEFAULT_MARKER_COLOR;
                 for (PlaceColorButton pc : mPlaceColorButtons) {
                     if (pc.radioButton.isChecked()) {
                         tmp = pc.colorName;
@@ -421,9 +416,11 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
 
         Marker marker = mMap.addMarker(new MarkerOptions()
                 .position(new LatLng(place.getLatitude(), place.getLongitude()))
-                .draggable(true)
                 .icon(icon));
         dropPinEffect(marker);
+
+        // set draggable only on my markers
+        marker.setDraggable(place.getUid() != null && place.getUid().equals(FB.getUid()));
 
         PlaceInfoFragment placeInfoFragment = new PlaceInfoFragment();
         placeInfoFragment.setKey(key);
@@ -435,27 +432,47 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
         mPlaceMarkers.put(marker, window);
     }
 
-    void removeFragment(PlaceInfoFragment fragment) {
-        for (Iterator<Map.Entry<Marker, InfoWindow>> it = mPlaceMarkers.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<Marker, InfoWindow> entry = it.next();
-            InfoWindow infoWindow = entry.getValue();
-            if (infoWindow.getWindowFragment() == fragment) {
-                Marker marker = entry.getKey();
-                mInfoWindowManager.hide(infoWindow, true);
-                FragmentManager fragmentManager = fragment.getFragmentManager();
-                if (fragmentManager != null) {
-                    FragmentTransaction trans = fragmentManager.beginTransaction();
-                    trans.remove(fragment);
-                    trans.commit();
-                }
-                marker.remove();
-                it.remove();
-                break;
+    private void removeFragment(PlaceInfoFragment fragment) {
+        Marker marker = getMarker(fragment);
+        if (marker != null) {
+            InfoWindow window = mPlaceMarkers.get(marker);
+            mInfoWindowManager.hide(window, true);
+            FragmentManager fragmentManager = fragment.getFragmentManager();
+            if (fragmentManager != null) {
+                FragmentTransaction trans = fragmentManager.beginTransaction();
+                trans.remove(fragment);
+                trans.commit();
             }
+            marker.remove();
+            mPlaceMarkers.remove(marker);
         }
     }
 
-    void removePlace(Place place, String key, final PlaceInfoFragment fragment) {
+    void removePlace(Place place, String key) {
+        final PlaceInfoFragment fragment = getPlaceInfoFragment(place);
+        if (fragment == null) {
+            return;
+        }
+        removePlace(place, key, fragment);
+    }
+
+    private void removePlace(final Place place, final String key, final PlaceInfoFragment fragment) {
+        String title = place.getTitle();
+        String defaultTitle = mActivity.getResources().getString(R.string.place_remove);
+        new AlertDialog.Builder(mActivity)
+                .setTitle((title != null) ? title : defaultTitle)
+                .setMessage(R.string.confirm_place_remove)
+                .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        removePlaceImpl(place, key, fragment);
+                    }
+                })
+                .setPositiveButton(android.R.string.no, null)
+                .show();
+    }
+
+    private void removePlaceImpl(Place place, String key, final PlaceInfoFragment fragment) {
         if (key == null || key.isEmpty()) {
             removeFragment(fragment);
             return;
@@ -474,18 +491,49 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
         });
     }
 
-    PlaceInfoFragment getPlaceInfoFragment(Place place) {
+    void showPlace(String key) {
+        Marker marker = getMarker(key);
+        if (marker == null) {
+            return;
+        }
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                marker.getPosition(), mMap.getCameraPosition().zoom));
+    }
+
+    private PlaceInfoFragment getPlaceInfoFragment(Place place) {
         for (Iterator<Map.Entry<Marker, InfoWindow>> it = mPlaceMarkers.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<Marker, InfoWindow> entry = it.next();
             InfoWindow window = entry.getValue();
             if (window.getWindowFragment() instanceof PlaceInfoFragment) {
                 PlaceInfoFragment fragment = (PlaceInfoFragment) window.getWindowFragment();
-                Place place2 = fragment.getPlace();
-                if (place.getUid().equals(place2.getUid()) &&
-                        place.getCreated() == place2.getCreated() &&
-                        place.getLatitude() == place2.getLatitude() &&
-                        place.getLongitude() == place2.getLongitude()) {
+                Place infoPlace = fragment.getPlace();
+                if (place.getUid().equals(infoPlace.getUid()) && place.getCreated() == infoPlace.getCreated()) {
                     return fragment;
+                }
+            }
+        }
+        return null;
+    }
+
+    private Marker getMarker(Fragment fragment) {
+        for (Iterator<Map.Entry<Marker, InfoWindow>> it = mPlaceMarkers.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Marker, InfoWindow> entry = it.next();
+            InfoWindow window = entry.getValue();
+            if (window.getWindowFragment() == fragment) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
+    private Marker getMarker(String key) {
+        for (Iterator<Map.Entry<Marker, InfoWindow>> it = mPlaceMarkers.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Marker, InfoWindow> entry = it.next();
+            InfoWindow window = entry.getValue();
+            if (window.getWindowFragment() instanceof PlaceInfoFragment) {
+                PlaceInfoFragment fragment = (PlaceInfoFragment) window.getWindowFragment();
+                if (key.equals(fragment.getKey())) {
+                    return entry.getKey();
                 }
             }
         }
@@ -534,11 +582,36 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
 
     @Override
     public void onMarkerDragEnd(Marker marker) {
-        LatLng dragPosition = marker.getPosition();
-        double dragLat = dragPosition.latitude;
-        double dragLong = dragPosition.longitude;
-        Log.i("info", "on drag end :" + dragLat + " dragLong :" + dragLong);
-        Toast.makeText(MainApplication.getContext(), "Marker Dragged..!", Toast.LENGTH_LONG).show();
+        LatLng position = marker.getPosition();
+        InfoWindow window = mPlaceMarkers.get(marker);
+        window.setPosition(position);
+
+        PlaceInfoFragment fragment = (PlaceInfoFragment) window.getWindowFragment();
+
+        Place place = fragment.getPlace();
+        place.setLatitude(position.latitude);
+        place.setLongitude(position.longitude);
+
+        Address address = Utils.getAddress(position);
+        String addressLine = Utils.getAddressLine(address);
+        place.setAddress(addressLine);
+
+        String key = fragment.getKey();
+        if (key == null || key.isEmpty()) {
+            // not saved yet to the database
+            return;
+        }
+
+        FB.editPlace(key, place, null, new FB.CompleteListener() {
+            @Override
+            public void onSuccess() {
+            }
+
+            @Override
+            public void onFail(String err) {
+                Log.d(TAG, "editPlace: edit a place:" + err);
+            }
+        });
     }
 
     @Override
@@ -549,7 +622,7 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
     @Override
     public void onMapLongClick(LatLng latLng) {
         Place place = new Place();
-        place.setMarkerColor("steelblue");
+        place.setMarkerColor(DEFAULT_MARKER_COLOR);
         place.setTitle("Place Name");
         place.setDescription("Place Description");
         place.setLatitude(latLng.latitude);
@@ -631,4 +704,3 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
         }
     }
 }
-

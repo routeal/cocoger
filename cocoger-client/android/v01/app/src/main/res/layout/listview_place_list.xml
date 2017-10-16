@@ -48,7 +48,6 @@
                     android:layout_alignParentTop="true"
                     android:gravity="center_vertical"
                     android:text="@string/name"
-                    android:textColor="@color/black"
                     android:textSize="14sp" />
 
                 <ImageButton
@@ -80,8 +79,21 @@
                 android:layout_marginTop="8dp"
                 android:layout_toEndOf="@+id/place_picture"
                 android:text="@string/no_message_available"
-                android:textColor="@color/black"
-                android:textSize="14sp" />
+                android:textSize="12sp" />
+
+            <android.support.v7.widget.AppCompatTextView
+                android:id="@+id/place_creator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_below="@+id/place_address"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_toEndOf="@+id/place_picture"
+                android:paddingEnd="8dp"
+                android:gravity="end"
+                android:text="@string/no_message_available"
+                android:textSize="10sp" />
 
         </RelativeLayout>
 

@@ -22,7 +22,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-class MarkerManager implements MarkerInterface {
+class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
 
     private final static String TAG = "MarkerManager";
 
@@ -30,62 +30,60 @@ class MarkerManager implements MarkerInterface {
     private GoogleMap mMap;
     private InfoWindowManager mInfoWindowManager;
     private double mMarkerDistance = 10;
-    private GoogleMap.OnCameraMoveListener mCameraMoveListener =
-            new GoogleMap.OnCameraMoveListener() {
-                @Override
-                public void onCameraMove() {
-                    CameraPosition cameraPosition = mMap.getCameraPosition();
-                    double oldDistance = mMarkerDistance;
-                    ////Log.d(TAG, "Zoom: " + cameraPosition.zoom + " old:" + oldDistance);
-                    if (cameraPosition.zoom > 20) {
-                        mMarkerDistance = 0;
-                    } else if (cameraPosition.zoom > 18) {
-                        mMarkerDistance = 10;
-                    } else if (cameraPosition.zoom > 16) {
-                        mMarkerDistance = 50;
-                    } else if (cameraPosition.zoom > 15) {
-                        mMarkerDistance = 100;
-                    } else if (cameraPosition.zoom > 14) {
-                        mMarkerDistance = 300;
-                    } else if (cameraPosition.zoom > 12) {
-                        mMarkerDistance = 1000;
-                    } else if (cameraPosition.zoom > 11) {
-                        mMarkerDistance = 2000; // 1km
-                    } else if (cameraPosition.zoom > 10) {
-                        mMarkerDistance = 5000; // 1km
-                    } else if (cameraPosition.zoom > 8) {
-                        mMarkerDistance = 10000; // 10km
-                    } else if (cameraPosition.zoom > 7) {
-                        mMarkerDistance = 50000; // 10
-                    } else if (cameraPosition.zoom > 6) {
-                        mMarkerDistance = 100000;
-                    } else if (cameraPosition.zoom > 4) {
-                        mMarkerDistance = 200000;
-                    } else if (cameraPosition.zoom > 3) {
-                        mMarkerDistance = 300000;
-                    } else if (cameraPosition.zoom > 2) {
-                        mMarkerDistance = 500000;
-                    } else if (cameraPosition.zoom > 1) {
-                        mMarkerDistance = 1000000;
-                    }
-                    if (mMarkerDistance == oldDistance) {
-                        return;
-                    }
-                    if (mMarkerDistance < oldDistance) {
-                        Log.d(TAG, "zoomIn:" + cameraPosition.zoom + " distance=" + mMarkerDistance);
-                        zoomIn();
-                    } else {
-                        zoomOut();
-                        Log.d(TAG, "zoomOut:" + cameraPosition.zoom + " distance=" + mMarkerDistance);
-                    }
-                }
-            };
     private boolean mHasFriendMarkers = false;
 
     MarkerManager(GoogleMap map, InfoWindowManager infoWindowManager) {
         mMap = map;
-        mMap.setOnCameraMoveListener(mCameraMoveListener);
+        mMap.setOnCameraMoveListener(this);
         mInfoWindowManager = infoWindowManager;
+    }
+
+    @Override
+    public void onCameraMove() {
+        CameraPosition cameraPosition = mMap.getCameraPosition();
+        double oldDistance = mMarkerDistance;
+        ////Log.d(TAG, "Zoom: " + cameraPosition.zoom + " old:" + oldDistance);
+        if (cameraPosition.zoom > 20) {
+            mMarkerDistance = 0;
+        } else if (cameraPosition.zoom > 18) {
+            mMarkerDistance = 10;
+        } else if (cameraPosition.zoom > 16) {
+            mMarkerDistance = 50;
+        } else if (cameraPosition.zoom > 15) {
+            mMarkerDistance = 100;
+        } else if (cameraPosition.zoom > 14) {
+            mMarkerDistance = 300;
+        } else if (cameraPosition.zoom > 12) {
+            mMarkerDistance = 1000;
+        } else if (cameraPosition.zoom > 11) {
+            mMarkerDistance = 2000; // 1km
+        } else if (cameraPosition.zoom > 10) {
+            mMarkerDistance = 5000; // 1km
+        } else if (cameraPosition.zoom > 8) {
+            mMarkerDistance = 10000; // 10km
+        } else if (cameraPosition.zoom > 7) {
+            mMarkerDistance = 50000; // 10
+        } else if (cameraPosition.zoom > 6) {
+            mMarkerDistance = 100000;
+        } else if (cameraPosition.zoom > 4) {
+            mMarkerDistance = 200000;
+        } else if (cameraPosition.zoom > 3) {
+            mMarkerDistance = 300000;
+        } else if (cameraPosition.zoom > 2) {
+            mMarkerDistance = 500000;
+        } else if (cameraPosition.zoom > 1) {
+            mMarkerDistance = 1000000;
+        }
+        if (mMarkerDistance == oldDistance) {
+            return;
+        }
+        if (mMarkerDistance < oldDistance) {
+            Log.d(TAG, "zoomIn:" + cameraPosition.zoom + " distance=" + mMarkerDistance);
+            zoomIn();
+        } else {
+            zoomOut();
+            Log.d(TAG, "zoomOut:" + cameraPosition.zoom + " distance=" + mMarkerDistance);
+        }
     }
 
     @Override
@@ -224,10 +222,11 @@ class MarkerManager implements MarkerInterface {
 
         Log.d(TAG, "reposition: add a marker for " + key);
         // add a new marker to map
-        //mMarkers.add(new ComboMarker(mMap, mInfoWindowManager, key, name, location, address, range));
-        add(key, name, location, address, range);
+        mMarkers.add(new ComboMarker(mMap, mInfoWindowManager, key, name, location, address, range));
+        //add(key, name, location, address, range);
     }
 
+    // TODO: merge this to above
     void reposition(String key, int range) {
         Log.d(TAG, "reposition range: " + key);
 
@@ -271,7 +270,10 @@ class MarkerManager implements MarkerInterface {
             }
         }
 
-        if (info == null) return;
+        if (info == null) {
+            Log.d(TAG, "reposition: null info");
+            return;
+        }
 
         Location rangeLocation = Utils.getRangedLocation(info.location, info.address, range);
 
@@ -302,15 +304,6 @@ class MarkerManager implements MarkerInterface {
             m.apart(aparted, mMarkerDistance);
         }
 
-        /*
-        ComboMarker[] markers = mMarkers.toArray(new ComboMarker[0]);
-        for (int i = 0; i < markers.length; i++) {
-            ComboMarker m = markers[i];
-            Log.d(TAG, "zoomIn: apart=" + i + " for " + m.getOwner().key + " size=" + m.size());
-            m.apart(aparted, mMarkerDistance);
-        }
-        */
-
         if (!aparted.isEmpty()) {
             for (Map.Entry<String, ComboMarker.MarkerInfo> entry : aparted.entrySet()) {
                 ComboMarker.MarkerInfo info = entry.getValue();
@@ -324,14 +317,16 @@ class MarkerManager implements MarkerInterface {
         Location pl = p.getLocation();
         Location nl = n.getLocation();
         double distance = Utils.distanceTo(pl, nl);
-        Log.d(TAG, "zoom out: p=" + Utils.getAddressLine(p.getOwner().address));
-        Log.d(TAG, "zoom out: n=" + Utils.getAddressLine(n.getOwner().address));
-        Log.d(TAG, "zoom out: distance= " + distance + " max distance=" + mMarkerDistance);
+        Log.d(TAG, "combineMarkers: p=" + Utils.getAddressLine(p.getOwner().address));
+        Log.d(TAG, "combineMarkers: n=" + Utils.getAddressLine(n.getOwner().address));
+        Log.d(TAG, "combineMarkers: distance= " + distance + " max distance=" + mMarkerDistance);
         if (distance < mMarkerDistance) {
-            Log.d(TAG, "zoom out: removed and added to the other");
+            Log.d(TAG, "combineMarkers: removed and added to the other");
             n.copy(p);
             p.remove();
             return true;
+        } else {
+            Log.d(TAG, "combineMarkers: two are too far to combine");
         }
         return false;
     }
@@ -340,7 +335,7 @@ class MarkerManager implements MarkerInterface {
     private void zoomOut() {
         if (mMarkers.size() <= 1) return;
 
-        Log.d(TAG, "zoom out: compare from 0 to n");
+        Log.d(TAG, "zoomOut: compare from 0 to n");
 
         // convert to array to avoid concurrent modification
         ComboMarker[] markers = mMarkers.toArray(new ComboMarker[0]);
@@ -422,6 +417,7 @@ class MarkerManager implements MarkerInterface {
 
                     @Override
                     public void onFail(String err) {
+                        Log.d(TAG, "Failed to get a friend's location: " + err);
                     }
                 });
             }

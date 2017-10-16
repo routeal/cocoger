@@ -73,6 +73,8 @@ public class FB {
     public final static String DIRECTION_ROUTE_REMOVE = "direction_route_remove";
     public final static String PLACE_SAVE = "place_save";
     public final static String PLACE_EDIT = "place_edit";
+    public final static String PLACE_REMOVE = "place_remove";
+    public final static String PLACE_SHOW = "place_show";
 
     public final static String KEY = "key";
     public final static String LOCATION = "location";
@@ -995,6 +997,25 @@ public class FB {
             @Override
             protected void onBindViewHolder(PlaceListViewHolder holder, int position, Place model) {
                 holder.bind(getRef(position).getKey(), model);
+            }
+
+            @Override
+            public void onDataChanged() {
+                super.onDataChanged();
+            }
+
+            @Override
+            public void onChildChanged(ChangeEventType type, DataSnapshot snapshot, int newIndex, int oldIndex) {
+                super.onChildChanged(type, snapshot, newIndex, oldIndex);
+                if (type == ChangeEventType.ADDED) {
+                    Log.d(TAG, "Place added");
+                } else if (type == ChangeEventType.CHANGED) {
+                    Log.d(TAG, "Place changed");
+                } else if (type == ChangeEventType.MOVED) {
+                    Log.d(TAG, "Place moved");
+                } else if (type == ChangeEventType.REMOVED) {
+                    Log.d(TAG, "Place removed");
+                }
             }
         };
     }

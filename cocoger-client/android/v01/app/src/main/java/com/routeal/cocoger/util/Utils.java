@@ -281,17 +281,21 @@ public class Utils {
         return Utils.getRangedLocation(address, range);
     }
 
-    public static Address getAddress(Location location) {
+    public static Address getAddress(LatLng location) {
         Address address = null;
         try {
             List<Address> addresses =
                     new Geocoder(MainApplication.getContext(), Locale.getDefault())
-                            .getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+                            .getFromLocation(location.latitude, location.longitude, 1);
             address = addresses.get(0);
         } catch (Exception e) {
             Log.d(TAG, "getAddress:", e);
         }
         return address;
+    }
+
+    public static Address getAddress(Location location) {
+        return getAddress(getLatLng(location));
     }
 
     public static double distanceTo(Location a, Location b) {

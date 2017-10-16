@@ -41,7 +41,7 @@ public class LoadImage {
         this(null, true, 0, listener);
     }
 
-    public LoadImage(LoadImageListener listener, boolean crop) {
+    public LoadImage(boolean crop, LoadImageListener listener) {
         this(null, crop, 0, listener);
     }
 

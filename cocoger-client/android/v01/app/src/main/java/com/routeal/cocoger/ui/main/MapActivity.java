@@ -122,10 +122,11 @@ abstract class MapActivity extends MapBaseActivity
         mMm = new MarkerManager(mMap, mInfoWindowManager);
         mDirection = new MapDirection(mMap, mInfoWindowManager);
         mPoi = new PoiManager(mMap, mGeoDataClient, mInfoWindowManager);
-        mPlace = new PlaceManager(mMap, mGeoDataClient, mInfoWindowManager);
-        mPlace.setup();
+        mPlace = new PlaceManager(this, mMap, mGeoDataClient, mInfoWindowManager);
+        mPlace.init();
 
         mReceiver = new MapBroadcastReceiver(this, mMap, mMm, mDirection, mPlace);
+        mReceiver.setLocation(mInitialLocation);
 
         mMap.setPadding(8, 0, 0, 148);
         mMap.getUiSettings().setCompassEnabled(true);
