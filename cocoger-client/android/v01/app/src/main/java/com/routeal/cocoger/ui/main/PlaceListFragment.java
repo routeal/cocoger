@@ -6,6 +6,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.routeal.cocoger.R;
 
@@ -14,6 +15,8 @@ import com.routeal.cocoger.R;
  */
 
 public class PlaceListFragment extends PagerFragment {
+
+    private TextView mEmptyTextView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -28,11 +31,18 @@ public class PlaceListFragment extends PagerFragment {
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(mAdapter);
 
+        mEmptyTextView = (TextView) view.findViewById(R.id.empty_view);
+
         return view;
     }
 
     @Override
     void onViewPageSelected() {
+        if (mAdapter.getItemCount() == 0) {
+            mEmptyTextView.setVisibility(View.VISIBLE);
+        } else {
+            mEmptyTextView.setVisibility(View.GONE);
+        }
     }
 
 }

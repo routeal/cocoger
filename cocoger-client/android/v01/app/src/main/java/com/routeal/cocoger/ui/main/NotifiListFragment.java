@@ -59,8 +59,6 @@ public class NotifiListFragment extends PagerFragment {
         mRecyclerView = (RecyclerView) view.findViewById(R.id.list);
         mRecyclerView.setLayoutManager(layoutManager);
 
-        onViewPageSelected();
-
         return view;
     }
 

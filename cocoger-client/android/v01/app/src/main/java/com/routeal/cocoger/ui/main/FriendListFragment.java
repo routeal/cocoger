@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.franmontiel.fullscreendialog.FullScreenDialogFragment;
 import com.routeal.cocoger.R;
@@ -17,6 +18,8 @@ import com.routeal.cocoger.R;
 
 public class FriendListFragment extends PagerFragment {
     private final static String TAG = "FriendListFragment";
+
+    private TextView mEmptyTextView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -51,11 +54,17 @@ public class FriendListFragment extends PagerFragment {
 
         recyclerView.setAdapter(mAdapter);
 
+        mEmptyTextView = (TextView) view.findViewById(R.id.empty_view);
+
         return view;
     }
 
     @Override
     void onViewPageSelected() {
-        // empty
+        if (mAdapter.getItemCount() == 0) {
+            mEmptyTextView.setVisibility(View.VISIBLE);
+        } else {
+            mEmptyTextView.setVisibility(View.GONE);
+        }
     }
 }

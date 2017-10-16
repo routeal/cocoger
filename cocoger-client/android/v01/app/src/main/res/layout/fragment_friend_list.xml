@@ -44,4 +44,16 @@
         android:layout_height="wrap_content"
         android:scrollbars="vertical" />
 
+    <TextView
+        android:id="@+id/empty_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="32dp"
+        android:gravity="center_horizontal"
+        android:text="@string/no_friend"
+        android:textColor="@color/slategray"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
 </LinearLayout>
