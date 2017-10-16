@@ -15,7 +15,7 @@ abstract public class PagerFragment extends Fragment {
     private static final String TAG = "PagerFragment";
     protected FirebaseRecyclerAdapter mAdapter;
     private SlidingUpPanelLayout mSlidingUpPanelLayout;
-    private ViewPager viewPager;
+    private ViewPager mViewPager;
 
     SlidingUpPanelLayout getSlidingUpPanelLayout() {
         return mSlidingUpPanelLayout;
@@ -26,11 +26,11 @@ abstract public class PagerFragment extends Fragment {
     }
 
     ViewPager getViewPager() {
-        return viewPager;
+        return mViewPager;
     }
 
     void setViewPager(ViewPager viewPager) {
-        this.viewPager = viewPager;
+        mViewPager = viewPager;
     }
 
     void onSelected() {
@@ -41,7 +41,7 @@ abstract public class PagerFragment extends Fragment {
     }
 
     void setRecyclerAdapter(FirebaseRecyclerAdapter adapter) {
-        this.mAdapter = adapter;
+        mAdapter = adapter;
     }
 
     abstract void onViewPageSelected();

@@ -77,17 +77,15 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
 
     private Map<Marker, InfoWindow> mPlaceMarkers = new HashMap<Marker, InfoWindow>();
     private GoogleMap mMap;
-    private GeoDataClient mGeoDataClient;
     private InfoWindowManager mInfoWindowManager;
     private ImageView cropImageView;
     private MapActivity mActivity;
 
-    PlaceManager(MapActivity activity, GoogleMap googleMap, GeoDataClient geoDataClient, InfoWindowManager infoWindowManager) {
+    PlaceManager(MapActivity activity, GoogleMap googleMap, InfoWindowManager infoWindowManager) {
         mActivity = activity;
         mMap = googleMap;
         mMap.setOnMapLongClickListener(this);
         mMap.setOnMarkerDragListener(this);
-        mGeoDataClient = geoDataClient;
         mInfoWindowManager = infoWindowManager;
     }
 

@@ -75,7 +75,7 @@ public class PlaceListViewHolder extends RecyclerView.ViewHolder implements View
         if (!mPlace.getUid().equals(FB.getUid())) {
             mEditButton.setVisibility(View.INVISIBLE);
             mRemoveButton.setVisibility(View.INVISIBLE);
-            Friend friend = FB.getFriend(mPlace.getUid());
+            Friend friend = FriendManager.getFriend(mPlace.getUid());
             String str = String.format(mView.getResources().getString(R.string.by_creator), friend.getDisplayName());
             mCreatorText.setText(str);
         } else {

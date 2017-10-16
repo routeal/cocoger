@@ -202,7 +202,7 @@ class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
         if (key.equals(FB.getUid())) {
             name = user.getDisplayName();
         } else {
-            Friend friend = FB.getFriend(key);
+            Friend friend = FriendManager.getFriend(key);
             if (friend != null) {
                 name = friend.getDisplayName();
             }
@@ -397,7 +397,7 @@ class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
 
         add(FB.getUid(), user.getDisplayName(), location, address, LocationRange.CURRENT.range);
 
-        Map<String, Friend> friends = FB.getFriends();
+        Map<String, Friend> friends = FriendManager.getFriends();
         if (friends.isEmpty()) {
             Log.d(TAG, "setupMarkers: empty friend");
             return;

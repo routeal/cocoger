@@ -82,11 +82,12 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
                 String str = String.format(view.getResources().getString(R.string.by_creator), FB.getUser().getDisplayName());
                 mPlaceCreatorTextView.setText(str);
             } else {
-                Friend friend = FB.getFriend(mPlace.getUid());
+                Friend friend = FriendManager.getFriend(mPlace.getUid());
                 if (friend != null) {
                     String str = String.format(view.getResources().getString(R.string.by_creator), friend.getDisplayName());
                     mPlaceCreatorTextView.setText(str);
                 }
+                mActionEditPlaceButton.setVisibility(View.GONE);
             }
         }
     }

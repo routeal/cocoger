@@ -71,7 +71,7 @@ public class UserListViewHolder extends RecyclerView.ViewHolder {
         }
 
         // check to see already being friend
-        if (FB.getFriend(key) != null) {
+        if (FriendManager.getFriend(key) != null) {
             // already being friend
             disableInput(true, R.color.teal100);
             setLocation(mView.getResources().getString(R.string.friend));

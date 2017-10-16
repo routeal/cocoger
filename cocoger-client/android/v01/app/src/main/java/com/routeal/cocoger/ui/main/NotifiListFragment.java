@@ -106,7 +106,7 @@ public class NotifiListFragment extends PagerFragment {
                 }
             }
 
-            Map<String, Friend> friends = FB.getFriends();
+            Map<String, Friend> friends = FriendManager.getFriends();
             if (!friends.isEmpty()) {
                 for (Map.Entry<String, Friend> entry : friends.entrySet()) {
                     String key = entry.getKey();

@@ -13,6 +13,7 @@ import android.view.View;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.Place;
 import com.routeal.cocoger.util.Notifi;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
@@ -39,11 +40,14 @@ public class PanelMapActivity extends SearchMapActivity {
 
     private ViewPagerAdapter mViewPagerAdapter;
 
+    private SlidingUpPanelLayout mLayout;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        final SlidingUpPanelLayout mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+        mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+
         mLayout.addPanelSlideListener(new PanelSlideListener() {
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
@@ -64,6 +68,11 @@ public class PanelMapActivity extends SearchMapActivity {
             }
         });
 
+        handleIntent(getIntent());
+    }
+
+    @Override
+    void setupApp() {
         ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
         mViewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
 
@@ -75,6 +84,24 @@ public class PanelMapActivity extends SearchMapActivity {
         pagerFragment = new FriendListFragment();
         pagerFragment.setSlidingUpPanelLayout(mLayout);
         pagerFragment.setViewPager(viewPager);
+        FirebaseRecyclerAdapter friendAdapter = FB.getFriendRecyclerAdapter(new FriendManager.FriendListener() {
+            @Override
+            public void onAdded(String key, Friend friend) {
+                mFriendManager.add(key, friend);
+            }
+
+            @Override
+            public void onChanged(String key, Friend friend) {
+                mFriendManager.change(key, friend);
+            }
+
+            @Override
+            public void onRemoved(String key) {
+                mFriendManager.remove(key);
+            }
+        });
+        friendAdapter.startListening();
+        pagerFragment.setRecyclerAdapter(friendAdapter);
         mViewPagerAdapter.addFragment(pagerFragment, null);
 
         pagerFragment = new GroupListFragment();
@@ -85,10 +112,28 @@ public class PanelMapActivity extends SearchMapActivity {
         pagerFragment = new PlaceListFragment();
         pagerFragment.setSlidingUpPanelLayout(mLayout);
         pagerFragment.setViewPager(viewPager);
+        FirebaseRecyclerAdapter placeAdapter = FB.getPlaceRecyclerAdapter(new PlaceManager.PlaceListener() {
+            @Override
+            public void onAdded(String key, Place place) {
+                mPlace.add(key, place);
+            }
+
+            @Override
+            public void onChanged(String key, Place place) {
+                mPlace.change(key, place);
+            }
+
+            @Override
+            public void onRemoved(String key) {
+                mPlace.remove(key);
+            }
+        });
+        placeAdapter.startListening();
+        pagerFragment.setRecyclerAdapter(placeAdapter);
         mViewPagerAdapter.addFragment(pagerFragment, null);
 
         viewPager.setAdapter(mViewPagerAdapter);
-        viewPager.setCurrentItem(1);
+        viewPager.setCurrentItem(LIST_FRIENDS);
 
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -112,33 +157,6 @@ public class PanelMapActivity extends SearchMapActivity {
         for (int i = 0; i < tabIcons.length; i++) {
             tabLayout.getTabAt(i).setIcon(tabIcons[i]);
         }
-
-        handleIntent(getIntent());
-    }
-
-    @Override
-    void setupApp() {
-        FirebaseRecyclerAdapter placeAdapter = FB.getPlaceRecyclerAdapter(new PlaceManager.PlaceListener() {
-            @Override
-            public void onAdded(String key, Place place) {
-                mPlace.add(key, place);
-            }
-
-            @Override
-            public void onChanged(String key, Place place) {
-                mPlace.change(key, place);
-            }
-
-            @Override
-            public void onRemoved(String key) {
-                mPlace.remove(key);
-            }
-        });
-
-        placeAdapter.startListening();
-
-        PlaceListFragment placeListFragment = (PlaceListFragment) mViewPagerAdapter.getItem(LIST_PLACES);
-        placeListFragment.setRecyclerAdapter(placeAdapter);
     }
 
     // most of the notification intent come here
@@ -159,7 +177,7 @@ public class PanelMapActivity extends SearchMapActivity {
 
             // set the current page to the friend list fragment
             ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
-            viewPager.setCurrentItem(1);
+            viewPager.setCurrentItem(LIST_FRIENDS);
 
             // show the friend list fragment
             SlidingUpPanelLayout mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
@@ -178,7 +196,7 @@ public class PanelMapActivity extends SearchMapActivity {
 
             // set the current page to the friend list fragment
             ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
-            viewPager.setCurrentItem(1);
+            viewPager.setCurrentItem(LIST_FRIENDS);
 
             // show the friend list fragment
             SlidingUpPanelLayout mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);

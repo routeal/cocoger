@@ -16,11 +16,6 @@ import com.routeal.cocoger.R;
 public class PlaceListFragment extends PagerFragment {
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
@@ -31,7 +26,6 @@ public class PlaceListFragment extends PagerFragment {
 
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
         recyclerView.setLayoutManager(layoutManager);
-
         recyclerView.setAdapter(mAdapter);
 
         return view;
@@ -39,7 +33,6 @@ public class PlaceListFragment extends PagerFragment {
 
     @Override
     void onViewPageSelected() {
-        // empty
     }
 
 }

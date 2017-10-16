@@ -95,7 +95,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             }
         } else if (intent.getAction().equals(FB.FRIEND_LOCATION_ADD)) {
             final String fid = intent.getStringExtra(FB.KEY);
-            final Friend friend = FB.getFriend(fid);
+            final Friend friend = FriendManager.getFriend(fid);
             if (friend == null) return; // shouldn't happen
             FB.getLocation(friend.getLocation(), new FB.LocationListener() {
                 @Override
@@ -112,7 +112,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             final String fid = intent.getStringExtra(FB.KEY);
             //final String newLocationKey = intent.getStringExtra(FB.NEW_LOCATION);
             //final String oldLocationKey = intent.getStringExtra(FB.OLD_LOCATION);
-            final Friend friend = FB.getFriend(fid);
+            final Friend friend = FriendManager.getFriend(fid);
             if (friend == null) return; // shouldn't happen
             final int range = friend.getRange();
             FB.getLocation(friend.getLocation(), new FB.LocationListener() {
@@ -164,7 +164,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             if (fid == null) {
                 return;
             }
-            Friend friend = FB.getFriend(fid);
+            Friend friend = FriendManager.getFriend(fid);
             if (friend == null || friend.getLocation() == null) {
                 return;
             }

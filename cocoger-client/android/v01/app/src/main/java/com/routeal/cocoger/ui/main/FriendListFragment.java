@@ -51,10 +51,7 @@ public class FriendListFragment extends PagerFragment {
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
         recyclerView.setLayoutManager(layoutManager);
 
-        FirebaseRecyclerAdapter adapter = FB.getFriendRecyclerAdapter();
-        adapter.startListening();
-
-        recyclerView.setAdapter(adapter);
+        recyclerView.setAdapter(mAdapter);
 
         return view;
     }

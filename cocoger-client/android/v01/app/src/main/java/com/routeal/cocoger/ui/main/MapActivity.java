@@ -20,6 +20,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Marker;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.util.Utils;
 import com.theartofdev.edmodo.cropper.CropImage;
 
@@ -42,6 +43,7 @@ abstract class MapActivity extends MapBaseActivity
     protected MapStyle mMapStyle;
     protected PoiManager mPoi;
     protected PlaceManager mPlace;
+    protected FriendManager mFriendManager;
 
     private View mapView;
     private CameraPosition mCameraPosition;
@@ -122,7 +124,8 @@ abstract class MapActivity extends MapBaseActivity
         mMm = new MarkerManager(mMap, mInfoWindowManager);
         mDirection = new MapDirection(mMap, mInfoWindowManager);
         mPoi = new PoiManager(mMap, mGeoDataClient, mInfoWindowManager);
-        mPlace = new PlaceManager(this, mMap, mGeoDataClient, mInfoWindowManager);
+        mPlace = new PlaceManager(this, mMap, mInfoWindowManager);
+        mFriendManager = new FriendManager();
 
         mReceiver = new MapBroadcastReceiver(this, mMap, mMm, mDirection, mPlace);
         mReceiver.setLocation(mInitialLocation);

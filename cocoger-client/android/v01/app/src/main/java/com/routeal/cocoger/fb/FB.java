@@ -49,6 +49,7 @@ import com.routeal.cocoger.model.RangeRequest;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.service.LocationUpdateService;
 import com.routeal.cocoger.ui.main.FriendListViewHolder;
+import com.routeal.cocoger.ui.main.FriendManager;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 import com.routeal.cocoger.ui.main.PlaceListViewHolder;
 import com.routeal.cocoger.ui.main.PlaceManager;
@@ -101,7 +102,6 @@ public class FB {
     private final static String TAG = "FB";
 
     private static User mUser;
-    private static Map<String, Friend> mFriendList = new HashMap<>();
 
     // set up the auth state listener as soon as the app is started
     static {
@@ -114,17 +114,6 @@ public class FB {
 
     public static void setUser(User user) {
         mUser = user;
-    }
-
-    public static Map<String, Friend> getFriends() {
-        return mFriendList;
-    }
-
-    public static Friend getFriend(String key) {
-        if (key != null && !key.isEmpty()) {
-            return mFriendList.get(key);
-        }
-        return null;
     }
 
     public static String getUid() {
@@ -199,7 +188,6 @@ public class FB {
                 if (user != null) {
                     Log.d(TAG, "Firebase User authenticated:" + user.getEmail());
                     monitorUserDatabase();
-                    monitorFriendDatabase();
                 } else {
                     Log.d(TAG, "Firebase User invalidated");
                     FB.setUser(null);
@@ -234,98 +222,6 @@ public class FB {
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 Log.d(TAG, "monitorUserDatabase: error", databaseError.toException());
-            }
-        });
-    }
-
-    private static void monitorFriendDatabase() {
-        DatabaseReference db = getFriendDatabaseReference(getUid());
-        db.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
-                    String key = postSnapshot.getKey();
-                    Friend friend = postSnapshot.getValue(Friend.class);
-                    mFriendList.put(key, friend);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
-        db.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                String key = dataSnapshot.getKey();
-                Friend friend = dataSnapshot.getValue(Friend.class);
-                if (friend == null) return;
-                mFriendList.put(key, friend);
-
-                Intent intent = new Intent(FB.FRIEND_LOCATION_ADD);
-                intent.putExtra(FB.KEY, key);
-                LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                String key = dataSnapshot.getKey();
-                Friend newFriend = dataSnapshot.getValue(Friend.class);
-                if (newFriend == null) return;
-                Friend oldFriend = mFriendList.get(key);
-
-                if (newFriend.getRangeRequest() != null) {
-                    int requestRange = newFriend.getRangeRequest().getRange();
-                    int currentRange = newFriend.getRange();
-
-                    // new range request found
-                    if (oldFriend.getRangeRequest() == null) {
-                        sendRangeNotification(key, newFriend, requestRange, currentRange);
-                    }
-                }
-
-                // the range has been update, notify the map acitivity
-                // to change the marker location
-                if (newFriend.getRange() != oldFriend.getRange()) {
-                    Intent intent = new Intent(FB.FRIEND_RANGE_UPDATE);
-                    intent.putExtra(FB.KEY, key);
-                    LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
-                }
-
-                if (newFriend.getLocation() != null && oldFriend.getLocation() != null &&
-                        !newFriend.getLocation().equals(oldFriend.getLocation())) {
-                    Intent intent = new Intent(FB.FRIEND_LOCATION_UPDATE);
-                    intent.putExtra(FB.KEY, key);
-                    /* Range movement not implemented
-                    intent.putExtra(FB.NEW_LOCATION, newFriend.getLocation());
-                    intent.putExtra(FB.OLD_LOCATION, oldFriend.getLocation());
-                    */
-                    LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
-                }
-
-                mFriendList.put(key, newFriend);
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                String key = dataSnapshot.getKey();
-                Friend friend = dataSnapshot.getValue(Friend.class);
-                if (friend == null) return;
-                mFriendList.remove(key);
-
-                Intent intent = new Intent(FB.FRIEND_LOCATION_REMOVE);
-                intent.putExtra(FB.KEY, key);
-                LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
             }
         });
     }
@@ -455,7 +351,7 @@ public class FB {
         updates.put("users/" + uid + "/location/", key);
 
         if (notifyFriend) {
-            for (Map.Entry<String, Friend> entry : mFriendList.entrySet()) {
+            for (Map.Entry<String, Friend> entry : FriendManager.getFriends().entrySet()) {
                 updates.put("friends/" + entry.getKey() + "/" + uid + "/location", key);
             }
         }
@@ -670,7 +566,7 @@ public class FB {
             }
 
             String key = adapter.getRef(i).getKey();
-            if (mFriendList.get(key) != null) {
+            if (FriendManager.getFriend(key) != null) {
                 // already being friend
                 continue;
             }
@@ -886,7 +782,7 @@ public class FB {
                 });
     }
 
-    private static void sendRangeNotification(String uid, Friend friend, int requestRange, int currentRange) {
+    public static void sendRangeNotification(String uid, Friend friend, int requestRange, int currentRange) {
         Context context = MainApplication.getContext();
 
         Intent acceptIntent = new Intent(context, PanelMapActivity.class);
@@ -951,7 +847,7 @@ public class FB {
 
     }
 
-    public static FirebaseRecyclerAdapter<Friend, FriendListViewHolder> getFriendRecyclerAdapter() {
+    public static FirebaseRecyclerAdapter<Friend, FriendListViewHolder> getFriendRecyclerAdapter(final FriendManager.FriendListener listener) {
         DatabaseReference db = getFriendDatabaseReference(getUid());
 
         Query query = db.orderByChild("range");
@@ -972,6 +868,29 @@ public class FB {
             @Override
             protected void onBindViewHolder(FriendListViewHolder holder, int position, Friend model) {
                 holder.bind(model, getRef(position).getKey());
+            }
+
+            @Override
+            public void onChildChanged(ChangeEventType type, DataSnapshot snapshot, int newIndex, int oldIndex) {
+                super.onChildChanged(type, snapshot, newIndex, oldIndex);
+                Friend friend = snapshot.getValue(Friend.class);
+                String key = snapshot.getKey();
+                if (type == ChangeEventType.ADDED) {
+                    if (listener != null) {
+                        Log.d(TAG, "Friend added");
+                        listener.onAdded(key, friend);
+                    }
+                } else if (type == ChangeEventType.CHANGED) {
+                    if (listener != null) {
+                        Log.d(TAG, "Friend changed");
+                        listener.onChanged(key, friend);
+                    }
+                } else if (type == ChangeEventType.REMOVED) {
+                    if (listener != null) {
+                        Log.d(TAG, "Friend removed");
+                        listener.onRemoved(key);
+                    }
+                }
             }
         };
     }
@@ -1214,7 +1133,7 @@ public class FB {
         updates.put("users/" + uid + "/places/" + key, uid);
 
         if (place.getSeenBy().equals("friends")) {
-            for (Map.Entry<String, Friend> entry : mFriendList.entrySet()) {
+            for (Map.Entry<String, Friend> entry : FriendManager.getFriends().entrySet()) {
                 updates.put("users/" + entry.getKey() + "/places/" + key, uid);
             }
         }
@@ -1242,7 +1161,7 @@ public class FB {
     public static void editPlace(final String key, Place place, Bitmap bitmap, final CompleteListener listener) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("places/" + key, place);
-        for (Map.Entry<String, Friend> entry : mFriendList.entrySet()) {
+        for (Map.Entry<String, Friend> entry : FriendManager.getFriends().entrySet()) {
             if (place.getSeenBy().equals("friends")) {
                 updates.put("users/" + entry.getKey() + "/places/" + key, place.getUid());
             } else {
@@ -1279,7 +1198,7 @@ public class FB {
         updates.put("users/" + uid + "/places/" + key, null);
 
         if (place.getSeenBy().equals("friends")) {
-            for (Map.Entry<String, Friend> entry : mFriendList.entrySet()) {
+            for (Map.Entry<String, Friend> entry : FriendManager.getFriends().entrySet()) {
                 updates.put("users/" + entry.getKey() + "/places/" + key, null);
             }
         }
