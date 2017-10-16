@@ -4,6 +4,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 /**
@@ -12,9 +13,8 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 abstract public class PagerFragment extends Fragment {
     private static final String TAG = "PagerFragment";
-
+    protected FirebaseRecyclerAdapter mAdapter;
     private SlidingUpPanelLayout mSlidingUpPanelLayout;
-
     private ViewPager viewPager;
 
     SlidingUpPanelLayout getSlidingUpPanelLayout() {
@@ -38,6 +38,10 @@ abstract public class PagerFragment extends Fragment {
             Log.d(TAG, "selected");
             onViewPageSelected();
         }
+    }
+
+    void setRecyclerAdapter(FirebaseRecyclerAdapter adapter) {
+        this.mAdapter = adapter;
     }
 
     abstract void onViewPageSelected();

@@ -180,6 +180,8 @@ abstract class MapBaseActivity extends FragmentActivity
 
     abstract void startApp(Location location);
 
+    abstract void setupApp();
+
     @Override
     @SuppressWarnings("MissingPermission")
     public void onConnected(@Nullable Bundle bundle) {

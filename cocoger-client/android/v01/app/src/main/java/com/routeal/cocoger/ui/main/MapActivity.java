@@ -35,16 +35,16 @@ abstract class MapActivity extends MapBaseActivity
 
     protected GoogleMap mMap;
     protected GeoDataClient mGeoDataClient;
+    protected Utils.ProgressBarView mSpinner;
+    protected InfoWindowManager mInfoWindowManager;
+    protected MarkerManager mMm;
+    protected MapDirection mDirection;
+    protected MapStyle mMapStyle;
+    protected PoiManager mPoi;
+    protected PlaceManager mPlace;
 
     private View mapView;
     private CameraPosition mCameraPosition;
-    private Utils.ProgressBarView mSpinner;
-    private InfoWindowManager mInfoWindowManager;
-    private MarkerManager mMm;
-    private MapDirection mDirection;
-    private MapStyle mMapStyle;
-    private PoiManager mPoi;
-    private PlaceManager mPlace;
     private Location mInitialLocation;
     private MapBroadcastReceiver mReceiver;
 
@@ -123,7 +123,6 @@ abstract class MapActivity extends MapBaseActivity
         mDirection = new MapDirection(mMap, mInfoWindowManager);
         mPoi = new PoiManager(mMap, mGeoDataClient, mInfoWindowManager);
         mPlace = new PlaceManager(this, mMap, mGeoDataClient, mInfoWindowManager);
-        mPlace.init();
 
         mReceiver = new MapBroadcastReceiver(this, mMap, mMm, mDirection, mPlace);
         mReceiver.setLocation(mInitialLocation);
@@ -134,6 +133,8 @@ abstract class MapActivity extends MapBaseActivity
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.setMyLocationEnabled(true);
         mMap.setOnMarkerClickListener(this);
+
+        setupApp();
 
         mMapStyle = new MapStyle(mMap, this);
         mMapStyle.init(this, mMap);

@@ -51,6 +51,7 @@ import com.routeal.cocoger.service.LocationUpdateService;
 import com.routeal.cocoger.ui.main.FriendListViewHolder;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 import com.routeal.cocoger.ui.main.PlaceListViewHolder;
+import com.routeal.cocoger.ui.main.PlaceManager;
 import com.routeal.cocoger.ui.main.UserListViewHolder;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Notifi;
@@ -975,7 +976,7 @@ public class FB {
         };
     }
 
-    public static FirebaseRecyclerAdapter<Place, PlaceListViewHolder> getPlaceRecyclerAdapter() {
+    public static FirebaseRecyclerAdapter<Place, PlaceListViewHolder> getPlaceRecyclerAdapter(final PlaceManager.PlaceListener listener) {
         DatabaseReference db = getPlaceDatabaseReference(getUid());
         Query keyQuery = db.orderByValue();
 
@@ -1007,14 +1008,25 @@ public class FB {
             @Override
             public void onChildChanged(ChangeEventType type, DataSnapshot snapshot, int newIndex, int oldIndex) {
                 super.onChildChanged(type, snapshot, newIndex, oldIndex);
+                Place place = snapshot.getValue(Place.class);
+                String key = snapshot.getKey();
                 if (type == ChangeEventType.ADDED) {
                     Log.d(TAG, "Place added");
+                    if (listener != null) {
+                        listener.onAdded(key, place);
+                    }
                 } else if (type == ChangeEventType.CHANGED) {
                     Log.d(TAG, "Place changed");
+                    if (listener != null) {
+                        listener.onChanged(key, place);
+                    }
                 } else if (type == ChangeEventType.MOVED) {
                     Log.d(TAG, "Place moved");
                 } else if (type == ChangeEventType.REMOVED) {
                     Log.d(TAG, "Place removed");
+                    if (listener != null) {
+                        listener.onRemoved(key);
+                    }
                 }
             }
         };
@@ -1195,7 +1207,6 @@ public class FB {
         final String key = placeDb.push().getKey();
 
         String uid = FB.getUid();
-        place.setUid(uid);
 
         Map<String, Object> updates = new HashMap<>();
 
@@ -1229,8 +1240,17 @@ public class FB {
     }
 
     public static void editPlace(final String key, Place place, Bitmap bitmap, final CompleteListener listener) {
-        DatabaseReference db = getPlaceDatabaseReference();
-        db.child(key).setValue(place);
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("places/" + key, place);
+        for (Map.Entry<String, Friend> entry : mFriendList.entrySet()) {
+            if (place.getSeenBy().equals("friends")) {
+                updates.put("users/" + entry.getKey() + "/places/" + key, place.getUid());
+            } else {
+                updates.put("users/" + entry.getKey() + "/places/" + key, null);
+            }
+        }
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference();
+        db.updateChildren(updates);
 
         if (bitmap == null) {
             if (listener != null) listener.onSuccess();

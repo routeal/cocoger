@@ -100,7 +100,7 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
                 }
                 break;
             case R.id.action_edit_place:
-                mPlaceManager.editPlace(getActivity(), mPlace, mKey);
+                mPlaceManager.editPlace(mKey, mPlace);
                 break;
             case R.id.action_direction:
                 if (mLocation != null) {

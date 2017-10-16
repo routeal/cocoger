@@ -91,43 +91,51 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
         mInfoWindowManager = infoWindowManager;
     }
 
-    void init() {
-        if (!mPlaceMarkers.isEmpty()) {
-            return;
+    private Drawable getIcon(int colorId) {
+        return Utils.getIconDrawable(mActivity, R.drawable.ic_place_white_18dp, colorId);
+    }
+
+    private BitmapDescriptor getIcon(String colorName) {
+        int colorId = mPlaceColorMap.get(colorName);
+        Drawable drawable = Utils.getIconDrawable(mActivity, R.drawable.ic_place_white_48dp, colorId);
+        return Utils.getBitmapDescriptor(drawable);
+    }
+
+    void add(String key, Place place) {
+        addMarker(key, place, null, false);
+    }
+
+    void change(String key, Place place) {
+        Marker marker = getMarker(key);
+        if (marker != null) {
+            // position
+            LatLng latLng = new LatLng(place.getLatitude(), place.getLongitude());
+            InfoWindow window = mPlaceMarkers.get(marker);
+            window.setPosition(latLng);
+            marker.setPosition(latLng);
+
+            // place
+            PlaceInfoFragment fragment = (PlaceInfoFragment) window.getWindowFragment();
+            fragment.setPlace(place);
+
+            // marker color
+            marker.setIcon(getIcon(place.getMarkerColor()));
         }
+    }
 
-        User user = FB.getUser();
-        if (user == null) {
-            return; // not available yet
-        }
-
-        Map<String, String> places = user.getPlaces();
-        if (places == null || places.isEmpty()) {
-            return; // empty
-        }
-
-        for (Iterator<Map.Entry<String, String>> it = places.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<String, String> entry = it.next();
-            String key = entry.getKey();
-            FB.getPlace(key, new FB.PlaceListener() {
-                @Override
-                public void onSuccess(String key, Place place) {
-                    addMarker(place, key, null);
-                }
-
-                @Override
-                public void onFail(String err) {
-                }
-            });
+    void remove(String key) {
+        Marker marker = getMarker(key);
+        if (marker != null) {
+            marker.remove();
+            InfoWindow window = mPlaceMarkers.get(marker);
+            PlaceInfoFragment fragment = (PlaceInfoFragment) window.getWindowFragment();
+            removeFragment(fragment);
+            mPlaceMarkers.remove(marker);
         }
     }
 
     // edit a place or add a new place but the marker is already created by long press
-    void editPlace(final Activity activity, final Place place, final String key) {
-        if (activity == null || activity.isFinishing()) {
-            return;
-        }
-
+    void editPlace(final String key, final Place place) {
         final PlaceInfoFragment fragment = getPlaceInfoFragment(place);
         if (fragment == null) {
             return;
@@ -139,13 +147,12 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
         LatLng latLng = new LatLng(place.getLatitude(), place.getLongitude());
         Location location = Utils.getLocation(latLng);
 
-        LayoutInflater layoutInflaterAndroid = LayoutInflater.from(activity);
+        LayoutInflater layoutInflaterAndroid = LayoutInflater.from(mActivity);
         View view = layoutInflaterAndroid.inflate(R.layout.dialog_place, null);
 
         for (PlaceColorButton pc : mPlaceColorButtons) {
             pc.imageView = (ImageView) view.findViewById(pc.imageId);
-            Drawable drawable = Utils.getIconDrawable(activity, R.drawable.ic_place_white_18dp, pc.colorId);
-            pc.imageView.setImageDrawable(drawable);
+            pc.imageView.setImageDrawable(getIcon(pc.colorId));
             pc.radioButton = (RadioButton) view.findViewById(pc.id);
             pc.radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
@@ -189,12 +196,12 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
                 cropImageView = placeImage;
                 CropImage.activity()
                         .setGuidelines(CropImageView.Guidelines.ON)
-                        .setActivityTitle(activity.getResources().getString(R.string.picture))
+                        .setActivityTitle(mActivity.getResources().getString(R.string.picture))
                         .setCropShape(CropImageView.CropShape.RECTANGLE)
                         .setRequestedSize(128, 128)
                         .setFixAspectRatio(true)
                         .setAspectRatio(100, 100)
-                        .start(activity);
+                        .start(mActivity);
             }
         });
 
@@ -204,20 +211,19 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
                 if (bitmap != null) {
                     placeImage.setImageBitmap(bitmap);
                 } else {
-                    Drawable drawable = Utils.getIconDrawable(activity, R.drawable.ic_place_white_48dp, R.color.steelblue);
-                    placeImage.setImageDrawable(drawable);
+                    placeImage.setImageDrawable(getIcon(R.color.steelblue));
                 }
             }
         }).loadPlace(place.getUid(), key);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
         builder.setView(view);
         builder.setCancelable(true);
         builder.setNegativeButton(android.R.string.cancel, null);
         builder.setNeutralButton(R.string.delete, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                removePlace(place, key, fragment);
+                removePlace(key, place, fragment);
             }
         });
 
@@ -232,11 +238,12 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
                     }
                 }
                 String markerColor2 = tmp;
+
                 Bitmap bitmap = null;
                 if (cropImageView != null && cropImageView.getDrawable() != null) {
                     bitmap = ((BitmapDrawable) cropImageView.getDrawable()).getBitmap();
                 }
-                final Bitmap updateBitmap = bitmap;
+                Bitmap updateBitmap = bitmap;
 
                 place.setTitle(placeTitle.getText().toString());
                 place.setDescription(placeDesc.getText().toString());
@@ -244,39 +251,17 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
                 place.setSeenBy(placeFriend.isChecked() ? "friends" : "none");
                 place.setMarkerColor(markerColor2);
 
-                final Marker marker = getMarker(fragment);
-
                 if (isEdit) {
-                    FB.editPlace(key, place, updateBitmap, new FB.CompleteListener() {
-                        @Override
-                        public void onSuccess() {
-                            if (marker != null) {
-                                int colorId = mPlaceColorMap.get(place.getMarkerColor());
-                                Drawable drawable = Utils.getIconDrawable(activity, R.drawable.ic_place_white_48dp, colorId);
-                                BitmapDescriptor icon = Utils.getBitmapDescriptor(drawable);
-                                marker.setIcon(icon);
-                            }
-                        }
-
-                        @Override
-                        public void onFail(String err) {
-                            Log.d(TAG, "editPlace: edit a place:" + err);
-                        }
-                    });
+                    FB.editPlace(key, place, updateBitmap, null);
                 } else {
+                    final Marker marker = getMarker(fragment);
                     FB.addPlace(place, updateBitmap,
                             new FB.PlaceListener() {
                                 @Override
                                 public void onSuccess(String key, Place place) {
+                                    removeFragment(fragment);
                                     if (marker != null) {
-                                        // update the info window's fragment
-                                        fragment.setKey(key);
-                                        fragment.setPlace(place);
-                                        // update the marker color
-                                        int colorId = mPlaceColorMap.get(place.getMarkerColor());
-                                        Drawable drawable = Utils.getIconDrawable(activity, R.drawable.ic_place_white_48dp, colorId);
-                                        BitmapDescriptor icon = Utils.getBitmapDescriptor(drawable);
-                                        marker.setIcon(icon);
+                                        marker.remove();
                                     }
                                 }
 
@@ -288,6 +273,7 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
                 }
             }
         });
+
         AlertDialog dialog = builder.create();
         dialog.show();
         if (dialog.getWindow() != null) {
@@ -296,18 +282,13 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
     }
 
     // add a new place to create a new marker
-    void addPlace(final Activity activity, String title, final Location location, String address, final Bitmap bitmap) {
-        if (activity.isFinishing()) {
-            return;
-        }
-
-        LayoutInflater layoutInflaterAndroid = LayoutInflater.from(activity);
+    void addPlace(String title, final Location location, String address, final Bitmap bitmap) {
+        LayoutInflater layoutInflaterAndroid = LayoutInflater.from(mActivity);
         View view = layoutInflaterAndroid.inflate(R.layout.dialog_place, null);
 
         for (PlaceColorButton pc : mPlaceColorButtons) {
             pc.imageView = (ImageView) view.findViewById(pc.imageId);
-            Drawable drawable = Utils.getIconDrawable(activity, R.drawable.ic_place_white_18dp, pc.colorId);
-            pc.imageView.setImageDrawable(drawable);
+            pc.imageView.setImageDrawable(getIcon(pc.colorId));
             pc.radioButton = (RadioButton) view.findViewById(pc.id);
             pc.radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
@@ -345,22 +326,21 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
                 cropImageView = placeImage;
                 CropImage.activity()
                         .setGuidelines(CropImageView.Guidelines.ON)
-                        .setActivityTitle(activity.getResources().getString(R.string.picture))
+                        .setActivityTitle(mActivity.getResources().getString(R.string.picture))
                         .setCropShape(CropImageView.CropShape.RECTANGLE)
                         .setRequestedSize(128, 128)
                         .setFixAspectRatio(true)
                         .setAspectRatio(100, 100)
-                        .start(activity);
+                        .start(mActivity);
             }
         });
         if (bitmap != null) {
             placeImage.setImageBitmap(bitmap);
         } else {
-            Drawable drawable = Utils.getIconDrawable(activity, R.drawable.ic_place_white_48dp, R.color.steelblue);
-            placeImage.setImageDrawable(drawable);
+            placeImage.setImageDrawable(getIcon(R.color.steelblue));
         }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+        AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
         builder.setView(view);
         builder.setCancelable(true);
         builder.setNegativeButton(android.R.string.cancel, null);
@@ -390,34 +370,27 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
                 place.setSeenBy(seenFriend.isChecked() ? "friends" : "none");
                 place.setMarkerColor(markerColor2);
                 place.setCreated(System.currentTimeMillis());
+                place.setUid(FB.getUid());
 
-                FB.addPlace(place, bitmap2,
-                        new FB.PlaceListener() {
-                            @Override
-                            public void onSuccess(String key, Place place) {
-                                addMarker(place, key, bitmap2);
-                            }
-
-                            @Override
-                            public void onFail(String err) {
-                            }
-                        });
+                FB.addPlace(place, bitmap2, null);
             }
         });
+
         AlertDialog dialog = builder.create();
         dialog.show();
-        dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+        }
     }
 
-    private void addMarker(Place place, String key, Bitmap bitmap) {
-        int colorId = mPlaceColorMap.get(place.getMarkerColor());
-        Drawable drawable = Utils.getIconDrawable(MainApplication.getContext(), R.drawable.ic_place_white_48dp, colorId);
-        BitmapDescriptor icon = Utils.getBitmapDescriptor(drawable);
-
+    private void addMarker(String key, Place place, Bitmap bitmap, boolean hasAnimation) {
         Marker marker = mMap.addMarker(new MarkerOptions()
                 .position(new LatLng(place.getLatitude(), place.getLongitude()))
-                .icon(icon));
-        dropPinEffect(marker);
+                .icon(getIcon(place.getMarkerColor())));
+
+        if (hasAnimation) {
+            dropPinEffect(marker);
+        }
 
         // set draggable only on my markers
         marker.setDraggable(place.getUid() != null && place.getUid().equals(FB.getUid()));
@@ -427,8 +400,10 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
         placeInfoFragment.setPlace(place);
         placeInfoFragment.setStreetViewPicture(bitmap);
         placeInfoFragment.setPlaceManager(PlaceManager.this);
+
         InfoWindow.MarkerSpecification mMarkerOffset = new InfoWindow.MarkerSpecification(0, 128);
         InfoWindow window = new InfoWindow(marker, mMarkerOffset, placeInfoFragment);
+
         mPlaceMarkers.put(marker, window);
     }
 
@@ -448,15 +423,14 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
         }
     }
 
-    void removePlace(Place place, String key) {
-        final PlaceInfoFragment fragment = getPlaceInfoFragment(place);
-        if (fragment == null) {
-            return;
+    void removePlace(String key, Place place) {
+        PlaceInfoFragment fragment = getPlaceInfoFragment(place);
+        if (fragment != null) {
+            removePlace(key, place, fragment);
         }
-        removePlace(place, key, fragment);
     }
 
-    private void removePlace(final Place place, final String key, final PlaceInfoFragment fragment) {
+    private void removePlace(final String key, final Place place, final PlaceInfoFragment fragment) {
         String title = place.getTitle();
         String defaultTitle = mActivity.getResources().getString(R.string.place_remove);
         new AlertDialog.Builder(mActivity)
@@ -465,30 +439,20 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
                 .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        removePlaceImpl(place, key, fragment);
+                        removePlaceImpl(key, place, fragment);
                     }
                 })
                 .setPositiveButton(android.R.string.no, null)
                 .show();
     }
 
-    private void removePlaceImpl(Place place, String key, final PlaceInfoFragment fragment) {
+    private void removePlaceImpl(String key, Place place, final PlaceInfoFragment fragment) {
         if (key == null || key.isEmpty()) {
             removeFragment(fragment);
             return;
         }
 
-        FB.deletePlace(key, place, new FB.CompleteListener() {
-            @Override
-            public void onSuccess() {
-                removeFragment(fragment);
-            }
-
-            @Override
-            public void onFail(String err) {
-
-            }
-        });
+        FB.deletePlace(key, place, null);
     }
 
     void showPlace(String key) {
@@ -547,17 +511,6 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
             Marker m = entry.getKey();
             if (marker.getId().equals(m.getId())) {
                 InfoWindow window = entry.getValue();
-                if (window.getWindowFragment() instanceof PlaceInfoFragment) {
-                    PlaceInfoFragment fragment = (PlaceInfoFragment) window.getWindowFragment();
-                    Place place = fragment.getPlace();
-                    // Adjust the info window location when the marker is moved by drag
-                    /*
-                    if (!marker.getPosition().equals(Utils.getLatLng(place.getLocation()))) {
-                        fragment.setLocation(Utils.getLocation(marker.getPosition()));
-                        window.setPosition(marker.getPosition());
-                    }
-                    */
-                }
                 mInfoWindowManager.toggle(window, true);
                 return true;
             }
@@ -567,17 +520,12 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
 
     @Override
     public void onWindowHidden(InfoWindow infoWindow) {
-        Fragment fragment = infoWindow.getWindowFragment();
-        if (fragment != null) {
-            if (fragment instanceof PoiInfoFragment) {
-                ;
-            }
-        }
+        // empty
     }
 
     @Override
     public void onMarkerDrag(Marker marker) {
-
+        // empty
     }
 
     @Override
@@ -602,16 +550,7 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
             return;
         }
 
-        FB.editPlace(key, place, null, new FB.CompleteListener() {
-            @Override
-            public void onSuccess() {
-            }
-
-            @Override
-            public void onFail(String err) {
-                Log.d(TAG, "editPlace: edit a place:" + err);
-            }
-        });
+        FB.editPlace(key, place, null, null);
     }
 
     @Override
@@ -628,8 +567,8 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
         place.setLatitude(latLng.latitude);
         place.setLongitude(latLng.longitude);
         place.setUid(FB.getUid());
-
-        addMarker(place, null, null);
+        place.setCreated(System.currentTimeMillis());
+        addMarker(null, place, null, true);
     }
 
     void setCropImage(Activity activity, Uri uri) {
@@ -640,7 +579,7 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
                 Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
                 cropImageView.setImageBitmap(bitmap);
             } catch (FileNotFoundException e) {
-
+                Log.d(TAG, "setCropImage:", e);
             }
         }
     }
@@ -702,5 +641,11 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
             this.colorId = colorId;
             this.colorName = colorName;
         }
+    }
+
+    public interface PlaceListener {
+        void onAdded(String key, Place place);
+        void onChanged(String key, Place place);
+        void onRemoved(String key);
     }
 }

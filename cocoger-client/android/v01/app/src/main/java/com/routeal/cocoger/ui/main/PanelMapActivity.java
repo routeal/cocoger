@@ -10,8 +10,10 @@ import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.View;
 
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.model.Place;
 import com.routeal.cocoger.util.Notifi;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
@@ -23,12 +25,19 @@ import java.util.List;
 public class PanelMapActivity extends SearchMapActivity {
     private final static String TAG = "PanelMapActivity";
 
+    private final static int LIST_NOTIFICATIONS = 0;
+    private final static int LIST_FRIENDS = 1;
+    private final static int LIST_GROUPS = 2;
+    private final static int LIST_PLACES = 3;
+
     private int[] tabIcons = {
             R.drawable.ic_notifications_black_24dp,
             R.drawable.ic_contacts_black_24dp,
             R.drawable.ic_group_black_24dp,
             R.drawable.ic_pin_drop_black_24dp,
     };
+
+    private ViewPagerAdapter mViewPagerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,29 +65,29 @@ public class PanelMapActivity extends SearchMapActivity {
         });
 
         ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
-        final ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        mViewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
 
         PagerFragment pagerFragment = new NotifiListFragment();
         pagerFragment.setSlidingUpPanelLayout(mLayout);
         pagerFragment.setViewPager(viewPager);
-        adapter.addFragment(pagerFragment, null);
+        mViewPagerAdapter.addFragment(pagerFragment, null);
 
         pagerFragment = new FriendListFragment();
         pagerFragment.setSlidingUpPanelLayout(mLayout);
         pagerFragment.setViewPager(viewPager);
-        adapter.addFragment(pagerFragment, null);
+        mViewPagerAdapter.addFragment(pagerFragment, null);
 
         pagerFragment = new GroupListFragment();
         pagerFragment.setSlidingUpPanelLayout(mLayout);
         pagerFragment.setViewPager(viewPager);
-        adapter.addFragment(pagerFragment, null);
+        mViewPagerAdapter.addFragment(pagerFragment, null);
 
         pagerFragment = new PlaceListFragment();
         pagerFragment.setSlidingUpPanelLayout(mLayout);
         pagerFragment.setViewPager(viewPager);
-        adapter.addFragment(pagerFragment, null);
+        mViewPagerAdapter.addFragment(pagerFragment, null);
 
-        viewPager.setAdapter(adapter);
+        viewPager.setAdapter(mViewPagerAdapter);
         viewPager.setCurrentItem(1);
 
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -88,7 +97,7 @@ public class PanelMapActivity extends SearchMapActivity {
 
             @Override
             public void onPageSelected(int position) {
-                PagerFragment fragment = (PagerFragment) adapter.getItem(position);
+                PagerFragment fragment = (PagerFragment) mViewPagerAdapter.getItem(position);
                 fragment.onSelected();
             }
 
@@ -105,6 +114,31 @@ public class PanelMapActivity extends SearchMapActivity {
         }
 
         handleIntent(getIntent());
+    }
+
+    @Override
+    void setupApp() {
+        FirebaseRecyclerAdapter placeAdapter = FB.getPlaceRecyclerAdapter(new PlaceManager.PlaceListener() {
+            @Override
+            public void onAdded(String key, Place place) {
+                mPlace.add(key, place);
+            }
+
+            @Override
+            public void onChanged(String key, Place place) {
+                mPlace.change(key, place);
+            }
+
+            @Override
+            public void onRemoved(String key) {
+                mPlace.remove(key);
+            }
+        });
+
+        placeAdapter.startListening();
+
+        PlaceListFragment placeListFragment = (PlaceListFragment) mViewPagerAdapter.getItem(LIST_PLACES);
+        placeListFragment.setRecyclerAdapter(placeAdapter);
     }
 
     // most of the notification intent come here

@@ -93,9 +93,6 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
                 }
                 mMm.setupMarkers(mLocation, mAddress);
             }
-            if (mPlace != null) {
-                mPlace.init();
-            }
         } else if (intent.getAction().equals(FB.FRIEND_LOCATION_ADD)) {
             final String fid = intent.getStringExtra(FB.KEY);
             final Friend friend = FB.getFriend(fid);
@@ -193,15 +190,15 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             String address = intent.getStringExtra(FB.ADDRESS);
             String title = intent.getStringExtra(FB.TITLE);
             Bitmap bitmap = intent.getParcelableExtra(FB.IMAGE);
-            mPlace.addPlace(mActivity, title, location, address, bitmap);
+            mPlace.addPlace(title, location, address, bitmap);
         } else if (intent.getAction().equals(FB.PLACE_EDIT)) {
             String key = intent.getStringExtra(FB.KEY);
             Place place = (Place) intent.getSerializableExtra(FB.PLACE);
-            mPlace.editPlace(mActivity, place, key);
+            mPlace.editPlace(key, place);
         } else if (intent.getAction().equals(FB.PLACE_REMOVE)) {
             String key = intent.getStringExtra(FB.KEY);
             Place place = (Place) intent.getSerializableExtra(FB.PLACE);
-            mPlace.removePlace(place, key);
+            mPlace.removePlace(key, place);
         } else if (intent.getAction().equals(FB.PLACE_SHOW)) {
             String key = intent.getStringExtra(FB.KEY);
             Place place = (Place) intent.getSerializableExtra(FB.PLACE);
