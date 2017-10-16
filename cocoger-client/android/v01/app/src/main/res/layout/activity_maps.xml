@@ -41,8 +41,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="top|right"
-                android:layout_marginTop="72dp"
                 android:layout_marginEnd="16dp"
+                android:layout_marginTop="72dp"
                 app:backgroundTint="@color/white"
                 app:borderWidth="0dp"
                 app:elevation="6dp"
@@ -66,8 +66,9 @@
                 android:id="@+id/floating_search_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                app:floatingSearch_dismissOnOutsideTouch="true"
                 app:floatingSearch_close_search_on_keyboard_dismiss="true"
+                app:floatingSearch_dimBackground="false"
+                app:floatingSearch_dismissOnOutsideTouch="true"
                 app:floatingSearch_leftActionMode="showHamburger"
                 app:floatingSearch_menu="@menu/menu_search_view"
                 app:floatingSearch_searchBarMarginLeft="@dimen/search_view_inset"
@@ -75,7 +76,6 @@
                 app:floatingSearch_searchBarMarginTop="@dimen/search_view_inset"
                 app:floatingSearch_searchHint="@string/search_view_hint"
                 app:floatingSearch_showSearchKey="true"
-                app:floatingSearch_dimBackground="false"
                 app:floatingSearch_suggestionsListAnimDuration="250" />
 
         </FrameLayout>
@@ -97,9 +97,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/background">
-<!--
-        android:background="@color/white">
--->
+        <!--
+                android:background="@color/white">
+        -->
 
         <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"

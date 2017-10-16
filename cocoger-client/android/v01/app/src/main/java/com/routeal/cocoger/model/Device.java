@@ -120,12 +120,12 @@ public class Device implements Serializable {
         this.timestamp = timestamp;
     }
 
-    public void setCreated(long created) {
-        this.created = created;
-    }
-
     public long getCreated() {
         return created;
+    }
+
+    public void setCreated(long created) {
+        this.created = created;
     }
 
     public String toString() {

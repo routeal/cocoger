@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
     android:descendantFocusability="blocksDescendants"
+    android:orientation="vertical"
     android:paddingBottom="8dp"
     android:paddingLeft="4dp"
     android:paddingRight="4dp"
@@ -12,10 +11,10 @@
 
     <RelativeLayout
         android:id="@+id/check_owner"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
         android:layout_width="wrap_content"
-        android:layout_height="48dp" >
+        android:layout_height="48dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true">
 
         <CheckBox
             android:id="@+id/check_user"
@@ -38,13 +37,13 @@
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/picture"
+        android:layout_alignTop="@+id/picture"
         android:layout_toRightOf="@+id/picture"
         android:gravity="center_vertical"
-        android:layout_alignTop="@+id/picture"
-        android:layout_alignBottom="@+id/picture"
-        android:textColor="@color/black"
         android:paddingLeft="8dp"
         android:text="@string/name"
+        android:textColor="@color/black"
         android:textSize="16dp"
         android:textStyle="bold" />
 
@@ -52,12 +51,12 @@
         android:id="@+id/location"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
+        android:layout_alignBottom="@+id/picture"
         android:layout_alignParentRight="true"
         android:layout_alignTop="@+id/picture"
-        android:layout_alignBottom="@+id/picture"
-        android:textColor="@color/black"
+        android:gravity="center_vertical"
         android:text="@string/no_message_available"
+        android:textColor="@color/black"
         android:textSize="16dp" />
 
 </RelativeLayout>

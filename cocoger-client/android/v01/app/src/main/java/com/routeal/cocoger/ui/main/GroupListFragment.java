@@ -1,12 +1,11 @@
 package com.routeal.cocoger.ui.main;
 
-        import android.os.Bundle;
-        import android.support.v4.app.Fragment;
-        import android.view.LayoutInflater;
-        import android.view.View;
-        import android.view.ViewGroup;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
-        import com.routeal.cocoger.R;
+import com.routeal.cocoger.R;
 
 /**
  * Created by nabe on 7/22/17.

@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
-import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.util.LoadImage;
 

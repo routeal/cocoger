@@ -22,8 +22,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:inputType="text"
-            android:imeOptions="actionSearch"/>
+            android:imeOptions="actionSearch"
+            android:inputType="text" />
 
         <Button
             android:id="@+id/search_button"
@@ -40,8 +40,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/header"
-        android:padding="16dp"
         android:gravity="center_horizontal"
+        android:padding="16dp"
         android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium" />
 
     <android.support.v7.widget.RecyclerView

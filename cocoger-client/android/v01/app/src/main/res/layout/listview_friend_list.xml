@@ -88,17 +88,17 @@
 
             <com.routeal.cocoger.util.SnappingSeekBar
                 android:id="@+id/friend_range"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:layout_below="@+id/friend_picture"
+                android:layout_marginTop="4dp"
                 app:enabled="true"
                 app:indicatorColor="@color/teal500"
                 app:itemsArrayId="@array/range_items"
                 app:progressColor="@color/teal500"
                 app:textIndicatorColor="@color/navy"
-                app:thumbnailColor="@color/teal300"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_below="@+id/friend_picture"
-                android:layout_marginTop="4dp" />
+                app:thumbnailColor="@color/teal300" />
 
         </RelativeLayout>
 

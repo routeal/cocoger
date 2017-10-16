@@ -90,8 +90,8 @@
                 android:layout_marginStart="8dp"
                 android:layout_marginTop="8dp"
                 android:layout_toEndOf="@+id/place_picture"
-                android:paddingEnd="8dp"
                 android:gravity="end"
+                android:paddingEnd="8dp"
                 android:text="@string/no_message_available"
                 android:textSize="10sp" />
 

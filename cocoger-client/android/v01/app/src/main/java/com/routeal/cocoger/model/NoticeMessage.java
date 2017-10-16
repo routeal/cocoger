@@ -1,7 +1,6 @@
 package com.routeal.cocoger.model;
 
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * Created by nabe on 9/22/17.

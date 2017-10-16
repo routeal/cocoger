@@ -32,9 +32,9 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             android:gravity="center"
+            android:lineSpacingExtra="7sp"
             android:text="@string/reset_password_instruction"
-            android:textSize="14sp"
-            android:lineSpacingExtra="7sp" />
+            android:textSize="14sp" />
 
         <android.support.design.widget.TextInputLayout
             android:layout_width="match_parent"
@@ -57,8 +57,8 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="24dp"
             android:layout_marginTop="24dp"
-            android:textSize="18dp"
-            android:text="@string/reset_password" />
+            android:text="@string/reset_password"
+            android:textSize="18dp" />
 
 
     </LinearLayout>

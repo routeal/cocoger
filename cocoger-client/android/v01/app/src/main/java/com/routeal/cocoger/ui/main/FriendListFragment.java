@@ -8,10 +8,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.franmontiel.fullscreendialog.FullScreenDialogFragment;
 import com.routeal.cocoger.R;
-import com.routeal.cocoger.fb.FB;
 
 /**
  * Created by nabe on 7/22/17.

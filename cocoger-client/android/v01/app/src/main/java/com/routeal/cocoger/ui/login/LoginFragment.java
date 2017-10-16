@@ -27,13 +27,11 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
-import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.provider.DBUtil;
 import com.routeal.cocoger.ui.main.AccountActivity;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 import com.routeal.cocoger.util.Utils;
 
-import java.util.EnumMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -42,11 +40,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class LoginFragment extends Fragment {
 
-    private final String TAG = "LoginFragment";
-
     private static final int RC_HINT = 13;
     private static final AtomicInteger SAFE_ID = new AtomicInteger(10);
-
+    private final String TAG = "LoginFragment";
     private TextInputEditText mEmailText;
     private TextInputEditText mPasswordText;
     private Button mLoginButton;

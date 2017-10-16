@@ -4,102 +4,102 @@
     android:layout_height="fill_parent"
     android:fitsSystemWindows="true">
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="@dimen/activity_horizontal_margin">
-
-    <android.support.v7.widget.SwitchCompat
-        android:id="@+id/switch_traffic"
-        android:layout_width="match_parent"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="@dimen/activity_vertical_margin"
-        android:checked="false"
-        android:drawableLeft="@drawable/ic_traffic_black_24dp"
-        android:drawablePadding="@dimen/activity_horizontal_margin"
-        android:text="Traffic"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        android:orientation="vertical"
+        android:padding="@dimen/activity_horizontal_margin">
 
-    <include layout="@layout/item_divider" />
+        <android.support.v7.widget.SwitchCompat
+            android:id="@+id/switch_traffic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/activity_vertical_margin"
+            android:checked="false"
+            android:drawableLeft="@drawable/ic_traffic_black_24dp"
+            android:drawablePadding="@dimen/activity_horizontal_margin"
+            android:text="Traffic"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    <android.support.v7.widget.SwitchCompat
-        android:id="@+id/switch_retro"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/activity_vertical_margin"
-        android:checked="false"
-        android:drawableLeft="@drawable/ic_layers_black_24dp"
-        android:drawablePadding="@dimen/activity_horizontal_margin"
-        android:text="Retro"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        <include layout="@layout/item_divider" />
 
-    <android.support.v7.widget.SwitchCompat
-        android:id="@+id/switch_night"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/activity_vertical_margin"
-        android:checked="false"
-        android:drawableLeft="@drawable/ic_layers_black_24dp"
-        android:drawablePadding="@dimen/activity_horizontal_margin"
-        android:text="Night"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        <android.support.v7.widget.SwitchCompat
+            android:id="@+id/switch_retro"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/activity_vertical_margin"
+            android:checked="false"
+            android:drawableLeft="@drawable/ic_layers_black_24dp"
+            android:drawablePadding="@dimen/activity_horizontal_margin"
+            android:text="Retro"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    <android.support.v7.widget.SwitchCompat
-        android:id="@+id/switch_grayscale"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/activity_vertical_margin"
-        android:checked="false"
-        android:drawableLeft="@drawable/ic_layers_black_24dp"
-        android:drawablePadding="@dimen/activity_horizontal_margin"
-        android:text="Gray"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        <android.support.v7.widget.SwitchCompat
+            android:id="@+id/switch_night"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/activity_vertical_margin"
+            android:checked="false"
+            android:drawableLeft="@drawable/ic_layers_black_24dp"
+            android:drawablePadding="@dimen/activity_horizontal_margin"
+            android:text="Night"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    <android.support.v7.widget.SwitchCompat
-        android:id="@+id/switch_muted_blue"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/activity_vertical_margin"
-        android:checked="false"
-        android:drawableLeft="@drawable/ic_layers_black_24dp"
-        android:drawablePadding="@dimen/activity_horizontal_margin"
-        android:text="Blue"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        <android.support.v7.widget.SwitchCompat
+            android:id="@+id/switch_grayscale"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/activity_vertical_margin"
+            android:checked="false"
+            android:drawableLeft="@drawable/ic_layers_black_24dp"
+            android:drawablePadding="@dimen/activity_horizontal_margin"
+            android:text="Gray"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    <android.support.v7.widget.SwitchCompat
-        android:id="@+id/switch_pale_down"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/activity_vertical_margin"
-        android:checked="false"
-        android:drawableLeft="@drawable/ic_layers_black_24dp"
-        android:drawablePadding="@dimen/activity_horizontal_margin"
-        android:text="Slate"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        <android.support.v7.widget.SwitchCompat
+            android:id="@+id/switch_muted_blue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/activity_vertical_margin"
+            android:checked="false"
+            android:drawableLeft="@drawable/ic_layers_black_24dp"
+            android:drawablePadding="@dimen/activity_horizontal_margin"
+            android:text="Blue"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    <android.support.v7.widget.SwitchCompat
-        android:id="@+id/switch_paper"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/activity_vertical_margin"
-        android:checked="false"
-        android:drawableLeft="@drawable/ic_layers_black_24dp"
-        android:drawablePadding="@dimen/activity_horizontal_margin"
-        android:text="White"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        <android.support.v7.widget.SwitchCompat
+            android:id="@+id/switch_pale_down"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/activity_vertical_margin"
+            android:checked="false"
+            android:drawableLeft="@drawable/ic_layers_black_24dp"
+            android:drawablePadding="@dimen/activity_horizontal_margin"
+            android:text="Slate"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    <android.support.v7.widget.SwitchCompat
-        android:id="@+id/switch_pinky"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/activity_vertical_margin"
-        android:checked="false"
-        android:drawableLeft="@drawable/ic_layers_black_24dp"
-        android:drawablePadding="@dimen/activity_horizontal_margin"
-        android:text="Pink"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
+        <android.support.v7.widget.SwitchCompat
+            android:id="@+id/switch_paper"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/activity_vertical_margin"
+            android:checked="false"
+            android:drawableLeft="@drawable/ic_layers_black_24dp"
+            android:drawablePadding="@dimen/activity_horizontal_margin"
+            android:text="White"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
-</LinearLayout>
+        <android.support.v7.widget.SwitchCompat
+            android:id="@+id/switch_pinky"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/activity_vertical_margin"
+            android:checked="false"
+            android:drawableLeft="@drawable/ic_layers_black_24dp"
+            android:drawablePadding="@dimen/activity_horizontal_margin"
+            android:text="Pink"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
-    </ScrollView>
+    </LinearLayout>
+
+</ScrollView>

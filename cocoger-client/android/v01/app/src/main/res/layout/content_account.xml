@@ -40,8 +40,8 @@
                 android:layout_marginStart="@dimen/activity_horizontal_margin"
                 android:layout_toEndOf="@id/name_icon"
                 android:gravity="center_vertical"
-                android:maxLines="1"
                 android:hint="Input Display Name"
+                android:maxLines="1"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:textColor="#212121" />
 
@@ -107,8 +107,8 @@
                 android:layout_marginStart="@dimen/activity_horizontal_margin"
                 android:layout_toEndOf="@id/bod_icon"
                 android:ellipsize="end"
-                android:maxLines="1"
                 android:hint="Select Birth Year"
+                android:maxLines="1"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:textColor="#212121" />
 
@@ -138,12 +138,12 @@
                 android:layout_height="wrap_content"
                 android:layout_alignBottom="@id/gender_icon"
                 android:layout_alignTop="@id/gender_icon"
+                android:layout_marginLeft="4dp"
                 android:layout_marginStart="@dimen/activity_horizontal_margin"
                 android:layout_toEndOf="@id/gender_icon"
                 android:ellipsize="end"
-                android:maxLines="1"
                 android:hint="Select Gender"
-                android:layout_marginLeft="4dp"
+                android:maxLines="1"
                 android:textAppearance="@style/TextAppearance.AppCompat.Medium"
                 android:textColor="#212121" />
 
@@ -153,13 +153,13 @@
             android:id="@+id/start_app"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/activity_vertical_margin"
             android:layout_marginLeft="24dp"
             android:layout_marginRight="24dp"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
             android:padding="12dp"
-            android:textSize="20dp"
+            android:text="@string/start_app"
             android:textColor="@color/white"
-            android:text="@string/start_app" />
+            android:textSize="20dp" />
 
     </LinearLayout>
 

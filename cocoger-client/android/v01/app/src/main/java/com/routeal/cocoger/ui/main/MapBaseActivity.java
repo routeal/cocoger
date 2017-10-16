@@ -9,7 +9,6 @@ import android.content.IntentSender;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
-import android.location.Address;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;

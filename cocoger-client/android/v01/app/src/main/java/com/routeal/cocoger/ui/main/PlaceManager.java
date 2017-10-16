@@ -23,22 +23,18 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.appolica.interactiveinfowindow.InfoWindow;
 import com.appolica.interactiveinfowindow.InfoWindowManager;
-import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Place;
-import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.util.LoadImage;
 import com.routeal.cocoger.util.Utils;
 import com.theartofdev.edmodo.cropper.CropImage;
@@ -625,6 +621,14 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
         });
     }
 
+    public interface PlaceListener {
+        void onAdded(String key, Place place);
+
+        void onChanged(String key, Place place);
+
+        void onRemoved(String key);
+    }
+
     private static class PlaceColorButton {
         int id;
         int imageId;
@@ -639,11 +643,5 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
             this.colorId = colorId;
             this.colorName = colorName;
         }
-    }
-
-    public interface PlaceListener {
-        void onAdded(String key, Place place);
-        void onChanged(String key, Place place);
-        void onRemoved(String key);
     }
 }

@@ -1,26 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
     <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/time_range"
         android:padding="@dimen/activity_horizontal_margin"
+        android:text="@string/time_range"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <com.routeal.cocoger.util.RangeSeekBar
-        xmlns:android="http://schemas.android.com/apk/res/android"
+    <com.routeal.cocoger.util.RangeSeekBar xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:rsb="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/seekbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        android:id="@+id/seekbar"
+        android:layout_marginStart="8dp"
         rsb:absoluteMaxValue="24"
         rsb:absoluteMinValue="0"
+        rsb:activeColor="@color/teal500"
+        rsb:barHeight="4dp"
+        rsb:textAboveThumbsColor="@color/navy"
         rsb:thumbDisabled="@drawable/seek_thumb_disabled"
         rsb:thumbNormal="@drawable/seek_thumb_normal"
         rsb:thumbPressed="@drawable/seek_thumb_pressed"
@@ -28,9 +31,6 @@
         rsb:thumbShadowBlur="3dp"
         rsb:thumbShadowColor="@color/teal50"
         rsb:thumbShadowXOffset="1dp"
-        rsb:thumbShadowYOffset="2dp"
-        rsb:barHeight="4dp"
-        rsb:activeColor="@color/teal500"
-        rsb:textAboveThumbsColor="@color/navy" />
+        rsb:thumbShadowYOffset="2dp" />
 
 </LinearLayout>

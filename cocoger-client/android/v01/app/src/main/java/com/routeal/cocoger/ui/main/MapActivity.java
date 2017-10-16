@@ -20,20 +20,16 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Marker;
 import com.routeal.cocoger.R;
-import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.util.Utils;
 import com.theartofdev.edmodo.cropper.CropImage;
 
 abstract class MapActivity extends MapBaseActivity
         implements GoogleMap.OnMarkerClickListener, OnMapReadyCallback, View.OnClickListener, InfoWindowManager.WindowShowListener {
 
+    final static int DEFAULT_ZOOM = 16;
     private final static String TAG = "MapActivity";
-
     private final static String KEY_CAMERA_POSITION = "camera_position";
     private final static String KEY_LOCATION = "location";
-
-    final static int DEFAULT_ZOOM = 16;
-
     protected GoogleMap mMap;
     protected GeoDataClient mGeoDataClient;
     protected Utils.ProgressBarView mSpinner;

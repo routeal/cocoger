@@ -36,20 +36,20 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentTop="true"
-                android:layout_toStartOf="@+id/date"
                 android:layout_toEndOf="@+id/picture"
+                android:layout_toStartOf="@+id/date"
                 android:text="@string/title"
                 android:textSize="16sp" />
 
             <android.support.v7.widget.AppCompatTextView
                 android:id="@+id/date"
+                style="@android:style/Widget.Material.Light.TextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignBottom="@+id/title"
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentTop="true"
                 android:layout_alignTop="@+id/title"
-                style="@android:style/Widget.Material.Light.TextView"
                 android:textSize="12sp" />
 
             <RelativeLayout
@@ -63,13 +63,13 @@
 
                 <android.support.v7.widget.AppCompatTextView
                     android:id="@+id/content"
+                    style="@android:style/Widget.Material.Light.TextView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
                     android:layout_alignParentEnd="true"
+                    android:layout_alignParentStart="true"
                     android:layout_alignParentTop="true"
                     android:text="@string/no_message_available"
-                    style="@android:style/Widget.Material.Light.TextView"
                     android:textSize="14sp" />
 
                 <android.support.v7.widget.AppCompatButton

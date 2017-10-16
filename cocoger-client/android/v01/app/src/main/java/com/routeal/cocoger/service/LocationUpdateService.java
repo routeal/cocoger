@@ -31,6 +31,19 @@ public class LocationUpdateService extends Service {
                 }
             };
 
+    public static void start() {
+        Context context = MainApplication.getContext();
+        Intent intent = new Intent(context, LocationUpdateService.class);
+        context.startService(intent);
+    }
+
+    public static void stop() {
+        // stop the location update service
+        Context context = MainApplication.getContext();
+        Intent intent = new Intent(context, LocationUpdateService.class);
+        context.stopService(intent);
+    }
+
     @Override
     public void onCreate() {
         Log.d(TAG, "onCreate");
@@ -144,18 +157,5 @@ public class LocationUpdateService extends Service {
         public LocationUpdateService getService() {
             return LocationUpdateService.this;
         }
-    }
-
-    public static void start() {
-        Context context = MainApplication.getContext();
-        Intent intent = new Intent(context, LocationUpdateService.class);
-        context.startService(intent);
-    }
-
-    public static void stop() {
-        // stop the location update service
-        Context context = MainApplication.getContext();
-        Intent intent = new Intent(context, LocationUpdateService.class);
-        context.stopService(intent);
     }
 }
