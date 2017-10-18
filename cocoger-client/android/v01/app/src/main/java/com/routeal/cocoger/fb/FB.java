@@ -49,6 +49,7 @@ import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.service.LocationUpdateService;
 import com.routeal.cocoger.ui.main.FriendListViewHolder;
 import com.routeal.cocoger.ui.main.FriendManager;
+import com.routeal.cocoger.ui.main.PagerFragment;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 import com.routeal.cocoger.ui.main.PlaceListViewHolder;
 import com.routeal.cocoger.ui.main.PlaceManager;
@@ -846,7 +847,9 @@ public class FB {
 
     }
 
-    public static FirebaseRecyclerAdapter<Friend, FriendListViewHolder> getFriendRecyclerAdapter(final FriendManager.FriendListener listener) {
+    public static FirebaseRecyclerAdapter<Friend, FriendListViewHolder> getFriendRecyclerAdapter(
+            final PagerFragment.ChangeListener changeListener,
+            final FriendManager.FriendListener listener) {
         DatabaseReference db = getFriendDatabaseReference(getUid());
 
         Query query = db.orderByChild("range");
@@ -867,6 +870,12 @@ public class FB {
             @Override
             protected void onBindViewHolder(FriendListViewHolder holder, int position, Friend model) {
                 holder.bind(model, getRef(position).getKey());
+            }
+
+            @Override
+            public void onDataChanged() {
+                super.onDataChanged();
+                if (changeListener != null) changeListener.onEmpty(getItemCount() == 0);
             }
 
             @Override
@@ -894,7 +903,9 @@ public class FB {
         };
     }
 
-    public static FirebaseRecyclerAdapter<Place, PlaceListViewHolder> getPlaceRecyclerAdapter(final PlaceManager.PlaceListener listener) {
+    public static FirebaseRecyclerAdapter<Place, PlaceListViewHolder> getPlaceRecyclerAdapter(
+            final PagerFragment.ChangeListener changeListener,
+            final PlaceManager.PlaceListener listener) {
         DatabaseReference db = getPlaceDatabaseReference(getUid());
         Query keyQuery = db.orderByValue();
 
@@ -921,6 +932,7 @@ public class FB {
             @Override
             public void onDataChanged() {
                 super.onDataChanged();
+                if (changeListener != null) changeListener.onEmpty(getItemCount() == 0);
             }
 
             @Override
@@ -1120,10 +1132,7 @@ public class FB {
         });
     }
 
-    public static void addPlace(final Place place, final Bitmap bitmap, final PlaceListener listener) {
-        DatabaseReference placeDb = getPlaceDatabaseReference();
-        final String key = placeDb.push().getKey();
-
+    public static void addPlace(final String key, final Place place, final PlaceListener listener) {
         String uid = FB.getUid();
 
         Map<String, Object> updates = new HashMap<>();
@@ -1142,12 +1151,6 @@ public class FB {
             @Override
             public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
                 if (databaseError == null) {
-                    // success
-                    byte bytes[] = Utils.getBitmapBytes(MainApplication.getContext(), bitmap);
-                    if (bytes != null) {
-                        // no error handling
-                        uploadPlaceImage(bytes, key, null);
-                    }
                     if (listener != null) listener.onSuccess(key, place);
                 } else {
                     // error
@@ -1155,6 +1158,33 @@ public class FB {
                 }
             }
         });
+    }
+
+    public static void addPlace(final Place place, final Bitmap bitmap, final PlaceListener listener) {
+        if (place == null) return;
+
+        DatabaseReference placeDb = getPlaceDatabaseReference();
+        final String key = placeDb.push().getKey();
+
+        if (bitmap == null) {
+            addPlace(key, place, listener);
+        } else {
+            byte bytes[] = Utils.getBitmapBytes(MainApplication.getContext(), bitmap);
+            if (bytes != null) {
+                // no error handling
+                uploadPlaceImage(bytes, key, new UploadDataListener() {
+                    @Override
+                    public void onSuccess(String url) {
+                        addPlace(key, place, listener);
+                    }
+
+                    @Override
+                    public void onFail(String err) {
+                        addPlace(key, place, listener);
+                    }
+                });
+            }
+        }
     }
 
     public static void editPlace(final String key, Place place, Bitmap bitmap, final CompleteListener listener) {

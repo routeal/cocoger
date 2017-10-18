@@ -17,6 +17,7 @@ public class User implements Serializable {
     private String location;
     private long updated;
     private long created;
+    private boolean test;
     private Map<String, String> devices;
     private Map<String, String> places;
     private Map<String, Long> invites;
@@ -144,6 +145,14 @@ public class User implements Serializable {
 
     public Map<String, String> getPlaces() {
         return places;
+    }
+
+    public boolean getTest() {
+        return test;
+    }
+
+    public void setTest(boolean test) {
+        this.test = test;
     }
 
     public String toString() {

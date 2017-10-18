@@ -104,7 +104,7 @@ public class Utils {
         byte[] bytes = null;
         try {
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 50, stream);
             bytes = stream.toByteArray();
         } catch (Exception e) {
             Log.d(TAG, "Failed to convert bitmap into byte array");
@@ -398,120 +398,121 @@ public class Utils {
         return to;
     }
 
-    public static int detectRangeMove(Address n, Address o, int range) {
-        if (n == null || o == null || range == 0) {
+    public static int detectRangeMove(Address n, Address o) {
+        if (n == null || o == null) {
             return LocationRange.NONE.range;
         }
-        if (range >= LocationRange.COUNTRY.range) {
-            if (n.getCountryName() != null && o.getCountryName() != null) {
-                if (!n.getCountryName().equals(o.getCountryName())) {
-                    return LocationRange.COUNTRY.range;
-                }
+        if (LocationRange.to(LocationRange.COUNTRY.range) != null &&
+            n.getCountryName() != null && o.getCountryName() != null) {
+            if (!n.getCountryName().equals(o.getCountryName())) {
+                return LocationRange.COUNTRY.range;
             }
         }
-        if (range >= LocationRange.ADMINAREA.range) {
-            if (n.getAdminArea() != null && o.getAdminArea() != null) {
-                if (!n.getAdminArea().equals(o.getAdminArea())) {
-                    return LocationRange.ADMINAREA.range;
-                }
+        if (LocationRange.to(LocationRange.ADMINAREA.range) != null &&
+            n.getAdminArea() != null && o.getAdminArea() != null) {
+            if (!n.getAdminArea().equals(o.getAdminArea())) {
+                return LocationRange.ADMINAREA.range;
             }
         }
-        if (range >= LocationRange.SUBADMINAREA.range) {
-            if (n.getSubAdminArea() != null && o.getSubAdminArea() != null) {
-                if (!n.getSubAdminArea().equals(o.getSubAdminArea())) {
-                    return LocationRange.SUBADMINAREA.range;
-                }
+        if (LocationRange.to(LocationRange.SUBADMINAREA.range) != null &&
+            n.getSubAdminArea() != null && o.getSubAdminArea() != null) {
+            if (!n.getSubAdminArea().equals(o.getSubAdminArea())) {
+                return LocationRange.SUBADMINAREA.range;
             }
         }
-        if (range >= LocationRange.LOCALITY.range) {
-            if (n.getLocality() != null && o.getLocality() != null) {
-                if (!n.getLocality().equals(o.getLocality())) {
-                    return LocationRange.LOCALITY.range;
-                }
+        if (LocationRange.to(LocationRange.LOCALITY.range) != null &&
+            n.getLocality() != null && o.getLocality() != null) {
+            if (!n.getLocality().equals(o.getLocality())) {
+                return LocationRange.LOCALITY.range;
             }
         }
-        if (range >= LocationRange.SUBLOCALITY.range) {
-            if (n.getSubLocality() != null && o.getSubLocality() != null) {
-                if (!n.getSubLocality().equals(o.getSubLocality())) {
-                    return LocationRange.SUBLOCALITY.range;
-                }
+        if (LocationRange.to(LocationRange.SUBLOCALITY.range) != null &&
+            n.getSubLocality() != null && o.getSubLocality() != null) {
+            if (!n.getSubLocality().equals(o.getSubLocality())) {
+                return LocationRange.SUBLOCALITY.range;
             }
         }
-        if (range >= LocationRange.THOROUGHFARE.range) {
-            if (n.getThoroughfare() != null && o.getThoroughfare() != null) {
-                if (!n.getThoroughfare().equals(o.getThoroughfare())) {
-                    return LocationRange.THOROUGHFARE.range;
-                }
+        if (LocationRange.to(LocationRange.THOROUGHFARE.range) != null &&
+            n.getThoroughfare() != null && o.getThoroughfare() != null) {
+            if (!n.getThoroughfare().equals(o.getThoroughfare())) {
+                return LocationRange.THOROUGHFARE.range;
             }
         }
-        if (range >= LocationRange.SUBTHOROUGHFARE.range) {
-            if (n.getSubThoroughfare() != null && o.getSubThoroughfare() != null) {
-                if (!n.getSubThoroughfare().equals(o.getSubThoroughfare())) {
-                    return LocationRange.SUBTHOROUGHFARE.range;
-                }
+        if (LocationRange.to(LocationRange.SUBTHOROUGHFARE.range) != null &&
+            n.getSubThoroughfare() != null && o.getSubThoroughfare() != null) {
+            if (!n.getSubThoroughfare().equals(o.getSubThoroughfare())) {
+                return LocationRange.SUBTHOROUGHFARE.range;
             }
         }
-        if (range >= LocationRange.CURRENT.range) {
-            return LocationRange.CURRENT.range;
-        }
-        return LocationRange.NONE.range;
+        return LocationRange.CURRENT.range;
     }
 
-    public static boolean isEqualAddress(Address address1, Address address2, int range) {
-        if (address1 == null || address2 == null || range == 0) {
+    public static boolean isEqualAddress(Address currentAddress, Address newAddress, int range) {
+        if (currentAddress == null || newAddress == null || range == 0) {
             return false;
         }
+        if (LocationRange.to(LocationRange.COUNTRY.range) != null) {
         if (range >= LocationRange.COUNTRY.range) {
-            if (address1.getCountryName() != null && address2.getCountryName() != null) {
-                if (!address1.getCountryName().equals(address2.getCountryName())) {
+            if (currentAddress.getCountryName() != null && newAddress.getCountryName() != null) {
+                if (!currentAddress.getCountryName().equals(newAddress.getCountryName())) {
                     return false;
                 }
             }
         }
+        }
+        if (LocationRange.to(LocationRange.ADMINAREA.range) != null) {
         if (range >= LocationRange.ADMINAREA.range) {
-            if (address1.getAdminArea() != null && address2.getAdminArea() != null) {
-                if (!address1.getAdminArea().equals(address2.getAdminArea())) {
+            if (currentAddress.getAdminArea() != null && newAddress.getAdminArea() != null) {
+                if (!currentAddress.getAdminArea().equals(newAddress.getAdminArea())) {
                     return false;
                 }
             }
         }
+        }
+        if (LocationRange.to(LocationRange.SUBADMINAREA.range) != null) {
         if (range >= LocationRange.SUBADMINAREA.range) {
-            if (address1.getSubAdminArea() != null && address2.getSubAdminArea() != null) {
-                if (!address1.getSubAdminArea().equals(address2.getSubAdminArea())) {
+            if (currentAddress.getSubAdminArea() != null && newAddress.getSubAdminArea() != null) {
+                if (!currentAddress.getSubAdminArea().equals(newAddress.getSubAdminArea())) {
                     return false;
                 }
             }
         }
+        }
+        if (LocationRange.to(LocationRange.LOCALITY.range) != null) {
         if (range >= LocationRange.LOCALITY.range) {
-            if (address1.getLocality() != null && address2.getLocality() != null) {
-                if (!address1.getLocality().equals(address2.getLocality())) {
+            if (currentAddress.getLocality() != null && newAddress.getLocality() != null) {
+                if (!currentAddress.getLocality().equals(newAddress.getLocality())) {
                     return false;
                 }
             }
         }
+        }
+        if (LocationRange.to(LocationRange.SUBLOCALITY.range) != null) {
         if (range >= LocationRange.SUBLOCALITY.range) {
-            if (address1.getSubLocality() != null && address2.getSubLocality() != null) {
-                if (!address1.getSubLocality().equals(address2.getSubLocality())) {
+            if (currentAddress.getSubLocality() != null && newAddress.getSubLocality() != null) {
+                if (!currentAddress.getSubLocality().equals(newAddress.getSubLocality())) {
                     return false;
                 }
             }
         }
+        }
+        if (LocationRange.to(LocationRange.THOROUGHFARE.range) != null) {
         if (range >= LocationRange.THOROUGHFARE.range) {
-            if (address1.getThoroughfare() != null && address2.getThoroughfare() != null) {
-                if (!address1.getThoroughfare().equals(address2.getThoroughfare())) {
+            if (currentAddress.getThoroughfare() != null && newAddress.getThoroughfare() != null) {
+                if (!currentAddress.getThoroughfare().equals(newAddress.getThoroughfare())) {
                     return false;
                 }
             }
         }
+        }
+        if (LocationRange.to(LocationRange.SUBTHOROUGHFARE.range) != null) {
         if (range >= LocationRange.SUBTHOROUGHFARE.range) {
-            if (address1.getSubThoroughfare() != null && address2.getSubThoroughfare() != null) {
-                if (!address1.getSubThoroughfare().equals(address2.getSubThoroughfare())) {
+            if (currentAddress.getSubThoroughfare() != null && newAddress.getSubThoroughfare() != null) {
+                if (!currentAddress.getSubThoroughfare().equals(newAddress.getSubThoroughfare())) {
                     return false;
                 }
             }
         }
-        if (range >= LocationRange.CURRENT.range) {
-            return true;
         }
         return true;
     }

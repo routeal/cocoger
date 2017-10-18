@@ -45,4 +45,10 @@ abstract public class PagerFragment extends Fragment {
     }
 
     abstract void onViewPageSelected();
+
+    abstract void empty(boolean v);
+
+    public interface ChangeListener {
+        void onEmpty(boolean empty);
+    }
 }

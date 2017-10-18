@@ -55,14 +55,6 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
 
     private final static String DEFAULT_MARKER_COLOR = "steelblue";
 
-    private final static PlaceColorButton mPlaceColorButtons[] = {
-            new PlaceColorButton(R.id.place_1, R.id.place_image_1, R.color.steelblue, "steelblue"),
-            new PlaceColorButton(R.id.place_2, R.id.place_image_2, R.color.yellowgreen, "yellowgreen"),
-            new PlaceColorButton(R.id.place_3, R.id.place_image_3, R.color.firebrick, "firebrick"),
-            new PlaceColorButton(R.id.place_4, R.id.place_image_4, R.color.gold, "gold"),
-            new PlaceColorButton(R.id.place_5, R.id.place_image_5, R.color.hotpink, "hotpink"),
-    };
-
     private final static HashMap<String, Integer> mPlaceColorMap = new HashMap<String, Integer>() {{
         put("steelblue", R.color.steelblue);
         put("yellowgreen", R.color.yellowgreen);
@@ -70,6 +62,14 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
         put("gold", R.color.gold);
         put("hotpink", R.color.hotpink);
     }};
+
+    private static PlaceColorButton mPlaceColorButtons[] = {
+            new PlaceColorButton(R.id.place_1, R.id.place_image_1, R.color.steelblue, "steelblue"),
+            new PlaceColorButton(R.id.place_2, R.id.place_image_2, R.color.yellowgreen, "yellowgreen"),
+            new PlaceColorButton(R.id.place_3, R.id.place_image_3, R.color.firebrick, "firebrick"),
+            new PlaceColorButton(R.id.place_4, R.id.place_image_4, R.color.gold, "gold"),
+            new PlaceColorButton(R.id.place_5, R.id.place_image_5, R.color.hotpink, "hotpink"),
+    };
 
     private Map<Marker, InfoWindow> mPlaceMarkers = new HashMap<Marker, InfoWindow>();
     private GoogleMap mMap;
@@ -130,6 +130,8 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
 
     // edit a place or add a new place but the marker is already created by long press
     void editPlace(final String key, final Place place) {
+        if (mActivity.isFinishing()) return;
+
         final PlaceInfoFragment fragment = getPlaceInfoFragment(place);
         if (fragment == null) {
             return;
@@ -148,6 +150,8 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
             pc.imageView = (ImageView) view.findViewById(pc.imageId);
             pc.imageView.setImageDrawable(getIcon(pc.colorId));
             pc.radioButton = (RadioButton) view.findViewById(pc.id);
+        }
+        for (PlaceColorButton pc : mPlaceColorButtons) {
             pc.radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -236,6 +240,7 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
                 Bitmap bitmap = null;
                 if (cropImageView != null && cropImageView.getDrawable() != null) {
                     bitmap = ((BitmapDrawable) cropImageView.getDrawable()).getBitmap();
+                    cropImageView = null;
                 }
                 Bitmap updateBitmap = bitmap;
 
@@ -277,6 +282,8 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
 
     // add a new place to create a new marker
     void addPlace(String title, final Location location, String address, final Bitmap bitmap) {
+        if (mActivity.isFinishing()) return;
+
         LayoutInflater layoutInflaterAndroid = LayoutInflater.from(mActivity);
         View view = layoutInflaterAndroid.inflate(R.layout.dialog_place, null);
 
@@ -284,6 +291,8 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
             pc.imageView = (ImageView) view.findViewById(pc.imageId);
             pc.imageView.setImageDrawable(getIcon(pc.colorId));
             pc.radioButton = (RadioButton) view.findViewById(pc.id);
+        }
+        for (PlaceColorButton pc : mPlaceColorButtons) {
             pc.radioButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -349,9 +358,11 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
                     }
                 }
                 String markerColor2 = tmp;
+
                 Bitmap tmp2 = bitmap;
                 if (cropImageView != null && cropImageView.getDrawable() != null) {
                     tmp2 = ((BitmapDrawable) cropImageView.getDrawable()).getBitmap();
+                    cropImageView = null;
                 }
                 final Bitmap bitmap2 = tmp2;
 

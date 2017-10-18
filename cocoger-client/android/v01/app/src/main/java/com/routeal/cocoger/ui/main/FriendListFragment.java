@@ -60,11 +60,17 @@ public class FriendListFragment extends PagerFragment {
     }
 
     @Override
-    void onViewPageSelected() {
-        if (mAdapter.getItemCount() == 0) {
+    void empty(boolean v) {
+        if (mEmptyTextView == null) return;
+        if (v) {
             mEmptyTextView.setVisibility(View.VISIBLE);
         } else {
             mEmptyTextView.setVisibility(View.GONE);
         }
+    }
+
+    @Override
+    void onViewPageSelected() {
+        empty(mAdapter.getItemCount() == 0);
     }
 }

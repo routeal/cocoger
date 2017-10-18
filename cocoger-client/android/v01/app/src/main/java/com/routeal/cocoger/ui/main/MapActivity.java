@@ -2,10 +2,12 @@ package com.routeal.cocoger.ui.main;
 
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.location.Address;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.View;
 
@@ -20,6 +22,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Marker;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.util.Utils;
 import com.theartofdev.edmodo.cropper.CropImage;
 
@@ -121,7 +124,7 @@ abstract class MapActivity extends MapBaseActivity
         mDirection = new MapDirection(mMap, mInfoWindowManager);
         mPoi = new PoiManager(mMap, mGeoDataClient, mInfoWindowManager);
         mPlace = new PlaceManager(this, mMap, mInfoWindowManager);
-        mFriendManager = new FriendManager();
+        mFriendManager = new FriendManager(this);
 
         mReceiver = new MapBroadcastReceiver(this, mMap, mMm, mDirection, mPlace);
         mReceiver.setLocation(mInitialLocation);
@@ -140,17 +143,23 @@ abstract class MapActivity extends MapBaseActivity
 
         Log.d(TAG, "onMapReady: location detected from the base object");
 
-        // the location may not be available at this point
-        if (mInitialLocation != null) {
-            Log.d(TAG, "onMapReady: setupMarkers");
-            mMm.setupMarkers(mInitialLocation, Utils.getAddress(mInitialLocation));
-        }
-
         if (mCameraPosition != null) {
             mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
         } else if (mInitialLocation != null) {
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                     Utils.getLatLng(mInitialLocation), DEFAULT_ZOOM));
+        }
+
+        // the location may not be available at this point
+        if (mInitialLocation != null) {
+            Log.d(TAG, "onMapReady: setupMarkers");
+            Address address = Utils.getAddress(mInitialLocation);
+            mMm.setupMarkers(mInitialLocation, address);
+
+            Intent intent = new Intent(FB.USER_LOCATION_UPDATE);
+            intent.putExtra(FB.LOCATION, mInitialLocation);
+            intent.putExtra(FB.ADDRESS, address);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
         }
 
         mCameraPosition = null;

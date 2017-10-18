@@ -63,8 +63,17 @@ public class NotifiListFragment extends PagerFragment {
     }
 
     @Override
+    void empty(boolean v) {
+        // empty
+    }
+
+    @Override
     void onViewPageSelected() {
         Log.d(TAG, "NotifiListFragment selected");
+        reset();
+    }
+
+    void reset() {
         List<Message> messages = createNotifiList();
         if (messages.isEmpty()) {
             mEmptyText.setVisibility(View.VISIBLE);
@@ -227,6 +236,7 @@ public class NotifiListFragment extends PagerFragment {
                         FB.acceptFriendRequest(im.key);
                         Notifi.remove(im.nid);
                         showFriendViewPage();
+                        reset();
                     }
                 });
                 holder.no.setText(R.string.decline);
@@ -236,6 +246,7 @@ public class NotifiListFragment extends PagerFragment {
                         FB.declineFriendRequest(im.key);
                         Notifi.remove(im.nid);
                         closeViewPage();
+                        reset();
                     }
                 });
             } else if (m instanceof InviteMessage) {
@@ -263,6 +274,7 @@ public class NotifiListFragment extends PagerFragment {
                         FB.cancelFriendRequest(im.key);
                         Notifi.remove(im.nid);
                         showFriendViewPage();
+                        reset();
                     }
                 });
                 holder.no.setVisibility(View.INVISIBLE);
@@ -279,6 +291,7 @@ public class NotifiListFragment extends PagerFragment {
                         FB.acceptRangeRequest(rm.key, rm.rangeTo);
                         Notifi.remove(rm.nid);
                         showFriendViewPage();
+                        reset();
                     }
                 });
                 holder.no.setText(R.string.decline);
@@ -288,6 +301,7 @@ public class NotifiListFragment extends PagerFragment {
                         FB.declineRangeRequest(rm.key);
                         Notifi.remove(rm.nid);
                         showFriendViewPage();
+                        reset();
                     }
                 });
             } else if (m instanceof InfoMessage) {
@@ -302,6 +316,7 @@ public class NotifiListFragment extends PagerFragment {
                     public void onClick(View v) {
                         DBUtil.deleteMessage(im.id);
                         closeViewPage();
+                        reset();
                     }
                 });
                 holder.no.setVisibility(View.INVISIBLE);

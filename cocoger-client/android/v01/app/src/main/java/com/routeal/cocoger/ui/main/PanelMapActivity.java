@@ -81,56 +81,70 @@ public class PanelMapActivity extends SearchMapActivity {
         pagerFragment.setViewPager(viewPager);
         mViewPagerAdapter.addFragment(pagerFragment, null);
 
-        pagerFragment = new FriendListFragment();
-        pagerFragment.setSlidingUpPanelLayout(mLayout);
-        pagerFragment.setViewPager(viewPager);
-        FirebaseRecyclerAdapter friendAdapter = FB.getFriendRecyclerAdapter(new FriendManager.FriendListener() {
-            @Override
-            public void onAdded(String key, Friend friend) {
-                mFriendManager.add(key, friend);
-            }
+        final FriendListFragment friendListFragment = new FriendListFragment();
+        friendListFragment.setSlidingUpPanelLayout(mLayout);
+        friendListFragment.setViewPager(viewPager);
+        FirebaseRecyclerAdapter friendAdapter = FB.getFriendRecyclerAdapter(
+                new PagerFragment.ChangeListener() {
+                    @Override
+                    public void onEmpty(boolean empty) {
+                        friendListFragment.empty(empty);
+                    }
+                },
+                new FriendManager.FriendListener() {
+                    @Override
+                    public void onAdded(String key, Friend friend) {
+                        mFriendManager.add(key, friend);
+                    }
 
-            @Override
-            public void onChanged(String key, Friend friend) {
-                mFriendManager.change(key, friend);
-            }
+                    @Override
+                    public void onChanged(String key, Friend friend) {
+                        mFriendManager.change(key, friend);
+                    }
 
-            @Override
-            public void onRemoved(String key) {
-                mFriendManager.remove(key);
-            }
-        });
+                    @Override
+                    public void onRemoved(String key) {
+                        mFriendManager.remove(key);
+                    }
+                });
         friendAdapter.startListening();
-        pagerFragment.setRecyclerAdapter(friendAdapter);
-        mViewPagerAdapter.addFragment(pagerFragment, null);
+        friendListFragment.setRecyclerAdapter(friendAdapter);
+        mViewPagerAdapter.addFragment(friendListFragment, null);
 
-        pagerFragment = new GroupListFragment();
-        pagerFragment.setSlidingUpPanelLayout(mLayout);
-        pagerFragment.setViewPager(viewPager);
-        mViewPagerAdapter.addFragment(pagerFragment, null);
+        final PagerFragment groupListFragment = new GroupListFragment();
+        groupListFragment.setSlidingUpPanelLayout(mLayout);
+        groupListFragment.setViewPager(viewPager);
+        mViewPagerAdapter.addFragment(groupListFragment, null);
 
-        pagerFragment = new PlaceListFragment();
-        pagerFragment.setSlidingUpPanelLayout(mLayout);
-        pagerFragment.setViewPager(viewPager);
-        FirebaseRecyclerAdapter placeAdapter = FB.getPlaceRecyclerAdapter(new PlaceManager.PlaceListener() {
-            @Override
-            public void onAdded(String key, Place place) {
-                mPlace.add(key, place);
-            }
+        final PlaceListFragment placeListFragment = new PlaceListFragment();
+        placeListFragment.setSlidingUpPanelLayout(mLayout);
+        placeListFragment.setViewPager(viewPager);
+        FirebaseRecyclerAdapter placeAdapter = FB.getPlaceRecyclerAdapter(
+                new PagerFragment.ChangeListener() {
+                    @Override
+                    public void onEmpty(boolean empty) {
+                        placeListFragment.empty(empty);
+                    }
+                },
+                new PlaceManager.PlaceListener() {
+                    @Override
+                    public void onAdded(String key, Place place) {
+                        mPlace.add(key, place);
+                    }
 
-            @Override
-            public void onChanged(String key, Place place) {
-                mPlace.change(key, place);
-            }
+                    @Override
+                    public void onChanged(String key, Place place) {
+                        mPlace.change(key, place);
+                    }
 
-            @Override
-            public void onRemoved(String key) {
-                mPlace.remove(key);
-            }
-        });
+                    @Override
+                    public void onRemoved(String key) {
+                        mPlace.remove(key);
+                    }
+                });
         placeAdapter.startListening();
-        pagerFragment.setRecyclerAdapter(placeAdapter);
-        mViewPagerAdapter.addFragment(pagerFragment, null);
+        placeListFragment.setRecyclerAdapter(placeAdapter);
+        mViewPagerAdapter.addFragment(placeListFragment, null);
 
         viewPager.setAdapter(mViewPagerAdapter);
         viewPager.setCurrentItem(LIST_FRIENDS);

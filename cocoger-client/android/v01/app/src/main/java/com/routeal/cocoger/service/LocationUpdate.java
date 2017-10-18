@@ -170,6 +170,11 @@ public class LocationUpdate {
 
         if (!FB.isAuthenticated()) return;
 
+        if (FB.getUser() != null && FB.getUser().getTest()) {
+            Log.d(TAG, "Test mode: no background location update");
+            return;
+        }
+
         ServiceMode isForeground = isServiceRunningInForeground(context);
 
         if (mIsServiceForeground == isForeground) {
@@ -241,7 +246,7 @@ public class LocationUpdate {
     }
 
     private void onNewLocation(Context context, Location location) {
-        //Log.i(TAG, "New location: " + location);
+        Log.i(TAG, "New location: " + location);
 
         if (mLocation == null) {
             mLocation = location;
@@ -278,6 +283,7 @@ public class LocationUpdate {
                         @Override
                         public void onSuccess(Location location) {
                             mLocation = location;
+                            mAddress = Utils.getFromLocation(location);
                         }
                     });
 

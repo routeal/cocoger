@@ -102,12 +102,14 @@ class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
     }
 
     void remove(String id) {
-        for (ComboMarker marker : mMarkers) {
+        for (Iterator<ComboMarker> ite = mMarkers.iterator(); ite.hasNext(); ) {
+            ComboMarker marker = ite.next();
             if (marker.contains(id)) {
                 boolean removed = marker.removeUser(id);
                 if (removed) {
-                    mMarkers.remove(marker);
+                    ite.remove();
                 }
+                return;
             }
         }
     }
@@ -227,7 +229,7 @@ class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
     }
 
     // TODO: merge this to above
-    void reposition(String key, int range) {
+    void changeRange(String key, int range) {
         Log.d(TAG, "reposition range: " + key);
 
         ComboMarker.MarkerInfo info = null;

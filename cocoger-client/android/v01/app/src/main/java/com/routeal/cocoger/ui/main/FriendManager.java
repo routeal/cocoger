@@ -1,10 +1,10 @@
 package com.routeal.cocoger.ui.main;
 
+import android.content.Context;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
 
@@ -20,6 +20,11 @@ public class FriendManager {
     private final static String TAG = "FriendManager";
 
     private static Map<String, Friend> mFriendList = new HashMap<>();
+    private Context context;
+
+    FriendManager(Context context) {
+        this.context = context;
+    }
 
     public static Map<String, Friend> getFriends() {
         return mFriendList;
@@ -39,7 +44,7 @@ public class FriendManager {
 
         Intent intent = new Intent(FB.FRIEND_LOCATION_ADD);
         intent.putExtra(FB.KEY, key);
-        LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 
     void change(String key, Friend newFriend) {
@@ -62,18 +67,15 @@ public class FriendManager {
         if (newFriend.getRange() != oldFriend.getRange()) {
             Intent intent = new Intent(FB.FRIEND_RANGE_UPDATE);
             intent.putExtra(FB.KEY, key);
-            LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
         }
 
         if (newFriend.getLocation() != null && oldFriend.getLocation() != null &&
                 !newFriend.getLocation().equals(oldFriend.getLocation())) {
             Intent intent = new Intent(FB.FRIEND_LOCATION_UPDATE);
             intent.putExtra(FB.KEY, key);
-                    /* Range movement not implemented
-                    intent.putExtra(FB.NEW_LOCATION, newFriend.getLocation());
-                    intent.putExtra(FB.OLD_LOCATION, oldFriend.getLocation());
-                    */
-            LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+            intent.putExtra(FB.LOCATION, oldFriend.getLocation());
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
         }
 
         mFriendList.put(key, newFriend);
@@ -86,7 +88,7 @@ public class FriendManager {
 
         Intent intent = new Intent(FB.FRIEND_LOCATION_REMOVE);
         intent.putExtra(FB.KEY, key);
-        LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 
     public interface FriendListener {

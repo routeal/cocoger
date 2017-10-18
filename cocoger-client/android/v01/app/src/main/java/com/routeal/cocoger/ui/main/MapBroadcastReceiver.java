@@ -17,6 +17,7 @@ import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.Place;
 import com.routeal.cocoger.util.LocationRange;
+import com.routeal.cocoger.util.Notifi;
 import com.routeal.cocoger.util.Utils;
 
 /**
@@ -66,6 +67,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             Address address = intent.getParcelableExtra(FB.ADDRESS);
             Location location = intent.getParcelableExtra(FB.LOCATION);
             if (location == null || address == null) {
+                Log.d(TAG, "no location or address");
                 return;
             }
             if (mMap != null) {
@@ -79,6 +81,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
                             Utils.getLatLng(location), MapActivity.DEFAULT_ZOOM));
                 } else {
                     if (FB.getUser() != null) {
+                        Log.d(TAG, "user location updated");
                         mMm.reposition(FB.getUid(), location, address, LocationRange.CURRENT.range);
                     }
                 }
@@ -110,11 +113,9 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             });
         } else if (intent.getAction().equals(FB.FRIEND_LOCATION_UPDATE)) {
             final String fid = intent.getStringExtra(FB.KEY);
-            //final String newLocationKey = intent.getStringExtra(FB.NEW_LOCATION);
-            //final String oldLocationKey = intent.getStringExtra(FB.OLD_LOCATION);
+            final String oldLocationKey = intent.getStringExtra(FB.LOCATION);
             final Friend friend = FriendManager.getFriend(fid);
             if (friend == null) return; // shouldn't happen
-            final int range = friend.getRange();
             FB.getLocation(friend.getLocation(), new FB.LocationListener() {
                 @Override
                 public void onFail(String err) {
@@ -122,35 +123,43 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
                 }
 
                 @Override
-                public void onSuccess(Location newLocation, final Address newAddress) {
-                    // move the cursor
-                    mMm.reposition(fid, newLocation, newAddress, range);
-
-                        /*
+                public void onSuccess(final Location newLocation, final Address newAddress) {
+                    final int range = friend.getRange();
+                    if (oldLocationKey == null) {
+                        // move the cursor
+                        mMm.reposition(fid, newLocation, newAddress, range);
+                    } else {
                         // compare the new location with the old location to issue the range movement
                         FB.getLocation(oldLocationKey, new FB.LocationListener() {
-                            @Override
-                            public void onFail(String err) {
-                                Log.d(TAG, "Friend old location: " + err);
-                            }
+                                @Override
+                                public void onFail(String err) {
+                                    Log.d(TAG, "Friend old location: " + err);
+                                }
 
-                            @Override
-                            public void onSuccess(Location oldLocation, Address oldAddress) {
-                                // detect move in the range or above
-                                // TODO
-                                int movedRange = Utils.detectRangeMove(newAddress, oldAddress, range);
-                                if (movedRange > 0) {
+                                @Override
+                                public void onSuccess(Location oldLocation, Address oldAddress) {
+                                    // detect move in the range or above
+                                    int moved = Utils.detectRangeMove(newAddress, oldAddress);
+                                    if (moved == LocationRange.NONE.range) {
+                                        return;
+                                    }
+
+                                    if (moved == LocationRange.CURRENT.range) {
+                                        // move
+                                        mMm.reposition(fid, newLocation, newAddress, range);
+                                        return;
+                                    }
+
                                     // if the address is the same as the user, send a notification
-                                    if (Utils.isEqualAddress(newAddress, getAddress(), range)) {
+                                    if (Utils.isEqualAddress(mAddress, newAddress, range)) {
                                         // send notification
                                         int nid = Math.abs((int) friend.getCreated());
                                         String message = Utils.getRangeMoveMessage(friend, newAddress, oldAddress);
-                                        Notifi.send(nid, friend.getDisplayName(), message, friend.getPicture());
+                                        Notifi.send(nid, fid, friend.getDisplayName(), message);
                                     }
                                 }
-                            }
                         });
-                        */
+                    }
                 }
             });
         } else if (intent.getAction().equals(FB.FRIEND_LOCATION_REMOVE)) {
@@ -170,7 +179,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             }
             int range = friend.getRange();
             Log.d(TAG, "FRIEND_RANGE_UPDATE:" + fid);
-            mMm.reposition(fid, range);
+            mMm.changeRange(fid, range);
         } else if (intent.getAction().equals(FB.FRIEND_MARKER_SHOW)) {
             String fid = intent.getStringExtra(FB.KEY);
             if (fid == null) {
