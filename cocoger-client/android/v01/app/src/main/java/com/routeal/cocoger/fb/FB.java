@@ -42,17 +42,20 @@ import com.routeal.cocoger.R;
 import com.routeal.cocoger.model.Device;
 import com.routeal.cocoger.model.Feedback;
 import com.routeal.cocoger.model.Friend;
+import com.routeal.cocoger.model.Group;
 import com.routeal.cocoger.model.LocationAddress;
+import com.routeal.cocoger.model.Member;
 import com.routeal.cocoger.model.Place;
 import com.routeal.cocoger.model.RangeRequest;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.service.LocationUpdateService;
 import com.routeal.cocoger.ui.main.FriendListViewHolder;
 import com.routeal.cocoger.ui.main.FriendManager;
+import com.routeal.cocoger.ui.main.GroupListViewHolder;
 import com.routeal.cocoger.ui.main.PagerFragment;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 import com.routeal.cocoger.ui.main.PlaceListViewHolder;
-import com.routeal.cocoger.ui.main.PlaceManager;
+import com.routeal.cocoger.ui.main.RecyclerAdapterListener;
 import com.routeal.cocoger.ui.main.UserListViewHolder;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Notifi;
@@ -60,6 +63,7 @@ import com.routeal.cocoger.util.Utils;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class FB {
@@ -77,6 +81,8 @@ public class FB {
     public final static String PLACE_EDIT = "place_edit";
     public final static String PLACE_REMOVE = "place_remove";
     public final static String PLACE_SHOW = "place_show";
+    public final static String GROUP_CREATE = "group_create";
+    public final static String GROUP_EDIT = "group_edit";
 
     public final static String KEY = "key";
     public final static String LOCATION = "location";
@@ -130,18 +136,6 @@ public class FB {
 
     private static DatabaseReference getDeviceDatabaseReference() {
         return FirebaseDatabase.getInstance().getReference().child("devices");
-    }
-
-    private static DatabaseReference getPlaceDatabaseReference() {
-        return FirebaseDatabase.getInstance().getReference().child("places");
-    }
-
-    private static DatabaseReference getPlaceDatabaseReference(String user) {
-        return getUserDatabaseReference().child(user).child("places");
-    }
-
-    private static DatabaseReference getPlaceDatabaseReference(String user, String key) {
-        return getUserDatabaseReference().child(user).child("places").child(key);
     }
 
     private static DatabaseReference getUserDatabaseReference() {
@@ -348,7 +342,7 @@ public class FB {
         updates.put("geo_locations/" + key + "/l", Arrays.asList(latitude, longitude));
         // user locations
         updates.put("user_locations/" + uid + "/" + key, loc.getTimestamp());
-        updates.put("users/" + uid + "/location/", key);
+//        updates.put("users/" + uid + "/location/", key);
 
         if (notifyFriend) {
             for (Map.Entry<String, Friend> entry : FriendManager.getFriends().entrySet()) {
@@ -849,7 +843,7 @@ public class FB {
 
     public static FirebaseRecyclerAdapter<Friend, FriendListViewHolder> getFriendRecyclerAdapter(
             final PagerFragment.ChangeListener changeListener,
-            final FriendManager.FriendListener listener) {
+            final RecyclerAdapterListener<Friend> listener) {
         DatabaseReference db = getFriendDatabaseReference(getUid());
 
         Query query = db.orderByChild("range");
@@ -905,11 +899,11 @@ public class FB {
 
     public static FirebaseRecyclerAdapter<Place, PlaceListViewHolder> getPlaceRecyclerAdapter(
             final PagerFragment.ChangeListener changeListener,
-            final PlaceManager.PlaceListener listener) {
-        DatabaseReference db = getPlaceDatabaseReference(getUid());
-        Query keyQuery = db.orderByValue();
+            final RecyclerAdapterListener<Place> listener) {
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference();
+        Query keyQuery = db.child("user_places").child(getUid()).orderByValue();
 
-        DatabaseReference dbRef = getPlaceDatabaseReference();
+        DatabaseReference dbRef = db.child("places");
 
         FirebaseRecyclerOptions<Place> options =
                 new FirebaseRecyclerOptions.Builder<Place>()
@@ -960,29 +954,6 @@ public class FB {
                 }
             }
         };
-    }
-
-    public static void getPlace(String uid, final PlaceListener listener) {
-        DatabaseReference db = getPlaceDatabaseReference();
-        db.child(uid).addListenerForSingleValueEvent(
-                new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        String key = dataSnapshot.getKey();
-                        Place place = dataSnapshot.getValue(Place.class);
-                        if (listener != null) {
-                            listener.onSuccess(key, place);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        if (listener != null) {
-                            listener.onFail(databaseError.getMessage());
-                        }
-                    }
-                }
-        );
     }
 
     public static FirebaseRecyclerAdapter<User, UserListViewHolder> getUserRecyclerAdapter(String text, final View view) {
@@ -1138,11 +1109,11 @@ public class FB {
         Map<String, Object> updates = new HashMap<>();
 
         updates.put("places/" + key, place);
-        updates.put("users/" + uid + "/places/" + key, uid);
+        updates.put("user_places/" + uid + "/" + key, uid);
 
         if (place.getSeenBy().equals("friends")) {
             for (Map.Entry<String, Friend> entry : FriendManager.getFriends().entrySet()) {
-                updates.put("users/" + entry.getKey() + "/places/" + key, uid);
+                updates.put("user_places/" + entry.getKey() + "/" + key, uid);
             }
         }
 
@@ -1163,7 +1134,7 @@ public class FB {
     public static void addPlace(final Place place, final Bitmap bitmap, final PlaceListener listener) {
         if (place == null) return;
 
-        DatabaseReference placeDb = getPlaceDatabaseReference();
+        DatabaseReference placeDb = FirebaseDatabase.getInstance().getReference().child("places");
         final String key = placeDb.push().getKey();
 
         if (bitmap == null) {
@@ -1192,9 +1163,9 @@ public class FB {
         updates.put("places/" + key, place);
         for (Map.Entry<String, Friend> entry : FriendManager.getFriends().entrySet()) {
             if (place.getSeenBy().equals("friends")) {
-                updates.put("users/" + entry.getKey() + "/places/" + key, place.getUid());
+                updates.put("user_places/" + entry.getKey() + "/" + key, place.getUid());
             } else {
-                updates.put("users/" + entry.getKey() + "/places/" + key, null);
+                updates.put("user_places/" + entry.getKey() + "/" + key, null);
             }
         }
         DatabaseReference db = FirebaseDatabase.getInstance().getReference();
@@ -1224,11 +1195,11 @@ public class FB {
         Map<String, Object> updates = new HashMap<>();
 
         updates.put("places/" + key, null);
-        updates.put("users/" + uid + "/places/" + key, null);
+        updates.put("user_places/" + uid + "/" + key, null);
 
         if (place.getSeenBy().equals("friends")) {
             for (Map.Entry<String, Friend> entry : FriendManager.getFriends().entrySet()) {
-                updates.put("users/" + entry.getKey() + "/places/" + key, null);
+                updates.put("user_places/" + entry.getKey() + "/" + key, null);
             }
         }
 
@@ -1262,6 +1233,126 @@ public class FB {
                 }
             }
         });
+    }
+
+    public static void createGroup(String name, String color, List<String> keys) {
+        Group group = new Group();
+        group.setName(name);
+        group.setColor(color);
+
+        Map<String, Member> members = new HashMap<>();
+
+        for (String key : keys) {
+            Member member = new Member();
+            member.setStatus(Member.INVITED);
+            member.setTimestamp(System.currentTimeMillis());
+            members.put(key, member);
+        }
+
+        Member member = new Member();
+        member.setStatus(Member.CREATED);
+        member.setTimestamp(System.currentTimeMillis());
+        members.put(FB.getUid(), member);
+
+        group.setMembers(members);
+
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference();
+        String key = db.child("groups").push().getKey();
+
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("groups/" + key, group);
+
+        for (Map.Entry<String, Member> entry : group.getMembers().entrySet()) {
+            updates.put("user_groups/" + entry.getKey() + "/" + key, false);
+        }
+
+        db.updateChildren(updates);
+    }
+
+    public static void updateGroup(String name, String color, List<String> keys) {
+
+    }
+
+    public static void deleteGroup(String key, Group group) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("groups/" + key, null);
+        for (Map.Entry<String, Member> entry : group.getMembers().entrySet()) {
+            updates.put("user_groups/" + entry.getKey() + "/" + key, null);
+        }
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference();
+        db.updateChildren(updates);
+    }
+
+    public static void joinGroup(String key) {
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference();
+        db.child("groups").child(key).child("members").child(getUid()).child("status").setValue(Member.JOINED);
+    }
+
+    public static void removeGroup(String key) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("groups/" + key + "/members/" + getUid(), null);
+        updates.put("user_groups/" + getUid() + "/" + key, null);
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference();
+        db.updateChildren(updates);
+    }
+
+    public static FirebaseRecyclerAdapter<Group, GroupListViewHolder> getGroupRecyclerAdapter(
+            final PagerFragment.ChangeListener changeListener,
+            final RecyclerAdapterListener<Group> listener) {
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference();
+        Query keyQuery = db.child("user_groups").child(getUid()).orderByValue();
+
+        DatabaseReference dbRef = db.child("groups");
+
+        FirebaseRecyclerOptions<Group> options =
+                new FirebaseRecyclerOptions.Builder<Group>()
+                        .setIndexedQuery(keyQuery, dbRef, Group.class)
+                        .build();
+
+        return new FirebaseRecyclerAdapter<Group, GroupListViewHolder>(options) {
+            @Override
+            public GroupListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                View view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.listview_group_list, parent, false);
+                return new GroupListViewHolder(view);
+            }
+
+            @Override
+            protected void onBindViewHolder(GroupListViewHolder holder, int position, Group model) {
+                holder.bind(getRef(position).getKey(), model);
+            }
+
+            @Override
+            public void onDataChanged() {
+                super.onDataChanged();
+                if (changeListener != null) changeListener.onEmpty(getItemCount() == 0);
+            }
+
+            @Override
+            public void onChildChanged(ChangeEventType type, DataSnapshot snapshot, int newIndex, int oldIndex) {
+                super.onChildChanged(type, snapshot, newIndex, oldIndex);
+                Group group = snapshot.getValue(Group.class);
+                String key = snapshot.getKey();
+                if (type == ChangeEventType.ADDED) {
+                    Log.d(TAG, "Group added");
+                    if (listener != null) {
+                        listener.onAdded(key, group);
+                    }
+                } else if (type == ChangeEventType.CHANGED) {
+                    Log.d(TAG, "Group changed");
+                    if (listener != null) {
+                        listener.onChanged(key, group);
+                    }
+                } else if (type == ChangeEventType.MOVED) {
+                    Log.d(TAG, "Group moved");
+                } else if (type == ChangeEventType.REMOVED) {
+                    Log.d(TAG, "Group removed");
+                    if (listener != null) {
+                        listener.onRemoved(key);
+                    }
+                }
+            }
+        };
     }
 
     public interface UploadDataListener {

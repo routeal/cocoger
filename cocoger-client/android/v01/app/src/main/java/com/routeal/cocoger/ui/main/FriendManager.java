@@ -1,10 +1,12 @@
 package com.routeal.cocoger.ui.main;
 
-import android.content.Context;
 import android.content.Intent;
+import android.location.Address;
+import android.location.Location;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
 
@@ -20,11 +22,7 @@ public class FriendManager {
     private final static String TAG = "FriendManager";
 
     private static Map<String, Friend> mFriendList = new HashMap<>();
-    private Context context;
-
-    FriendManager(Context context) {
-        this.context = context;
-    }
+    private static Map<String, LocationAddress> mLocationList = new HashMap<>();
 
     public static Map<String, Friend> getFriends() {
         return mFriendList;
@@ -37,17 +35,49 @@ public class FriendManager {
         return null;
     }
 
-    void add(String key, Friend friend) {
+    public static boolean isEmpty() {
+        return mFriendList.isEmpty();
+    }
+
+    public static void setLocation(String key, Location location, Address address) {
+        LocationAddress lc = new LocationAddress();
+        lc.location = location;
+        lc.address = address;
+        mLocationList.put(key, lc);
+    }
+
+    public static Location getLocation(String key) {
+        LocationAddress lc = mLocationList.get(key);
+        if (lc != null) {
+            return lc.location;
+        }
+        return null;
+    }
+
+    public static Address getAddress(String key) {
+        LocationAddress lc = mLocationList.get(key);
+        if (lc != null) {
+            return lc.address;
+        }
+        return null;
+    }
+
+    static void destroy() {
+        mFriendList.clear();
+        mLocationList.clear();
+    }
+
+    static void add(String key, Friend friend) {
         Log.d(TAG, "add:" + key);
 
         mFriendList.put(key, friend);
 
         Intent intent = new Intent(FB.FRIEND_LOCATION_ADD);
         intent.putExtra(FB.KEY, key);
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
     }
 
-    void change(String key, Friend newFriend) {
+    static void change(String key, Friend newFriend) {
         Log.d(TAG, "change:" + key);
 
         Friend oldFriend = mFriendList.get(key);
@@ -67,35 +97,35 @@ public class FriendManager {
         if (newFriend.getRange() != oldFriend.getRange()) {
             Intent intent = new Intent(FB.FRIEND_RANGE_UPDATE);
             intent.putExtra(FB.KEY, key);
-            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+            LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
         }
 
-        if (newFriend.getLocation() != null && oldFriend.getLocation() != null &&
-                !newFriend.getLocation().equals(oldFriend.getLocation())) {
+        if (oldFriend.getLocation() == null ||
+                (newFriend.getLocation() != null && oldFriend.getLocation() != null &&
+                        !newFriend.getLocation().equals(oldFriend.getLocation()))) {
             Intent intent = new Intent(FB.FRIEND_LOCATION_UPDATE);
             intent.putExtra(FB.KEY, key);
             intent.putExtra(FB.LOCATION, oldFriend.getLocation());
-            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+            LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
         }
 
         mFriendList.put(key, newFriend);
     }
 
-    void remove(String key) {
+    static void remove(String key) {
         Log.d(TAG, "remove:" + key);
 
         mFriendList.remove(key);
+        mLocationList.remove(key);
 
         Intent intent = new Intent(FB.FRIEND_LOCATION_REMOVE);
         intent.putExtra(FB.KEY, key);
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+        LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
     }
 
-    public interface FriendListener {
-        void onAdded(String key, Friend friend);
-
-        void onChanged(String key, Friend friend);
-
-        void onRemoved(String key);
+    private static class LocationAddress {
+        Location location;
+        Address address;
     }
+
 }

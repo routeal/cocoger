@@ -165,6 +165,7 @@ class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
                         ite.remove();
                     }
                     return;
+                /*
                 }
                 // simply change the position when there is only one in the marker
                 else if (marker.size() == 1) {
@@ -177,6 +178,7 @@ class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
                         marker.setPosition(location, address, range);
                         return;
                     }
+                */
                 } else {
                     // too short to reposition, no need to change at all
                     if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {

@@ -7,17 +7,20 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.location.Address;
 import android.location.Location;
+import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.franmontiel.fullscreendialog.FullScreenDialogFragment;
 import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
+import com.routeal.cocoger.model.Group;
 import com.routeal.cocoger.model.Place;
 import com.routeal.cocoger.util.LocationRange;
-import com.routeal.cocoger.util.Notifi;
 import com.routeal.cocoger.util.Utils;
 
 /**
@@ -57,6 +60,8 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
         filter.addAction(FB.PLACE_EDIT);
         filter.addAction(FB.PLACE_REMOVE);
         filter.addAction(FB.PLACE_SHOW);
+        filter.addAction(FB.GROUP_CREATE);
+        filter.addAction(FB.GROUP_EDIT);
         LocalBroadcastManager.getInstance(activity).registerReceiver(this, filter);
     }
 
@@ -124,7 +129,12 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
 
                 @Override
                 public void onSuccess(final Location newLocation, final Address newAddress) {
+                    FriendManager.setLocation(fid, newLocation, newAddress);
+
                     final int range = friend.getRange();
+                    // for testing
+                    mMm.reposition(fid, newLocation, newAddress, range);
+/*
                     if (oldLocationKey == null) {
                         // move the cursor
                         mMm.reposition(fid, newLocation, newAddress, range);
@@ -160,6 +170,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
                                 }
                         });
                     }
+  */
                 }
             });
         } else if (intent.getAction().equals(FB.FRIEND_LOCATION_REMOVE)) {
@@ -213,6 +224,25 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             Place place = (Place) intent.getSerializableExtra(FB.PLACE);
             mPlace.showPlace(key);
             mActivity.closeSlidePanel();
+        } else if (intent.getAction().equals(FB.GROUP_CREATE)) {
+            FullScreenDialogFragment dialogFragment = new FullScreenDialogFragment.Builder(mActivity)
+                    .setTitle(R.string.new_group)
+                    .setConfirmButton(R.string.create_group)
+                    .setContent(GroupFriendFragment.class, new Bundle())
+                    .build();
+            dialogFragment.show(mActivity.getSupportFragmentManager(), "user-dialog");
+        } else if (intent.getAction().equals(FB.GROUP_EDIT)) {
+            String key = intent.getStringExtra("key");
+            Group group = (Group) intent.getSerializableExtra("group");
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("key", key);
+            bundle.putSerializable("group", group);
+            FullScreenDialogFragment dialogFragment = new FullScreenDialogFragment.Builder(mActivity)
+                    .setTitle(R.string.edit_group)
+                    .setConfirmButton(R.string.save_group)
+                    .setContent(GroupFriendFragment.class, bundle)
+                    .build();
+            dialogFragment.show(mActivity.getSupportFragmentManager(), "user-dialog");
         }
     }
 

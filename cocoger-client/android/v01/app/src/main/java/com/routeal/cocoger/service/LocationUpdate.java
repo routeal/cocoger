@@ -51,19 +51,21 @@ import static android.content.Context.NOTIFICATION_SERVICE;
 
 public class LocationUpdate {
 
-    public final static int DEFAULT_FOREGROUND_LOCATION_UPDATE_INTERVAL = 30 * 60 * 1000;
-    public final static int DEFAULT_LOCATION_UPDATE_INTERVAL = 1 * 60 * 1000;
+    public final static int DEFAULT_FOREGROUND_LOCATION_UPDATE_INTERVAL = 15 * 60 * 1000; // 15 mins
+    public final static int DEFAULT_LOCATION_UPDATE_INTERVAL = 60 * 1000; // 1 min
     public final static String FOREGROUND_LOCATION_UPDATE_INTERVAL = "foreground_location_update_interval";
     public final static String LOCATION_UPDATE_INTERVAL = "location_update_interval";
+
     final static String ACTION_START_FROM_NOTIFICATION = "notification";
     final static String NOTIFICATION_CHANNEL_ID = "location_update_notification";
     final static int NOTIFICATION_ID = (int) System.currentTimeMillis();
+
     private final static String TAG = "tako";
-    private final static long LOCATION_UPDATE_FASTEST_INTERVAL = 5000; // 5 seconds
+    private final static long LOCATION_UPDATE_FASTEST_INTERVAL = 10000; // 10 seconds
     private final static float FOREGROUND_MIN_MOVEMENT = 40.0f;
     private final static float BACKGROUND_MIN_MOVEMENT = 100.0f;
     private final static int PAST_LOCATION_QUEUE_MAX = 100;
-    private final static int MAX_FOREGROUND_LOCATION_UPDATE_INTERVAL = 15 * 60 * 1000;
+    private final static int MAX_FOREGROUND_LOCATION_UPDATE_INTERVAL = 15 * 60 * 1000; // 15 mins
 
     private static LocationUpdate thisInstance = new LocationUpdate();
     private static PriorityQueue<PastLocation> mLocationQueue =
@@ -97,7 +99,7 @@ public class LocationUpdate {
     }
 
     void exec(Context context) {
-        //Log.d(TAG, "exec");
+        Log.d(TAG, "exec");
         connectGoogleApi(context);
 
         startLocationUpdate(context);
@@ -258,6 +260,8 @@ public class LocationUpdate {
         if (mIsServiceForeground == ServiceMode.FOREGROUND) {
             if (distance >= BACKGROUND_MIN_MOVEMENT) {
                 saveLocation(context, location);
+            } else {
+                Log.d(TAG, "NOT ENOUGH MOVE TO SAVE FOR BACKGROUND MOVE");
             }
             mNotificationManager.notify(NOTIFICATION_ID, getNotification(context));
         } else {

@@ -14,6 +14,7 @@ import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
+import com.routeal.cocoger.model.Group;
 import com.routeal.cocoger.model.Place;
 import com.routeal.cocoger.util.Notifi;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
@@ -73,7 +74,7 @@ public class PanelMapActivity extends SearchMapActivity {
 
     @Override
     void setupApp() {
-        ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
+        ViewPager viewPager = findViewById(R.id.viewpager);
         mViewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
 
         PagerFragment pagerFragment = new NotifiListFragment();
@@ -91,20 +92,20 @@ public class PanelMapActivity extends SearchMapActivity {
                         friendListFragment.empty(empty);
                     }
                 },
-                new FriendManager.FriendListener() {
+                new RecyclerAdapterListener<Friend>() {
                     @Override
                     public void onAdded(String key, Friend friend) {
-                        mFriendManager.add(key, friend);
+                        FriendManager.add(key, friend);
                     }
 
                     @Override
                     public void onChanged(String key, Friend friend) {
-                        mFriendManager.change(key, friend);
+                        FriendManager.change(key, friend);
                     }
 
                     @Override
                     public void onRemoved(String key) {
-                        mFriendManager.remove(key);
+                        FriendManager.remove(key);
                     }
                 });
         friendAdapter.startListening();
@@ -114,6 +115,31 @@ public class PanelMapActivity extends SearchMapActivity {
         final PagerFragment groupListFragment = new GroupListFragment();
         groupListFragment.setSlidingUpPanelLayout(mLayout);
         groupListFragment.setViewPager(viewPager);
+        FirebaseRecyclerAdapter groupAdapter = FB.getGroupRecyclerAdapter(
+                new PagerFragment.ChangeListener() {
+                    @Override
+                    public void onEmpty(boolean empty) {
+                        groupListFragment.empty(empty);
+                    }
+                },
+                new RecyclerAdapterListener<Group>() {
+                    @Override
+                    public void onAdded(String key, Group group) {
+                        GroupManager.add(key, group);
+                    }
+
+                    @Override
+                    public void onChanged(String key, Group group) {
+                        GroupManager.change(key, group);
+                    }
+
+                    @Override
+                    public void onRemoved(String key) {
+                        GroupManager.remove(key);
+                    }
+                });
+        groupAdapter.startListening();
+        groupListFragment.setRecyclerAdapter(groupAdapter);
         mViewPagerAdapter.addFragment(groupListFragment, null);
 
         final PlaceListFragment placeListFragment = new PlaceListFragment();
@@ -126,7 +152,7 @@ public class PanelMapActivity extends SearchMapActivity {
                         placeListFragment.empty(empty);
                     }
                 },
-                new PlaceManager.PlaceListener() {
+                new RecyclerAdapterListener<Place>() {
                     @Override
                     public void onAdded(String key, Place place) {
                         mPlace.add(key, place);

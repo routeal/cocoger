@@ -632,14 +632,6 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
         });
     }
 
-    public interface PlaceListener {
-        void onAdded(String key, Place place);
-
-        void onChanged(String key, Place place);
-
-        void onRemoved(String key);
-    }
-
     private static class PlaceColorButton {
         int id;
         int imageId;

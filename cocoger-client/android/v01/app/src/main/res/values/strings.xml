@@ -166,4 +166,14 @@
     <string name="welcome_message">Thank you for the installation.  We hope that you enjoy the app.</string>
     <string name="place_remove">Saved Location</string>
     <string name="confirm_place_remove">Do you really want to remove this saved location?</string>
+    <string name="create_group">Create</string>
+    <string name="save_group">Save</string>
+    <string name="no_group">You don\'t have a group yet.</string>
+    <string name="group_list">Group</string>
+    <string name="new_group">New Group</string>
+    <string name="edit_group">Update Group</string>
+    <string name="group_name">Group name</string>
+    <string name="group_members">Group members</string>
+    <string name="friends">Friends</string>
+    <string name="join">Join</string>
 </resources>

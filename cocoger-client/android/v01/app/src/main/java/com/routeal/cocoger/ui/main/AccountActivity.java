@@ -340,19 +340,21 @@ public class AccountActivity extends AppCompatActivity {
         }
 
         if (mProfilePictureUri == null) {
-            if (mName != null || mBod != null || mGender != null) {
-                FB.updateUser(mName, mGender, mBod, new FB.CompleteListener() {
-                    @Override
-                    public void onSuccess() {
-                        AccountActivity.this.finish();
-                    }
-
-                    @Override
-                    public void onFail(String err) {
-                        Log.d(TAG, err);
-                    }
-                });
+            if (mName == null && mBod == null && mGender == null) {
+                AccountActivity.this.finish();
+                return;
             }
+            FB.updateUser(mName, mGender, mBod, new FB.CompleteListener() {
+                @Override
+                public void onSuccess() {
+                    AccountActivity.this.finish();
+                }
+
+                @Override
+                public void onFail(String err) {
+                    Log.d(TAG, err);
+                }
+            });
         } else {
             byte[] bytes = Utils.getBitmapBytes(this, mProfilePictureUri);
             if (bytes == null) {
@@ -365,19 +367,21 @@ public class AccountActivity extends AppCompatActivity {
                 @Override
                 public void onSuccess(String url) {
                     // set the url to the user
-                    if (mName != null || mBod != null || mGender != null) {
-                        FB.updateUser(mName, mGender, mBod, new FB.CompleteListener() {
-                            @Override
-                            public void onSuccess() {
-                                AccountActivity.this.finish();
-                            }
-
-                            @Override
-                            public void onFail(String err) {
-                                Log.d(TAG, err);
-                            }
-                        });
+                    if (mName == null && mBod == null && mGender == null) {
+                        AccountActivity.this.finish();
+                        return;
                     }
+                    FB.updateUser(mName, mGender, mBod, new FB.CompleteListener() {
+                        @Override
+                        public void onSuccess() {
+                            AccountActivity.this.finish();
+                        }
+
+                        @Override
+                        public void onFail(String err) {
+                            Log.d(TAG, err);
+                        }
+                    });
                 }
 
                 @Override

@@ -32,12 +32,14 @@ public class LocationUpdateService extends Service {
             };
 
     public static void start() {
+        Log.d(TAG, "start");
         Context context = MainApplication.getContext();
         Intent intent = new Intent(context, LocationUpdateService.class);
         context.startService(intent);
     }
 
     public static void stop() {
+        Log.d(TAG, "stop");
         // stop the location update service
         Context context = MainApplication.getContext();
         Intent intent = new Intent(context, LocationUpdateService.class);

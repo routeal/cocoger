@@ -42,12 +42,18 @@ abstract class MapActivity extends MapBaseActivity
     protected MapStyle mMapStyle;
     protected PoiManager mPoi;
     protected PlaceManager mPlace;
-    protected FriendManager mFriendManager;
 
     private View mapView;
     private CameraPosition mCameraPosition;
     private Location mInitialLocation;
     private MapBroadcastReceiver mReceiver;
+
+    @Override
+    protected void onDestroy() {
+        FriendManager.destroy();
+        FB.setUser(null);
+        super.onDestroy();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,7 +130,6 @@ abstract class MapActivity extends MapBaseActivity
         mDirection = new MapDirection(mMap, mInfoWindowManager);
         mPoi = new PoiManager(mMap, mGeoDataClient, mInfoWindowManager);
         mPlace = new PlaceManager(this, mMap, mInfoWindowManager);
-        mFriendManager = new FriendManager(this);
 
         mReceiver = new MapBroadcastReceiver(this, mMap, mMm, mDirection, mPlace);
         mReceiver.setLocation(mInitialLocation);
