@@ -3,11 +3,12 @@ package com.routeal.cocoger.ui.main;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -26,25 +27,30 @@ import android.widget.Toast;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.User;
+import com.routeal.cocoger.provider.DBUtil;
 import com.routeal.cocoger.util.LoadImage;
 import com.routeal.cocoger.util.Utils;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.util.TimeZone;
 
 /**
  * Created by nabe on 7/25/17.
  */
 
+/**
+ * AccountActivity is an activity for the users to set up their profile at sign-up and also
+ * to update their profile after sign-in.
+ * When it is used for the profile setup at sign-up, both name and email are given
+ * from the login activity through the intent.
+ */
 public class AccountActivity extends AppCompatActivity {
 
     public final static String DISPLAY_NAME = "displayName";
     public final static String EMAIL = "email";
     private final static String TAG = "AccountActivity";
-    private boolean mIsLogin = false;
+    private boolean mIsInitialSetup = false;
     private String mName;
     private String mEmail;
     private String mBod;
@@ -57,52 +63,29 @@ public class AccountActivity extends AppCompatActivity {
     private ImageView mPictureView;
     private FloatingActionButton mPhotoCameraView;
     private Uri mProfilePictureUri;
+    private CollapsingToolbarLayout mToolBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_account);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        Intent intent = getIntent();
-        mName = intent.getStringExtra(DISPLAY_NAME);
-        mEmail = intent.getStringExtra(EMAIL);
-
-        // mEmail comes only from LoginFragment
-        mIsLogin = (mEmail != null && !mEmail.isEmpty());
-
+        mToolBar = (CollapsingToolbarLayout) findViewById(R.id.toolbar_layout);
         mNameView = (TextView) findViewById(R.id.name);
         mEmailView = (TextView) findViewById(R.id.email);
         mBodView = (TextView) findViewById(R.id.bod);
         mGenderView = (TextView) findViewById(R.id.gender);
         mStartApp = (Button) findViewById(R.id.start_app);
         mPictureView = (ImageView) findViewById(R.id.profile_picture);
-
-        User user = FB.getUser();
-
-        if (!mIsLogin) {
-            ActionBar ab = getSupportActionBar();
-            if (ab != null) {
-                ab.setDisplayHomeAsUpEnabled(true);
-                ab.setDisplayShowTitleEnabled(true);
-                if (user != null && user.getDisplayName() != null) {
-                    ab.setTitle(user.getDisplayName());
-                }
-            }
-        }
-
-        if (user != null) {
-            new LoadImage(new LoadImage.LoadImageListener() {
-                @Override
-                public void onSuccess(Bitmap bitmap) {
-                    mPictureView.setImageBitmap(bitmap);
-                }
-            }).loadProfile(FB.getUid());
-        }
-
         mPhotoCameraView = (FloatingActionButton) findViewById(R.id.photo_camera);
+        View nameContainer = findViewById(R.id.name_container);
+        View bodContainer = findViewById(R.id.bod_container);
+        View genderContainer = findViewById(R.id.gender_container);
+
         mPhotoCameraView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -119,16 +102,7 @@ public class AccountActivity extends AppCompatActivity {
             }
         });
 
-        if (mName == null) {
-            if (user != null && user.getDisplayName() != null) {
-                mNameView.setText(user.getDisplayName());
-            }
-        } else {
-            mNameView.setText(mName);
-        }
-
-        View view = findViewById(R.id.name_container);
-        view.setOnClickListener(new View.OnClickListener() {
+        nameContainer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mNameView.setError(null);
@@ -146,10 +120,7 @@ public class AccountActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 mName = text.getText().toString();
                                 mNameView.setText(mName);
-                                ActionBar ab = AccountActivity.this.getSupportActionBar();
-                                if (ab != null) {
-                                    ab.setTitle(mName);
-                                }
+                                mToolBar.setTitle(mName);
                             }
                         })
                         .setNegativeButton(android.R.string.no, null)
@@ -162,24 +133,7 @@ public class AccountActivity extends AppCompatActivity {
             }
         });
 
-        if (mEmail != null) {
-            mEmailView.setText(mEmail);
-        } else {
-            if (user != null && user.getEmail() != null) {
-                mEmailView.setText(user.getEmail());
-            }
-        }
-
-        if (mBod == null) {
-            if (user != null && user.getBirthYear() != null) {
-                mBodView.setText(user.getBirthYear());
-            }
-        } else {
-            mBodView.setText(mBod);
-        }
-
-        view = findViewById(R.id.bod_container);
-        view.setOnClickListener(new View.OnClickListener() {
+        bodContainer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mBodView.setError(null);
@@ -191,10 +145,9 @@ public class AccountActivity extends AppCompatActivity {
                         break;
                     }
                 }
-                String title = getResources().getString(R.string.birth_year);
-                final int index = (i == years.length) ? -1 : i;
+                final int index = (i < years.length) ? i : -1;
                 new AlertDialog.Builder(AccountActivity.this)
-                        .setTitle(title)
+                        .setTitle(R.string.birth_year)
                         .setSingleChoiceItems(R.array.years, index, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -218,16 +171,7 @@ public class AccountActivity extends AppCompatActivity {
             }
         });
 
-        if (mGender == null) {
-            if (user != null && user.getGender() != null) {
-                mGenderView.setText(user.getGender());
-            }
-        } else {
-            mGenderView.setText(mGender);
-        }
-
-        view = findViewById(R.id.gender_container);
-        view.setOnClickListener(new View.OnClickListener() {
+        genderContainer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mGenderView.setError(null);
@@ -239,10 +183,9 @@ public class AccountActivity extends AppCompatActivity {
                         break;
                     }
                 }
-                String title = getResources().getString(R.string.gender);
-                final int index = (i == genders.length) ? -1 : i;
+                final int index = (i < genders.length) ? i : -1;
                 new AlertDialog.Builder(AccountActivity.this)
-                        .setTitle(title)
+                        .setTitle(R.string.gender)
                         .setSingleChoiceItems(R.array.genders, index, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
@@ -266,21 +209,73 @@ public class AccountActivity extends AppCompatActivity {
             }
         });
 
-        if (!mIsLogin) {
-            mStartApp.setVisibility(View.GONE);
-        } else {
+        // user may or may not be available when it is started after the first sign-up.
+        User user = FB.getUser();
+
+        // name and email from the login
+        Intent intent = getIntent();
+        mName = intent.getStringExtra(DISPLAY_NAME);
+        mEmail = intent.getStringExtra(EMAIL);
+        mIsInitialSetup = (mEmail != null && !mEmail.isEmpty());
+
+        if (mIsInitialSetup) {
             mStartApp.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     setup();
                 }
             });
+        } else {
+            // disable the start app button
+            mStartApp.setVisibility(View.GONE);
+
+            // set the user name to the action bar
+            ActionBar ab = getSupportActionBar();
+            if (ab != null) {
+                ab.setDisplayHomeAsUpEnabled(true);
+                ab.setDisplayShowTitleEnabled(true);
+            }
+
+            if (user != null) {
+                new LoadImage(new LoadImage.LoadImageListener() {
+                    @Override
+                    public void onSuccess(Bitmap bitmap) {
+                        mPictureView.setImageBitmap(bitmap);
+                    }
+                }).loadProfile(FB.getUid());
+            }
+        }
+
+        if (mName != null) {
+            mNameView.setText(mName);
+            mToolBar.setTitle(mName);
+        } else {
+            if (user != null && user.getDisplayName() != null) {
+                mNameView.setText(user.getDisplayName());
+                mToolBar.setTitle(user.getDisplayName());
+            }
+        }
+
+        if (mEmail != null) {
+            mEmailView.setText(mEmail);
+        } else {
+            if (user != null && user.getEmail() != null) {
+                mEmailView.setText(user.getEmail());
+            }
+        }
+
+        if (user != null && user.getBirthYear() != null) {
+            mBodView.setText(user.getBirthYear());
+        }
+
+        if (user != null && user.getGender() != null) {
+            mGenderView.setText(user.getGender());
         }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (!mIsLogin) {
+        if (!mIsInitialSetup) {
             getMenuInflater().inflate(R.menu.menu_save, menu);
             return true;
         }
@@ -291,7 +286,7 @@ public class AccountActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_send) {
-            save();
+            update();
             return true;
         } else if (id == android.R.id.home) {
             finish();
@@ -303,22 +298,14 @@ public class AccountActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        // handle result of CropImageActivity
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             CropImage.ActivityResult result = CropImage.getActivityResult(data);
             if (resultCode == RESULT_OK) {
-                try {
-                    mProfilePictureUri = result.getUri();
-                    InputStream inputStream = getContentResolver().openInputStream(mProfilePictureUri);
-                    Drawable drawable = Drawable.createFromStream(inputStream, result.getUri().toString());
-                    if (drawable instanceof BitmapDrawable) {
-                        Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
-                        Bitmap cropped = Utils.cropCircle(bitmap);
-                        ImageView imageView = (ImageView) findViewById(R.id.profile_picture);
-                        imageView.setImageBitmap(cropped);
-                    }
-                } catch (FileNotFoundException e) {
-                    Log.d(TAG, "CropImage not found file", e);
+                mProfilePictureUri = result.getUri();
+                Bitmap bitmap = Utils.getBitmap(this, mProfilePictureUri);
+                if (bitmap != null) {
+                    Bitmap cropped = Utils.cropCircle(bitmap);
+                    mPictureView.setImageBitmap(cropped);
                 }
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 Toast.makeText(this, "Cropping onFail: " + result.getError(), Toast.LENGTH_LONG).show();
@@ -326,7 +313,7 @@ public class AccountActivity extends AppCompatActivity {
         }
     }
 
-    private void save() {
+    private void update() {
         User user = FB.getUser();
 
         if (mName != null && mName.equals(user.getDisplayName())) {
@@ -341,6 +328,7 @@ public class AccountActivity extends AppCompatActivity {
 
         if (mProfilePictureUri == null) {
             if (mName == null && mBod == null && mGender == null) {
+                // nothing to update
                 AccountActivity.this.finish();
                 return;
             }
@@ -348,6 +336,8 @@ public class AccountActivity extends AppCompatActivity {
                 @Override
                 public void onSuccess() {
                     AccountActivity.this.finish();
+                    Intent intent = new Intent(FB.USER_UPDATED);
+                    LocalBroadcastManager.getInstance(AccountActivity.this).sendBroadcast(intent);
                 }
 
                 @Override
@@ -358,23 +348,29 @@ public class AccountActivity extends AppCompatActivity {
         } else {
             byte[] bytes = Utils.getBitmapBytes(this, mProfilePictureUri);
             if (bytes == null) {
+                Log.d(TAG, "Failed to convert a profile image into byte");
                 return;
             }
-
-            String uid = FB.getUid();
 
             FB.uploadProfileImage(bytes, new FB.UploadDataListener() {
                 @Override
                 public void onSuccess(String url) {
+                    String dbName = FB.getUid() + "_" + FB.PROFILE_IMAGE;
+                    DBUtil.deleteImage(dbName);
+
                     // set the url to the user
                     if (mName == null && mBod == null && mGender == null) {
                         AccountActivity.this.finish();
+                        Intent intent = new Intent(FB.USER_UPDATED);
+                        LocalBroadcastManager.getInstance(AccountActivity.this).sendBroadcast(intent);
                         return;
                     }
                     FB.updateUser(mName, mGender, mBod, new FB.CompleteListener() {
                         @Override
                         public void onSuccess() {
                             AccountActivity.this.finish();
+                            Intent intent = new Intent(FB.USER_UPDATED);
+                            LocalBroadcastManager.getInstance(AccountActivity.this).sendBroadcast(intent);
                         }
 
                         @Override
@@ -419,20 +415,21 @@ public class AccountActivity extends AppCompatActivity {
         final Utils.ProgressBarView dialog = Utils.getProgressBar(this);
 
         // get the user in the memory
-        User tmp;
-        if (FB.getUser() == null) {
-            // when the network is slow, the user may not be created in the background by the time
+        User tmp = FB.getUser();
+
+        if (tmp == null) {
+            // sometime when the network is slow, the user object may not be created
+            // in the background by the time, normally FB.getUser() works
             tmp = new User();
-        } else {
-            tmp = FB.getUser();
         }
+
         final User user = tmp;
         user.setDisplayName(mName);
         user.setSearchedName(mName.toLowerCase());
         user.setGender(mGender.toLowerCase());
         user.setBirthYear(mBod.toLowerCase());
         user.setCreated(System.currentTimeMillis());
-        user.setLocale(getResources().getConfiguration().locale.getDisplayLanguage());
+        user.setLocale(Utils.getLanguage());
         user.setTimezone(TimeZone.getDefault().getID());
 
         byte bytes[] = Utils.getBitmapBytes(this, mProfilePictureUri);
@@ -448,11 +445,7 @@ public class AccountActivity extends AppCompatActivity {
                 dialog.hide();
 
                 // save the user to the database
-                try {
-                    FB.initUser(user);
-                } catch (Exception e) {
-                    Log.d(TAG, "Failed to save the user object to FB.", e);
-                }
+                FB.initUser(user);
 
                 // start the main map
                 Intent intent = new Intent(getApplicationContext(), PanelMapActivity.class);

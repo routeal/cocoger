@@ -56,7 +56,7 @@ import com.routeal.cocoger.ui.main.PagerFragment;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 import com.routeal.cocoger.ui.main.PlaceListViewHolder;
 import com.routeal.cocoger.ui.main.RecyclerAdapterListener;
-import com.routeal.cocoger.ui.main.UserListViewHolder;
+import com.routeal.cocoger.ui.main.UserDialogViewHolder;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Notifi;
 import com.routeal.cocoger.util.Utils;
@@ -69,6 +69,7 @@ import java.util.Map;
 public class FB {
 
     public final static String USER_AVAILABLE = "user_available";
+    public final static String USER_UPDATED = "user_updated";
     public final static String USER_LOCATION_UPDATE = "user_location_update";
     public final static String FRIEND_LOCATION_ADD = "friend_location_add";
     public final static String FRIEND_LOCATION_UPDATE = "friend_location_update";
@@ -107,12 +108,9 @@ public class FB {
 
     private final static String TAG = "FB";
 
-    private static User mUser;
+    private static boolean mHasMonitoringStarted = false;
 
-    // set up the auth state listener as soon as the app is started
-    static {
-        monitorAuthentication();
-    }
+    private static User mUser;
 
     public static User getUser() {
         return mUser;
@@ -172,6 +170,9 @@ public class FB {
 
     public static void monitorAuthentication() {
         Log.d(TAG, "monitorAuthentication");
+
+        if (mHasMonitoringStarted) return;
+        mHasMonitoringStarted = true;
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
 
@@ -501,7 +502,7 @@ public class FB {
         FB.setUser(newUser);
     }
 
-    public static void initUser(User user) throws Exception {
+    public static void initUser(User user) {
         String uid = getUid();
         DatabaseReference db = getUserDatabaseReference();
         db.child(uid).setValue(user);
@@ -523,8 +524,8 @@ public class FB {
 
     @SuppressWarnings("unchecked")
     public static boolean checkFriendRequest(RecyclerView.Adapter a) {
-        FirebaseRecyclerAdapter<User, UserListViewHolder> adapter =
-                (FirebaseRecyclerAdapter<User, UserListViewHolder>) a;
+        FirebaseRecyclerAdapter<User, UserDialogViewHolder> adapter =
+                (FirebaseRecyclerAdapter<User, UserDialogViewHolder>) a;
         boolean accepted = false;
 
         Map<String, Long> invitees = FB.getUser().getInvitees();
@@ -544,8 +545,8 @@ public class FB {
 
     @SuppressWarnings("unchecked")
     public static boolean sendFriendRequest(RecyclerView.Adapter a) {
-        FirebaseRecyclerAdapter<User, UserListViewHolder> adapter =
-                (FirebaseRecyclerAdapter<User, UserListViewHolder>) a;
+        FirebaseRecyclerAdapter<User, UserDialogViewHolder> adapter =
+                (FirebaseRecyclerAdapter<User, UserDialogViewHolder>) a;
 
         boolean modified = false;
 
@@ -719,10 +720,13 @@ public class FB {
         deleteData(refName, listener);
     }
 
-    public static void uploadData(byte[] bytes, String refName, final UploadDataListener listener) {
-        StorageReference ref = FirebaseStorage.getInstance().getReference().child(refName);
-        ref.putBytes(bytes)
-                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+    // delete the existing image first and then upload
+    public static void uploadData(final byte[] bytes, String refName, final UploadDataListener listener) {
+        final StorageReference ref = FirebaseStorage.getInstance().getReference().child(refName);
+        ref.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                ref.putBytes(bytes).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                         Uri downloadUrl = taskSnapshot.getDownloadUrl();
@@ -732,13 +736,14 @@ public class FB {
                         }
                         if (listener != null) listener.onSuccess(url);
                     }
-                })
-                .addOnFailureListener(new OnFailureListener() {
+                }).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         if (listener != null) listener.onFail(e.getLocalizedMessage());
                     }
                 });
+            }
+        });
     }
 
     public static void downloadData(String refName, final DownloadDataListener listener) {
@@ -956,7 +961,7 @@ public class FB {
         };
     }
 
-    public static FirebaseRecyclerAdapter<User, UserListViewHolder> getUserRecyclerAdapter(String text, final View view) {
+    public static FirebaseRecyclerAdapter<User, UserDialogViewHolder> getUserRecyclerAdapter(String text, final View view) {
         DatabaseReference db = getUserDatabaseReference();
 
         Query query = db
@@ -970,16 +975,16 @@ public class FB {
                         .setQuery(query, User.class)
                         .build();
 
-        return new FirebaseRecyclerAdapter<User, UserListViewHolder>(options) {
+        return new FirebaseRecyclerAdapter<User, UserDialogViewHolder>(options) {
             @Override
-            public UserListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            public UserDialogViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
                 View view = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.listview_user_list, parent, false);
-                return new UserListViewHolder(view);
+                return new UserDialogViewHolder(view);
             }
 
             @Override
-            protected void onBindViewHolder(UserListViewHolder holder, int position, User model) {
+            protected void onBindViewHolder(UserDialogViewHolder holder, int position, User model) {
                 holder.bind(model, getRef(position).getKey());
             }
 

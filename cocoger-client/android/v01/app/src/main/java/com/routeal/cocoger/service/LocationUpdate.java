@@ -86,7 +86,7 @@ public class LocationUpdate {
     private long mLocationUpdateIntervalResetTime = 0;
 
     private LocationUpdate() {
-        //FB.monitorAuthentication();
+        FB.monitorAuthentication();
     }
 
     static LocationUpdate getInstance() {
@@ -100,6 +100,8 @@ public class LocationUpdate {
 
     void exec(Context context) {
         Log.d(TAG, "exec");
+        FB.monitorAuthentication();
+
         connectGoogleApi(context);
 
         startLocationUpdate(context);

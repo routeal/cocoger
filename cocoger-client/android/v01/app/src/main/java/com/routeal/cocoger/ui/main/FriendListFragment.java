@@ -32,7 +32,7 @@ public class FriendListFragment extends PagerFragment {
                 FullScreenDialogFragment dialogFragment = new FullScreenDialogFragment.Builder(getActivity())
                         .setTitle(R.string.search_users_title)
                         .setConfirmButton(R.string.request_friend)
-                        .setContent(UserListFragment.class, new Bundle())
+                        .setContent(UserDialogFragment.class, new Bundle())
                         .build();
                 dialogFragment.show(getActivity().getSupportFragmentManager(), "user-dialog");
             }

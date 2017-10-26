@@ -36,7 +36,7 @@ import java.util.Map;
  * Created by hwatanabe on 10/18/17.
  */
 
-public class GroupFriendFragment extends Fragment implements FullScreenDialogContent {
+public class GroupDialogFragment extends Fragment implements FullScreenDialogContent {
 
     private static GroupColorButton mGroupColorButtons[] = {
             new GroupColorButton(R.id.group_color_1, R.id.group_color_image_1, R.color.steelblue, "steelblue"),

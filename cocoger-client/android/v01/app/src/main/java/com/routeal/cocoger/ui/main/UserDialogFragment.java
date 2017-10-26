@@ -28,12 +28,12 @@ import com.routeal.cocoger.util.Utils;
  * Created by nabe on 8/13/17.
  */
 
-public class UserListFragment extends Fragment
+public class UserDialogFragment extends Fragment
         implements FullScreenDialogContent,
         View.OnClickListener,
         TextView.OnEditorActionListener {
 
-    private final static String TAG = "UserListFragment";
+    private final static String TAG = "UserDialogFragment";
 
     private FullScreenDialogController mDialogController;
 
@@ -142,6 +142,7 @@ public class UserListFragment extends Fragment
             if (mAdapter != null) {
                 mAdapter.stopListening();
             }
+            // TOOD: should not use FB UI for this
             mAdapter = FB.getUserRecyclerAdapter(text, getView());
             mAdapter.startListening();
             mRecyclerView.setAdapter(mAdapter);

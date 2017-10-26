@@ -1,5 +1,6 @@
 package com.routeal.cocoger.util;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -8,6 +9,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
@@ -37,6 +39,7 @@ import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.provider.DBUtil;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.text.DateFormat;
 import java.util.Date;
@@ -136,6 +139,20 @@ public class Utils {
             Log.d(TAG, "Failed to convert bitmap into byte array");
         }
         return bytes;
+    }
+
+    public static Bitmap getBitmap(Context context, Uri uri) {
+        Bitmap bitmap = null;
+        try {
+            InputStream in = context.getContentResolver().openInputStream(uri);
+            Drawable drawable = Drawable.createFromStream(in, uri.toString());
+            if (drawable instanceof BitmapDrawable) {
+                bitmap = ((BitmapDrawable) drawable).getBitmap();
+            }
+        } catch (FileNotFoundException e) {
+            Log.d(TAG, "Failed to read a local file into bitmap", e);
+        }
+        return bitmap;
     }
 
     public static LatLng getLatLng(Location location) {
@@ -605,6 +622,23 @@ public class Utils {
 
     public static ProgressBarView getProgressBar(Activity activity) {
         return new ProgressBarView(activity);
+    }
+
+    @SuppressWarnings("deprecation")
+    private static String getCurrentLocale2() {
+        return MainApplication.getContext().getResources().getConfiguration().locale.getLanguage();
+    }
+
+    @TargetApi(Build.VERSION_CODES.N)
+    private static Locale getCurrentLocale() {
+        return MainApplication.getContext().getResources().getConfiguration().getLocales().get(0);
+    }
+
+    public static String getLanguage() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            return getCurrentLocale().getLanguage();
+        }
+        return getCurrentLocale2();
     }
 
     public static class ProgressBarView {

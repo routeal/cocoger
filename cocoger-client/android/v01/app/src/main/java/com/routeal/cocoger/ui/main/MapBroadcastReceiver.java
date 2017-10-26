@@ -48,6 +48,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
         mPlace = placeManager;
         IntentFilter filter = new IntentFilter();
         filter.addAction(FB.USER_AVAILABLE);
+        filter.addAction(FB.USER_UPDATED);
         filter.addAction(FB.USER_LOCATION_UPDATE);
         filter.addAction(FB.FRIEND_LOCATION_ADD);
         filter.addAction(FB.FRIEND_LOCATION_UPDATE);
@@ -101,6 +102,8 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
                 }
                 mMm.setupMarkers(mLocation, mAddress);
             }
+        } else if (intent.getAction().equals(FB.USER_UPDATED)) {
+            mMm.update();
         } else if (intent.getAction().equals(FB.FRIEND_LOCATION_ADD)) {
             final String fid = intent.getStringExtra(FB.KEY);
             final Friend friend = FriendManager.getFriend(fid);
@@ -228,7 +231,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             FullScreenDialogFragment dialogFragment = new FullScreenDialogFragment.Builder(mActivity)
                     .setTitle(R.string.new_group)
                     .setConfirmButton(R.string.create_group)
-                    .setContent(GroupFriendFragment.class, new Bundle())
+                    .setContent(GroupDialogFragment.class, new Bundle())
                     .build();
             dialogFragment.show(mActivity.getSupportFragmentManager(), "user-dialog");
         } else if (intent.getAction().equals(FB.GROUP_EDIT)) {
@@ -240,7 +243,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             FullScreenDialogFragment dialogFragment = new FullScreenDialogFragment.Builder(mActivity)
                     .setTitle(R.string.edit_group)
                     .setConfirmButton(R.string.save_group)
-                    .setContent(GroupFriendFragment.class, bundle)
+                    .setContent(GroupDialogFragment.class, bundle)
                     .build();
             dialogFragment.show(mActivity.getSupportFragmentManager(), "user-dialog");
         }

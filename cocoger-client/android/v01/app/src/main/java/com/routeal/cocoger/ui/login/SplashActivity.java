@@ -19,6 +19,8 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        FB.monitorAuthentication();
+
         DBUtil.purgeImages();
         DBUtil.purgeGeoLocations();
         DBUtil.purgeReverseGeoLocations();

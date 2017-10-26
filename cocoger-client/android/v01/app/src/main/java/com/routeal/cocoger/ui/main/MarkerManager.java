@@ -378,6 +378,30 @@ class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
         }
     }
 
+    // update the user(myself) icon
+    void update() {
+        Location location = null;
+        Address address = null;
+        // remove first
+        String key = FB.getUid();
+        for (Iterator<ComboMarker> ite = mMarkers.iterator(); ite.hasNext(); ) {
+            ComboMarker marker = ite.next();
+            if (marker.contains(key)) {
+                ComboMarker.MarkerInfo info = marker.getMakerInfo(key);
+                location = info.location;
+                address = info.address;
+                boolean removed = marker.removeUser(key);
+                if (removed) {
+                    ite.remove();
+                }
+            }
+        }
+        if (location == null) return; // error, not found
+        // add again with the new info
+        User user = FB.getUser();
+        add(key, user.getDisplayName(), location, address, LocationRange.CURRENT.range);
+    }
+
     void setupMarkers(Location location, Address address) {
         if (location == null) return;
 

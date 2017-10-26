@@ -15,14 +15,14 @@ import com.routeal.cocoger.util.LoadImage;
 
 import java.util.Map;
 
-public class UserListViewHolder extends RecyclerView.ViewHolder {
+public class UserDialogViewHolder extends RecyclerView.ViewHolder {
     private final CheckBox mCheckbox;
     private final ImageView mPicture;
     private final TextView mName;
     private final TextView mLocation;
     private final View mView;
 
-    public UserListViewHolder(View itemView) {
+    public UserDialogViewHolder(View itemView) {
         super(itemView);
 
         mView = itemView;

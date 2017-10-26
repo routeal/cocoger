@@ -213,13 +213,6 @@ public class LoginFragment extends Fragment {
             public void onSuccess(String key) {
                 dialog.hide();
 
-                /*
-                User user = new User();
-                user.setDisplayName(mDisplayName);
-                user.setEmail(email);
-                FB.setUser(user);
-                */
-
                 // start the setup
                 Intent intent = new Intent(getActivity(), AccountActivity.class);
                 intent.putExtra(AccountActivity.EMAIL, email);

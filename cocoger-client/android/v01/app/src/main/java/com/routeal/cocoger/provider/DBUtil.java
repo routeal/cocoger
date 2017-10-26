@@ -244,6 +244,27 @@ public class DBUtil {
         return data;
     }
 
+    public static void deleteImage(String url) {
+        ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
+
+        long id = 0;
+        String selectionClause = DB.Images.NAME + " = ?";
+        String[] selectionArgs = new String[]{url};
+        Cursor cursor = contentResolver.query(DB.Images.CONTENT_URI, null, selectionClause, selectionArgs, null);
+        if (cursor != null) {
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                id = cursor.getLong(0);
+            }
+            cursor.close();
+        }
+
+        if (id == 0) return; // not found
+
+        Uri uri = ContentUris.withAppendedId(DB.Images.CONTENT_URI, id);
+        contentResolver.delete(uri, null, null);
+    }
+
     /**
      * Calculates the end-point from a given source at a given range (meters)
      * and bearing (degrees). This methods uses simple geometry equations to
