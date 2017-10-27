@@ -32,30 +32,20 @@ import com.routeal.cocoger.util.Utils;
  * Created by hwatanabe on 9/27/17.
  */
 
-class PoiManager implements MarkerInterface, GoogleMap.OnPoiClickListener {
+class PoiManager {
     private final static String TAG = "PoiManager";
-    private GoogleMap mMap;
-    private GeoDataClient mGeoDataClient;
-    private com.appolica.interactiveinfowindow.InfoWindowManager mInfoWindowManager;
-    private Marker mMarker;
-    private InfoWindow mWindow;
+    private static Marker mMarker;
+    private static InfoWindow mWindow;
 
-    PoiManager(GoogleMap googleMap, GeoDataClient geoDataClient, com.appolica.interactiveinfowindow.InfoWindowManager infoWindowManager) {
-        mMap = googleMap;
-        mMap.setOnPoiClickListener(this);
-        mGeoDataClient = geoDataClient;
-        mInfoWindowManager = infoWindowManager;
-    }
-
-    @Override
-    public void onPoiClick(PointOfInterest pointOfInterest) {
-        mGeoDataClient.getPlaceById(pointOfInterest.placeId).addOnCompleteListener(new OnCompleteListener<PlaceBufferResponse>() {
+    static void onPoiClick(final GoogleMap map, final GeoDataClient geoDataClient,
+                           final InfoWindowManager infoWindowManager, PointOfInterest pointOfInterest) {
+        geoDataClient.getPlaceById(pointOfInterest.placeId).addOnCompleteListener(new OnCompleteListener<PlaceBufferResponse>() {
             @Override
             public void onComplete(@NonNull Task<PlaceBufferResponse> task) {
                 if (task.isSuccessful()) {
                     PlaceBufferResponse places = task.getResult();
                     Place place = places.get(0);
-                    addPoiInfoWindow(place);
+                    addPoiInfoWindow(map, geoDataClient, infoWindowManager, place);
                     places.release();
                 }
             }
@@ -64,7 +54,8 @@ class PoiManager implements MarkerInterface, GoogleMap.OnPoiClickListener {
 
     // One time exclusive info window for clicking on Poi in the map, which creates
     // a transparent marker and adds an info window on it.
-    private void addPoiInfoWindow(Place place) {
+    private static void addPoiInfoWindow(GoogleMap map, final GeoDataClient geoDataClient,
+                                         InfoWindowManager infoWindowManager, Place place) {
         LatLng pos = place.getLatLng();
         Bitmap bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
@@ -75,19 +66,19 @@ class PoiManager implements MarkerInterface, GoogleMap.OnPoiClickListener {
                 .position(pos)
                 .icon(transparent)
                 .anchor((float) 0.5, (float) 0.5);
-        mMarker = mMap.addMarker(options);
+        mMarker = map.addMarker(options);
 
         final PoiInfoFragment poiInfoFragment = new PoiInfoFragment();
         poiInfoFragment.setTitle(place.getName().toString());
         poiInfoFragment.setLocation(Utils.getLocation(place.getLatLng()));
         poiInfoFragment.setAddress(place.getAddress().toString());
-        poiInfoFragment.setPoiManager(PoiManager.this);
+        poiInfoFragment.setInfoWindowManager(infoWindowManager);
         InfoWindow.MarkerSpecification mMarkerOffset = new InfoWindow.MarkerSpecification(0, 0);
         mWindow = new InfoWindow(mMarker, mMarkerOffset, poiInfoFragment);
-        mInfoWindowManager.setHideOnFling(true);
-        mInfoWindowManager.toggle(mWindow, true);
+        infoWindowManager.setHideOnFling(true);
+        infoWindowManager.toggle(mWindow, true);
 
-        final Task<PlacePhotoMetadataResponse> photoMetadataResponse = mGeoDataClient.getPlacePhotos(place.getId());
+        final Task<PlacePhotoMetadataResponse> photoMetadataResponse = geoDataClient.getPlacePhotos(place.getId());
         photoMetadataResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoMetadataResponse>() {
             @Override
             public void onComplete(@NonNull Task<PlacePhotoMetadataResponse> task) {
@@ -104,7 +95,7 @@ class PoiManager implements MarkerInterface, GoogleMap.OnPoiClickListener {
                 CharSequence attribution = photoMetadata.getAttributions();
                 if (attribution == null || attribution.length() == 0) return;
                 // Get a full-size bitmap for the photo.
-                Task<PlacePhotoResponse> photoResponse = mGeoDataClient.getScaledPhoto(photoMetadata, 128, 128);
+                Task<PlacePhotoResponse> photoResponse = geoDataClient.getScaledPhoto(photoMetadata, 128, 128);
                 if (!photoMetadata.isDataValid()) return;
                 photoResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoResponse>() {
                     @Override
@@ -120,9 +111,9 @@ class PoiManager implements MarkerInterface, GoogleMap.OnPoiClickListener {
         });
     }
 
-    void removePoiInfoWindow() {
+    static void removePoiInfoWindow(InfoWindowManager infoWindowManager) {
         if (mWindow != null) {
-            mInfoWindowManager.hide(mWindow);
+            infoWindowManager.hide(mWindow);
             Fragment fragment = mWindow.getWindowFragment();
             FragmentManager fragmentManager = fragment.getFragmentManager();
             if (fragmentManager != null) {
@@ -138,17 +129,11 @@ class PoiManager implements MarkerInterface, GoogleMap.OnPoiClickListener {
         }
     }
 
-    @Override
-    public boolean onMarkerClick(Marker marker) {
-        return false;
-    }
-
-    @Override
-    public void onWindowHidden(InfoWindowManager manager, InfoWindow infoWindow) {
+    static void onWindowHidden(InfoWindowManager infoWindowManager, InfoWindow infoWindow) {
         Fragment fragment = infoWindow.getWindowFragment();
         if (fragment != null) {
             if (fragment instanceof PoiInfoFragment) {
-                removePoiInfoWindow();
+                removePoiInfoWindow(infoWindowManager);
             }
         }
     }

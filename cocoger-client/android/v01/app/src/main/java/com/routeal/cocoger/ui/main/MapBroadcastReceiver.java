@@ -36,18 +36,16 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
     private GeoDataClient mGeoDataClient;
     private MapActivity mActivity;
     private MapDirection mDirection;
-    private PlaceManager mPlace;
 
     private Location mLocation;
     private Address mAddress;
 
     MapBroadcastReceiver(MapActivity activity, GoogleMap map, InfoWindowManager infoWindowManager,
-                         MapDirection mapDirection, PlaceManager placeManager) {
+                         MapDirection mapDirection) {
         mActivity = activity;
         mInfoWindowManager = infoWindowManager;
         mMap = map;
         mDirection = mapDirection;
-        mPlace = placeManager;
         IntentFilter filter = new IntentFilter();
         filter.addAction(FB.USER_AVAILABLE);
         filter.addAction(FB.USER_UPDATED);
@@ -213,19 +211,19 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             String address = intent.getStringExtra(FB.ADDRESS);
             String title = intent.getStringExtra(FB.TITLE);
             Bitmap bitmap = intent.getParcelableExtra(FB.IMAGE);
-            mPlace.addPlace(title, location, address, bitmap);
+            PlaceManager.addPlace(mActivity, title, location, address, bitmap);
         } else if (intent.getAction().equals(FB.PLACE_EDIT)) {
             String key = intent.getStringExtra(FB.KEY);
             Place place = (Place) intent.getSerializableExtra(FB.PLACE);
-            mPlace.editPlace(key, place);
+            PlaceManager.editPlace(mActivity, mInfoWindowManager, key, place);
         } else if (intent.getAction().equals(FB.PLACE_REMOVE)) {
             String key = intent.getStringExtra(FB.KEY);
             Place place = (Place) intent.getSerializableExtra(FB.PLACE);
-            mPlace.removePlace(key, place);
+            PlaceManager.removePlace(mActivity, mInfoWindowManager, key, place);
         } else if (intent.getAction().equals(FB.PLACE_SHOW)) {
             String key = intent.getStringExtra(FB.KEY);
             Place place = (Place) intent.getSerializableExtra(FB.PLACE);
-            mPlace.showPlace(key);
+            PlaceManager.showPlace(mMap, key);
             mActivity.closeSlidePanel();
         } else if (intent.getAction().equals(FB.GROUP_CREATE)) {
             FullScreenDialogFragment dialogFragment = new FullScreenDialogFragment.Builder(mActivity)

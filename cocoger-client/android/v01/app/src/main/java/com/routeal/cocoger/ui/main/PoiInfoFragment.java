@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.appolica.interactiveinfowindow.InfoWindowManager;
 import com.routeal.cocoger.R;
 
 /**
@@ -18,7 +19,7 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
     private String mTitle;
     private Location mLocation;
     private String mAddress;
-    private PoiManager mPoiManager;
+    private InfoWindowManager mInfoWindowManager;
 
     @Nullable
     @Override
@@ -73,7 +74,7 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
                 showGoogleMap(mLocation, mTitle);
                 break;
         }
-        mPoiManager.removePoiInfoWindow();
+        PoiManager.removePoiInfoWindow(mInfoWindowManager);
     }
 
     void setTitle(String title) {
@@ -84,8 +85,8 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
         mAddress = address;
     }
 
-    void setPoiManager(PoiManager poiManager) {
-        mPoiManager = poiManager;
+    void setInfoWindowManager(InfoWindowManager infoWindowManager) {
+        mInfoWindowManager = infoWindowManager;
     }
 
     Location getLocation() {

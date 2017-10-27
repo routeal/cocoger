@@ -20,7 +20,9 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.PointOfInterest;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.util.Utils;
@@ -29,6 +31,9 @@ import com.theartofdev.edmodo.cropper.CropImage;
 abstract class MapActivity extends MapBaseActivity
         implements GoogleMap.OnMarkerClickListener,
         GoogleMap.OnCameraMoveListener,
+        GoogleMap.OnMapLongClickListener,
+        GoogleMap.OnMarkerDragListener,
+        GoogleMap.OnPoiClickListener,
         OnMapReadyCallback,
         View.OnClickListener,
         InfoWindowManager.WindowShowListener {
@@ -46,8 +51,6 @@ abstract class MapActivity extends MapBaseActivity
     protected Utils.ProgressBarView mSpinner;
     protected MapDirection mDirection;
     protected MapStyle mMapStyle;
-    protected PoiManager mPoi;
-    protected PlaceManager mPlace;
 
     private View mapView;
     private CameraPosition mCameraPosition;
@@ -93,9 +96,7 @@ abstract class MapActivity extends MapBaseActivity
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             CropImage.ActivityResult result = CropImage.getActivityResult(data);
             if (resultCode == RESULT_OK) {
-                if (mPlace != null) {
-                    mPlace.setCropImage(this, result.getUri());
-                }
+                PlaceManager.setCropImage(this, result.getUri());
             }
         }
     }
@@ -133,10 +134,8 @@ abstract class MapActivity extends MapBaseActivity
 
         mGeoDataClient = Places.getGeoDataClient(this, null);
         mDirection = new MapDirection(mMap, mInfoWindowManager);
-        mPoi = new PoiManager(mMap, mGeoDataClient, mInfoWindowManager);
-        mPlace = new PlaceManager(this, mMap, mInfoWindowManager);
 
-        mReceiver = new MapBroadcastReceiver(this, mMap, mInfoWindowManager, mDirection, mPlace);
+        mReceiver = new MapBroadcastReceiver(this, mMap, mInfoWindowManager, mDirection);
         mReceiver.setLocation(mInitialLocation);
 
         mMap.setPadding(8, 0, 0, 148);
@@ -146,6 +145,9 @@ abstract class MapActivity extends MapBaseActivity
         mMap.setMyLocationEnabled(true);
         mMap.setOnMarkerClickListener(this);
         mMap.setOnCameraMoveListener(this);
+        mMap.setOnMarkerDragListener(this);
+        mMap.setOnMapLongClickListener(this);
+        mMap.setOnPoiClickListener(this);
 
         setupApp();
 
@@ -186,16 +188,8 @@ abstract class MapActivity extends MapBaseActivity
     public boolean onMarkerClick(Marker marker) {
         if (MarkerManager.onMarkerClick(marker)) {
             return true;
-        }
-        if (mPoi != null) {
-            if (mPoi.onMarkerClick(marker)) {
-                return true;
-            }
-        }
-        if (mPlace != null) {
-            if (mPlace.onMarkerClick(marker)) {
-                return true;
-            }
+        } else if (PlaceManager.onMarkerClick(mInfoWindowManager, marker)) {
+            return true;
         }
         return false;
     }
@@ -217,17 +211,36 @@ abstract class MapActivity extends MapBaseActivity
 
     @Override
     public void onWindowHidden(@NonNull InfoWindow infoWindow) {
-        if (mPoi != null) {
-            mPoi.onWindowHidden(mInfoWindowManager, infoWindow);
-        }
-        if (mPlace != null) {
-            mPlace.onWindowHidden(mInfoWindowManager, infoWindow);
-        }
+        PoiManager.onWindowHidden(mInfoWindowManager, infoWindow);
     }
 
     @Override
     public void onCameraMove() {
         MarkerManager.onCameraMove(mMap, mInfoWindowManager);
+    }
+
+    @Override
+    public void onMapLongClick(LatLng latLng) {
+        PlaceManager.onMapLongClick(this, mMap, latLng);
+    }
+
+    @Override
+    public void onMarkerDragStart(Marker marker) {
+
+    }
+
+    @Override
+    public void onMarkerDrag(Marker marker) {
+    }
+
+    @Override
+    public void onMarkerDragEnd(Marker marker) {
+        PlaceManager.onMarkerDragEnd(marker);
+    }
+
+    @Override
+    public void onPoiClick(PointOfInterest pointOfInterest) {
+        PoiManager.onPoiClick(mMap, mGeoDataClient, mInfoWindowManager, pointOfInterest);
     }
 
     abstract void closeSlidePanel();

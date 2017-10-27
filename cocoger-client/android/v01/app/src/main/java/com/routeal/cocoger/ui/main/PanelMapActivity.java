@@ -155,17 +155,17 @@ public class PanelMapActivity extends SearchMapActivity {
                 new RecyclerAdapterListener<Place>() {
                     @Override
                     public void onAdded(String key, Place place) {
-                        mPlace.add(key, place);
+                        PlaceManager.add(PanelMapActivity.this, mMap, key, place);
                     }
 
                     @Override
                     public void onChanged(String key, Place place) {
-                        mPlace.change(key, place);
+                        PlaceManager.change(PanelMapActivity.this, key, place);
                     }
 
                     @Override
                     public void onRemoved(String key) {
-                        mPlace.remove(key);
+                        PlaceManager.remove(mInfoWindowManager, key);
                     }
                 });
         placeAdapter.startListening();
