@@ -9,6 +9,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 
 import com.appolica.interactiveinfowindow.InfoWindow;
+import com.appolica.interactiveinfowindow.InfoWindowManager;
 import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceBufferResponse;
@@ -143,7 +144,7 @@ class PoiManager implements MarkerInterface, GoogleMap.OnPoiClickListener {
     }
 
     @Override
-    public void onWindowHidden(InfoWindow infoWindow) {
+    public void onWindowHidden(InfoWindowManager manager, InfoWindow infoWindow) {
         Fragment fragment = infoWindow.getWindowFragment();
         if (fragment != null) {
             if (fragment instanceof PoiInfoFragment) {

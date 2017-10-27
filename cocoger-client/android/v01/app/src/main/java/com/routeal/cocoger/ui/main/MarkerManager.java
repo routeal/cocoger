@@ -4,7 +4,6 @@ import android.location.Address;
 import android.location.Location;
 import android.util.Log;
 
-import com.appolica.interactiveinfowindow.InfoWindow;
 import com.appolica.interactiveinfowindow.InfoWindowManager;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -22,25 +21,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
+class MarkerManager {
 
     private final static String TAG = "MarkerManager";
 
-    private List<ComboMarker> mMarkers = new ArrayList<>();
-    private GoogleMap mMap;
-    private InfoWindowManager mInfoWindowManager;
-    private double mMarkerDistance = 10;
-    private boolean mHasFriendMarkers = false;
+    private static List<ComboMarker> mMarkers = new ArrayList<>();
+    private static double mMarkerDistance = 10;
+    private static boolean mHasFriendMarkers = false;
 
-    MarkerManager(GoogleMap map, InfoWindowManager infoWindowManager) {
-        mMap = map;
-        mMap.setOnCameraMoveListener(this);
-        mInfoWindowManager = infoWindowManager;
-    }
-
-    @Override
-    public void onCameraMove() {
-        CameraPosition cameraPosition = mMap.getCameraPosition();
+    static void onCameraMove(GoogleMap map, InfoWindowManager infoWindowManager) {
+        CameraPosition cameraPosition = map.getCameraPosition();
         double oldDistance = mMarkerDistance;
         ////Log.d(TAG, "Zoom: " + cameraPosition.zoom + " old:" + oldDistance);
         if (cameraPosition.zoom > 20) {
@@ -79,15 +69,14 @@ class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
         }
         if (mMarkerDistance < oldDistance) {
             Log.d(TAG, "zoomIn:" + cameraPosition.zoom + " distance=" + mMarkerDistance);
-            zoomIn();
+            zoomIn(map, infoWindowManager);
         } else {
-            zoomOut();
+            zoomOut(map, infoWindowManager);
             Log.d(TAG, "zoomOut:" + cameraPosition.zoom + " distance=" + mMarkerDistance);
         }
     }
 
-    @Override
-    public boolean onMarkerClick(Marker marker) {
+    static boolean onMarkerClick(Marker marker) {
         for (ComboMarker entry : mMarkers) {
             if (entry.onMarkerClick(marker)) {
                 return true;
@@ -96,12 +85,7 @@ class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
         return false;
     }
 
-    @Override
-    public void onWindowHidden(InfoWindow infoWindow) {
-
-    }
-
-    void remove(String id) {
+    static void remove(String id) {
         for (Iterator<ComboMarker> ite = mMarkers.iterator(); ite.hasNext(); ) {
             ComboMarker marker = ite.next();
             if (marker.contains(id)) {
@@ -115,7 +99,7 @@ class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
     }
 
     // add a new user or friend
-    private void add(String id, String name, Location location, Address address, int range) {
+    private static void add(GoogleMap map, InfoWindowManager infoWindowManager, String id, String name, Location location, Address address, int range) {
         if (range == 0) return;
 
         if (address != null) {
@@ -139,12 +123,12 @@ class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
         }
 
         Log.d(TAG, "add: create a new marker " + id);
-        ComboMarker m = new ComboMarker(mMap, mInfoWindowManager, id, name, location, address, range);
+        ComboMarker m = new ComboMarker(map, infoWindowManager, id, name, location, address, range);
         mMarkers.add(m);
     }
 
     // reposition the marker owned by the key
-    void reposition(String key, Location location, Address address, int range) {
+    static void reposition(GoogleMap map, InfoWindowManager infoWindowManager, String key, Location location, Address address, int range) {
         Log.d(TAG, "reposition: " + key);
 
         Location rangeLocation = null;
@@ -226,12 +210,12 @@ class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
 
         Log.d(TAG, "reposition: add a marker for " + key);
         // add a new marker to map
-        mMarkers.add(new ComboMarker(mMap, mInfoWindowManager, key, name, location, address, range));
+        mMarkers.add(new ComboMarker(map, infoWindowManager, key, name, location, address, range));
         //add(key, name, location, address, range);
     }
 
     // TODO: merge this to above
-    void changeRange(String key, int range) {
+    static void changeRange(GoogleMap map, InfoWindowManager infoWindowManager, String key, int range) {
         Log.d(TAG, "reposition range: " + key);
 
         ComboMarker.MarkerInfo info = null;
@@ -293,12 +277,12 @@ class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
 
         Log.d(TAG, "reposition range: add a marker for " + key);
         // add a new marker to map
-        mMarkers.add(new ComboMarker(mMap, mInfoWindowManager, key, info.name, info.location, info.address, range));
+        mMarkers.add(new ComboMarker(map, infoWindowManager, key, info.name, info.location, info.address, range));
     }
 
     // apart users from one marker when the distance between them is
     // bigger than the current marker distance
-    private void zoomIn() {
+    private static void zoomIn(GoogleMap map, InfoWindowManager infoWindowManager) {
         Log.d(TAG, "zoomIn");
         Map<String, ComboMarker.MarkerInfo> aparted = new HashMap<>();
 
@@ -311,12 +295,12 @@ class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
         if (!aparted.isEmpty()) {
             for (Map.Entry<String, ComboMarker.MarkerInfo> entry : aparted.entrySet()) {
                 ComboMarker.MarkerInfo info = entry.getValue();
-                add(info.id, info.name, info.location, info.address, info.range);
+                add(map, infoWindowManager, info.id, info.name, info.location, info.address, info.range);
             }
         }
     }
 
-    private boolean combineMarkers(ComboMarker n, ComboMarker p) {
+    private static boolean combineMarkers(ComboMarker n, ComboMarker p) {
         if (n == p) return false;
         Location pl = p.getLocation();
         Location nl = n.getLocation();
@@ -336,7 +320,7 @@ class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
     }
 
     // combineMarkers the markers when the distance is smaller than the current marker distance
-    private void zoomOut() {
+    private static void zoomOut(GoogleMap map, InfoWindowManager infoWindowManager) {
         if (mMarkers.size() <= 1) return;
 
         Log.d(TAG, "zoomOut: compare from 0 to n");
@@ -366,20 +350,20 @@ class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
         }
     }
 
-    void show(String key) {
+    static void show(GoogleMap map, String key) {
         for (ComboMarker marker : mMarkers) {
             if (marker.contains(key)) {
                 ComboMarker.MarkerInfo markerInfo = marker.getOwner();
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                map.animateCamera(CameraUpdateFactory.newLatLngZoom(
                         Utils.getLatLng(markerInfo.rangeLocation),
-                        mMap.getCameraPosition().zoom));
+                        map.getCameraPosition().zoom));
                 return;
             }
         }
     }
 
     // update the user(myself) icon
-    void update() {
+    static void update(GoogleMap map, InfoWindowManager infoWindowManager) {
         Location location = null;
         Address address = null;
         // remove first
@@ -399,10 +383,10 @@ class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
         if (location == null) return; // error, not found
         // add again with the new info
         User user = FB.getUser();
-        add(key, user.getDisplayName(), location, address, LocationRange.CURRENT.range);
+        add(map, infoWindowManager, key, user.getDisplayName(), location, address, LocationRange.CURRENT.range);
     }
 
-    void setupMarkers(Location location, Address address) {
+    static void setupMarkers(final GoogleMap map, final InfoWindowManager infoWindowManager, Location location, Address address) {
         if (location == null) return;
 
         // run only once
@@ -423,7 +407,7 @@ class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
 
         mHasFriendMarkers = true;
 
-        add(FB.getUid(), user.getDisplayName(), location, address, LocationRange.CURRENT.range);
+        add(map, infoWindowManager, FB.getUid(), user.getDisplayName(), location, address, LocationRange.CURRENT.range);
 
         Map<String, Friend> friends = FriendManager.getFriends();
         if (friends.isEmpty()) {
@@ -440,7 +424,7 @@ class MarkerManager implements MarkerInterface, GoogleMap.OnCameraMoveListener {
                 FB.getLocation(friend.getLocation(), new FB.LocationListener() {
                     @Override
                     public void onSuccess(Location location, Address address) {
-                        add(key, friend.getDisplayName(), location, address, friend.getRange());
+                        add(map, infoWindowManager, key, friend.getDisplayName(), location, address, friend.getRange());
                     }
 
                     @Override

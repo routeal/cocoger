@@ -61,7 +61,7 @@ public class GroupDialogFragment extends Fragment implements FullScreenDialogCon
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_group_friend, container, false);
+        View view = inflater.inflate(R.layout.fragment_group_dialog, container, false);
 
         mKey = getArguments().getString("key");
         mGroup = (Group) getArguments().getSerializable("group");

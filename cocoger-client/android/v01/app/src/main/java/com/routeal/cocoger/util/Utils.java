@@ -327,7 +327,9 @@ public class Utils {
             List<Address> addresses =
                     new Geocoder(MainApplication.getContext(), Locale.getDefault())
                             .getFromLocation(location.latitude, location.longitude, 1);
-            address = addresses.get(0);
+            if (addresses != null) {
+                address = addresses.get(0);
+            }
         } catch (Exception e) {
             Log.d(TAG, "getAddress:", e);
         }

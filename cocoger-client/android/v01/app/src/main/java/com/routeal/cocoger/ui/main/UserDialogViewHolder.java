@@ -77,10 +77,10 @@ public class UserDialogViewHolder extends RecyclerView.ViewHolder {
             return;
         }
 
-        FB.getLocation(user.getLocation(), new FB.LocationListener() {
+        FB.getLocation(key, new FB.LocationListener() {
             @Override
             public void onSuccess(Location location, Address address) {
-                if (address.getCountryName() != null) {
+                if (address != null && address.getCountryName() != null) {
                     setLocation(address.getCountryName());
                 }
             }
@@ -103,4 +103,3 @@ public class UserDialogViewHolder extends RecyclerView.ViewHolder {
         new LoadImage(mPicture).loadProfile(key);
     }
 }
-

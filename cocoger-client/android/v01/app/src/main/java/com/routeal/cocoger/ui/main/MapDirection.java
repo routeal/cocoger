@@ -48,9 +48,11 @@ import java.util.List;
 
 class MapDirection {
     private final static String TAG = "MapDirection";
+
     private GoogleMap mMap;
     private InfoWindowManager mInfoWindowManager;
     private SimpleDirectionRoute mDirectionRoute = new SimpleDirectionRoute();
+
     private GoogleMap.OnPolylineClickListener mPolylineClickListener = new GoogleMap.OnPolylineClickListener() {
         @Override
         public void onPolylineClick(Polyline polyline) {

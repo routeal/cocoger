@@ -524,7 +524,7 @@ public class PlaceManager implements MarkerInterface, GoogleMap.OnMapLongClickLi
     }
 
     @Override
-    public void onWindowHidden(InfoWindow infoWindow) {
+    public void onWindowHidden(InfoWindowManager manager, InfoWindow infoWindow) {
         // empty
     }
 

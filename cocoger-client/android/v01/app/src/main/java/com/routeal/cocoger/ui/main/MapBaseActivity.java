@@ -37,7 +37,7 @@ abstract class MapBaseActivity extends FragmentActivity
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
 
-    private final static String TAG = "tako";
+    private final static String TAG = "MapBaseActivity";
 
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 1234;
     private final static int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 5678;

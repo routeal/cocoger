@@ -27,17 +27,23 @@ import com.routeal.cocoger.util.Utils;
 import com.theartofdev.edmodo.cropper.CropImage;
 
 abstract class MapActivity extends MapBaseActivity
-        implements GoogleMap.OnMarkerClickListener, OnMapReadyCallback, View.OnClickListener, InfoWindowManager.WindowShowListener {
+        implements GoogleMap.OnMarkerClickListener,
+        GoogleMap.OnCameraMoveListener,
+        OnMapReadyCallback,
+        View.OnClickListener,
+        InfoWindowManager.WindowShowListener {
 
+    // package public
     final static int DEFAULT_ZOOM = 16;
+
     private final static String TAG = "MapActivity";
     private final static String KEY_CAMERA_POSITION = "camera_position";
     private final static String KEY_LOCATION = "location";
+
     protected GoogleMap mMap;
+    protected InfoWindowManager mInfoWindowManager;
     protected GeoDataClient mGeoDataClient;
     protected Utils.ProgressBarView mSpinner;
-    protected InfoWindowManager mInfoWindowManager;
-    protected MarkerManager mMm;
     protected MapDirection mDirection;
     protected MapStyle mMapStyle;
     protected PoiManager mPoi;
@@ -126,12 +132,11 @@ abstract class MapActivity extends MapBaseActivity
         mMap = googleMap;
 
         mGeoDataClient = Places.getGeoDataClient(this, null);
-        mMm = new MarkerManager(mMap, mInfoWindowManager);
         mDirection = new MapDirection(mMap, mInfoWindowManager);
         mPoi = new PoiManager(mMap, mGeoDataClient, mInfoWindowManager);
         mPlace = new PlaceManager(this, mMap, mInfoWindowManager);
 
-        mReceiver = new MapBroadcastReceiver(this, mMap, mMm, mDirection, mPlace);
+        mReceiver = new MapBroadcastReceiver(this, mMap, mInfoWindowManager, mDirection, mPlace);
         mReceiver.setLocation(mInitialLocation);
 
         mMap.setPadding(8, 0, 0, 148);
@@ -140,6 +145,7 @@ abstract class MapActivity extends MapBaseActivity
         mMap.getUiSettings().setMapToolbarEnabled(false);
         mMap.setMyLocationEnabled(true);
         mMap.setOnMarkerClickListener(this);
+        mMap.setOnCameraMoveListener(this);
 
         setupApp();
 
@@ -159,7 +165,7 @@ abstract class MapActivity extends MapBaseActivity
         if (mInitialLocation != null) {
             Log.d(TAG, "onMapReady: setupMarkers");
             Address address = Utils.getAddress(mInitialLocation);
-            mMm.setupMarkers(mInitialLocation, address);
+            MarkerManager.setupMarkers(mMap, mInfoWindowManager, mInitialLocation, address);
 
             Intent intent = new Intent(FB.USER_LOCATION_UPDATE);
             intent.putExtra(FB.LOCATION, mInitialLocation);
@@ -178,10 +184,8 @@ abstract class MapActivity extends MapBaseActivity
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        if (mMm != null) {
-            if (mMm.onMarkerClick(marker)) {
-                return true;
-            }
+        if (MarkerManager.onMarkerClick(marker)) {
+            return true;
         }
         if (mPoi != null) {
             if (mPoi.onMarkerClick(marker)) {
@@ -213,15 +217,17 @@ abstract class MapActivity extends MapBaseActivity
 
     @Override
     public void onWindowHidden(@NonNull InfoWindow infoWindow) {
-        if (mMm != null) {
-            mMm.onWindowHidden(infoWindow);
-        }
         if (mPoi != null) {
-            mPoi.onWindowHidden(infoWindow);
+            mPoi.onWindowHidden(mInfoWindowManager, infoWindow);
         }
         if (mPlace != null) {
-            mPlace.onWindowHidden(infoWindow);
+            mPlace.onWindowHidden(mInfoWindowManager, infoWindow);
         }
+    }
+
+    @Override
+    public void onCameraMove() {
+        MarkerManager.onCameraMove(mMap, mInfoWindowManager);
     }
 
     abstract void closeSlidePanel();

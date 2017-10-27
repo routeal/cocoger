@@ -34,9 +34,9 @@ import java.util.Map;
  * Created by nabe on 9/9/17.
  */
 
-public class NotifiListFragment extends PagerFragment {
+public class MessageListFragment extends PagerFragment {
 
-    private final static String TAG = "NotifiListFragment";
+    private final static String TAG = "MessageListFragment";
 
     private RecyclerView mRecyclerView;
     private TextView mEmptyText;
@@ -50,7 +50,7 @@ public class NotifiListFragment extends PagerFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_notifi_list, container, false);
+        View view = inflater.inflate(R.layout.fragment_message_list, container, false);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(view.getContext());
 
@@ -69,12 +69,12 @@ public class NotifiListFragment extends PagerFragment {
 
     @Override
     void onViewPageSelected() {
-        Log.d(TAG, "NotifiListFragment selected");
+        Log.d(TAG, "MessageListFragment selected");
         reset();
     }
 
     void reset() {
-        List<Message> messages = createNotifiList();
+        List<Message> messages = createMessageList();
         if (messages.isEmpty()) {
             mEmptyText.setVisibility(View.VISIBLE);
             mRecyclerView.setVisibility(View.GONE);
@@ -82,10 +82,10 @@ public class NotifiListFragment extends PagerFragment {
             mEmptyText.setVisibility(View.GONE);
             mRecyclerView.setVisibility(View.VISIBLE);
         }
-        mRecyclerView.setAdapter(new NotifiListAdapter(messages));
+        mRecyclerView.setAdapter(new MessageListAdapter(messages));
     }
 
-    List<Message> createNotifiList() {
+    List<Message> createMessageList() {
         List<Message> messages = new ArrayList<>();
 
         User user = FB.getUser();
@@ -185,14 +185,14 @@ public class NotifiListFragment extends PagerFragment {
         int resourceId;
     }
 
-    class NotifiListAdapter extends RecyclerView.Adapter<NotifiListAdapter.ViewHolder> {
+    class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.ViewHolder> {
         List<Message> mMessages;
 
-        NotifiListAdapter(List<Message> messages) {
+        MessageListAdapter(List<Message> messages) {
             mMessages = messages;
         }
 
-        public NotifiListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public MessageListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View itemView = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.listview_notifi_list, parent, false);
             return new ViewHolder(itemView);
@@ -209,7 +209,7 @@ public class NotifiListFragment extends PagerFragment {
         }
 
         @Override
-        public void onBindViewHolder(final NotifiListAdapter.ViewHolder holder, final int position) {
+        public void onBindViewHolder(final MessageListAdapter.ViewHolder holder, final int position) {
             Message m = mMessages.get(position);
             if (m instanceof InviteeMessage) {
                 final InviteeMessage im = (InviteeMessage) m;

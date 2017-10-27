@@ -1036,24 +1036,57 @@ public class FB {
         );
     }
 
-    public static void getLocation(String locationKey, final LocationListener listener) {
-        DatabaseReference db = getLocationDatabaseReference();
-        db.child(locationKey).addListenerForSingleValueEvent(
+    // return the latest location of the specified user
+    public static void getLocation(String key, final LocationListener listener) {
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference().child("user_locations").child(key);
+        Query query = db.orderByKey().limitToLast(1);
+        query.addListenerForSingleValueEvent(
                 new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
-                        LocationAddress la = dataSnapshot.getValue(LocationAddress.class);
-                        if (la != null) {
-                            if (listener != null) {
-                                Location location = Utils.getLocation(la);
-                                Address address = Utils.getAddress(location);
-                                listener.onSuccess(location, address);
-                            }
-                        } else {
+                        String locKey = null;
+                        // there should be only one
+                        for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
+                            locKey = snapshot.getKey();
+                        }
+                        if (locKey == null) {
                             if (listener != null) {
                                 listener.onFail("Failed to get a location object.");
                             }
+                            return;
                         }
+                        DatabaseReference db = FirebaseDatabase.getInstance().getReference().child("locations").child(locKey);
+                        db.addListenerForSingleValueEvent(
+                                new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+
+                                        LocationAddress la = dataSnapshot.getValue(LocationAddress.class);
+                                        if (la != null) {
+                                            if (listener != null) {
+                                                Location location = Utils.getLocation(la);
+                                                Address address = Utils.getAddress(location);
+                                                listener.onSuccess(location, address);
+                                            }
+                                        } else {
+                                            if (listener != null) {
+                                                listener.onFail("Failed to get a location object.");
+                                            }
+                                        }
+                                    }
+                                    @Override
+                                    public void onCancelled(DatabaseError databaseError) {
+                                        Exception e = databaseError.toException();
+                                        Log.d(TAG, "Failed to get a location object", e);
+                                        if (listener != null) {
+                                            if (e != null) {
+                                                listener.onFail(e.getLocalizedMessage());
+                                            } else {
+                                                listener.onFail("Failed to get a location object.");
+                                            }
+                                        }
+                                    }
+                                });
                     }
 
                     @Override

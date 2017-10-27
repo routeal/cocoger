@@ -1,6 +1,7 @@
 package com.routeal.cocoger.ui.main;
 
 import com.appolica.interactiveinfowindow.InfoWindow;
+import com.appolica.interactiveinfowindow.InfoWindowManager;
 import com.google.android.gms.maps.model.Marker;
 
 /**
@@ -10,5 +11,5 @@ import com.google.android.gms.maps.model.Marker;
 interface MarkerInterface {
     boolean onMarkerClick(Marker marker);
 
-    void onWindowHidden(InfoWindow infoWindow);
+    void onWindowHidden(InfoWindowManager manager, InfoWindow infoWindow);
 }

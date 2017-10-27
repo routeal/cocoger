@@ -133,7 +133,6 @@ public class GroupListViewHolder extends RecyclerView.ViewHolder {
     }
 
     class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.ViewHolder> {
-
         @Override
         public UserListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View itemView = LayoutInflater.from(parent.getContext())

@@ -77,7 +77,7 @@ public class PanelMapActivity extends SearchMapActivity {
         ViewPager viewPager = findViewById(R.id.viewpager);
         mViewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
 
-        PagerFragment pagerFragment = new NotifiListFragment();
+        PagerFragment pagerFragment = new MessageListFragment();
         pagerFragment.setSlidingUpPanelLayout(mLayout);
         pagerFragment.setViewPager(viewPager);
         mViewPagerAdapter.addFragment(pagerFragment, null);
