@@ -45,6 +45,8 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * Created by hwatanabe on 10/8/17.
@@ -74,6 +76,19 @@ public class PlaceManager {
     private static Map<Marker, InfoWindow> mPlaceMarkers = new HashMap<Marker, InfoWindow>();
     private static ImageView cropImageView;
 
+    private static SortedMap<String, Place> mPlaceList = new TreeMap<>();
+
+    public static Place getPlace(String key) {
+        if (key != null && !key.isEmpty()) {
+            return mPlaceList.get(key);
+        }
+        return null;
+    }
+
+    public static SortedMap<String, Place> getPlaces() {
+        return mPlaceList;
+    }
+
     private static Drawable getIcon(Activity activity, int colorId) {
         return Utils.getIconDrawable(activity, R.drawable.ic_place_white_18dp, colorId);
     }
@@ -85,10 +100,18 @@ public class PlaceManager {
     }
 
     static void add(Activity activity, GoogleMap map, String key, Place place) {
+        mPlaceList.put(key, place);
+        if (mRecyclerAdapterListener != null) {
+            mRecyclerAdapterListener.onAdded(key, place);
+        }
         addMarker(activity, map, key, place, null, false);
     }
 
     static void change(Activity activity, String key, Place place) {
+        mPlaceList.put(key, place);
+        if (mRecyclerAdapterListener != null) {
+            mRecyclerAdapterListener.onChanged(key, place);
+        }
         Marker marker = getMarker(key);
         if (marker != null) {
             // position
@@ -107,6 +130,10 @@ public class PlaceManager {
     }
 
     static void remove(InfoWindowManager infoWindowManager, String key) {
+        mPlaceList.remove(key);
+        if (mRecyclerAdapterListener != null) {
+            mRecyclerAdapterListener.onRemoved(key);
+        }
         Marker marker = getMarker(key);
         if (marker != null) {
             marker.remove();
@@ -239,11 +266,13 @@ public class PlaceManager {
                 place.setSeenBy(placeFriend.isChecked() ? "friends" : "none");
                 place.setMarkerColor(markerColor2);
 
+                byte bytes[] = Utils.getBitmapBytes(activity, updateBitmap);
+
                 if (isEdit) {
-                    FB.editPlace(key, place, updateBitmap, null);
+                    FB.editPlace(key, place, bytes, null);
                 } else {
                     final Marker marker = getMarker(fragment);
-                    FB.addPlace(place, updateBitmap,
+                    FB.addPlace(place, bytes,
                             new FB.PlaceListener() {
                                 @Override
                                 public void onSuccess(String key, Place place) {
@@ -366,7 +395,8 @@ public class PlaceManager {
                 place.setCreated(System.currentTimeMillis());
                 place.setUid(FB.getUid());
 
-                FB.addPlace(place, bitmap2, null);
+                byte bytes[] = Utils.getBitmapBytes(activity, bitmap2);
+                FB.addPlace(place, bytes, null);
             }
         });
 
@@ -618,5 +648,11 @@ public class PlaceManager {
             this.colorId = colorId;
             this.colorName = colorName;
         }
+    }
+
+    private static RecyclerAdapterListener<Place> mRecyclerAdapterListener;
+
+    public static void setRecyclerAdapterListener(RecyclerAdapterListener<Place> listener) {
+        mRecyclerAdapterListener = listener;
     }
 }

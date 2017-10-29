@@ -10,12 +10,8 @@ import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.View;
 
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
-import com.routeal.cocoger.model.Friend;
-import com.routeal.cocoger.model.Group;
-import com.routeal.cocoger.model.Place;
 import com.routeal.cocoger.util.Notifi;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout.PanelSlideListener;
@@ -74,6 +70,8 @@ public class PanelMapActivity extends SearchMapActivity {
 
     @Override
     void setupApp() {
+        FB.monitorPlaces();
+
         ViewPager viewPager = findViewById(R.id.viewpager);
         mViewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
 
@@ -95,31 +93,6 @@ public class PanelMapActivity extends SearchMapActivity {
         final PlaceListFragment placeListFragment = new PlaceListFragment();
         placeListFragment.setSlidingUpPanelLayout(mLayout);
         placeListFragment.setViewPager(viewPager);
-        FirebaseRecyclerAdapter placeAdapter = FB.getPlaceRecyclerAdapter(
-                new PagerFragment.ChangeListener() {
-                    @Override
-                    public void onEmpty(boolean empty) {
-                        placeListFragment.onEmpty(empty);
-                    }
-                },
-                new RecyclerAdapterListener<Place>() {
-                    @Override
-                    public void onAdded(String key, Place place) {
-                        PlaceManager.add(PanelMapActivity.this, mMap, key, place);
-                    }
-
-                    @Override
-                    public void onChanged(String key, Place place) {
-                        PlaceManager.change(PanelMapActivity.this, key, place);
-                    }
-
-                    @Override
-                    public void onRemoved(String key) {
-                        PlaceManager.remove(mInfoWindowManager, key);
-                    }
-                });
-        placeAdapter.startListening();
-        placeListFragment.setAdapter(placeAdapter);
         mViewPagerAdapter.addFragment(placeListFragment, null);
 
         viewPager.setAdapter(mViewPagerAdapter);

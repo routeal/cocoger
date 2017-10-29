@@ -63,11 +63,6 @@ public class MessageListFragment extends PagerFragment {
     }
 
     @Override
-    void onEmpty(boolean v) {
-        // empty
-    }
-
-    @Override
     void onViewPageSelected() {
         Log.d(TAG, "MessageListFragment selected");
         reset();

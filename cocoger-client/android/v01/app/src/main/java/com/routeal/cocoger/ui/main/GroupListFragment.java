@@ -69,6 +69,8 @@ public class GroupListFragment extends PagerFragment {
         });
 
         final GroupListAdapter groupListAdapter = new GroupListAdapter();
+        mRecyclerView.setAdapter(groupListAdapter);
+
         GroupManager.setRecyclerAdapterListener(new RecyclerAdapterListener<Group>() {
             @Override
             public void onAdded(String key, Group object) {
@@ -86,34 +88,7 @@ public class GroupListFragment extends PagerFragment {
             }
         });
 
-        mRecyclerView.setAdapter(groupListAdapter);
-
         return view;
-    }
-
-    @Override
-    RecyclerView getRecyclerView() {
-        return mRecyclerView;
-    }
-
-    @Override
-    void onEmpty(boolean v) {
-        if (mEmptyTextView == null) return;
-        if (v) {
-            mEmptyTextView.setVisibility(View.VISIBLE);
-        } else {
-            mEmptyTextView.setVisibility(View.GONE);
-        }
-    }
-
-    @Override
-    void onViewPageSelected() {
-        if (FriendManager.isEmpty()) {
-            mCreateGroup.setEnabled(false);
-        } else {
-            mCreateGroup.setEnabled(true);
-        }
-        //onEmpty(mAdapter.getItemCount() == 0);
     }
 
     class GroupListAdapter extends RecyclerView.Adapter<GroupListAdapter.ViewHolder> {
@@ -135,7 +110,18 @@ public class GroupListFragment extends PagerFragment {
 
         @Override
         public int getItemCount() {
-            return GroupManager.getGroups().size();
+            int size = GroupManager.getGroups().size();
+            if (size == 0) {
+                if (FriendManager.isEmpty()) {
+                    mCreateGroup.setEnabled(false);
+                } else {
+                    mCreateGroup.setEnabled(true);
+                }
+                mEmptyTextView.setVisibility(View.VISIBLE);
+            } else {
+                mEmptyTextView.setVisibility(View.GONE);
+            }
+            return size;
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {

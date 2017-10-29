@@ -3,24 +3,15 @@ package com.routeal.cocoger.fb;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.location.Address;
 import android.location.Location;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.core.GeoHash;
-import com.firebase.ui.common.ChangeEventType;
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
-import com.firebase.ui.database.FirebaseRecyclerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -50,15 +41,9 @@ import com.routeal.cocoger.model.Place;
 import com.routeal.cocoger.model.RangeRequest;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.service.LocationUpdateService;
-import com.routeal.cocoger.ui.main.FriendListViewHolder;
 import com.routeal.cocoger.ui.main.FriendManager;
-import com.routeal.cocoger.ui.main.GroupListViewHolder;
 import com.routeal.cocoger.ui.main.GroupManager;
-import com.routeal.cocoger.ui.main.PagerFragment;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
-import com.routeal.cocoger.ui.main.PlaceListViewHolder;
-import com.routeal.cocoger.ui.main.RecyclerAdapterListener;
-import com.routeal.cocoger.ui.main.UserDialogViewHolder;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Notifi;
 import com.routeal.cocoger.util.Utils;
@@ -67,6 +52,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 public class FB {
 
@@ -82,8 +69,11 @@ public class FB {
     public final static String DIRECTION_ROUTE_REMOVE = "direction_route_remove";
     public final static String PLACE_SAVE = "place_save";
     public final static String PLACE_EDIT = "place_edit";
-    public final static String PLACE_REMOVE = "place_remove";
+    public final static String PLACE_DELETE = "place_remove";
     public final static String PLACE_SHOW = "place_show";
+    public final static String PLACE_ADD = "place_add";
+    public final static String PLACE_CHANGE = "place_change";
+    public final static String PLACE_REMOVE = "place_remove";
     public final static String GROUP_CREATE = "group_create";
     public final static String GROUP_EDIT = "group_edit";
 
@@ -130,34 +120,6 @@ public class FB {
         return fUser.getUid();
     }
 
-    private static DatabaseReference getFeedbackDatabaseReference() {
-        return FirebaseDatabase.getInstance().getReference().child("feedbacks");
-    }
-
-    private static DatabaseReference getDeviceDatabaseReference() {
-        return FirebaseDatabase.getInstance().getReference().child("devices");
-    }
-
-    private static DatabaseReference getUserDatabaseReference() {
-        return FirebaseDatabase.getInstance().getReference().child("users");
-    }
-
-    private static DatabaseReference getFriendDatabaseReference(String user) {
-        return FirebaseDatabase.getInstance().getReference().child("friends").child(user);
-    }
-
-    private static DatabaseReference getFriendDatabaseReference(String user, String friend) {
-        return FirebaseDatabase.getInstance().getReference().child("friends").child(user).child(friend);
-    }
-
-    private static DatabaseReference getLocationDatabaseReference() {
-        return FirebaseDatabase.getInstance().getReference().child("locations");
-    }
-
-    private static DatabaseReference getUserLocationDatabaseReference() {
-        return FirebaseDatabase.getInstance().getReference().child("user_locations");
-    }
-
     public static boolean isAuthenticated() {
         return (FirebaseAuth.getInstance().getCurrentUser() != null);
     }
@@ -186,7 +148,7 @@ public class FB {
                 FirebaseUser user = firebaseAuth.getCurrentUser();
                 if (user != null) {
                     Log.d(TAG, "Firebase User authenticated:" + user.getEmail());
-                    monitorUserDatabase();
+                    monitorUserDatabases();
                 } else {
                     Log.d(TAG, "Firebase User invalidated");
                     FB.setUser(null);
@@ -197,7 +159,7 @@ public class FB {
     }
 
     // Even without UI, monitor the user(myself), my friends, and my groups.
-    private static void monitorUserDatabase() {
+    private static void monitorUserDatabases() {
         String key = getUid();
 
         DatabaseReference db = FirebaseDatabase.getInstance().getReference().child("users").child(key);
@@ -209,7 +171,7 @@ public class FB {
                 User oldUser = FB.getUser();
                 if (newUser == null && oldUser == null) {
                     onCreateUser(key);
-                } else if (oldUser == null){
+                } else if (oldUser == null) {
                     onSignIn(key, newUser);
                 } else {
                     onUpdateUser(newUser, oldUser);
@@ -315,6 +277,74 @@ public class FB {
             }
         });
     }
+
+    public static void monitorPlaces() {
+        String key = getUid();
+
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference().child("user_places").child(key);
+        db.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                String key = dataSnapshot.getKey();
+                DatabaseReference db = FirebaseDatabase.getInstance().getReference().child("places").child(key);
+                db.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        String key = dataSnapshot.getKey();
+                        Place place = dataSnapshot.getValue(Place.class);
+                        Intent intent = new Intent(FB.PLACE_ADD);
+                        intent.putExtra(FB.KEY, key);
+                        intent.putExtra(FB.PLACE, place);
+                        LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                    }
+                });
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                String key = dataSnapshot.getKey();
+                DatabaseReference db = FirebaseDatabase.getInstance().getReference().child("places").child(key);
+                db.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        String key = dataSnapshot.getKey();
+                        Place place = dataSnapshot.getValue(Place.class);
+                        Intent intent = new Intent(FB.PLACE_CHANGE);
+                        intent.putExtra(FB.KEY, key);
+                        intent.putExtra(FB.PLACE, place);
+                        LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                    }
+                });
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                String key = dataSnapshot.getKey();
+                Intent intent = new Intent(FB.PLACE_REMOVE);
+                intent.putExtra(FB.KEY, key);
+                LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
 
     public static void signIn(Activity activity, String email, String password, final SignInListener listener) {
         FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
@@ -534,7 +564,7 @@ public class FB {
             }
         }
 
-        DatabaseReference deviceDb = getDeviceDatabaseReference();
+        DatabaseReference deviceDb = FirebaseDatabase.getInstance().getReference().child("devices");
 
         if (key != null) {
             // update the timestamp of the device
@@ -548,7 +578,7 @@ public class FB {
             deviceDb.child(newKey).setValue(currentDevice);
 
             // also add it to the user database under 'devices'
-            DatabaseReference userDb = getUserDatabaseReference();
+            DatabaseReference userDb = FirebaseDatabase.getInstance().getReference().child("users");
             userDb.child(uid).child("devices").child(newKey).setValue(currentDevice.getDeviceId());
         }
     }
@@ -570,12 +600,12 @@ public class FB {
         Device device = Utils.getDevice();
         device.setUid(uid);
 
-        DatabaseReference deviceDb = getDeviceDatabaseReference();
+        DatabaseReference deviceDb = FirebaseDatabase.getInstance().getReference().child("devices");
         String key = deviceDb.push().getKey();
         deviceDb.child(key).setValue(device);
 
         // save the user info to the remote database
-        DatabaseReference userDb = getUserDatabaseReference();
+        DatabaseReference userDb = FirebaseDatabase.getInstance().getReference().child("users");
         userDb.child(uid).setValue(user);
 
         // add the device key to the user info
@@ -610,7 +640,7 @@ public class FB {
 
     public static void initUser(User user) {
         String uid = getUid();
-        DatabaseReference db = getUserDatabaseReference();
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference().child("users");
         db.child(uid).setValue(user);
     }
 
@@ -628,70 +658,66 @@ public class FB {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public static boolean checkFriendRequest(RecyclerView.Adapter a) {
-        FirebaseRecyclerAdapter<User, UserDialogViewHolder> adapter =
-                (FirebaseRecyclerAdapter<User, UserDialogViewHolder>) a;
-        boolean accepted = false;
+    /*
+        @SuppressWarnings("unchecked")
+        public static boolean checkFriendRequest(RecyclerView.Adapter a) {
+            boolean accepted = false;
 
-        Map<String, Long> invitees = FB.getUser().getInvitees();
+            Map<String, Long> invitees = FB.getUser().getInvitees();
 
-        if (invitees != null) {
-            for (int i = 0; i < adapter.getItemCount(); i++) {
-                String key = adapter.getRef(i).getKey();
-                if (invitees.get(key) != null) {
-                    acceptFriendRequest(key);
-                    accepted = true;
+            if (invitees != null) {
+                for (int i = 0; i < adapter.getItemCount(); i++) {
+                    String key = adapter.getRef(i).getKey();
+                    if (invitees.get(key) != null) {
+                        acceptFriendRequest(key);
+                        accepted = true;
+                    }
                 }
             }
+
+            return accepted;
         }
 
-        return accepted;
-    }
+        @SuppressWarnings("unchecked")
+        public static boolean sendFriendRequest(RecyclerView.Adapter a) {
+            boolean modified = false;
 
-    @SuppressWarnings("unchecked")
-    public static boolean sendFriendRequest(RecyclerView.Adapter a) {
-        FirebaseRecyclerAdapter<User, UserDialogViewHolder> adapter =
-                (FirebaseRecyclerAdapter<User, UserDialogViewHolder>) a;
+            String uid = getUid();
+            DatabaseReference userDb = FirebaseDatabase.getInstance().getReference().child("users");
 
-        boolean modified = false;
+            for (int i = 0; i < adapter.getItemCount(); i++) {
+                DatabaseReference friendDb = adapter.getRef(i);
+                if (friendDb.getKey().equals(uid)) {
+                    // trying to add myself to friends
+                    continue;
+                }
 
-        String uid = getUid();
-        DatabaseReference userDb = getUserDatabaseReference();
+                String key = adapter.getRef(i).getKey();
+                if (FriendManager.getFriend(key) != null) {
+                    // already being friend
+                    continue;
+                }
 
-        for (int i = 0; i < adapter.getItemCount(); i++) {
-            DatabaseReference friendDb = adapter.getRef(i);
-            if (friendDb.getKey().equals(uid)) {
-                // trying to add myself to friends
-                continue;
+                // set the timestamp when the friend request is added.
+                // When the requested user approved, the timestamp will be changed to true.
+                long timestamp = System.currentTimeMillis();
+
+                // add myself to friend
+                friendDb.child("invitees").child(uid).setValue(timestamp);
+
+                // add friends to myself
+                userDb.child(uid).child("invites").child(key).setValue(timestamp);
+
+                modified = true;
             }
 
-            String key = adapter.getRef(i).getKey();
-            if (FriendManager.getFriend(key) != null) {
-                // already being friend
-                continue;
-            }
-
-            // set the timestamp when the friend request is added.
-            // When the requested user approved, the timestamp will be changed to true.
-            long timestamp = System.currentTimeMillis();
-
-            // add myself to friend
-            friendDb.child("invitees").child(uid).setValue(timestamp);
-
-            // add friends to myself
-            userDb.child(uid).child("invites").child(key).setValue(timestamp);
-
-            modified = true;
+            return modified;
         }
-
-        return modified;
-    }
-
+    */
     public static void acceptFriendRequest(final String invite) {
         final String invitee = getUid();
 
-        DatabaseReference userDb = getUserDatabaseReference();
+        DatabaseReference userDb = FirebaseDatabase.getInstance().getReference().child("users");
         userDb.child(invitee).child("invitees").child(invite).removeValue();
         userDb.child(invite).child("invites").child(invitee).removeValue();
 
@@ -710,7 +736,7 @@ public class FB {
                         friend.setDisplayName(inviteUser.getDisplayName());
                         friend.setLocation(inviteUser.getLocation());
 
-                        DatabaseReference friendDb = getFriendDatabaseReference(invitee, invite);
+                        DatabaseReference friendDb = FirebaseDatabase.getInstance().getReference().child("friends").child(invitee).child(invite);
                         friendDb.setValue(friend);
                     }
 
@@ -726,21 +752,21 @@ public class FB {
         myInfo.setDisplayName(FB.getUser().getDisplayName());
         myInfo.setLocation(FB.getUser().getLocation());
 
-        DatabaseReference friendDb = getFriendDatabaseReference(invite, invitee);
+        DatabaseReference friendDb = FirebaseDatabase.getInstance().getReference().child("friends").child(invite).child(invitee);
         friendDb.setValue(myInfo);
     }
 
     public static void declineFriendRequest(String invite) {
         // delete the invite and invitee from the database
         String invitee = getUid();
-        DatabaseReference userDb = getUserDatabaseReference();
+        DatabaseReference userDb = FirebaseDatabase.getInstance().getReference().child("users");
         userDb.child(invitee).child("invitees").child(invite).removeValue();
         userDb.child(invite).child("invites").child(invitee).removeValue();
     }
 
     public static void cancelFriendRequest(String invitee) {
         String invite = getUid();
-        DatabaseReference userDb = getUserDatabaseReference();
+        DatabaseReference userDb = FirebaseDatabase.getInstance().getReference().child("users");
         userDb.child(invitee).child("invitees").child(invite).removeValue();
         userDb.child(invite).child("invites").child(invitee).removeValue();
     }
@@ -748,27 +774,27 @@ public class FB {
     public static void acceptRangeRequest(String requester, int range) {
         String responder = getUid();
 
-        DatabaseReference resDb = getFriendDatabaseReference(responder, requester);
+        DatabaseReference resDb = FirebaseDatabase.getInstance().getReference().child("friends").child(responder).child(requester);
         resDb.child("range").setValue(range);
         resDb.child("rangeRequest").removeValue();
 
-        DatabaseReference reqDb = getFriendDatabaseReference(requester, responder);
+        DatabaseReference reqDb = FirebaseDatabase.getInstance().getReference().child("friends").child(requester).child(responder);
         reqDb.child("range").setValue(range);
     }
 
     public static void declineRangeRequest(String requester) {
         String responder = getUid(); // myself
-        DatabaseReference resDb = getFriendDatabaseReference(responder, requester);
+        DatabaseReference resDb = FirebaseDatabase.getInstance().getReference().child("friends").child(responder).child(requester);
         resDb.child("rangeRequest").removeValue();
     }
 
     public static void changeRange(String fid, int range) {
         String uid = getUid();
 
-        DatabaseReference myDb = getFriendDatabaseReference(uid, fid);
+        DatabaseReference myDb = FirebaseDatabase.getInstance().getReference().child("friends").child(uid).child(fid);
         myDb.child("range").setValue(range);
 
-        DatabaseReference friendDb = getFriendDatabaseReference(fid, uid);
+        DatabaseReference friendDb = FirebaseDatabase.getInstance().getReference().child("friends").child(fid).child(uid);
         friendDb.child("range").setValue(range);
     }
 
@@ -779,17 +805,17 @@ public class FB {
         rangeRequest.setCreated(System.currentTimeMillis());
         rangeRequest.setRange(range);
 
-        DatabaseReference friendDb = getFriendDatabaseReference(fid, uid);
+        DatabaseReference friendDb = FirebaseDatabase.getInstance().getReference().child("friends").child(fid).child(uid);
         friendDb.child("rangeRequest").setValue(rangeRequest);
     }
 
     public static void unfriend(String fid) {
         String uid = getUid();
 
-        DatabaseReference friendDb = getFriendDatabaseReference(fid, uid);
+        DatabaseReference friendDb = FirebaseDatabase.getInstance().getReference().child("friends").child(fid).child(uid);
         friendDb.removeValue();
 
-        DatabaseReference myDb = getFriendDatabaseReference(uid, fid);
+        DatabaseReference myDb = FirebaseDatabase.getInstance().getReference().child("friends").child(uid).child(fid);
         myDb.removeValue();
     }
 
@@ -910,7 +936,7 @@ public class FB {
     }
 
     private static void sendInviteNotification(final String invite, final long timestamp) {
-        DatabaseReference userRef = getUserDatabaseReference();
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users");
 
         userRef.child(invite).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -949,107 +975,34 @@ public class FB {
             public void onCancelled(DatabaseError databaseError) {
             }
         });
-
     }
 
-    public static FirebaseRecyclerAdapter<Place, PlaceListViewHolder> getPlaceRecyclerAdapter(
-            final PagerFragment.ChangeListener changeListener,
-            final RecyclerAdapterListener<Place> listener) {
-        DatabaseReference db = FirebaseDatabase.getInstance().getReference();
-        Query keyQuery = db.child("user_places").child(getUid()).orderByValue();
-
-        DatabaseReference dbRef = db.child("places");
-
-        FirebaseRecyclerOptions<Place> options =
-                new FirebaseRecyclerOptions.Builder<Place>()
-                        .setIndexedQuery(keyQuery, dbRef, Place.class)
-                        .build();
-
-        return new FirebaseRecyclerAdapter<Place, PlaceListViewHolder>(options) {
-            @Override
-            public PlaceListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-                View view = LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.listview_place_list, parent, false);
-                return new PlaceListViewHolder(view);
-            }
-
-            @Override
-            protected void onBindViewHolder(PlaceListViewHolder holder, int position, Place model) {
-                holder.bind(getRef(position).getKey(), model);
-            }
-
-            @Override
-            public void onDataChanged() {
-                super.onDataChanged();
-                if (changeListener != null) changeListener.onEmpty(getItemCount() == 0);
-            }
-
-            @Override
-            public void onChildChanged(ChangeEventType type, DataSnapshot snapshot, int newIndex, int oldIndex) {
-                super.onChildChanged(type, snapshot, newIndex, oldIndex);
-                Place place = snapshot.getValue(Place.class);
-                String key = snapshot.getKey();
-                if (type == ChangeEventType.ADDED) {
-                    Log.d(TAG, "Place added");
-                    if (listener != null) {
-                        listener.onAdded(key, place);
-                    }
-                } else if (type == ChangeEventType.CHANGED) {
-                    Log.d(TAG, "Place changed");
-                    if (listener != null) {
-                        listener.onChanged(key, place);
-                    }
-                } else if (type == ChangeEventType.MOVED) {
-                    Log.d(TAG, "Place moved");
-                } else if (type == ChangeEventType.REMOVED) {
-                    Log.d(TAG, "Place removed");
-                    if (listener != null) {
-                        listener.onRemoved(key);
-                    }
-                }
-            }
-        };
-    }
-
-    public static FirebaseRecyclerAdapter<User, UserDialogViewHolder> getUserRecyclerAdapter(String text, final View view) {
-        DatabaseReference db = getUserDatabaseReference();
+    public static void searchUsers(String search, final UserListListener listener) {
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference().child("users");
 
         Query query = db
                 .orderByChild("searchedName")
                 .limitToFirst(40)
-                .startAt(text)
-                .endAt(text + "~");
+                .startAt(search)
+                .endAt(search + "~");
 
-        FirebaseRecyclerOptions<User> options =
-                new FirebaseRecyclerOptions.Builder<User>()
-                        .setQuery(query, User.class)
-                        .build();
-
-        return new FirebaseRecyclerAdapter<User, UserDialogViewHolder>(options) {
+        query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public UserDialogViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-                View view = LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.listview_user_list, parent, false);
-                return new UserDialogViewHolder(view);
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                SortedMap<String, User> users = new TreeMap<>();
+                for (DataSnapshot d : dataSnapshot.getChildren()) {
+                    String key = d.getKey();
+                    User user = d.getValue(User.class);
+                    users.put(key, user);
+                }
+                if (listener != null) listener.onSuccess(users);
             }
 
             @Override
-            protected void onBindViewHolder(UserDialogViewHolder holder, int position, User model) {
-                holder.bind(model, getRef(position).getKey());
+            public void onCancelled(DatabaseError databaseError) {
+                if (listener != null) listener.onFail(databaseError.getMessage());
             }
-
-            @Override
-            public void onDataChanged() {
-                // NOTE: this gets called when new people are added to the friends
-                TextView emptyListMessage = (TextView) view.findViewById(R.id.empty_list_text);
-                emptyListMessage.setVisibility(getItemCount() == 0 ? View.VISIBLE : View.GONE);
-            }
-
-            @Override
-            public void onChildChanged(ChangeEventType type, DataSnapshot snapshot, int newIndex, int oldIndex) {
-                super.onChildChanged(type, snapshot, newIndex, oldIndex);
-            }
-        };
+        });
     }
 
     public static void getUser(String key, final UserListener listener) {
@@ -1086,6 +1039,7 @@ public class FB {
         );
     }
 
+/*
     // return the latest location of the specified user
     public static void getUserLocation(String key, final LocationListener listener) {
         DatabaseReference db = FirebaseDatabase.getInstance().getReference().child("user_locations").child(key);
@@ -1153,9 +1107,10 @@ public class FB {
                     }
                 });
     }
+*/
 
     public static void getLocation(String key, final LocationListener listener) {
-        DatabaseReference db = getLocationDatabaseReference();
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference().child("locations");
         db.child(key).addListenerForSingleValueEvent(
                 new ValueEventListener() {
                     @Override
@@ -1173,6 +1128,7 @@ public class FB {
                             }
                         }
                     }
+
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
                         Exception e = databaseError.toException();
@@ -1191,7 +1147,7 @@ public class FB {
 
     public static void getTimelineLocations(long start, long end, final LocationListener listener) {
         String uid = getUid();
-        DatabaseReference locDb = getUserLocationDatabaseReference();
+        DatabaseReference locDb = FirebaseDatabase.getInstance().getReference().child("user_locations");
         Query query = locDb.child(uid).orderByValue().startAt(start).endAt(end);
         query.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -1254,34 +1210,31 @@ public class FB {
         });
     }
 
-    public static void addPlace(final Place place, final Bitmap bitmap, final PlaceListener listener) {
+    public static void addPlace(final Place place, final byte bytes[], final PlaceListener listener) {
         if (place == null) return;
 
         DatabaseReference placeDb = FirebaseDatabase.getInstance().getReference().child("places");
         final String key = placeDb.push().getKey();
 
-        if (bitmap == null) {
+        if (bytes == null) {
             addPlace(key, place, listener);
         } else {
-            byte bytes[] = Utils.getBitmapBytes(MainApplication.getContext(), bitmap);
-            if (bytes != null) {
-                // no error handling
-                uploadPlaceImage(bytes, key, new UploadDataListener() {
-                    @Override
-                    public void onSuccess(String url) {
-                        addPlace(key, place, listener);
-                    }
+            // no error handling
+            uploadPlaceImage(bytes, key, new UploadDataListener() {
+                @Override
+                public void onSuccess(String url) {
+                    addPlace(key, place, listener);
+                }
 
-                    @Override
-                    public void onFail(String err) {
-                        addPlace(key, place, listener);
-                    }
-                });
-            }
+                @Override
+                public void onFail(String err) {
+                    addPlace(key, place, listener);
+                }
+            });
         }
     }
 
-    public static void editPlace(final String key, Place place, Bitmap bitmap, final CompleteListener listener) {
+    public static void editPlace(final String key, Place place, byte bytes[], final CompleteListener listener) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("places/" + key, place);
         for (Map.Entry<String, Friend> entry : FriendManager.getFriends().entrySet()) {
@@ -1294,12 +1247,6 @@ public class FB {
         DatabaseReference db = FirebaseDatabase.getInstance().getReference();
         db.updateChildren(updates);
 
-        if (bitmap == null) {
-            if (listener != null) listener.onSuccess();
-            return;
-        }
-
-        final byte bytes[] = Utils.getBitmapBytes(MainApplication.getContext(), bitmap);
         if (bytes == null) {
             if (listener != null) listener.onSuccess();
             return;
@@ -1343,7 +1290,7 @@ public class FB {
     }
 
     public static void saveFeedback(Feedback feedback, final CompleteListener listner) {
-        DatabaseReference db = getFeedbackDatabaseReference();
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference().child("feedbacks");
 
         String newKey = db.push().getKey();
         db.child(newKey).setValue(feedback, new DatabaseReference.CompletionListener() {
@@ -1468,6 +1415,12 @@ public class FB {
 
     public interface UserListener {
         void onSuccess(User user);
+
+        void onFail(String err);
+    }
+
+    public interface UserListListener {
+        void onSuccess(SortedMap<String, User> users);
 
         void onFail(String err);
     }

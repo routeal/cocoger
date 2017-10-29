@@ -4,7 +4,6 @@ import com.routeal.cocoger.model.Group;
 import com.routeal.cocoger.model.Member;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -17,6 +16,7 @@ import java.util.TreeMap;
 public class GroupManager {
 
     private static SortedMap<String, Group> mGroupList = new TreeMap<>();
+    private static RecyclerAdapterListener<Group> mRecyclerAdapterListener;
 
     public static Group getGroup(String key) {
         if (key != null && !key.isEmpty()) {
@@ -69,8 +69,6 @@ public class GroupManager {
         }
         mGroupList.remove(key);
     }
-
-    private static RecyclerAdapterListener<Group> mRecyclerAdapterListener;
 
     public static void setRecyclerAdapterListener(RecyclerAdapterListener<Group> listener) {
         mRecyclerAdapterListener = listener;

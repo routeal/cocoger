@@ -33,16 +33,6 @@ public class PagerFragment extends Fragment {
         mViewPager = viewPager;
     }
 
-    RecyclerView getRecyclerView() {
-        return null;
-    }
-
-    FirebaseRecyclerAdapter mAdapter;
-
-    void setAdapter(FirebaseRecyclerAdapter adapter) {
-        mAdapter = adapter;
-    }
-
     void onSelected() {
         if (getView() != null) {
             Log.d(TAG, "selected");
@@ -51,8 +41,6 @@ public class PagerFragment extends Fragment {
     }
 
     void onViewPageSelected() {}
-
-    void onEmpty(boolean v) {}
 
     public interface ChangeListener {
         void onEmpty(boolean empty);

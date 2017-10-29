@@ -59,8 +59,11 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
         filter.addAction(FB.DIRECTION_ROUTE_REMOVE);
         filter.addAction(FB.PLACE_SAVE);
         filter.addAction(FB.PLACE_EDIT);
-        filter.addAction(FB.PLACE_REMOVE);
+        filter.addAction(FB.PLACE_DELETE);
         filter.addAction(FB.PLACE_SHOW);
+        filter.addAction(FB.PLACE_ADD);
+        filter.addAction(FB.PLACE_CHANGE);
+        filter.addAction(FB.PLACE_REMOVE);
         filter.addAction(FB.GROUP_CREATE);
         filter.addAction(FB.GROUP_EDIT);
         LocalBroadcastManager.getInstance(activity).registerReceiver(this, filter);
@@ -218,7 +221,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             String key = intent.getStringExtra(FB.KEY);
             Place place = (Place) intent.getSerializableExtra(FB.PLACE);
             PlaceManager.editPlace(mActivity, mInfoWindowManager, key, place);
-        } else if (intent.getAction().equals(FB.PLACE_REMOVE)) {
+        } else if (intent.getAction().equals(FB.PLACE_DELETE)) {
             String key = intent.getStringExtra(FB.KEY);
             Place place = (Place) intent.getSerializableExtra(FB.PLACE);
             PlaceManager.removePlace(mActivity, mInfoWindowManager, key, place);
@@ -227,6 +230,17 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             Place place = (Place) intent.getSerializableExtra(FB.PLACE);
             PlaceManager.showPlace(mMap, key);
             mActivity.closeSlidePanel();
+        } else if (intent.getAction().equals(FB.PLACE_ADD)) {
+            String key = intent.getStringExtra(FB.KEY);
+            Place place = (Place) intent.getSerializableExtra(FB.PLACE);
+            PlaceManager.add(mActivity, mMap, key, place);
+        } else if (intent.getAction().equals(FB.PLACE_CHANGE)) {
+            String key = intent.getStringExtra(FB.KEY);
+            Place place = (Place) intent.getSerializableExtra(FB.PLACE);
+            PlaceManager.change(mActivity, key, place);
+        } else if (intent.getAction().equals(FB.PLACE_REMOVE)) {
+            String key = intent.getStringExtra(FB.KEY);
+            PlaceManager.remove(mInfoWindowManager, key);
         } else if (intent.getAction().equals(FB.GROUP_CREATE)) {
             FullScreenDialogFragment dialogFragment = new FullScreenDialogFragment.Builder(mActivity)
                     .setTitle(R.string.new_group)

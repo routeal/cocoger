@@ -70,6 +70,7 @@ public class FriendListFragment extends PagerFragment {
         mEmptyTextView = (TextView) view.findViewById(R.id.empty_view);
 
         final FriendListAdapter friendListAdapter = new FriendListAdapter();
+
         FriendManager.setRecyclerAdapterListener(new RecyclerAdapterListener<Friend>() {
             @Override
             public void onAdded(String key, Friend object) {
@@ -93,26 +94,10 @@ public class FriendListFragment extends PagerFragment {
     }
 
     @Override
-    RecyclerView getRecyclerView() {
-        return mRecyclerView;
-    }
-
-    @Override
-    void onEmpty(boolean v) {
-        if (mEmptyTextView == null) return;
-        if (v) {
-            mEmptyTextView.setVisibility(View.VISIBLE);
-        } else {
-            mEmptyTextView.setVisibility(View.GONE);
-        }
-    }
-
-    @Override
     void onViewPageSelected() {
-        //onEmpty(mAdapter.getItemCount() == 0);
     }
 
-    class FriendListAdapter extends  RecyclerView.Adapter<FriendListAdapter.ViewHolder> {
+    class FriendListAdapter extends RecyclerView.Adapter<FriendListAdapter.ViewHolder> {
 
         @Override
         public FriendListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -132,7 +117,13 @@ public class FriendListFragment extends PagerFragment {
 
         @Override
         public int getItemCount() {
-            return FriendManager.getFriends().size();
+            int size = FriendManager.getFriends().size();
+            if (size == 0) {
+                mEmptyTextView.setVisibility(View.VISIBLE);
+            } else {
+                mEmptyTextView.setVisibility(View.GONE);
+            }
+            return size;
         }
 
         class ViewHolder extends RecyclerView.ViewHolder {
