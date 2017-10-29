@@ -77,69 +77,19 @@ public class PanelMapActivity extends SearchMapActivity {
         ViewPager viewPager = findViewById(R.id.viewpager);
         mViewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
 
-        PagerFragment pagerFragment = new MessageListFragment();
-        pagerFragment.setSlidingUpPanelLayout(mLayout);
-        pagerFragment.setViewPager(viewPager);
-        mViewPagerAdapter.addFragment(pagerFragment, null);
+        MessageListFragment messageListFragment = new MessageListFragment();
+        messageListFragment.setSlidingUpPanelLayout(mLayout);
+        messageListFragment.setViewPager(viewPager);
+        mViewPagerAdapter.addFragment(messageListFragment, null);
 
-        final FriendListFragment friendListFragment = new FriendListFragment();
+        FriendListFragment friendListFragment = new FriendListFragment();
         friendListFragment.setSlidingUpPanelLayout(mLayout);
         friendListFragment.setViewPager(viewPager);
-        FirebaseRecyclerAdapter friendAdapter = FB.getFriendRecyclerAdapter(
-                new PagerFragment.ChangeListener() {
-                    @Override
-                    public void onEmpty(boolean empty) {
-                        friendListFragment.empty(empty);
-                    }
-                },
-                new RecyclerAdapterListener<Friend>() {
-                    @Override
-                    public void onAdded(String key, Friend friend) {
-                        FriendManager.add(key, friend);
-                    }
-
-                    @Override
-                    public void onChanged(String key, Friend friend) {
-                        FriendManager.change(key, friend);
-                    }
-
-                    @Override
-                    public void onRemoved(String key) {
-                        FriendManager.remove(key);
-                    }
-                });
-        friendAdapter.startListening();
-        friendListFragment.setRecyclerAdapter(friendAdapter);
         mViewPagerAdapter.addFragment(friendListFragment, null);
 
-        final PagerFragment groupListFragment = new GroupListFragment();
+        PagerFragment groupListFragment = new GroupListFragment();
         groupListFragment.setSlidingUpPanelLayout(mLayout);
         groupListFragment.setViewPager(viewPager);
-        FirebaseRecyclerAdapter groupAdapter = FB.getGroupRecyclerAdapter(
-                new PagerFragment.ChangeListener() {
-                    @Override
-                    public void onEmpty(boolean empty) {
-                        groupListFragment.empty(empty);
-                    }
-                },
-                new RecyclerAdapterListener<Group>() {
-                    @Override
-                    public void onAdded(String key, Group group) {
-                        GroupManager.add(key, group);
-                    }
-
-                    @Override
-                    public void onChanged(String key, Group group) {
-                        GroupManager.change(key, group);
-                    }
-
-                    @Override
-                    public void onRemoved(String key) {
-                        GroupManager.remove(key);
-                    }
-                });
-        groupAdapter.startListening();
-        groupListFragment.setRecyclerAdapter(groupAdapter);
         mViewPagerAdapter.addFragment(groupListFragment, null);
 
         final PlaceListFragment placeListFragment = new PlaceListFragment();
@@ -149,7 +99,7 @@ public class PanelMapActivity extends SearchMapActivity {
                 new PagerFragment.ChangeListener() {
                     @Override
                     public void onEmpty(boolean empty) {
-                        placeListFragment.empty(empty);
+                        placeListFragment.onEmpty(empty);
                     }
                 },
                 new RecyclerAdapterListener<Place>() {
@@ -169,7 +119,7 @@ public class PanelMapActivity extends SearchMapActivity {
                     }
                 });
         placeAdapter.startListening();
-        placeListFragment.setRecyclerAdapter(placeAdapter);
+        placeListFragment.setAdapter(placeAdapter);
         mViewPagerAdapter.addFragment(placeListFragment, null);
 
         viewPager.setAdapter(mViewPagerAdapter);
@@ -188,7 +138,6 @@ public class PanelMapActivity extends SearchMapActivity {
 
             @Override
             public void onPageScrollStateChanged(int state) {
-
             }
         });
 
@@ -205,11 +154,8 @@ public class PanelMapActivity extends SearchMapActivity {
         Bundle extras = intent.getExtras();
         if (action == null || extras == null) return;
         if (action.equals(FB.ACTION_FRIEND_REQUEST_ACCEPTED)) {
-            try {
-                String invite = extras.getString(FB.NOTIFI_FRIEND_INVITE);
-                FB.acceptFriendRequest(invite);
-            } catch (Exception e) {
-            }
+            String invite = extras.getString(FB.NOTIFI_FRIEND_INVITE);
+            FB.acceptFriendRequest(invite);
 
             // remove the notification
             int nid = extras.getInt(Notifi.ID);
@@ -223,12 +169,9 @@ public class PanelMapActivity extends SearchMapActivity {
             SlidingUpPanelLayout mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
             mLayout.setPanelState(PanelState.ANCHORED);
         } else if (action.equals(FB.ACTION_RANGE_REQUEST_ACCEPTED)) {
-            try {
-                String requester = extras.getString(FB.NOTIFI_RANGE_REQUESTER);
-                int range = extras.getInt(FB.NOTIFI_RANGE);
-                FB.acceptRangeRequest(requester, range);
-            } catch (Exception e) {
-            }
+            String requester = extras.getString(FB.NOTIFI_RANGE_REQUESTER);
+            int range = extras.getInt(FB.NOTIFI_RANGE);
+            FB.acceptRangeRequest(requester, range);
 
             // remove the notification
             int nid = extras.getInt(Notifi.ID);

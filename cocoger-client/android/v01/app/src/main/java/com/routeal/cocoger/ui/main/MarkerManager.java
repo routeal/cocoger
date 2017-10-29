@@ -27,7 +27,6 @@ class MarkerManager {
 
     private static List<ComboMarker> mMarkers = new ArrayList<>();
     private static double mMarkerDistance = 10;
-    private static boolean mHasFriendMarkers = false;
 
     static void onCameraMove(GoogleMap map, InfoWindowManager infoWindowManager) {
         CameraPosition cameraPosition = map.getCameraPosition();
@@ -387,10 +386,12 @@ class MarkerManager {
     }
 
     static void setupMarkers(final GoogleMap map, final InfoWindowManager infoWindowManager, Location location, Address address) {
-        if (location == null) return;
+        destroy();
 
-        // run only once
-        if (mHasFriendMarkers) return;
+        if (location == null) {
+            Log.d(TAG, "setupMarkers: null location");
+            return;
+        }
 
         User user = FB.getUser();
         if (user == null) {
@@ -404,8 +405,6 @@ class MarkerManager {
         }
 
         Log.d(TAG, "setupMarkers: start processing");
-
-        mHasFriendMarkers = true;
 
         add(map, infoWindowManager, FB.getUid(), user.getDisplayName(), location, address, LocationRange.CURRENT.range);
 
@@ -436,4 +435,10 @@ class MarkerManager {
         }
     }
 
+    static void destroy() {
+        for (ComboMarker entry : mMarkers) {
+            entry.remove();
+        }
+        mMarkers.clear();
+    }
 }

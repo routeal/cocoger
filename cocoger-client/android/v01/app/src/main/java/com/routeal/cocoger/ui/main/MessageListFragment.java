@@ -63,7 +63,7 @@ public class MessageListFragment extends PagerFragment {
     }
 
     @Override
-    void empty(boolean v) {
+    void onEmpty(boolean v) {
         // empty
     }
 
@@ -89,64 +89,62 @@ public class MessageListFragment extends PagerFragment {
         List<Message> messages = new ArrayList<>();
 
         User user = FB.getUser();
-        if (user != null) {
 
-            if (user.getInvitees() != null) {
-                Map<String, Long> invitees = user.getInvitees();
-                for (Map.Entry<String, Long> entry : invitees.entrySet()) {
-                    InviteeMessage m = new InviteeMessage();
-                    m.key = entry.getKey();
-                    m.date = Utils.getShortDateTime(entry.getValue());
-                    m.nid = Math.abs((int) entry.getValue().longValue());
-                    messages.add(m);
-                }
-            }
+        if (user == null) return messages;
 
-            if (user.getInvites() != null) {
-                Map<String, Long> invites = user.getInvites();
-                for (Map.Entry<String, Long> entry : invites.entrySet()) {
-                    InviteMessage m = new InviteMessage();
-                    m.key = entry.getKey();
-                    m.date = Utils.getShortDateTime(entry.getValue());
-                    m.nid = Math.abs((int) entry.getValue().longValue());
-                    messages.add(m);
-                }
-            }
-
-            Map<String, Friend> friends = FriendManager.getFriends();
-            if (!friends.isEmpty()) {
-                for (Map.Entry<String, Friend> entry : friends.entrySet()) {
-                    String key = entry.getKey();
-                    Friend friend = entry.getValue();
-                    if (friend.getRangeRequest() != null) {
-                        RangeRequest request = friend.getRangeRequest();
-                        RangeMessage m = new RangeMessage();
-                        m.key = key;
-                        m.date = Utils.getShortDateTime(request.getCreated());
-                        m.rangeTo = request.getRange();
-                        m.rangeFrom = friend.getRange();
-                        m.name = friend.getDisplayName();
-                        String to = LocationRange.toString(m.rangeTo);
-                        String from = LocationRange.toString(m.rangeFrom);
-                        String pattern = getResources().getString(R.string.receive_range_request);
-                        m.message = String.format(pattern, to, from);
-                        m.nid = Math.abs((int) request.getCreated());
-                        messages.add(m);
-                    }
-                }
-            }
-
-            List<NoticeMessage> noticeMessages = DBUtil.getMessages();
-            for (NoticeMessage nm : noticeMessages) {
-                InfoMessage m = new InfoMessage();
-                m.key = nm.getKey();
-                m.id = nm.getId();
-                m.title = nm.getTitle();
-                m.message = nm.getMessage();
-                m.date = Utils.getShortDateTime(nm.getCreated());
-                m.resourceId = nm.getResourceId();
+        if (user.getInvitees() != null) {
+            Map<String, Long> invitees = user.getInvitees();
+            for (Map.Entry<String, Long> entry : invitees.entrySet()) {
+                InviteeMessage m = new InviteeMessage();
+                m.key = entry.getKey();
+                m.date = Utils.getShortDateTime(entry.getValue());
+                m.nid = Math.abs((int) entry.getValue().longValue());
                 messages.add(m);
             }
+        }
+
+        if (user.getInvites() != null) {
+            Map<String, Long> invites = user.getInvites();
+            for (Map.Entry<String, Long> entry : invites.entrySet()) {
+                InviteMessage m = new InviteMessage();
+                m.key = entry.getKey();
+                m.date = Utils.getShortDateTime(entry.getValue());
+                m.nid = Math.abs((int) entry.getValue().longValue());
+                messages.add(m);
+            }
+        }
+
+        Map<String, Friend> friends = FriendManager.getFriends();
+        for (Map.Entry<String, Friend> entry : friends.entrySet()) {
+            String key = entry.getKey();
+            Friend friend = entry.getValue();
+            if (friend.getRangeRequest() != null) {
+                RangeRequest request = friend.getRangeRequest();
+                RangeMessage m = new RangeMessage();
+                m.key = key;
+                m.date = Utils.getShortDateTime(request.getCreated());
+                m.rangeTo = request.getRange();
+                m.rangeFrom = friend.getRange();
+                m.name = friend.getDisplayName();
+                String to = LocationRange.toString(m.rangeTo);
+                String from = LocationRange.toString(m.rangeFrom);
+                String pattern = getResources().getString(R.string.receive_range_request);
+                m.message = String.format(pattern, to, from);
+                m.nid = Math.abs((int) request.getCreated());
+                messages.add(m);
+            }
+        }
+
+        List<NoticeMessage> noticeMessages = DBUtil.getMessages();
+        for (NoticeMessage nm : noticeMessages) {
+            InfoMessage m = new InfoMessage();
+            m.key = nm.getKey();
+            m.id = nm.getId();
+            m.title = nm.getTitle();
+            m.message = nm.getMessage();
+            m.date = Utils.getShortDateTime(nm.getCreated());
+            m.resourceId = nm.getResourceId();
+            messages.add(m);
         }
 
         return messages;

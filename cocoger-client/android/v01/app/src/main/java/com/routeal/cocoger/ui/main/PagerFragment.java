@@ -2,6 +2,7 @@ package com.routeal.cocoger.ui.main;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
@@ -11,9 +12,8 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
  * Created by nabe on 9/13/17.
  */
 
-abstract public class PagerFragment extends Fragment {
+public class PagerFragment extends Fragment {
     private static final String TAG = "PagerFragment";
-    protected FirebaseRecyclerAdapter mAdapter;
     private SlidingUpPanelLayout mSlidingUpPanelLayout;
     private ViewPager mViewPager;
 
@@ -33,6 +33,16 @@ abstract public class PagerFragment extends Fragment {
         mViewPager = viewPager;
     }
 
+    RecyclerView getRecyclerView() {
+        return null;
+    }
+
+    FirebaseRecyclerAdapter mAdapter;
+
+    void setAdapter(FirebaseRecyclerAdapter adapter) {
+        mAdapter = adapter;
+    }
+
     void onSelected() {
         if (getView() != null) {
             Log.d(TAG, "selected");
@@ -40,13 +50,9 @@ abstract public class PagerFragment extends Fragment {
         }
     }
 
-    void setRecyclerAdapter(FirebaseRecyclerAdapter adapter) {
-        mAdapter = adapter;
-    }
+    void onViewPageSelected() {}
 
-    abstract void onViewPageSelected();
-
-    abstract void empty(boolean v);
+    void onEmpty(boolean v) {}
 
     public interface ChangeListener {
         void onEmpty(boolean empty);

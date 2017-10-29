@@ -96,6 +96,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             mAddress = address;
         } else if (intent.getAction().equals(FB.USER_AVAILABLE)) {
             Log.d(TAG, "Receive User_available: setupMarkers");
+            if (mLocation == null) return;
             if (mAddress == null) {
                 mAddress = Utils.getAddress(mLocation);
             }
@@ -106,6 +107,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             final String fid = intent.getStringExtra(FB.KEY);
             final Friend friend = FriendManager.getFriend(fid);
             if (friend == null) return; // shouldn't happen
+            if (friend.getLocation() == null) return;
             FB.getLocation(friend.getLocation(), new FB.LocationListener() {
                 @Override
                 public void onFail(String err) {

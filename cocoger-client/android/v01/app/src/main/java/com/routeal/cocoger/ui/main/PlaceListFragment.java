@@ -16,6 +16,7 @@ import com.routeal.cocoger.R;
 
 public class PlaceListFragment extends PagerFragment {
 
+    private RecyclerView mRecyclerView;
     private TextView mEmptyTextView;
 
     @Override
@@ -27,9 +28,9 @@ public class PlaceListFragment extends PagerFragment {
         LinearLayoutManager layoutManager = new LinearLayoutManager(view.getContext());
         layoutManager.setReverseLayout(false);
 
-        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setAdapter(mAdapter);
+        mRecyclerView = (RecyclerView) view.findViewById(R.id.list);
+        mRecyclerView.setLayoutManager(layoutManager);
+        mRecyclerView.setAdapter(mAdapter);
 
         mEmptyTextView = (TextView) view.findViewById(R.id.empty_view);
 
@@ -37,7 +38,12 @@ public class PlaceListFragment extends PagerFragment {
     }
 
     @Override
-    void empty(boolean v) {
+    RecyclerView getRecyclerView() {
+        return mRecyclerView;
+    }
+
+    @Override
+    void onEmpty(boolean v) {
         if (mEmptyTextView == null) return;
         if (v) {
             mEmptyTextView.setVisibility(View.VISIBLE);
@@ -48,7 +54,7 @@ public class PlaceListFragment extends PagerFragment {
 
     @Override
     void onViewPageSelected() {
-        empty(mAdapter.getItemCount() == 0);
+        //onEmpty(mAdapter.getItemCount() == 0);
     }
 
 }

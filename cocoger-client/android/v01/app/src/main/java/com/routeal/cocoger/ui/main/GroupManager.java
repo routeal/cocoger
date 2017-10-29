@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * Created by hwatanabe on 10/22/17.
@@ -14,13 +16,17 @@ import java.util.Map;
 
 public class GroupManager {
 
-    private static Map<String, Group> mGroupList = new HashMap<>();
+    private static SortedMap<String, Group> mGroupList = new TreeMap<>();
 
     public static Group getGroup(String key) {
         if (key != null && !key.isEmpty()) {
             return mGroupList.get(key);
         }
         return null;
+    }
+
+    public static SortedMap<String, Group> getGroups() {
+        return mGroupList;
     }
 
     public static boolean isEmpty() {
@@ -43,15 +49,30 @@ public class GroupManager {
         return invitedList;
     }
 
-    static void add(String key, Group group) {
+    public static void add(String key, Group group) {
+        if (mRecyclerAdapterListener != null) {
+            mRecyclerAdapterListener.onAdded(key, group);
+        }
         mGroupList.put(key, group);
     }
 
-    static void change(String key, Group group) {
+    public static void change(String key, Group group) {
+        if (mRecyclerAdapterListener != null) {
+            mRecyclerAdapterListener.onChanged(key, group);
+        }
         mGroupList.put(key, group);
     }
 
-    static void remove(String key) {
+    public static void remove(String key) {
+        if (mRecyclerAdapterListener != null) {
+            mRecyclerAdapterListener.onRemoved(key);
+        }
         mGroupList.remove(key);
+    }
+
+    private static RecyclerAdapterListener<Group> mRecyclerAdapterListener;
+
+    public static void setRecyclerAdapterListener(RecyclerAdapterListener<Group> listener) {
+        mRecyclerAdapterListener = listener;
     }
 }

@@ -59,8 +59,9 @@ abstract class MapActivity extends MapBaseActivity
 
     @Override
     protected void onDestroy() {
-        FriendManager.destroy();
-        FB.setUser(null);
+//        FriendManager.destroy();
+//        FB.setUser(null);
+        MarkerManager.destroy();
         super.onDestroy();
     }
 
@@ -135,8 +136,10 @@ abstract class MapActivity extends MapBaseActivity
         mGeoDataClient = Places.getGeoDataClient(this, null);
         mDirection = new MapDirection(mMap, mInfoWindowManager);
 
-        mReceiver = new MapBroadcastReceiver(this, mMap, mInfoWindowManager, mDirection);
-        mReceiver.setLocation(mInitialLocation);
+        if (mReceiver == null) {
+            mReceiver = new MapBroadcastReceiver(this, mMap, mInfoWindowManager, mDirection);
+            mReceiver.setLocation(mInitialLocation);
+        }
 
         mMap.setPadding(8, 0, 0, 148);
         mMap.getUiSettings().setCompassEnabled(true);
@@ -167,7 +170,11 @@ abstract class MapActivity extends MapBaseActivity
         if (mInitialLocation != null) {
             Log.d(TAG, "onMapReady: setupMarkers");
             Address address = Utils.getAddress(mInitialLocation);
-            MarkerManager.setupMarkers(mMap, mInfoWindowManager, mInitialLocation, address);
+            if (address != null) {
+                MarkerManager.setupMarkers(mMap, mInfoWindowManager, mInitialLocation, address);
+            } else {
+                Log.d(TAG, "onMapReady: no address, no setupMarkers");
+            }
 
             Intent intent = new Intent(FB.USER_LOCATION_UPDATE);
             intent.putExtra(FB.LOCATION, mInitialLocation);

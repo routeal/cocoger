@@ -28,6 +28,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -52,6 +53,7 @@ import com.routeal.cocoger.service.LocationUpdateService;
 import com.routeal.cocoger.ui.main.FriendListViewHolder;
 import com.routeal.cocoger.ui.main.FriendManager;
 import com.routeal.cocoger.ui.main.GroupListViewHolder;
+import com.routeal.cocoger.ui.main.GroupManager;
 import com.routeal.cocoger.ui.main.PagerFragment;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 import com.routeal.cocoger.ui.main.PlaceListViewHolder;
@@ -168,10 +170,12 @@ public class FB {
         FirebaseAuth.getInstance().signOut();
     }
 
+    // monitoring authentication starts normally in background without UI
     public static void monitorAuthentication() {
         Log.d(TAG, "monitorAuthentication");
 
         if (mHasMonitoringStarted) return;
+
         mHasMonitoringStarted = true;
 
         FirebaseAuth auth = FirebaseAuth.getInstance();
@@ -192,31 +196,122 @@ public class FB {
         });
     }
 
+    // Even without UI, monitor the user(myself), my friends, and my groups.
     private static void monitorUserDatabase() {
-        DatabaseReference db = getUserDatabaseReference();
+        String key = getUid();
 
-        db.child(getUid()).addValueEventListener(new ValueEventListener() {
+        DatabaseReference db = FirebaseDatabase.getInstance().getReference().child("users").child(key);
+        db.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Log.d(TAG, "User database changed:" + dataSnapshot.toString());
-
+                String key = dataSnapshot.getKey();
                 User newUser = dataSnapshot.getValue(User.class);
                 User oldUser = FB.getUser();
-
                 if (newUser == null && oldUser == null) {
-                    onCreateUser(dataSnapshot.getKey());
+                    onCreateUser(key);
+                } else if (oldUser == null){
+                    onSignIn(key, newUser);
                 } else {
-                    if (oldUser != null) {
-                        onUpdateUser(newUser, oldUser);
-                    } else {
-                        onSignIn(dataSnapshot.getKey(), newUser);
-                    }
+                    onUpdateUser(newUser, oldUser);
                 }
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Log.d(TAG, "monitorUserDatabase: error", databaseError.toException());
+
+            }
+        });
+
+        db = FirebaseDatabase.getInstance().getReference().child("friends").child(key);
+        db.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                String key = dataSnapshot.getKey();
+                Friend friend = dataSnapshot.getValue(Friend.class);
+                if (!key.equals(FB.getUid())) {
+                    FriendManager.add(key, friend);
+                }
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                String key = dataSnapshot.getKey();
+                Friend friend = dataSnapshot.getValue(Friend.class);
+                FriendManager.change(key, friend);
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                String key = dataSnapshot.getKey();
+                Friend friend = dataSnapshot.getValue(Friend.class);
+                FriendManager.remove(key);
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        db = FirebaseDatabase.getInstance().getReference().child("user_groups").child(key);
+        db.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                String key = dataSnapshot.getKey();
+                DatabaseReference db = FirebaseDatabase.getInstance().getReference().child("groups").child(key);
+                db.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        String key = dataSnapshot.getKey();
+                        Group group = dataSnapshot.getValue(Group.class);
+                        Log.d(TAG, "key = " + key + " " + group.getName());
+                        GroupManager.add(key, group);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                    }
+                });
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                String key = dataSnapshot.getKey();
+                DatabaseReference db = FirebaseDatabase.getInstance().getReference().child("groups").child(key);
+                db.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        String key = dataSnapshot.getKey();
+                        Group group = dataSnapshot.getValue(Group.class);
+                        Log.d(TAG, "key = " + key + " " + group.getName());
+                        GroupManager.change(key, group);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                    }
+                });
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                String key = dataSnapshot.getKey();
+                GroupManager.remove(key);
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
             }
         });
     }
@@ -289,16 +384,24 @@ public class FB {
     }
 
     public static void saveLocation(Location location, Address address) {
-        saveLocation(location, address, null);
+        if (location != null && address != null) {
+            saveLocation(location, address, null);
+        }
     }
 
     public static void saveLocation(Location location, Address address, SaveLocationListener listener) {
-        saveLocation(location, address, true, listener);
+        if (location != null && address != null) {
+            saveLocation(location, address, true, listener);
+        }
     }
 
     public static void saveLocation(Location location, Address address, boolean notifyFriend,
                                     final SaveLocationListener listener) {
         Log.d(TAG, "saveLocation:");
+
+        if (location == null || address == null) {
+            return;
+        }
 
         // very first location update comes before getting the user
         if (getUser() == null) {
@@ -343,9 +446,12 @@ public class FB {
         updates.put("geo_locations/" + key + "/l", Arrays.asList(latitude, longitude));
         // user locations
         updates.put("user_locations/" + uid + "/" + key, loc.getTimestamp());
-//        updates.put("users/" + uid + "/location/", key);
+        updates.put("users/" + uid + "/location/", key);
 
         if (notifyFriend) {
+            if (FriendManager.getFriends().size() == 0) {
+                Log.d(TAG, "savelocation: no friend");
+            }
             for (Map.Entry<String, Friend> entry : FriendManager.getFriends().entrySet()) {
                 updates.put("friends/" + entry.getKey() + "/" + uid + "/location", key);
             }
@@ -846,62 +952,6 @@ public class FB {
 
     }
 
-    public static FirebaseRecyclerAdapter<Friend, FriendListViewHolder> getFriendRecyclerAdapter(
-            final PagerFragment.ChangeListener changeListener,
-            final RecyclerAdapterListener<Friend> listener) {
-        DatabaseReference db = getFriendDatabaseReference(getUid());
-
-        Query query = db.orderByChild("range");
-
-        FirebaseRecyclerOptions<Friend> options =
-                new FirebaseRecyclerOptions.Builder<Friend>()
-                        .setQuery(query, Friend.class)
-                        .build();
-
-        return new FirebaseRecyclerAdapter<Friend, FriendListViewHolder>(options) {
-            @Override
-            public FriendListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-                View view = LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.listview_friend_list, parent, false);
-                return new FriendListViewHolder(view);
-            }
-
-            @Override
-            protected void onBindViewHolder(FriendListViewHolder holder, int position, Friend model) {
-                holder.bind(model, getRef(position).getKey());
-            }
-
-            @Override
-            public void onDataChanged() {
-                super.onDataChanged();
-                if (changeListener != null) changeListener.onEmpty(getItemCount() == 0);
-            }
-
-            @Override
-            public void onChildChanged(ChangeEventType type, DataSnapshot snapshot, int newIndex, int oldIndex) {
-                super.onChildChanged(type, snapshot, newIndex, oldIndex);
-                Friend friend = snapshot.getValue(Friend.class);
-                String key = snapshot.getKey();
-                if (type == ChangeEventType.ADDED) {
-                    if (listener != null) {
-                        Log.d(TAG, "Friend added");
-                        listener.onAdded(key, friend);
-                    }
-                } else if (type == ChangeEventType.CHANGED) {
-                    if (listener != null) {
-                        Log.d(TAG, "Friend changed");
-                        listener.onChanged(key, friend);
-                    }
-                } else if (type == ChangeEventType.REMOVED) {
-                    if (listener != null) {
-                        Log.d(TAG, "Friend removed");
-                        listener.onRemoved(key);
-                    }
-                }
-            }
-        };
-    }
-
     public static FirebaseRecyclerAdapter<Place, PlaceListViewHolder> getPlaceRecyclerAdapter(
             final PagerFragment.ChangeListener changeListener,
             final RecyclerAdapterListener<Place> listener) {
@@ -1037,7 +1087,7 @@ public class FB {
     }
 
     // return the latest location of the specified user
-    public static void getLocation(String key, final LocationListener listener) {
+    public static void getUserLocation(String key, final LocationListener listener) {
         DatabaseReference db = FirebaseDatabase.getInstance().getReference().child("user_locations").child(key);
         Query query = db.orderByKey().limitToLast(1);
         query.addListenerForSingleValueEvent(
@@ -1102,6 +1152,41 @@ public class FB {
                         }
                     }
                 });
+    }
+
+    public static void getLocation(String key, final LocationListener listener) {
+        DatabaseReference db = getLocationDatabaseReference();
+        db.child(key).addListenerForSingleValueEvent(
+                new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        LocationAddress la = dataSnapshot.getValue(LocationAddress.class);
+                        if (la != null) {
+                            if (listener != null) {
+                                Location location = Utils.getLocation(la);
+                                Address address = Utils.getAddress(location);
+                                listener.onSuccess(location, address);
+                            }
+                        } else {
+                            if (listener != null) {
+                                listener.onFail("Failed to get a location object.");
+                            }
+                        }
+                    }
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Exception e = databaseError.toException();
+                        Log.d(TAG, "Failed to get a location object", e);
+                        if (listener != null) {
+                            if (e != null) {
+                                listener.onFail(e.getLocalizedMessage());
+                            } else {
+                                listener.onFail("Failed to get a location object.");
+                            }
+                        }
+                    }
+                }
+        );
     }
 
     public static void getTimelineLocations(long start, long end, final LocationListener listener) {
@@ -1332,65 +1417,6 @@ public class FB {
         updates.put("user_groups/" + getUid() + "/" + key, null);
         DatabaseReference db = FirebaseDatabase.getInstance().getReference();
         db.updateChildren(updates);
-    }
-
-    public static FirebaseRecyclerAdapter<Group, GroupListViewHolder> getGroupRecyclerAdapter(
-            final PagerFragment.ChangeListener changeListener,
-            final RecyclerAdapterListener<Group> listener) {
-        DatabaseReference db = FirebaseDatabase.getInstance().getReference();
-        Query keyQuery = db.child("user_groups").child(getUid()).orderByValue();
-
-        DatabaseReference dbRef = db.child("groups");
-
-        FirebaseRecyclerOptions<Group> options =
-                new FirebaseRecyclerOptions.Builder<Group>()
-                        .setIndexedQuery(keyQuery, dbRef, Group.class)
-                        .build();
-
-        return new FirebaseRecyclerAdapter<Group, GroupListViewHolder>(options) {
-            @Override
-            public GroupListViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-                View view = LayoutInflater.from(parent.getContext())
-                        .inflate(R.layout.listview_group_list, parent, false);
-                return new GroupListViewHolder(view);
-            }
-
-            @Override
-            protected void onBindViewHolder(GroupListViewHolder holder, int position, Group model) {
-                holder.bind(getRef(position).getKey(), model);
-            }
-
-            @Override
-            public void onDataChanged() {
-                super.onDataChanged();
-                if (changeListener != null) changeListener.onEmpty(getItemCount() == 0);
-            }
-
-            @Override
-            public void onChildChanged(ChangeEventType type, DataSnapshot snapshot, int newIndex, int oldIndex) {
-                super.onChildChanged(type, snapshot, newIndex, oldIndex);
-                Group group = snapshot.getValue(Group.class);
-                String key = snapshot.getKey();
-                if (type == ChangeEventType.ADDED) {
-                    Log.d(TAG, "Group added");
-                    if (listener != null) {
-                        listener.onAdded(key, group);
-                    }
-                } else if (type == ChangeEventType.CHANGED) {
-                    Log.d(TAG, "Group changed");
-                    if (listener != null) {
-                        listener.onChanged(key, group);
-                    }
-                } else if (type == ChangeEventType.MOVED) {
-                    Log.d(TAG, "Group moved");
-                } else if (type == ChangeEventType.REMOVED) {
-                    Log.d(TAG, "Group removed");
-                    if (listener != null) {
-                        listener.onRemoved(key);
-                    }
-                }
-            }
-        };
     }
 
     public interface UploadDataListener {

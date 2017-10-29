@@ -6,25 +6,31 @@ import android.location.Location;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * Created by hwatanabe on 10/15/17.
  */
 
+/**
+ * Note that FriendManger will be accessed from the background process without the UI.
+ */
 public class FriendManager {
 
     private final static String TAG = "FriendManager";
 
-    private static Map<String, Friend> mFriendList = new HashMap<>();
+    private static SortedMap<String, Friend> mFriendList = new TreeMap<>();
     private static Map<String, LocationAddress> mLocationList = new HashMap<>();
 
-    public static Map<String, Friend> getFriends() {
+    public static SortedMap<String, Friend> getFriends() {
         return mFriendList;
     }
 
@@ -62,13 +68,12 @@ public class FriendManager {
         return null;
     }
 
-    static void destroy() {
-        mFriendList.clear();
-        mLocationList.clear();
-    }
-
-    static void add(String key, Friend friend) {
+    public static void add(String key, Friend friend) {
         Log.d(TAG, "add:" + key);
+
+        if (mRecyclerAdapterListener != null) {
+            mRecyclerAdapterListener.onAdded(key, friend);
+        }
 
         mFriendList.put(key, friend);
 
@@ -77,8 +82,12 @@ public class FriendManager {
         LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
     }
 
-    static void change(String key, Friend newFriend) {
+    public static void change(String key, Friend newFriend) {
         Log.d(TAG, "change:" + key);
+
+        if (mRecyclerAdapterListener != null) {
+            mRecyclerAdapterListener.onChanged(key, newFriend);
+        }
 
         Friend oldFriend = mFriendList.get(key);
 
@@ -112,11 +121,15 @@ public class FriendManager {
         mFriendList.put(key, newFriend);
     }
 
-    static void remove(String key) {
+    public static void remove(String key) {
         Log.d(TAG, "remove:" + key);
 
         mFriendList.remove(key);
         mLocationList.remove(key);
+
+        if (mRecyclerAdapterListener != null) {
+            mRecyclerAdapterListener.onRemoved(key);
+        }
 
         Intent intent = new Intent(FB.FRIEND_LOCATION_REMOVE);
         intent.putExtra(FB.KEY, key);
@@ -126,6 +139,12 @@ public class FriendManager {
     private static class LocationAddress {
         Location location;
         Address address;
+    }
+
+    private static RecyclerAdapterListener<Friend> mRecyclerAdapterListener;
+
+    public static void setRecyclerAdapterListener(RecyclerAdapterListener<Friend> listener) {
+        mRecyclerAdapterListener = listener;
     }
 
 }

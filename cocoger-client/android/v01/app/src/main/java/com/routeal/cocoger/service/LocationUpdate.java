@@ -32,6 +32,7 @@ import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.provider.DBUtil;
+import com.routeal.cocoger.ui.main.FriendManager;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 import com.routeal.cocoger.util.Utils;
 
@@ -100,7 +101,6 @@ public class LocationUpdate {
 
     void exec(Context context) {
         Log.d(TAG, "exec");
-        FB.monitorAuthentication();
 
         connectGoogleApi(context);
 
@@ -264,6 +264,9 @@ public class LocationUpdate {
                 saveLocation(context, location);
             } else {
                 Log.d(TAG, "NOT ENOUGH MOVE TO SAVE FOR BACKGROUND MOVE");
+                if (FriendManager.getFriends().isEmpty()) {
+                    Log.d(TAG, "Empty friend");
+                }
             }
             mNotificationManager.notify(NOTIFICATION_ID, getNotification(context));
         } else {
@@ -288,8 +291,10 @@ public class LocationUpdate {
                     .addOnSuccessListener(new OnSuccessListener<Location>() {
                         @Override
                         public void onSuccess(Location location) {
-                            mLocation = location;
-                            mAddress = Utils.getFromLocation(location);
+                            if (location != null) {
+                                mLocation = location;
+                                mAddress = Utils.getFromLocation(location);
+                            }
                         }
                     });
 

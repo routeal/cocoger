@@ -77,7 +77,7 @@ public class UserDialogViewHolder extends RecyclerView.ViewHolder {
             return;
         }
 
-        FB.getLocation(key, new FB.LocationListener() {
+        FB.getUserLocation(key, new FB.LocationListener() {
             @Override
             public void onSuccess(Location location, Address address) {
                 if (address != null && address.getCountryName() != null) {
