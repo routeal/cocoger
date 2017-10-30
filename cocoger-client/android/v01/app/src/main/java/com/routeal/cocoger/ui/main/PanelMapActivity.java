@@ -38,6 +38,7 @@ public class PanelMapActivity extends SearchMapActivity {
     private ViewPagerAdapter mViewPagerAdapter;
 
     private SlidingUpPanelLayout mLayout;
+    private MessageListFragment mMessageListFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,12 +69,8 @@ public class PanelMapActivity extends SearchMapActivity {
         handleIntent(getIntent());
     }
 
-    private MessageListFragment mMessageListFragment;
-
     @Override
     void setupApp() {
-        FB.monitorPlaces();
-
         ViewPager viewPager = findViewById(R.id.viewpager);
         mViewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
 

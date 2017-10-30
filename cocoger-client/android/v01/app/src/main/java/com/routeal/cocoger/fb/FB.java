@@ -165,7 +165,8 @@ public class FB {
         });
     }
 
-    // Even without UI, monitor the user(myself), my friends, and my groups.
+    // Even without UI, monitor the user(myself), my friends, my groups, my places.
+    // Monitoring should be set only once in the beginning.
     private static void monitorUserDatabases() {
         String key = getUid();
 
@@ -283,6 +284,8 @@ public class FB {
 
             }
         });
+
+        monitorPlaces();
     }
 
     public static void monitorPlaces() {
@@ -299,6 +302,7 @@ public class FB {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         String key = dataSnapshot.getKey();
                         Place place = dataSnapshot.getValue(Place.class);
+                        PlaceManager.add(key, place);
                         Intent intent = new Intent(FB.PLACE_ADD);
                         intent.putExtra(FB.KEY, key);
                         intent.putExtra(FB.PLACE, place);
@@ -320,6 +324,7 @@ public class FB {
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         String key = dataSnapshot.getKey();
                         Place place = dataSnapshot.getValue(Place.class);
+                        PlaceManager.change(key, place);
                         Intent intent = new Intent(FB.PLACE_CHANGE);
                         intent.putExtra(FB.KEY, key);
                         intent.putExtra(FB.PLACE, place);
@@ -335,6 +340,7 @@ public class FB {
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
                 String key = dataSnapshot.getKey();
+                PlaceManager.remove(key);
                 Intent intent = new Intent(FB.PLACE_REMOVE);
                 intent.putExtra(FB.KEY, key);
                 LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
@@ -351,7 +357,6 @@ public class FB {
             }
         });
     }
-
 
     public static void signIn(Activity activity, String email, String password, final SignInListener listener) {
         FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
@@ -483,6 +488,7 @@ public class FB {
         updates.put("geo_locations/" + key + "/l", Arrays.asList(latitude, longitude));
         // user locations
         updates.put("user_locations/" + uid + "/" + key, loc.getTimestamp());
+        // TODO: this will cause the User callback event
         updates.put("users/" + uid + "/location/", key);
 
         if (notifyFriend) {

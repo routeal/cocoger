@@ -9,7 +9,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.appolica.interactiveinfowindow.InfoWindowManager;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
@@ -32,7 +31,7 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
     private boolean mSeenFriend;
     private Place mPlace;
     private String mKey;
-    private InfoWindowManager mInfoWindowManager;
+    private PlaceMarkers mPlaceMarkers;
 
     @Nullable
     @Override
@@ -101,7 +100,7 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
                 }
                 break;
             case R.id.action_edit_place:
-                PlaceManager.editPlace(getActivity(), mInfoWindowManager, mKey, mPlace);
+                mPlaceMarkers.editPlace(mKey, mPlace);
                 break;
             case R.id.action_direction:
                 if (mLocation != null) {
@@ -112,7 +111,7 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
                 showGoogleMap(mLocation, mTitle);
                 break;
         }
-        PlaceManager.hideInfoWindow(mInfoWindowManager, this);
+        mPlaceMarkers.hideInfoWindow(this);
     }
 
     Place getPlace() {
@@ -127,8 +126,8 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
         mCopiedBitmap = bitmap;
     }
 
-    void setInfoWindowManager(InfoWindowManager infoWindowManager) {
-        mInfoWindowManager = infoWindowManager;
+    void setPlaceMarkers(PlaceMarkers placeMarkers) {
+        mPlaceMarkers = placeMarkers;
     }
 
     String getKey() {

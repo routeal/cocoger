@@ -36,15 +36,19 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
     private GeoDataClient mGeoDataClient;
     private MapActivity mActivity;
     private MapDirection mDirection;
+    private MarkerManager mMarkerManager;
+    private PlaceMarkers mPlaceMarkers;
 
     private Location mLocation;
     private Address mAddress;
 
     MapBroadcastReceiver(MapActivity activity, GoogleMap map, InfoWindowManager infoWindowManager,
-                         MapDirection mapDirection) {
+                         MarkerManager markerManager, PlaceMarkers placeMarkers, MapDirection mapDirection) {
         mActivity = activity;
         mInfoWindowManager = infoWindowManager;
         mMap = map;
+        mMarkerManager = markerManager;
+        mPlaceMarkers = placeMarkers;
         mDirection = mapDirection;
         IntentFilter filter = new IntentFilter();
         filter.addAction(FB.USER_AVAILABLE);
@@ -85,14 +89,14 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
                 if (mLocation == null) {
                     Log.d(TAG, "Receive Last_location_update: setupMarkers");
                     if (FB.getUser() != null) {
-                        MarkerManager.setupMarkers(mMap, mInfoWindowManager, location, address);
+                        mMarkerManager.setupMarkers(location, address);
                     }
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                             Utils.getLatLng(location), MapActivity.DEFAULT_ZOOM));
                 } else {
                     if (FB.getUser() != null) {
                         Log.d(TAG, "user location updated");
-                        MarkerManager.reposition(mMap, mInfoWindowManager, FB.getUid(), location, address, LocationRange.CURRENT.range);
+                        mMarkerManager.reposition(FB.getUid(), location, address, LocationRange.CURRENT.range);
                     }
                 }
             }
@@ -104,9 +108,9 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             if (mAddress == null) {
                 mAddress = Utils.getAddress(mLocation);
             }
-            MarkerManager.setupMarkers(mMap, mInfoWindowManager, mLocation, mAddress);
+            mMarkerManager.setupMarkers(mLocation, mAddress);
         } else if (intent.getAction().equals(FB.USER_UPDATED)) {
-            MarkerManager.update(mMap, mInfoWindowManager);
+            mMarkerManager.update();
         } else if (intent.getAction().equals(FB.USER_CHANGE)) {
             mActivity.updateMessages();
         } else if (intent.getAction().equals(FB.FRIEND_LOCATION_ADD)) {
@@ -122,7 +126,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
 
                 @Override
                 public void onSuccess(Location location, final Address address) {
-                    MarkerManager.reposition(mMap, mInfoWindowManager, fid, location, address, friend.getRange());
+                    mMarkerManager.reposition(fid, location, address, friend.getRange());
                 }
             });
         } else if (intent.getAction().equals(FB.FRIEND_LOCATION_UPDATE)) {
@@ -142,7 +146,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
 
                     final int range = friend.getRange();
                     // for testing
-                    MarkerManager.reposition(mMap, mInfoWindowManager, fid, newLocation, newAddress, range);
+                    mMarkerManager.reposition(fid, newLocation, newAddress, range);
 /*
                     if (oldLocationKey == null) {
                         // move the cursor
@@ -187,7 +191,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             if (fid == null) {
                 return;
             }
-            MarkerManager.remove(fid);
+            mMarkerManager.remove(fid);
         } else if (intent.getAction().equals(FB.FRIEND_RANGE_UPDATE)) {
             String fid = intent.getStringExtra(FB.KEY);
             if (fid == null) {
@@ -199,14 +203,14 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             }
             int range = friend.getRange();
             Log.d(TAG, "FRIEND_RANGE_UPDATE:" + fid);
-            MarkerManager.changeRange(mMap, mInfoWindowManager, fid, range);
+            mMarkerManager.changeRange(fid, range);
         } else if (intent.getAction().equals(FB.FRIEND_MARKER_SHOW)) {
             String fid = intent.getStringExtra(FB.KEY);
             if (fid == null) {
                 return;
             }
             Log.d(TAG, "FRIEND_MARKER_SHOW:" + fid);
-            MarkerManager.show(mMap, fid);
+            mMarkerManager.show(fid);
             mActivity.closeSlidePanel();
         } else if (intent.getAction().equals(FB.DIRECTION_ROUTE_ADD)) {
             Location location = intent.getParcelableExtra(FB.LOCATION);
@@ -219,31 +223,31 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             String address = intent.getStringExtra(FB.ADDRESS);
             String title = intent.getStringExtra(FB.TITLE);
             Bitmap bitmap = intent.getParcelableExtra(FB.IMAGE);
-            PlaceManager.addPlace(mActivity, title, location, address, bitmap);
+            mPlaceMarkers.addPlace(title, location, address, bitmap);
         } else if (intent.getAction().equals(FB.PLACE_EDIT)) {
             String key = intent.getStringExtra(FB.KEY);
             Place place = (Place) intent.getSerializableExtra(FB.PLACE);
-            PlaceManager.editPlace(mActivity, mInfoWindowManager, key, place);
+            mPlaceMarkers.editPlace(key, place);
         } else if (intent.getAction().equals(FB.PLACE_DELETE)) {
             String key = intent.getStringExtra(FB.KEY);
             Place place = (Place) intent.getSerializableExtra(FB.PLACE);
-            PlaceManager.removePlace(mActivity, mInfoWindowManager, key, place);
+            mPlaceMarkers.removePlace(key, place);
         } else if (intent.getAction().equals(FB.PLACE_SHOW)) {
             String key = intent.getStringExtra(FB.KEY);
             Place place = (Place) intent.getSerializableExtra(FB.PLACE);
-            PlaceManager.showPlace(mMap, key);
+            mPlaceMarkers.showPlace(mMap, key);
             mActivity.closeSlidePanel();
         } else if (intent.getAction().equals(FB.PLACE_ADD)) {
             String key = intent.getStringExtra(FB.KEY);
             Place place = (Place) intent.getSerializableExtra(FB.PLACE);
-            PlaceManager.add(mActivity, mMap, key, place);
+            mPlaceMarkers.addMarker(key, place, null, false);
         } else if (intent.getAction().equals(FB.PLACE_CHANGE)) {
             String key = intent.getStringExtra(FB.KEY);
             Place place = (Place) intent.getSerializableExtra(FB.PLACE);
-            PlaceManager.change(mActivity, key, place);
+            mPlaceMarkers.change(key, place);
         } else if (intent.getAction().equals(FB.PLACE_REMOVE)) {
             String key = intent.getStringExtra(FB.KEY);
-            PlaceManager.remove(mInfoWindowManager, key);
+            mPlaceMarkers.remove(key);
         } else if (intent.getAction().equals(FB.GROUP_CREATE)) {
             FullScreenDialogFragment dialogFragment = new FullScreenDialogFragment.Builder(mActivity)
                     .setTitle(R.string.new_group)

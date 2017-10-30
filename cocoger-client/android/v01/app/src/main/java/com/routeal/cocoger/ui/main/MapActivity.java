@@ -56,12 +56,11 @@ abstract class MapActivity extends MapBaseActivity
     private CameraPosition mCameraPosition;
     private Location mInitialLocation;
     private MapBroadcastReceiver mReceiver;
+    private MarkerManager mMarkerManager;
+    private PlaceMarkers mPlaceMarkers;
 
     @Override
     protected void onDestroy() {
-//        FriendManager.destroy();
-//        FB.setUser(null);
-        MarkerManager.destroy();
         super.onDestroy();
     }
 
@@ -97,7 +96,7 @@ abstract class MapActivity extends MapBaseActivity
         if (requestCode == CropImage.CROP_IMAGE_ACTIVITY_REQUEST_CODE) {
             CropImage.ActivityResult result = CropImage.getActivityResult(data);
             if (resultCode == RESULT_OK) {
-                PlaceManager.setCropImage(this, result.getUri());
+                mPlaceMarkers.setCropImage(result.getUri());
             }
         }
     }
@@ -135,9 +134,12 @@ abstract class MapActivity extends MapBaseActivity
 
         mGeoDataClient = Places.getGeoDataClient(this, null);
         mDirection = new MapDirection(mMap, mInfoWindowManager);
+        mMarkerManager = new MarkerManager(mMap, mInfoWindowManager);
+        mPlaceMarkers = new PlaceMarkers(this, mMap, mInfoWindowManager);
 
         if (mReceiver == null) {
-            mReceiver = new MapBroadcastReceiver(this, mMap, mInfoWindowManager, mDirection);
+            mReceiver = new MapBroadcastReceiver(this, mMap, mInfoWindowManager, mMarkerManager,
+                    mPlaceMarkers, mDirection);
             mReceiver.setLocation(mInitialLocation);
         }
 
@@ -151,6 +153,8 @@ abstract class MapActivity extends MapBaseActivity
         mMap.setOnMarkerDragListener(this);
         mMap.setOnMapLongClickListener(this);
         mMap.setOnPoiClickListener(this);
+
+        mPlaceMarkers.setup();
 
         setupApp();
 
@@ -171,7 +175,7 @@ abstract class MapActivity extends MapBaseActivity
             Log.d(TAG, "onMapReady: setupMarkers");
             Address address = Utils.getAddress(mInitialLocation);
             if (address != null) {
-                MarkerManager.setupMarkers(mMap, mInfoWindowManager, mInitialLocation, address);
+                mMarkerManager.setupMarkers(mInitialLocation, address);
             } else {
                 Log.d(TAG, "onMapReady: no address, no setupMarkers");
             }
@@ -193,9 +197,9 @@ abstract class MapActivity extends MapBaseActivity
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        if (MarkerManager.onMarkerClick(marker)) {
+        if (mMarkerManager.onMarkerClick(marker)) {
             return true;
-        } else if (PlaceManager.onMarkerClick(mInfoWindowManager, marker)) {
+        } else if (mPlaceMarkers.onMarkerClick(marker)) {
             return true;
         }
         return false;
@@ -223,12 +227,12 @@ abstract class MapActivity extends MapBaseActivity
 
     @Override
     public void onCameraMove() {
-        MarkerManager.onCameraMove(mMap, mInfoWindowManager);
+        mMarkerManager.onCameraMove();
     }
 
     @Override
     public void onMapLongClick(LatLng latLng) {
-        PlaceManager.onMapLongClick(this, mMap, latLng);
+        mPlaceMarkers.onMapLongClick(latLng);
     }
 
     @Override
@@ -242,7 +246,7 @@ abstract class MapActivity extends MapBaseActivity
 
     @Override
     public void onMarkerDragEnd(Marker marker) {
-        PlaceManager.onMarkerDragEnd(marker);
+        mPlaceMarkers.onMarkerDragEnd(marker);
     }
 
     @Override

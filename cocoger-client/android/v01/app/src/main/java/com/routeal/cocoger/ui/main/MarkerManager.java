@@ -25,11 +25,19 @@ class MarkerManager {
 
     private final static String TAG = "MarkerManager";
 
-    private static List<ComboMarker> mMarkers = new ArrayList<>();
-    private static double mMarkerDistance = 10;
+    private List<ComboMarker> mMarkers = new ArrayList<>();
+    private GoogleMap mMap;
+    private InfoWindowManager mInfoWindowManager;
+    private double mMarkerDistance = 10;
+    private boolean mHasFriendMarkers = false;
 
-    static void onCameraMove(GoogleMap map, InfoWindowManager infoWindowManager) {
-        CameraPosition cameraPosition = map.getCameraPosition();
+    MarkerManager(GoogleMap map, InfoWindowManager infoWindowManager) {
+        mMap = map;
+        mInfoWindowManager = infoWindowManager;
+    }
+
+    void onCameraMove() {
+        CameraPosition cameraPosition = mMap.getCameraPosition();
         double oldDistance = mMarkerDistance;
         ////Log.d(TAG, "Zoom: " + cameraPosition.zoom + " old:" + oldDistance);
         if (cameraPosition.zoom > 20) {
@@ -68,14 +76,14 @@ class MarkerManager {
         }
         if (mMarkerDistance < oldDistance) {
             Log.d(TAG, "zoomIn:" + cameraPosition.zoom + " distance=" + mMarkerDistance);
-            zoomIn(map, infoWindowManager);
+            zoomIn();
         } else {
-            zoomOut(map, infoWindowManager);
+            zoomOut();
             Log.d(TAG, "zoomOut:" + cameraPosition.zoom + " distance=" + mMarkerDistance);
         }
     }
 
-    static boolean onMarkerClick(Marker marker) {
+    boolean onMarkerClick(Marker marker) {
         for (ComboMarker entry : mMarkers) {
             if (entry.onMarkerClick(marker)) {
                 return true;
@@ -84,7 +92,7 @@ class MarkerManager {
         return false;
     }
 
-    static void remove(String id) {
+    void remove(String id) {
         for (Iterator<ComboMarker> ite = mMarkers.iterator(); ite.hasNext(); ) {
             ComboMarker marker = ite.next();
             if (marker.contains(id)) {
@@ -98,7 +106,7 @@ class MarkerManager {
     }
 
     // add a new user or friend
-    private static void add(GoogleMap map, InfoWindowManager infoWindowManager, String id, String name, Location location, Address address, int range) {
+    private void add(String id, String name, Location location, Address address, int range) {
         if (range == 0) return;
 
         if (address != null) {
@@ -122,12 +130,12 @@ class MarkerManager {
         }
 
         Log.d(TAG, "add: create a new marker " + id);
-        ComboMarker m = new ComboMarker(map, infoWindowManager, id, name, location, address, range);
+        ComboMarker m = new ComboMarker(mMap, mInfoWindowManager, id, name, location, address, range);
         mMarkers.add(m);
     }
 
     // reposition the marker owned by the key
-    static void reposition(GoogleMap map, InfoWindowManager infoWindowManager, String key, Location location, Address address, int range) {
+    void reposition(String key, Location location, Address address, int range) {
         Log.d(TAG, "reposition: " + key);
 
         Location rangeLocation = null;
@@ -209,12 +217,12 @@ class MarkerManager {
 
         Log.d(TAG, "reposition: add a marker for " + key);
         // add a new marker to map
-        mMarkers.add(new ComboMarker(map, infoWindowManager, key, name, location, address, range));
+        mMarkers.add(new ComboMarker(mMap, mInfoWindowManager, key, name, location, address, range));
         //add(key, name, location, address, range);
     }
 
     // TODO: merge this to above
-    static void changeRange(GoogleMap map, InfoWindowManager infoWindowManager, String key, int range) {
+    void changeRange(String key, int range) {
         Log.d(TAG, "reposition range: " + key);
 
         ComboMarker.MarkerInfo info = null;
@@ -276,12 +284,12 @@ class MarkerManager {
 
         Log.d(TAG, "reposition range: add a marker for " + key);
         // add a new marker to map
-        mMarkers.add(new ComboMarker(map, infoWindowManager, key, info.name, info.location, info.address, range));
+        mMarkers.add(new ComboMarker(mMap, mInfoWindowManager, key, info.name, info.location, info.address, range));
     }
 
     // apart users from one marker when the distance between them is
     // bigger than the current marker distance
-    private static void zoomIn(GoogleMap map, InfoWindowManager infoWindowManager) {
+    private void zoomIn() {
         Log.d(TAG, "zoomIn");
         Map<String, ComboMarker.MarkerInfo> aparted = new HashMap<>();
 
@@ -294,12 +302,12 @@ class MarkerManager {
         if (!aparted.isEmpty()) {
             for (Map.Entry<String, ComboMarker.MarkerInfo> entry : aparted.entrySet()) {
                 ComboMarker.MarkerInfo info = entry.getValue();
-                add(map, infoWindowManager, info.id, info.name, info.location, info.address, info.range);
+                add(info.id, info.name, info.location, info.address, info.range);
             }
         }
     }
 
-    private static boolean combineMarkers(ComboMarker n, ComboMarker p) {
+    private boolean combineMarkers(ComboMarker n, ComboMarker p) {
         if (n == p) return false;
         Location pl = p.getLocation();
         Location nl = n.getLocation();
@@ -319,7 +327,7 @@ class MarkerManager {
     }
 
     // combineMarkers the markers when the distance is smaller than the current marker distance
-    private static void zoomOut(GoogleMap map, InfoWindowManager infoWindowManager) {
+    private void zoomOut() {
         if (mMarkers.size() <= 1) return;
 
         Log.d(TAG, "zoomOut: compare from 0 to n");
@@ -349,20 +357,20 @@ class MarkerManager {
         }
     }
 
-    static void show(GoogleMap map, String key) {
+    void show(String key) {
         for (ComboMarker marker : mMarkers) {
             if (marker.contains(key)) {
                 ComboMarker.MarkerInfo markerInfo = marker.getOwner();
-                map.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                         Utils.getLatLng(markerInfo.rangeLocation),
-                        map.getCameraPosition().zoom));
+                        mMap.getCameraPosition().zoom));
                 return;
             }
         }
     }
 
     // update the user(myself) icon
-    static void update(GoogleMap map, InfoWindowManager infoWindowManager) {
+    void update() {
         Location location = null;
         Address address = null;
         // remove first
@@ -382,16 +390,14 @@ class MarkerManager {
         if (location == null) return; // error, not found
         // add again with the new info
         User user = FB.getUser();
-        add(map, infoWindowManager, key, user.getDisplayName(), location, address, LocationRange.CURRENT.range);
+        add(key, user.getDisplayName(), location, address, LocationRange.CURRENT.range);
     }
 
-    static void setupMarkers(final GoogleMap map, final InfoWindowManager infoWindowManager, Location location, Address address) {
-        destroy();
+    void setupMarkers(Location location, Address address) {
+        if (location == null) return;
 
-        if (location == null) {
-            Log.d(TAG, "setupMarkers: null location");
-            return;
-        }
+        // run only once
+        if (mHasFriendMarkers) return;
 
         User user = FB.getUser();
         if (user == null) {
@@ -406,7 +412,9 @@ class MarkerManager {
 
         Log.d(TAG, "setupMarkers: start processing");
 
-        add(map, infoWindowManager, FB.getUid(), user.getDisplayName(), location, address, LocationRange.CURRENT.range);
+        mHasFriendMarkers = true;
+
+        add(FB.getUid(), user.getDisplayName(), location, address, LocationRange.CURRENT.range);
 
         Map<String, Friend> friends = FriendManager.getFriends();
         if (friends.isEmpty()) {
@@ -414,16 +422,14 @@ class MarkerManager {
             return;
         }
 
-        Iterator<String> it = friends.keySet().iterator();
-
-        while (it.hasNext()) {
-            final String key = it.next();
-            final Friend friend = friends.get(key);
+        for (Map.Entry<String, Friend> entry : FriendManager.getFriends().entrySet()) {
+            final String key = entry.getKey();
+            final Friend friend = entry.getValue();
             if (friend.getLocation() != null) {
                 FB.getLocation(friend.getLocation(), new FB.LocationListener() {
                     @Override
                     public void onSuccess(Location location, Address address) {
-                        add(map, infoWindowManager, key, friend.getDisplayName(), location, address, friend.getRange());
+                        add(key, friend.getDisplayName(), location, address, friend.getRange());
                     }
 
                     @Override
@@ -435,10 +441,4 @@ class MarkerManager {
         }
     }
 
-    static void destroy() {
-        for (ComboMarker entry : mMarkers) {
-            entry.remove();
-        }
-        mMarkers.clear();
-    }
 }

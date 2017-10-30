@@ -47,7 +47,7 @@ class ComboMarker {
 
     ComboMarker(GoogleMap map, InfoWindowManager infoWindowManager,
                 String id, String name, Location location, Address address, int range) {
-        //Log.d(TAG, "ComboMarker: new " + key);
+        Log.d(TAG, "ComboMarker: new " + id);
         mMap = map;
         mInfoWindowManager = infoWindowManager;
 
