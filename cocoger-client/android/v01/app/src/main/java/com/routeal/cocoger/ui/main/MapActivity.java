@@ -251,4 +251,6 @@ abstract class MapActivity extends MapBaseActivity
     }
 
     abstract void closeSlidePanel();
+
+    abstract void updateMessages();
 }

@@ -6,7 +6,6 @@ import android.location.Location;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Friend;
@@ -29,6 +28,7 @@ public class FriendManager {
 
     private static SortedMap<String, Friend> mFriendList = new TreeMap<>();
     private static Map<String, LocationAddress> mLocationList = new HashMap<>();
+    private static RecyclerAdapterListener<Friend> mRecyclerAdapterListener;
 
     public static SortedMap<String, Friend> getFriends() {
         return mFriendList;
@@ -136,15 +136,13 @@ public class FriendManager {
         LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
     }
 
+    public static void setRecyclerAdapterListener(RecyclerAdapterListener<Friend> listener) {
+        mRecyclerAdapterListener = listener;
+    }
+
     private static class LocationAddress {
         Location location;
         Address address;
-    }
-
-    private static RecyclerAdapterListener<Friend> mRecyclerAdapterListener;
-
-    public static void setRecyclerAdapterListener(RecyclerAdapterListener<Friend> listener) {
-        mRecyclerAdapterListener = listener;
     }
 
 }

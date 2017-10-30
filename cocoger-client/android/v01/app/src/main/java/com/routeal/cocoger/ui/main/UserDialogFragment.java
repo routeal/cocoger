@@ -6,6 +6,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -17,6 +18,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -29,6 +31,8 @@ import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.util.LoadImage;
 import com.routeal.cocoger.util.Utils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -112,8 +116,7 @@ public class UserDialogFragment extends Fragment
     }
 
     private boolean updateDatabaseForFriendRequest() {
-/*
-        if (FB.checkFriendRequest(mRecyclerView.getAdapter())) {
+        if (FB.checkFriendRequest(mAdapter.getSelected())) {
             new AlertDialog.Builder(getContext())
                     .setTitle(R.string.friend_request)
                     .setMessage(R.string.friend_request_failed)
@@ -121,9 +124,7 @@ public class UserDialogFragment extends Fragment
                     .show();
             return false;
         }
-        return FB.sendFriendRequest(mRecyclerView.getAdapter());
-*/
-        return false;
+        return FB.sendFriendRequest(mAdapter.getSelected());
     }
 
     @Override
@@ -198,12 +199,24 @@ public class UserDialogFragment extends Fragment
             return size;
         }
 
+        List<String> getSelected() {
+            List<String> keys = new ArrayList<>();
+            for(Map.Entry<String, User> entry : mUsers.entrySet()) {
+                String key = entry.getKey();
+                User value = entry.getValue();
+                if (value.getSelected()) {
+                    keys.add(key);
+                }
+            }
+            return keys;
+        }
+
         class ViewHolder extends RecyclerView.ViewHolder {
-            private final CheckBox mCheckbox;
-            private final ImageView mPicture;
-            private final TextView mName;
-            private final TextView mLocation;
-            private final View mView;
+            private CheckBox mCheckbox;
+            private ImageView mPicture;
+            private TextView mName;
+            private TextView mLocation;
+            private View mView;
 
             ViewHolder(View itemView) {
                 super(itemView);
@@ -223,16 +236,24 @@ public class UserDialogFragment extends Fragment
             }
 
             private void disableInput(boolean checkbox, int color) {
-                mView.setBackgroundColor(mView.getResources().getColor(color));
+                mView.setBackgroundColor(ContextCompat.getColor(getContext(), color));
                 mView.setEnabled(false);
                 mView.setClickable(false);
                 mCheckbox.setChecked(checkbox);
                 mCheckbox.setClickable(false);
             }
 
-            void bind(User user, String key /* user's key */) {
+            void bind(final User user, String key /* user's key */) {
                 setName(user.getDisplayName());
                 setPicture(key);
+
+                // callback for checkbox
+                mCheckbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        user.setSelected(isChecked);
+                    }
+                });
 
                 // FIXME:
                 // disable myself, don't know how to remove myself from the searched list

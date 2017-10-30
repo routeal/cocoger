@@ -49,6 +49,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
         IntentFilter filter = new IntentFilter();
         filter.addAction(FB.USER_AVAILABLE);
         filter.addAction(FB.USER_UPDATED);
+        filter.addAction(FB.USER_CHANGE);
         filter.addAction(FB.USER_LOCATION_UPDATE);
         filter.addAction(FB.FRIEND_LOCATION_ADD);
         filter.addAction(FB.FRIEND_LOCATION_UPDATE);
@@ -106,6 +107,8 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             MarkerManager.setupMarkers(mMap, mInfoWindowManager, mLocation, mAddress);
         } else if (intent.getAction().equals(FB.USER_UPDATED)) {
             MarkerManager.update(mMap, mInfoWindowManager);
+        } else if (intent.getAction().equals(FB.USER_CHANGE)) {
+            mActivity.updateMessages();
         } else if (intent.getAction().equals(FB.FRIEND_LOCATION_ADD)) {
             final String fid = intent.getStringExtra(FB.KEY);
             final Friend friend = FriendManager.getFriend(fid);

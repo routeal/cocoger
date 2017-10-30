@@ -77,6 +77,7 @@ public class PlaceManager {
     private static ImageView cropImageView;
 
     private static SortedMap<String, Place> mPlaceList = new TreeMap<>();
+    private static RecyclerAdapterListener<Place> mRecyclerAdapterListener;
 
     public static Place getPlace(String key) {
         if (key != null && !key.isEmpty()) {
@@ -269,7 +270,22 @@ public class PlaceManager {
                 byte bytes[] = Utils.getBitmapBytes(activity, updateBitmap);
 
                 if (isEdit) {
-                    FB.editPlace(key, place, bytes, null);
+                    FB.editPlace(key, place, bytes, new FB.CompleteListener() {
+                        @Override
+                        public void onSuccess() {
+                            // place
+                            fragment.setPlace(place);
+
+                            // marker color
+                            Marker marker = getMarker(fragment);
+                            marker.setIcon(getIcon(activity, place.getMarkerColor()));
+                        }
+
+                        @Override
+                        public void onFail(String err) {
+
+                        }
+                    });
                 } else {
                     final Marker marker = getMarker(fragment);
                     FB.addPlace(place, bytes,
@@ -434,7 +450,9 @@ public class PlaceManager {
         Marker marker = getMarker(fragment);
         if (marker != null) {
             InfoWindow window = mPlaceMarkers.get(marker);
-            infoWindowManager.hide(window, true);
+            if (window.getWindowState() == InfoWindow.State.SHOWN) {
+                infoWindowManager.hide(window, true);
+            }
             FragmentManager fragmentManager = fragment.getFragmentManager();
             if (fragmentManager != null) {
                 FragmentTransaction trans = fragmentManager.beginTransaction();
@@ -447,35 +465,43 @@ public class PlaceManager {
     }
 
     static void removePlace(Activity activity, InfoWindowManager infoWindowManager, String key, Place place) {
-        PlaceInfoFragment fragment = getPlaceInfoFragment(place);
-        if (fragment != null) {
-            removePlace(activity, infoWindowManager, key, place, fragment);
+        Marker marker = getMarker(key);
+        if (marker != null) {
+            InfoWindow infoWindow = mPlaceMarkers.get(marker);
+            PlaceInfoFragment fragment = (PlaceInfoFragment) infoWindow.getWindowFragment();
+            if (fragment != null) {
+                removePlace(activity, infoWindowManager, key, place, fragment);
+            }
         }
     }
 
     private static void removePlace(Activity activity, final InfoWindowManager infoWindowManager, final String key, final Place place, final PlaceInfoFragment fragment) {
-        String title = place.getTitle();
-        String defaultTitle = activity.getResources().getString(R.string.place_remove);
-        new AlertDialog.Builder(activity)
-                .setTitle((title != null) ? title : defaultTitle)
-                .setMessage(R.string.confirm_place_remove)
-                .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        removePlaceImpl(infoWindowManager, key, place, fragment);
-                    }
-                })
-                .setPositiveButton(android.R.string.no, null)
-                .show();
+        if (place != null) {
+            String title = place.getTitle();
+            String defaultTitle = activity.getResources().getString(R.string.place_remove);
+            new AlertDialog.Builder(activity)
+                    .setTitle((title != null) ? title : defaultTitle)
+                    .setMessage(R.string.confirm_place_remove)
+                    .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            removePlaceImpl(infoWindowManager, key, place, fragment);
+                        }
+                    })
+                    .setPositiveButton(android.R.string.no, null)
+                    .show();
+        } else {
+            removePlaceImpl(infoWindowManager, key, place, fragment);
+
+        }
     }
 
     private static void removePlaceImpl(InfoWindowManager infoWindowManager, String key, Place place, PlaceInfoFragment fragment) {
-        if (key == null || key.isEmpty()) {
-            removeFragment(infoWindowManager, fragment);
-            return;
-        }
+        removeFragment(infoWindowManager, fragment);
 
-        FB.deletePlace(key, place, null);
+        if (place != null) {
+            FB.deletePlace(key, place, null);
+        }
     }
 
     static void showPlace(GoogleMap map, String key) {
@@ -634,6 +660,10 @@ public class PlaceManager {
         });
     }
 
+    public static void setRecyclerAdapterListener(RecyclerAdapterListener<Place> listener) {
+        mRecyclerAdapterListener = listener;
+    }
+
     private static class PlaceColorButton {
         int id;
         int imageId;
@@ -648,11 +678,5 @@ public class PlaceManager {
             this.colorId = colorId;
             this.colorName = colorName;
         }
-    }
-
-    private static RecyclerAdapterListener<Place> mRecyclerAdapterListener;
-
-    public static void setRecyclerAdapterListener(RecyclerAdapterListener<Place> listener) {
-        mRecyclerAdapterListener = listener;
     }
 }

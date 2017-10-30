@@ -292,6 +292,7 @@ public class LocationUpdate {
                         @Override
                         public void onSuccess(Location location) {
                             if (location != null) {
+                                Log.d(TAG, "getLastLocation");
                                 mLocation = location;
                                 mAddress = Utils.getFromLocation(location);
                             }

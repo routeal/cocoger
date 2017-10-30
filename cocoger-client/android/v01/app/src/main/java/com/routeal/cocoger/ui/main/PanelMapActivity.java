@@ -68,6 +68,8 @@ public class PanelMapActivity extends SearchMapActivity {
         handleIntent(getIntent());
     }
 
+    private MessageListFragment mMessageListFragment;
+
     @Override
     void setupApp() {
         FB.monitorPlaces();
@@ -75,10 +77,10 @@ public class PanelMapActivity extends SearchMapActivity {
         ViewPager viewPager = findViewById(R.id.viewpager);
         mViewPagerAdapter = new ViewPagerAdapter(getSupportFragmentManager());
 
-        MessageListFragment messageListFragment = new MessageListFragment();
-        messageListFragment.setSlidingUpPanelLayout(mLayout);
-        messageListFragment.setViewPager(viewPager);
-        mViewPagerAdapter.addFragment(messageListFragment, null);
+        mMessageListFragment = new MessageListFragment();
+        mMessageListFragment.setSlidingUpPanelLayout(mLayout);
+        mMessageListFragment.setViewPager(viewPager);
+        mViewPagerAdapter.addFragment(mMessageListFragment, null);
 
         FriendListFragment friendListFragment = new FriendListFragment();
         friendListFragment.setSlidingUpPanelLayout(mLayout);
@@ -165,6 +167,13 @@ public class PanelMapActivity extends SearchMapActivity {
             // show the friend list fragment
             SlidingUpPanelLayout mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
             mLayout.setPanelState(PanelState.ANCHORED);
+        }
+    }
+
+    @Override
+    void updateMessages() {
+        if (mMessageListFragment != null) {
+            mMessageListFragment.updateMessages();
         }
     }
 

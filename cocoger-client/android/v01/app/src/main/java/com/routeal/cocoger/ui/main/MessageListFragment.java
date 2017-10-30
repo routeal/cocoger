@@ -40,6 +40,7 @@ public class MessageListFragment extends PagerFragment {
 
     private RecyclerView mRecyclerView;
     private TextView mEmptyText;
+    private List<Message> mMessages = new ArrayList<>();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -47,37 +48,32 @@ public class MessageListFragment extends PagerFragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_message_list, container, false);
-
-        LinearLayoutManager layoutManager = new LinearLayoutManager(view.getContext());
-
         mEmptyText = (TextView) view.findViewById(R.id.empty_view);
-
         mRecyclerView = (RecyclerView) view.findViewById(R.id.list);
-        mRecyclerView.setLayoutManager(layoutManager);
-
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(view.getContext()));
+        mRecyclerView.setAdapter(new MessageListAdapter());
         return view;
     }
 
     @Override
     void onViewPageSelected() {
-        Log.d(TAG, "MessageListFragment selected");
-        reset();
+        updateMessages();
     }
 
-    void reset() {
-        List<Message> messages = createMessageList();
-        if (messages.isEmpty()) {
-            mEmptyText.setVisibility(View.VISIBLE);
-            mRecyclerView.setVisibility(View.GONE);
-        } else {
-            mEmptyText.setVisibility(View.GONE);
-            mRecyclerView.setVisibility(View.VISIBLE);
+    void updateMessages() {
+        mMessages = createMessageList();
+        if (mRecyclerView != null) {
+            mRecyclerView.getAdapter().notifyDataSetChanged();
+            if (mMessages.isEmpty()) {
+                mEmptyText.setVisibility(View.VISIBLE);
+                mRecyclerView.setVisibility(View.GONE);
+            } else {
+                mEmptyText.setVisibility(View.GONE);
+                mRecyclerView.setVisibility(View.VISIBLE);
+            }
         }
-        mRecyclerView.setAdapter(new MessageListAdapter(messages));
     }
 
     List<Message> createMessageList() {
@@ -179,11 +175,6 @@ public class MessageListFragment extends PagerFragment {
     }
 
     class MessageListAdapter extends RecyclerView.Adapter<MessageListAdapter.ViewHolder> {
-        List<Message> mMessages;
-
-        MessageListAdapter(List<Message> messages) {
-            mMessages = messages;
-        }
 
         public MessageListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             View itemView = LayoutInflater.from(parent.getContext())
@@ -229,7 +220,7 @@ public class MessageListFragment extends PagerFragment {
                         FB.acceptFriendRequest(im.key);
                         Notifi.remove(im.nid);
                         showFriendViewPage();
-                        reset();
+                        notifyDataSetChanged();
                     }
                 });
                 holder.no.setText(R.string.decline);
@@ -239,7 +230,7 @@ public class MessageListFragment extends PagerFragment {
                         FB.declineFriendRequest(im.key);
                         Notifi.remove(im.nid);
                         closeViewPage();
-                        reset();
+                        notifyDataSetChanged();
                     }
                 });
             } else if (m instanceof InviteMessage) {
@@ -267,7 +258,7 @@ public class MessageListFragment extends PagerFragment {
                         FB.cancelFriendRequest(im.key);
                         Notifi.remove(im.nid);
                         showFriendViewPage();
-                        reset();
+                        notifyDataSetChanged();
                     }
                 });
                 holder.no.setVisibility(View.INVISIBLE);
@@ -284,7 +275,7 @@ public class MessageListFragment extends PagerFragment {
                         FB.acceptRangeRequest(rm.key, rm.rangeTo);
                         Notifi.remove(rm.nid);
                         showFriendViewPage();
-                        reset();
+                        notifyDataSetChanged();
                     }
                 });
                 holder.no.setText(R.string.decline);
@@ -294,7 +285,7 @@ public class MessageListFragment extends PagerFragment {
                         FB.declineRangeRequest(rm.key);
                         Notifi.remove(rm.nid);
                         showFriendViewPage();
-                        reset();
+                        notifyDataSetChanged();
                     }
                 });
             } else if (m instanceof InfoMessage) {
@@ -309,7 +300,7 @@ public class MessageListFragment extends PagerFragment {
                     public void onClick(View v) {
                         DBUtil.deleteMessage(im.id);
                         closeViewPage();
-                        reset();
+                        notifyDataSetChanged();
                     }
                 });
                 holder.no.setVisibility(View.INVISIBLE);

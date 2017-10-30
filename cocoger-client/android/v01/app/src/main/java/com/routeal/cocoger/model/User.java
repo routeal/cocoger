@@ -18,10 +18,19 @@ public class User implements Serializable {
     private long updated;
     private long created;
     private boolean test;
+    private boolean selected;
     private Map<String, String> devices;
     private Map<String, String> places;
     private Map<String, Long> invites;
     private Map<String, Long> invitees;
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
+    public boolean getSelected() {
+        return selected;
+    }
 
     public String getEmail() {
         return email;

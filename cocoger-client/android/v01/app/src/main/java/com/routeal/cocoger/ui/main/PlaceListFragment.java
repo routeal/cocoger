@@ -45,6 +45,7 @@ public class PlaceListFragment extends PagerFragment {
         mEmptyTextView = (TextView) view.findViewById(R.id.empty_view);
 
         final PlaceListAdapter placeListAdapter = new PlaceListAdapter();
+
         PlaceManager.setRecyclerAdapterListener(new RecyclerAdapterListener<Place>() {
             @Override
             public void onAdded(String key, Place object) {
@@ -145,7 +146,7 @@ public class PlaceListFragment extends PagerFragment {
                 }
             }
 
-            public void bind(Place place, String key) {
+            void bind(Place place, String key) {
                 mKey = key;
                 mPlace = place;
                 if (!mPlace.getUid().equals(FB.getUid())) {
