@@ -445,7 +445,7 @@ public class AccountActivity extends AppCompatActivity {
                 dialog.hide();
 
                 // save the user to the database
-                FB.initUser(user);
+                FB.saveUser(user);
 
                 // start the main map
                 Intent intent = new Intent(getApplicationContext(), PanelMapActivity.class);

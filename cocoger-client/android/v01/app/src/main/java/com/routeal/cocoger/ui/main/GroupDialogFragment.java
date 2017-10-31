@@ -22,6 +22,7 @@ import com.franmontiel.fullscreendialog.FullScreenDialogContent;
 import com.franmontiel.fullscreendialog.FullScreenDialogController;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.manager.FriendManager;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.Group;
 import com.routeal.cocoger.model.Member;

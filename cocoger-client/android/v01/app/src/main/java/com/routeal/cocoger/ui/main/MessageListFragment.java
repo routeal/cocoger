@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.manager.FriendManager;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.NoticeMessage;
 import com.routeal.cocoger.model.RangeRequest;

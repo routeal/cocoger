@@ -1,4 +1,4 @@
-package com.routeal.cocoger.ui.main;
+package com.routeal.cocoger.manager;
 
 import com.routeal.cocoger.model.Place;
 
@@ -16,7 +16,7 @@ public class PlaceManager {
     // the list will be kept
     private static SortedMap<String, Place> mPlaceList = new TreeMap<>();
 
-    private static RecyclerAdapterListener<Place> mRecyclerAdapterListener;
+    private static UpdateListener<Place> mUpdateListener;
 
     public static Place getPlace(String key) {
         if (key != null && !key.isEmpty()) {
@@ -31,27 +31,27 @@ public class PlaceManager {
 
     public static void add(String key, Place place) {
         mPlaceList.put(key, place);
-        if (mRecyclerAdapterListener != null) {
-            mRecyclerAdapterListener.onAdded(key, place);
+        if (mUpdateListener != null) {
+            mUpdateListener.onAdded(key, place);
         }
     }
 
     public static void change(String key, Place place) {
         mPlaceList.put(key, place);
-        if (mRecyclerAdapterListener != null) {
-            mRecyclerAdapterListener.onChanged(key, place);
+        if (mUpdateListener != null) {
+            mUpdateListener.onChanged(key, place);
         }
     }
 
     public static void remove(String key) {
         mPlaceList.remove(key);
-        if (mRecyclerAdapterListener != null) {
-            mRecyclerAdapterListener.onRemoved(key);
+        if (mUpdateListener != null) {
+            mUpdateListener.onRemoved(key);
         }
     }
 
-    static void setRecyclerAdapterListener(RecyclerAdapterListener<Place> listener) {
-        mRecyclerAdapterListener = listener;
+    public static void setUpdateListener(UpdateListener<Place> listener) {
+        mUpdateListener = listener;
     }
 
 }

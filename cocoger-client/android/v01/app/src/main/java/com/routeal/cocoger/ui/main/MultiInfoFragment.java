@@ -123,7 +123,7 @@ public class MultiInfoFragment extends InfoFragment {
             mActionMessageButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    processMessage();
+                    startMessage();
                     dialog.dismiss();
                 }
             });

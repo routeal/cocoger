@@ -30,9 +30,9 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.manager.FriendManager;
 import com.routeal.cocoger.model.LocationAddress;
 import com.routeal.cocoger.provider.DBUtil;
-import com.routeal.cocoger.ui.main.FriendManager;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
 import com.routeal.cocoger.util.Utils;
 

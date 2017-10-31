@@ -14,13 +14,9 @@ import android.os.SystemClock;
  */
 
 public class LocationUpdateReceiver extends BroadcastReceiver {
-    private static int mInterval = 3; // seconds
-
-    static void setUpdateInterval(int interval) {
-        mInterval = interval;
-    }
 
     static void scheduleUpdate(Context context, AlarmManager alarmManager) {
+        int mInterval = 5; // seconds
         Intent i = new Intent(context, LocationUpdateReceiver.class);
         PendingIntent pi = PendingIntent.getBroadcast(context, 0, i, 0);
         alarmManager.setExact(AlarmManager.ELAPSED_REALTIME_WAKEUP,

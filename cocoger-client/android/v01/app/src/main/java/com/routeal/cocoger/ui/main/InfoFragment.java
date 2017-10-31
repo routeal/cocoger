@@ -137,7 +137,7 @@ public class InfoFragment extends Fragment {
         LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
     }
 
-    void processMessage() {
+    void startMessage() {
         Toast.makeText(MainApplication.getContext(), "Send Message not implemented", Toast.LENGTH_SHORT).show();
     }
 

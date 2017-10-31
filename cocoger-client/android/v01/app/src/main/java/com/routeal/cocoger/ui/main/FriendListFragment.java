@@ -18,12 +18,13 @@ import com.franmontiel.fullscreendialog.FullScreenDialogFragment;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.manager.FriendManager;
+import com.routeal.cocoger.manager.UpdateListener;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.util.LoadImage;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.SnappingSeekBar;
 
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -71,7 +72,7 @@ public class FriendListFragment extends PagerFragment {
 
         final FriendListAdapter friendListAdapter = new FriendListAdapter();
 
-        FriendManager.setRecyclerAdapterListener(new RecyclerAdapterListener<Friend>() {
+        FriendManager.setUpdateListener(new UpdateListener<Friend>() {
             @Override
             public void onAdded(String key, Friend object) {
                 friendListAdapter.notifyDataSetChanged();
@@ -234,7 +235,7 @@ public class FriendListFragment extends PagerFragment {
                                 .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialog, int which) {
-                                        FB.unfriend(mFriendId);
+                                        FB.deleteFriend(mFriendId);
                                     }
                                 })
                                 .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
@@ -270,12 +271,12 @@ public class FriendListFragment extends PagerFragment {
 
             private void changeRange(int index) {
                 int range = LocationRange.toRange(index);
-                FB.changeRange(mFriendId, range);
+                FB.updateRange(mFriendId, range);
             }
 
             private void sendChangeRequest(int index) {
                 int range = LocationRange.toRange(index);
-                FB.sendChangeRequest(mFriendId, range);
+                FB.sendRangeRequest(mFriendId, range);
             }
 
             private void sendMessage() {

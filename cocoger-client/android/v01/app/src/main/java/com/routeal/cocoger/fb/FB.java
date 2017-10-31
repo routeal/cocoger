@@ -31,6 +31,9 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
+import com.routeal.cocoger.manager.FriendManager;
+import com.routeal.cocoger.manager.GroupManager;
+import com.routeal.cocoger.manager.PlaceManager;
 import com.routeal.cocoger.model.Device;
 import com.routeal.cocoger.model.Feedback;
 import com.routeal.cocoger.model.Friend;
@@ -41,10 +44,7 @@ import com.routeal.cocoger.model.Place;
 import com.routeal.cocoger.model.RangeRequest;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.service.LocationUpdateService;
-import com.routeal.cocoger.ui.main.FriendManager;
-import com.routeal.cocoger.ui.main.GroupManager;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
-import com.routeal.cocoger.ui.main.PlaceManager;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Notifi;
 import com.routeal.cocoger.util.Utils;
@@ -380,7 +380,7 @@ public class FB {
                 });
     }
 
-    public static void createUser(Activity activity, String email, String password, final CreateUserListener listener) {
+    public static void createUser(Activity activity, String email, String password, final SignUpListener listener) {
         FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(activity, new OnCompleteListener<AuthResult>() {
                     @Override
@@ -654,7 +654,7 @@ public class FB {
         FB.setUser(newUser);
     }
 
-    public static void initUser(User user) {
+    public static void saveUser(User user) {
         String uid = getUid();
         DatabaseReference db = getDB().child("users");
         db.child(uid).setValue(user);
@@ -829,7 +829,7 @@ public class FB {
         resDb.child("rangeRequest").removeValue();
     }
 
-    public static void changeRange(String fid, int range) {
+    public static void updateRange(String fid, int range) {
         String uid = getUid();
 
         DatabaseReference myDb = getDB().child("friends").child(uid).child(fid);
@@ -839,7 +839,7 @@ public class FB {
         friendDb.child("range").setValue(range);
     }
 
-    public static void sendChangeRequest(String fid, int range) {
+    public static void sendRangeRequest(String fid, int range) {
         String uid = getUid();
 
         RangeRequest rangeRequest = new RangeRequest();
@@ -850,7 +850,7 @@ public class FB {
         friendDb.child("rangeRequest").setValue(rangeRequest);
     }
 
-    public static void unfriend(String fid) {
+    public static void deleteFriend(String fid) {
         String uid = getUid();
 
         DatabaseReference friendDb = getDB().child("friends").child(fid).child(uid);
@@ -921,7 +921,7 @@ public class FB {
     }
 
     // delete the existing image first and then upload
-    public static void uploadData(final byte[] bytes, String refName, final UploadDataListener listener) {
+    private static void uploadData(final byte[] bytes, String refName, final UploadDataListener listener) {
         final StorageReference ref = FirebaseStorage.getInstance().getReference().child(refName);
         ref.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
@@ -946,7 +946,7 @@ public class FB {
         });
     }
 
-    public static void downloadData(String refName, final DownloadDataListener listener) {
+    private static void downloadData(String refName, final DownloadDataListener listener) {
         long ONE_MEGABYTE = 1024 * 1024;
         StorageReference ref = FirebaseStorage.getInstance().getReference().child(refName);
         ref.getBytes(ONE_MEGABYTE)
@@ -964,7 +964,7 @@ public class FB {
                 });
     }
 
-    public static void deleteData(String refName, final DeleteDataListener listener) {
+    private static void deleteData(String refName, final DeleteDataListener listener) {
         StorageReference ref = FirebaseStorage.getInstance().getReference().child(refName);
         ref.delete()
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
@@ -1045,7 +1045,7 @@ public class FB {
         });
     }
 
-    public static void searchUsers(String search, final UserListListener listener) {
+    public static void findUsers(String search, final UserListListener listener) {
         DatabaseReference db = getDB().child("users");
 
         Query query = db
@@ -1106,76 +1106,6 @@ public class FB {
                 }
         );
     }
-
-/*
-    // return the latest location of the specified user
-    public static void getUserLocation(String key, final LocationListener listener) {
-        DatabaseReference db = getDB().child("user_locations").child(key);
-        Query query = db.orderByKey().limitToLast(1);
-        query.addListenerForSingleValueEvent(
-                new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        String locKey = null;
-                        // there should be only one
-                        for (DataSnapshot snapshot: dataSnapshot.getChildren()) {
-                            locKey = snapshot.getKey();
-                        }
-                        if (locKey == null) {
-                            if (listener != null) {
-                                listener.onFail("Failed to get a location object.");
-                            }
-                            return;
-                        }
-                        DatabaseReference db = getDB().child("locations").child(locKey);
-                        db.addListenerForSingleValueEvent(
-                                new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(DataSnapshot dataSnapshot) {
-
-                                        LocationAddress la = dataSnapshot.getValue(LocationAddress.class);
-                                        if (la != null) {
-                                            if (listener != null) {
-                                                Location location = Utils.getLocation(la);
-                                                Address address = Utils.getAddress(location);
-                                                listener.onSuccess(location, address);
-                                            }
-                                        } else {
-                                            if (listener != null) {
-                                                listener.onFail("Failed to get a location object.");
-                                            }
-                                        }
-                                    }
-                                    @Override
-                                    public void onCancelled(DatabaseError databaseError) {
-                                        Exception e = databaseError.toException();
-                                        Log.d(TAG, "Failed to get a location object", e);
-                                        if (listener != null) {
-                                            if (e != null) {
-                                                listener.onFail(e.getLocalizedMessage());
-                                            } else {
-                                                listener.onFail("Failed to get a location object.");
-                                            }
-                                        }
-                                    }
-                                });
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        Exception e = databaseError.toException();
-                        Log.d(TAG, "Failed to get a location object", e);
-                        if (listener != null) {
-                            if (e != null) {
-                                listener.onFail(e.getLocalizedMessage());
-                            } else {
-                                listener.onFail("Failed to get a location object.");
-                            }
-                        }
-                    }
-                });
-    }
-*/
 
     public static void getLocation(String key, final LocationListener listener) {
         DatabaseReference db = getDB().child("locations");
@@ -1250,7 +1180,7 @@ public class FB {
         });
     }
 
-    public static void addPlace(final String key, final Place place, final PlaceListener listener) {
+    private static void addPlace(final String key, final Place place, final PlaceListener listener) {
         String uid = FB.getUid();
 
         Map<String, Object> updates = new HashMap<>();
@@ -1302,7 +1232,7 @@ public class FB {
         }
     }
 
-    public static void editPlace(final String key, Place place, byte bytes[], final CompleteListener listener) {
+    public static void updatePlace(final String key, Place place, byte bytes[], final CompleteListener listener) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("places/" + key, place);
         for (Map.Entry<String, Friend> entry : FriendManager.getFriends().entrySet()) {
@@ -1456,8 +1386,7 @@ public class FB {
         void onFail(String err);
     }
 
-
-    public interface CreateUserListener {
+    public interface SignUpListener {
         void onSuccess(String key);
 
         void onFail(String err);
@@ -1465,12 +1394,6 @@ public class FB {
 
     public interface ResetPasswordListener {
         void onSuccess();
-
-        void onFail(String err);
-    }
-
-    public interface UploadImageListener {
-        void onSuccess(String url);
 
         void onFail(String err);
     }

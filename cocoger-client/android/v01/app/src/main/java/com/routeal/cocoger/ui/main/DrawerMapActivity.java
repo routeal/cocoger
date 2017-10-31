@@ -54,11 +54,11 @@ abstract class DrawerMapActivity extends MapActivity implements NavigationView.O
         // show the selected activities
         int id = item.getItemId();
         if (id == R.id.nav_sharing_timeline) {
-            showShareTimeline();
+            startTimeline();
         } else if (id == R.id.nav_account) {
-            showAccount();
+            startAccount();
         } else if (id == R.id.nav_send_feedback) {
-            sendFeedback();
+            startFeedback();
         } else if (id == R.id.nav_logout) {
             logout();
         } else if (id == R.id.nav_term_services) {
@@ -123,22 +123,22 @@ abstract class DrawerMapActivity extends MapActivity implements NavigationView.O
                 .show();
     }
 
-    private void showShareTimeline() {
+    private void startTimeline() {
         Intent intent = new Intent(getApplicationContext(), TimelineActivity.class);
         startActivity(intent);
     }
 
-    private void showAccount() {
+    private void startAccount() {
         Intent intent = new Intent(getApplicationContext(), AccountActivity.class);
         startActivity(intent);
     }
 
-    private void sendFeedback() {
+    private void startFeedback() {
         Intent intent = new Intent(getApplicationContext(), FeedbackActivity.class);
         startActivity(intent);
     }
 
-    protected void showSettings() {
+    protected void startIntervalSetting() {
         LayoutInflater layoutInflaterAndroid = LayoutInflater.from(this);
         final View view = layoutInflaterAndroid.inflate(R.layout.dialog_setting, null);
         final RadioGroup fgIntervalGroup = (RadioGroup) view.findViewById(R.id.foreground_interval);

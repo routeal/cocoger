@@ -33,6 +33,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.manager.PlaceManager;
 import com.routeal.cocoger.model.Place;
 import com.routeal.cocoger.util.LoadImage;
 import com.routeal.cocoger.util.Utils;
@@ -106,7 +107,7 @@ public class PlaceMarkers {
     }
 
     // edit a place or add a new place but the marker is already created by long press
-    void editPlace(final String key, final Place place) {
+    void updatePlace(final String key, final Place place) {
         if (mActivity.isFinishing()) return;
 
         final PlaceInfoFragment fragment = getPlaceInfoFragment(place);
@@ -230,7 +231,7 @@ public class PlaceMarkers {
                 byte bytes[] = Utils.getBitmapBytes(mActivity, updateBitmap);
 
                 if (isEdit) {
-                    FB.editPlace(key, place, bytes, new FB.CompleteListener() {
+                    FB.updatePlace(key, place, bytes, new FB.CompleteListener() {
                         @Override
                         public void onSuccess() {
                             // place
@@ -260,7 +261,7 @@ public class PlaceMarkers {
 
                                 @Override
                                 public void onFail(String err) {
-                                    Log.d(TAG, "editPlace: add a place:" + err);
+                                    Log.d(TAG, "updatePlace: add a place:" + err);
                                 }
                             });
                 }
@@ -579,7 +580,7 @@ public class PlaceMarkers {
             return;
         }
 
-        FB.editPlace(key, place, null, null);
+        FB.updatePlace(key, place, null, null);
     }
 
     void onMapLongClick(LatLng latLng) {

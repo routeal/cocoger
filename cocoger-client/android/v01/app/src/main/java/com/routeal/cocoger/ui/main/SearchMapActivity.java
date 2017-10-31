@@ -144,7 +144,7 @@ abstract class SearchMapActivity extends DrawerMapActivity implements
     @Override
     public void onActionMenuItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_setting) {
-            showSettings();
+            startIntervalSetting();
         }
     }
 

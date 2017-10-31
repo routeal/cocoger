@@ -108,6 +108,7 @@ public class LoginFragment extends Fragment {
         }
     }
 
+    // FIXME: kind wired
     String getEmail() {
         return mEmailText.getText().toString();
     }
@@ -208,7 +209,7 @@ public class LoginFragment extends Fragment {
 
         final Utils.ProgressBarView dialog = Utils.getProgressBar(getActivity());
 
-        FB.createUser(getActivity(), email, password, new FB.CreateUserListener() {
+        FB.createUser(getActivity(), email, password, new FB.SignUpListener() {
             @Override
             public void onSuccess(String key) {
                 dialog.hide();

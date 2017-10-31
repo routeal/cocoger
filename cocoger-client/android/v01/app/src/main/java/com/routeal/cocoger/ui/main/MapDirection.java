@@ -70,7 +70,7 @@ class MapDirection {
         mInfoWindowManager = infoWindowManager;
     }
 
-    private static void getDirection(Location to, Location from, SimpleDirectionListener listener) {
+    private void getDirection(Location to, Location from, SimpleDirectionListener listener) {
         DownloadDirection DownloadDirection = new DownloadDirection(listener);
 
         String url = getUrl(from, to);
@@ -79,7 +79,7 @@ class MapDirection {
         DownloadDirection.execute(url);
     }
 
-    private static String getUrl(Location origin, Location dest) {
+    private String getUrl(Location origin, Location dest) {
 
         // Origin of route
         String str_origin = "origin=" + origin.getLatitude() + "," + origin.getLongitude();
@@ -102,7 +102,7 @@ class MapDirection {
         return url;
     }
 
-    private static String downloadUrl(String strUrl) throws Exception {
+    private String downloadUrl(String strUrl) throws Exception {
         String data = "";
         InputStream iStream = null;
         HttpURLConnection urlConnection = null;
@@ -153,7 +153,7 @@ class MapDirection {
             return;
         }
         removeDirection();
-        MapDirection.getDirection(locationTo, locationFrom, new MapDirection.SimpleDirectionListener() {
+        getDirection(locationTo, locationFrom, new MapDirection.SimpleDirectionListener() {
             @Override
             public void onSuccess(List<MapDirection.Route> routes) {
                 MapDirection.Route route = routes.get(0);
@@ -237,14 +237,14 @@ class MapDirection {
         void onFail(String err);
     }
 
-    static class Route {
+    private class Route {
         String distance;
         String duration;
         List<LatLng> points;
     }
 
     // Fetches data from url passed
-    private static class DownloadDirection extends AsyncTask<String, Void, String> {
+    private class DownloadDirection extends AsyncTask<String, Void, String> {
         SimpleDirectionListener mListener;
         String mError;
 
@@ -279,7 +279,7 @@ class MapDirection {
         }
     }
 
-    private static class ParseDirectionResponse extends AsyncTask<String, Integer, List<DirectionResponseParser.ResponseRoute>> {
+    private class ParseDirectionResponse extends AsyncTask<String, Integer, List<DirectionResponseParser.ResponseRoute>> {
 
         SimpleDirectionListener mListener;
         String mError;
@@ -355,7 +355,7 @@ class MapDirection {
         }
     }
 
-    static class DirectionResponseParser {
+    class DirectionResponseParser {
 
         /**
          * Receives a JSONObject and returns a list of lists containing latitude and longitude

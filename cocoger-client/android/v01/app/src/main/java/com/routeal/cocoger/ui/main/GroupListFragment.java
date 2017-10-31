@@ -18,6 +18,9 @@ import android.widget.TextView;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.manager.FriendManager;
+import com.routeal.cocoger.manager.GroupManager;
+import com.routeal.cocoger.manager.UpdateListener;
 import com.routeal.cocoger.model.Group;
 import com.routeal.cocoger.model.Member;
 import com.routeal.cocoger.util.LoadImage;
@@ -71,7 +74,7 @@ public class GroupListFragment extends PagerFragment {
         final GroupListAdapter groupListAdapter = new GroupListAdapter();
         mRecyclerView.setAdapter(groupListAdapter);
 
-        GroupManager.setRecyclerAdapterListener(new RecyclerAdapterListener<Group>() {
+        GroupManager.setUpdateListener(new UpdateListener<Group>() {
             @Override
             public void onAdded(String key, Group object) {
                 groupListAdapter.notifyDataSetChanged();
@@ -182,6 +185,7 @@ public class GroupListFragment extends PagerFragment {
                 mRemoveButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        // FIXME: should be removeMember()
                         FB.deleteGroup(mKey, mGroup);
                     }
                 });

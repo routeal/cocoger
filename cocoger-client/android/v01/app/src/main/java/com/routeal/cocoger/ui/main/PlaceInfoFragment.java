@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.manager.FriendManager;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.Place;
 import com.routeal.cocoger.util.LoadImage;
@@ -100,7 +101,7 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
                 }
                 break;
             case R.id.action_edit_place:
-                mPlaceMarkers.editPlace(mKey, mPlace);
+                mPlaceMarkers.updatePlace(mKey, mPlace);
                 break;
             case R.id.action_direction:
                 if (mLocation != null) {

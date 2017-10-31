@@ -18,6 +18,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.manager.FriendManager;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.Group;
 import com.routeal.cocoger.model.Place;
@@ -36,18 +37,18 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
     private GeoDataClient mGeoDataClient;
     private MapActivity mActivity;
     private MapDirection mDirection;
-    private MarkerManager mMarkerManager;
+    private UserMarkers mUserMarkers;
     private PlaceMarkers mPlaceMarkers;
 
     private Location mLocation;
     private Address mAddress;
 
     MapBroadcastReceiver(MapActivity activity, GoogleMap map, InfoWindowManager infoWindowManager,
-                         MarkerManager markerManager, PlaceMarkers placeMarkers, MapDirection mapDirection) {
+                         UserMarkers userMarkers, PlaceMarkers placeMarkers, MapDirection mapDirection) {
         mActivity = activity;
         mInfoWindowManager = infoWindowManager;
         mMap = map;
-        mMarkerManager = markerManager;
+        mUserMarkers = userMarkers;
         mPlaceMarkers = placeMarkers;
         mDirection = mapDirection;
         IntentFilter filter = new IntentFilter();
@@ -87,32 +88,32 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             if (mMap != null) {
                 // first time only
                 if (mLocation == null) {
-                    Log.d(TAG, "Receive Last_location_update: setupMarkers");
+                    Log.d(TAG, "Receive Last_location_update: init");
                     if (FB.getUser() != null) {
-                        mMarkerManager.setupMarkers(location, address);
+                        mUserMarkers.init(location, address);
                     }
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                             Utils.getLatLng(location), MapActivity.DEFAULT_ZOOM));
                 } else {
                     if (FB.getUser() != null) {
                         Log.d(TAG, "user location updated");
-                        mMarkerManager.reposition(FB.getUid(), location, address, LocationRange.CURRENT.range);
+                        mUserMarkers.move(FB.getUid(), location, address, LocationRange.CURRENT.range);
                     }
                 }
             }
             mLocation = location;
             mAddress = address;
         } else if (intent.getAction().equals(FB.USER_AVAILABLE)) {
-            Log.d(TAG, "Receive User_available: setupMarkers");
+            Log.d(TAG, "Receive User_available: init");
             if (mLocation == null) return;
             if (mAddress == null) {
                 mAddress = Utils.getAddress(mLocation);
             }
-            mMarkerManager.setupMarkers(mLocation, mAddress);
+            mUserMarkers.init(mLocation, mAddress);
         } else if (intent.getAction().equals(FB.USER_UPDATED)) {
-            mMarkerManager.update();
+            mUserMarkers.update(FB.getUid());
         } else if (intent.getAction().equals(FB.USER_CHANGE)) {
-            mActivity.updateMessages();
+            mActivity.updateMessage();
         } else if (intent.getAction().equals(FB.FRIEND_LOCATION_ADD)) {
             final String fid = intent.getStringExtra(FB.KEY);
             final Friend friend = FriendManager.getFriend(fid);
@@ -126,7 +127,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
 
                 @Override
                 public void onSuccess(Location location, final Address address) {
-                    mMarkerManager.reposition(fid, location, address, friend.getRange());
+                    mUserMarkers.move(fid, location, address, friend.getRange());
                 }
             });
         } else if (intent.getAction().equals(FB.FRIEND_LOCATION_UPDATE)) {
@@ -146,11 +147,11 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
 
                     final int range = friend.getRange();
                     // for testing
-                    mMarkerManager.reposition(fid, newLocation, newAddress, range);
+                    mUserMarkers.move(fid, newLocation, newAddress, range);
 /*
                     if (oldLocationKey == null) {
                         // move the cursor
-                        mMm.reposition(fid, newLocation, newAddress, range);
+                        mMm.move(fid, newLocation, newAddress, range);
                     } else {
                         // compare the new location with the old location to issue the range movement
                         FB.getLocation(oldLocationKey, new FB.LocationListener() {
@@ -169,7 +170,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
 
                                     if (moved == LocationRange.CURRENT.range) {
                                         // move
-                                        mMm.reposition(fid, newLocation, newAddress, range);
+                                        mMm.move(fid, newLocation, newAddress, range);
                                         return;
                                     }
 
@@ -191,7 +192,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             if (fid == null) {
                 return;
             }
-            mMarkerManager.remove(fid);
+            mUserMarkers.remove(fid);
         } else if (intent.getAction().equals(FB.FRIEND_RANGE_UPDATE)) {
             String fid = intent.getStringExtra(FB.KEY);
             if (fid == null) {
@@ -203,14 +204,14 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             }
             int range = friend.getRange();
             Log.d(TAG, "FRIEND_RANGE_UPDATE:" + fid);
-            mMarkerManager.changeRange(fid, range);
+            mUserMarkers.update(fid, range);
         } else if (intent.getAction().equals(FB.FRIEND_MARKER_SHOW)) {
             String fid = intent.getStringExtra(FB.KEY);
             if (fid == null) {
                 return;
             }
             Log.d(TAG, "FRIEND_MARKER_SHOW:" + fid);
-            mMarkerManager.show(fid);
+            mUserMarkers.zoom(fid);
             mActivity.closeSlidePanel();
         } else if (intent.getAction().equals(FB.DIRECTION_ROUTE_ADD)) {
             Location location = intent.getParcelableExtra(FB.LOCATION);
@@ -227,7 +228,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
         } else if (intent.getAction().equals(FB.PLACE_EDIT)) {
             String key = intent.getStringExtra(FB.KEY);
             Place place = (Place) intent.getSerializableExtra(FB.PLACE);
-            mPlaceMarkers.editPlace(key, place);
+            mPlaceMarkers.updatePlace(key, place);
         } else if (intent.getAction().equals(FB.PLACE_DELETE)) {
             String key = intent.getStringExtra(FB.KEY);
             Place place = (Place) intent.getSerializableExtra(FB.PLACE);

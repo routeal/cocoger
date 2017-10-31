@@ -1,4 +1,4 @@
-package com.routeal.cocoger.ui.main;
+package com.routeal.cocoger.manager;
 
 import android.content.Intent;
 import android.location.Address;
@@ -28,7 +28,7 @@ public class FriendManager {
 
     private static SortedMap<String, Friend> mFriendList = new TreeMap<>();
     private static Map<String, LocationAddress> mLocationList = new HashMap<>();
-    private static RecyclerAdapterListener<Friend> mRecyclerAdapterListener;
+    private static UpdateListener<Friend> mUpdateListener;
 
     public static SortedMap<String, Friend> getFriends() {
         return mFriendList;
@@ -71,8 +71,8 @@ public class FriendManager {
     public static void add(String key, Friend friend) {
         Log.d(TAG, "add:" + key);
 
-        if (mRecyclerAdapterListener != null) {
-            mRecyclerAdapterListener.onAdded(key, friend);
+        if (mUpdateListener != null) {
+            mUpdateListener.onAdded(key, friend);
         }
 
         mFriendList.put(key, friend);
@@ -85,8 +85,8 @@ public class FriendManager {
     public static void change(String key, Friend newFriend) {
         Log.d(TAG, "change:" + key);
 
-        if (mRecyclerAdapterListener != null) {
-            mRecyclerAdapterListener.onChanged(key, newFriend);
+        if (mUpdateListener != null) {
+            mUpdateListener.onChanged(key, newFriend);
         }
 
         Friend oldFriend = mFriendList.get(key);
@@ -127,8 +127,8 @@ public class FriendManager {
         mFriendList.remove(key);
         mLocationList.remove(key);
 
-        if (mRecyclerAdapterListener != null) {
-            mRecyclerAdapterListener.onRemoved(key);
+        if (mUpdateListener != null) {
+            mUpdateListener.onRemoved(key);
         }
 
         Intent intent = new Intent(FB.FRIEND_LOCATION_REMOVE);
@@ -136,8 +136,8 @@ public class FriendManager {
         LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
     }
 
-    public static void setRecyclerAdapterListener(RecyclerAdapterListener<Friend> listener) {
-        mRecyclerAdapterListener = listener;
+    public static void setUpdateListener(UpdateListener<Friend> listener) {
+        mUpdateListener = listener;
     }
 
     private static class LocationAddress {

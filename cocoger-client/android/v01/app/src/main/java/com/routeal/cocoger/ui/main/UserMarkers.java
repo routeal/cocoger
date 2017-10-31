@@ -10,6 +10,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.Marker;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.manager.FriendManager;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.util.LocationRange;
@@ -21,9 +22,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-class MarkerManager {
+class UserMarkers {
 
-    private final static String TAG = "MarkerManager";
+    private final static String TAG = "UserMarkers";
 
     private List<ComboMarker> mMarkers = new ArrayList<>();
     private GoogleMap mMap;
@@ -31,7 +32,7 @@ class MarkerManager {
     private double mMarkerDistance = 10;
     private boolean mHasFriendMarkers = false;
 
-    MarkerManager(GoogleMap map, InfoWindowManager infoWindowManager) {
+    UserMarkers(GoogleMap map, InfoWindowManager infoWindowManager) {
         mMap = map;
         mInfoWindowManager = infoWindowManager;
     }
@@ -92,11 +93,12 @@ class MarkerManager {
         return false;
     }
 
-    void remove(String id) {
+    // remove the user (friend)
+    void remove(String uid) {
         for (Iterator<ComboMarker> ite = mMarkers.iterator(); ite.hasNext(); ) {
             ComboMarker marker = ite.next();
-            if (marker.contains(id)) {
-                boolean removed = marker.removeUser(id);
+            if (marker.contains(uid)) {
+                boolean removed = marker.removeUser(uid);
                 if (removed) {
                     ite.remove();
                 }
@@ -105,8 +107,8 @@ class MarkerManager {
         }
     }
 
-    // add a new user or friend
-    private void add(String id, String name, Location location, Address address, int range) {
+    // add a new user (friend)
+    private void add(String uid, String name, Location location, Address address, int range) {
         if (range == 0) return;
 
         if (address != null) {
@@ -116,27 +118,27 @@ class MarkerManager {
         }
 
         for (ComboMarker marker : mMarkers) {
-            if (marker.contains(id)) {
-                Log.d(TAG, "add: " + id + " update the location and address");
+            if (marker.contains(uid)) {
+                Log.d(TAG, "add: " + uid + " update the location and address");
                 marker.setPosition(location, address, range);
                 return;
             }
             Location rangeLocation = Utils.getRangedLocation(location, address, range);
             if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
-                Log.d(TAG, "add: combined " + id);
-                marker.addUser(id, name, location, address, range);
+                Log.d(TAG, "add: combined " + uid);
+                marker.addUser(uid, name, location, address, range);
                 return;
             }
         }
 
-        Log.d(TAG, "add: create a new marker " + id);
-        ComboMarker m = new ComboMarker(mMap, mInfoWindowManager, id, name, location, address, range);
+        Log.d(TAG, "add: create a new marker " + uid);
+        ComboMarker m = new ComboMarker(mMap, mInfoWindowManager, uid, name, location, address, range);
         mMarkers.add(m);
     }
 
-    // reposition the marker owned by the key
-    void reposition(String key, Location location, Address address, int range) {
-        Log.d(TAG, "reposition: " + key);
+    // move the user (friend)
+    void move(String uid, Location location, Address address, int range) {
+        Log.d(TAG, "move: " + uid);
 
         Location rangeLocation = null;
         if (range > 0) {
@@ -148,9 +150,9 @@ class MarkerManager {
         for (Iterator<ComboMarker> ite = mMarkers.iterator(); ite.hasNext(); ) {
             ComboMarker marker = ite.next();
             // found the current marker
-            if (marker.contains(key)) {
+            if (marker.contains(uid)) {
                 if (range == 0) { // 0 means none
-                    boolean removed = marker.removeUser(key);
+                    boolean removed = marker.removeUser(uid);
                     // remove from the map
                     if (removed) {
                         ite.remove();
@@ -160,25 +162,25 @@ class MarkerManager {
                 }
                 // simply change the position when there is only one in the marker
                 else if (marker.size() == 1) {
-                    Log.d(TAG, "reposition: reposition");
+                    Log.d(TAG, "move: move");
                     if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
-                        Log.d(TAG, "reposition: no need to move");
+                        Log.d(TAG, "move: no need to move");
                         return;
                     } else {
-                        Log.d(TAG, "reposition: simply move");
+                        Log.d(TAG, "move: simply move");
                         marker.setPosition(location, address, range);
                         return;
                     }
                 */
                 } else {
-                    // too short to reposition, no need to change at all
+                    // too short to move, no need to change at all
                     if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
-                        Log.d(TAG, "reposition: no need to apart from the current marker");
+                        Log.d(TAG, "move: no need to apart from the current marker");
                         return;
                     }
-                    Log.d(TAG, "reposition: remove from the current marker");
+                    Log.d(TAG, "move: remove from the current marker");
                     // remove from the current marker
-                    boolean removed = marker.removeUser(key);
+                    boolean removed = marker.removeUser(uid);
                     // remove from the map
                     if (removed) {
                         ite.remove();
@@ -188,16 +190,16 @@ class MarkerManager {
             }
         }
 
-        // sometimes, try to reposition with range=0 multiple times
+        // sometimes, try to move with range=0 multiple times
         if (range == 0) return;
 
         User user = FB.getUser();
         String name = null;
 
-        if (key.equals(FB.getUid())) {
+        if (uid.equals(FB.getUid())) {
             name = user.getDisplayName();
         } else {
-            Friend friend = FriendManager.getFriend(key);
+            Friend friend = FriendManager.getFriend(uid);
             if (friend != null) {
                 name = friend.getDisplayName();
             }
@@ -209,21 +211,21 @@ class MarkerManager {
         // find the nearest marker and join
         for (ComboMarker marker : mMarkers) {
             if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
-                Log.d(TAG, "reposition: added to join to the marker");
-                marker.addUser(key, name, location, address, range);
+                Log.d(TAG, "move: added to join to the marker");
+                marker.addUser(uid, name, location, address, range);
                 return;
             }
         }
 
-        Log.d(TAG, "reposition: add a marker for " + key);
+        Log.d(TAG, "move: add a marker for " + uid);
         // add a new marker to map
-        mMarkers.add(new ComboMarker(mMap, mInfoWindowManager, key, name, location, address, range));
+        mMarkers.add(new ComboMarker(mMap, mInfoWindowManager, uid, name, location, address, range));
         //add(key, name, location, address, range);
     }
 
-    // TODO: merge this to above
-    void changeRange(String key, int range) {
-        Log.d(TAG, "reposition range: " + key);
+    // update the user (friend) 's range
+    void update(String uid, int range) {
+        Log.d(TAG, "move range: " + uid);
 
         ComboMarker.MarkerInfo info = null;
 
@@ -231,34 +233,34 @@ class MarkerManager {
         for (Iterator<ComboMarker> ite = mMarkers.iterator(); ite.hasNext(); ) {
             ComboMarker marker = ite.next();
             // found the current marker
-            if (marker.contains(key)) {
-                info = marker.getMakerInfo(key);
+            if (marker.contains(uid)) {
+                info = marker.getInfo(uid);
                 info.range = range;
                 if (range == 0) {
                     // remove from the current marker
-                    boolean removed = marker.removeUser(key);
+                    boolean removed = marker.removeUser(uid);
                     // remove from the map
                     if (removed) {
-                        Log.d(TAG, "reposition range: also remove the current marker from the map");
+                        Log.d(TAG, "move range: also remove the current marker from the map");
                         ite.remove();
                     }
                     return;
                 }
                 // simply change the position when there is only one in the marker
                 else if (marker.size() == 1) {
-                    Log.d(TAG, "reposition range: only one marker - remove and reposition");
-                    marker.removeUser(key);
+                    Log.d(TAG, "move range: only one marker - remove and move");
+                    marker.removeUser(uid);
                     ite.remove();
                     break;//return;
                 } else {
                     // remove from the current marker
-                    boolean removed = marker.removeUser(key);
+                    boolean removed = marker.removeUser(uid);
                     // remove from the map
                     if (removed) {
-                        Log.d(TAG, "reposition range: also remove the current marker from the map");
+                        Log.d(TAG, "move range: also remove the current marker from the map");
                         ite.remove();
                     } else {
-                        Log.d(TAG, "reposition range: remove from the current marker - " + info.name);
+                        Log.d(TAG, "move range: remove from the current marker - " + info.name);
                     }
                     break;
                 }
@@ -266,7 +268,7 @@ class MarkerManager {
         }
 
         if (info == null) {
-            Log.d(TAG, "reposition: null info");
+            Log.d(TAG, "move: null info");
             return;
         }
 
@@ -274,17 +276,17 @@ class MarkerManager {
 
         // find the nearest marker and join
         for (ComboMarker marker : mMarkers) {
-            Log.d(TAG, "reposition range: find the nearest to join");
+            Log.d(TAG, "move range: find the nearest to join");
             if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
-                Log.d(TAG, "reposition range: join to the marker");
+                Log.d(TAG, "move range: join to the marker");
                 marker.addUser(info);
                 return;
             }
         }
 
-        Log.d(TAG, "reposition range: add a marker for " + key);
+        Log.d(TAG, "move range: add a marker for " + uid);
         // add a new marker to map
-        mMarkers.add(new ComboMarker(mMap, mInfoWindowManager, key, info.name, info.location, info.address, range));
+        mMarkers.add(new ComboMarker(mMap, mInfoWindowManager, uid, info.name, info.location, info.address, range));
     }
 
     // apart users from one marker when the distance between them is
@@ -357,9 +359,10 @@ class MarkerManager {
         }
     }
 
-    void show(String key) {
+    // zoom to the user (friend)
+    void zoom(String uid) {
         for (ComboMarker marker : mMarkers) {
-            if (marker.contains(key)) {
+            if (marker.contains(uid)) {
                 ComboMarker.MarkerInfo markerInfo = marker.getOwner();
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
                         Utils.getLatLng(markerInfo.rangeLocation),
@@ -369,39 +372,52 @@ class MarkerManager {
         }
     }
 
-    // update the user(myself) icon
-    void update() {
+    // update the user (friend)
+    void update(String uid) {
+        String name = null;
         Location location = null;
         Address address = null;
+        int range = 0;
+
         // remove first
-        String key = FB.getUid();
         for (Iterator<ComboMarker> ite = mMarkers.iterator(); ite.hasNext(); ) {
             ComboMarker marker = ite.next();
-            if (marker.contains(key)) {
-                ComboMarker.MarkerInfo info = marker.getMakerInfo(key);
+            if (marker.contains(uid)) {
+                ComboMarker.MarkerInfo info = marker.getInfo(uid);
+                name = info.name;
                 location = info.location;
                 address = info.address;
-                boolean removed = marker.removeUser(key);
+                range = info.range;
+                boolean removed = marker.removeUser(uid);
                 if (removed) {
                     ite.remove();
                 }
+                break;
             }
         }
+
         if (location == null) return; // error, not found
+
+        // name can be also updated
+        if (uid.equals(FB.getUid())) {
+            name = FB.getUser().getDisplayName();
+        } else {
+            name = FriendManager.getFriend(uid).getDisplayName();
+        }
+
         // add again with the new info
-        User user = FB.getUser();
-        add(key, user.getDisplayName(), location, address, LocationRange.CURRENT.range);
+        add(uid, name, location, address, range);
     }
 
-    void setupMarkers(Location location, Address address) {
-        if (location == null) return;
-
+    void init(Location location, Address address) {
         // run only once
         if (mHasFriendMarkers) return;
 
+        if (location == null) return;
+
         User user = FB.getUser();
         if (user == null) {
-            Log.d(TAG, "setupMarkers: user not available");
+            Log.d(TAG, "init: user not available");
             return;
         }
 
@@ -410,7 +426,7 @@ class MarkerManager {
             FB.saveLocation(location, address);
         }
 
-        Log.d(TAG, "setupMarkers: start processing");
+        Log.d(TAG, "init: start processing");
 
         mHasFriendMarkers = true;
 
@@ -418,7 +434,7 @@ class MarkerManager {
 
         Map<String, Friend> friends = FriendManager.getFriends();
         if (friends.isEmpty()) {
-            Log.d(TAG, "setupMarkers: empty friend");
+            Log.d(TAG, "init: empty friend");
             return;
         }
 

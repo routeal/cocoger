@@ -83,7 +83,7 @@ class ComboMarker {
         return mOwner;
     }
 
-    MarkerInfo getMakerInfo(String key) {
+    MarkerInfo getInfo(String key) {
         return mInfoMap.get(key);
     }
 

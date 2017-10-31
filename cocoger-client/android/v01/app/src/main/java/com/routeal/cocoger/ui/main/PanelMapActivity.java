@@ -168,7 +168,7 @@ public class PanelMapActivity extends SearchMapActivity {
     }
 
     @Override
-    void updateMessages() {
+    void updateMessage() {
         if (mMessageListFragment != null) {
             mMessageListFragment.updateMessages();
         }

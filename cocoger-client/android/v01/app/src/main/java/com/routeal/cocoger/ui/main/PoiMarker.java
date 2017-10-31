@@ -32,20 +32,28 @@ import com.routeal.cocoger.util.Utils;
  * Created by hwatanabe on 9/27/17.
  */
 
-class PoiManager {
-    private final static String TAG = "PoiManager";
+class PoiMarker {
+    private final static String TAG = "PoiMarker";
+    private GoogleMap mMap;
+    private GeoDataClient mGeoDataClient;
+    InfoWindowManager mInfoWindowManager;
     private static Marker mMarker;
     private static InfoWindow mWindow;
 
-    static void onPoiClick(final GoogleMap map, final GeoDataClient geoDataClient,
-                           final InfoWindowManager infoWindowManager, PointOfInterest pointOfInterest) {
-        geoDataClient.getPlaceById(pointOfInterest.placeId).addOnCompleteListener(new OnCompleteListener<PlaceBufferResponse>() {
+    PoiMarker(GoogleMap map, GeoDataClient geoDataClient, InfoWindowManager infoWindowManager) {
+        mMap = map;
+        mGeoDataClient = geoDataClient;
+        mInfoWindowManager = infoWindowManager;
+    }
+
+    void onPoiClick(PointOfInterest pointOfInterest) {
+        mGeoDataClient.getPlaceById(pointOfInterest.placeId).addOnCompleteListener(new OnCompleteListener<PlaceBufferResponse>() {
             @Override
             public void onComplete(@NonNull Task<PlaceBufferResponse> task) {
                 if (task.isSuccessful()) {
                     PlaceBufferResponse places = task.getResult();
                     Place place = places.get(0);
-                    addPoiInfoWindow(map, geoDataClient, infoWindowManager, place);
+                    addPoiInfoWindow(place);
                     places.release();
                 }
             }
@@ -54,8 +62,7 @@ class PoiManager {
 
     // One time exclusive info window for clicking on Poi in the map, which creates
     // a transparent marker and adds an info window on it.
-    private static void addPoiInfoWindow(GoogleMap map, final GeoDataClient geoDataClient,
-                                         InfoWindowManager infoWindowManager, Place place) {
+    private void addPoiInfoWindow(Place place) {
         LatLng pos = place.getLatLng();
         Bitmap bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
@@ -66,19 +73,19 @@ class PoiManager {
                 .position(pos)
                 .icon(transparent)
                 .anchor((float) 0.5, (float) 0.5);
-        mMarker = map.addMarker(options);
+        mMarker = mMap.addMarker(options);
 
         final PoiInfoFragment poiInfoFragment = new PoiInfoFragment();
         poiInfoFragment.setTitle(place.getName().toString());
         poiInfoFragment.setLocation(Utils.getLocation(place.getLatLng()));
         poiInfoFragment.setAddress(place.getAddress().toString());
-        poiInfoFragment.setInfoWindowManager(infoWindowManager);
+        poiInfoFragment.setPoiMarker(this);
         InfoWindow.MarkerSpecification mMarkerOffset = new InfoWindow.MarkerSpecification(0, 0);
         mWindow = new InfoWindow(mMarker, mMarkerOffset, poiInfoFragment);
-        infoWindowManager.setHideOnFling(true);
-        infoWindowManager.toggle(mWindow, true);
+        mInfoWindowManager.setHideOnFling(true);
+        mInfoWindowManager.toggle(mWindow, true);
 
-        final Task<PlacePhotoMetadataResponse> photoMetadataResponse = geoDataClient.getPlacePhotos(place.getId());
+        final Task<PlacePhotoMetadataResponse> photoMetadataResponse = mGeoDataClient.getPlacePhotos(place.getId());
         photoMetadataResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoMetadataResponse>() {
             @Override
             public void onComplete(@NonNull Task<PlacePhotoMetadataResponse> task) {
@@ -95,7 +102,7 @@ class PoiManager {
                 CharSequence attribution = photoMetadata.getAttributions();
                 if (attribution == null || attribution.length() == 0) return;
                 // Get a full-size bitmap for the photo.
-                Task<PlacePhotoResponse> photoResponse = geoDataClient.getScaledPhoto(photoMetadata, 128, 128);
+                Task<PlacePhotoResponse> photoResponse = mGeoDataClient.getScaledPhoto(photoMetadata, 128, 128);
                 if (!photoMetadata.isDataValid()) return;
                 photoResponse.addOnCompleteListener(new OnCompleteListener<PlacePhotoResponse>() {
                     @Override
@@ -111,9 +118,9 @@ class PoiManager {
         });
     }
 
-    static void removePoiInfoWindow(InfoWindowManager infoWindowManager) {
+    void removePoiInfoWindow() {
         if (mWindow != null) {
-            infoWindowManager.hide(mWindow);
+            mInfoWindowManager.hide(mWindow);
             Fragment fragment = mWindow.getWindowFragment();
             FragmentManager fragmentManager = fragment.getFragmentManager();
             if (fragmentManager != null) {
@@ -129,11 +136,11 @@ class PoiManager {
         }
     }
 
-    static void onWindowHidden(InfoWindowManager infoWindowManager, InfoWindow infoWindow) {
+    void onWindowHidden(InfoWindow infoWindow) {
         Fragment fragment = infoWindow.getWindowFragment();
         if (fragment != null) {
             if (fragment instanceof PoiInfoFragment) {
-                removePoiInfoWindow(infoWindowManager);
+                removePoiInfoWindow();
             }
         }
     }

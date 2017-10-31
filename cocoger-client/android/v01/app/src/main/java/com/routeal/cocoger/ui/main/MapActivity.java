@@ -56,8 +56,9 @@ abstract class MapActivity extends MapBaseActivity
     private CameraPosition mCameraPosition;
     private Location mInitialLocation;
     private MapBroadcastReceiver mReceiver;
-    private MarkerManager mMarkerManager;
+    private UserMarkers mUserMarkers;
     private PlaceMarkers mPlaceMarkers;
+    private PoiMarker mPoiMarker;
 
     @Override
     protected void onDestroy() {
@@ -134,11 +135,12 @@ abstract class MapActivity extends MapBaseActivity
 
         mGeoDataClient = Places.getGeoDataClient(this, null);
         mDirection = new MapDirection(mMap, mInfoWindowManager);
-        mMarkerManager = new MarkerManager(mMap, mInfoWindowManager);
+        mUserMarkers = new UserMarkers(mMap, mInfoWindowManager);
         mPlaceMarkers = new PlaceMarkers(this, mMap, mInfoWindowManager);
+        mPoiMarker = new PoiMarker(mMap, mGeoDataClient, mInfoWindowManager);
 
         if (mReceiver == null) {
-            mReceiver = new MapBroadcastReceiver(this, mMap, mInfoWindowManager, mMarkerManager,
+            mReceiver = new MapBroadcastReceiver(this, mMap, mInfoWindowManager, mUserMarkers,
                     mPlaceMarkers, mDirection);
             mReceiver.setLocation(mInitialLocation);
         }
@@ -172,12 +174,12 @@ abstract class MapActivity extends MapBaseActivity
 
         // the location may not be available at this point
         if (mInitialLocation != null) {
-            Log.d(TAG, "onMapReady: setupMarkers");
             Address address = Utils.getAddress(mInitialLocation);
             if (address != null) {
-                mMarkerManager.setupMarkers(mInitialLocation, address);
+                Log.d(TAG, "onMapReady: init");
+                mUserMarkers.init(mInitialLocation, address);
             } else {
-                Log.d(TAG, "onMapReady: no address, no setupMarkers");
+                Log.d(TAG, "onMapReady: no address, no init");
             }
 
             Intent intent = new Intent(FB.USER_LOCATION_UPDATE);
@@ -197,7 +199,7 @@ abstract class MapActivity extends MapBaseActivity
 
     @Override
     public boolean onMarkerClick(Marker marker) {
-        if (mMarkerManager.onMarkerClick(marker)) {
+        if (mUserMarkers.onMarkerClick(marker)) {
             return true;
         } else if (mPlaceMarkers.onMarkerClick(marker)) {
             return true;
@@ -222,12 +224,12 @@ abstract class MapActivity extends MapBaseActivity
 
     @Override
     public void onWindowHidden(@NonNull InfoWindow infoWindow) {
-        PoiManager.onWindowHidden(mInfoWindowManager, infoWindow);
+        mPoiMarker.onWindowHidden(infoWindow);
     }
 
     @Override
     public void onCameraMove() {
-        mMarkerManager.onCameraMove();
+        mUserMarkers.onCameraMove();
     }
 
     @Override
@@ -251,10 +253,10 @@ abstract class MapActivity extends MapBaseActivity
 
     @Override
     public void onPoiClick(PointOfInterest pointOfInterest) {
-        PoiManager.onPoiClick(mMap, mGeoDataClient, mInfoWindowManager, pointOfInterest);
+        mPoiMarker.onPoiClick(pointOfInterest);
     }
 
     abstract void closeSlidePanel();
 
-    abstract void updateMessages();
+    abstract void updateMessage();
 }

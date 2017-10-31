@@ -15,6 +15,9 @@ import android.widget.TextView;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.manager.FriendManager;
+import com.routeal.cocoger.manager.PlaceManager;
+import com.routeal.cocoger.manager.UpdateListener;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.Place;
 import com.routeal.cocoger.util.LoadImage;
@@ -46,7 +49,7 @@ public class PlaceListFragment extends PagerFragment {
 
         final PlaceListAdapter placeListAdapter = new PlaceListAdapter();
 
-        PlaceManager.setRecyclerAdapterListener(new RecyclerAdapterListener<Place>() {
+        PlaceManager.setUpdateListener(new UpdateListener<Place>() {
             @Override
             public void onAdded(String key, Place object) {
                 placeListAdapter.notifyDataSetChanged();

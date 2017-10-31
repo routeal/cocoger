@@ -1,4 +1,4 @@
-package com.routeal.cocoger.ui.main;
+package com.routeal.cocoger.manager;
 
 import com.routeal.cocoger.model.Group;
 import com.routeal.cocoger.model.Member;
@@ -16,7 +16,7 @@ import java.util.TreeMap;
 public class GroupManager {
 
     private static SortedMap<String, Group> mGroupList = new TreeMap<>();
-    private static RecyclerAdapterListener<Group> mRecyclerAdapterListener;
+    private static UpdateListener<Group> mUpdateListener;
 
     public static Group getGroup(String key) {
         if (key != null && !key.isEmpty()) {
@@ -50,27 +50,27 @@ public class GroupManager {
     }
 
     public static void add(String key, Group group) {
-        if (mRecyclerAdapterListener != null) {
-            mRecyclerAdapterListener.onAdded(key, group);
+        if (mUpdateListener != null) {
+            mUpdateListener.onAdded(key, group);
         }
         mGroupList.put(key, group);
     }
 
     public static void change(String key, Group group) {
-        if (mRecyclerAdapterListener != null) {
-            mRecyclerAdapterListener.onChanged(key, group);
+        if (mUpdateListener != null) {
+            mUpdateListener.onChanged(key, group);
         }
         mGroupList.put(key, group);
     }
 
     public static void remove(String key) {
-        if (mRecyclerAdapterListener != null) {
-            mRecyclerAdapterListener.onRemoved(key);
+        if (mUpdateListener != null) {
+            mUpdateListener.onRemoved(key);
         }
         mGroupList.remove(key);
     }
 
-    public static void setRecyclerAdapterListener(RecyclerAdapterListener<Group> listener) {
-        mRecyclerAdapterListener = listener;
+    public static void setUpdateListener(UpdateListener<Group> listener) {
+        mUpdateListener = listener;
     }
 }

@@ -73,7 +73,7 @@ public class OneInfoFragment extends InfoFragment implements View.OnClickListene
                 mMarker.hide();
                 break;
             case R.id.action_message:
-                processMessage();
+                startMessage();
                 mMarker.hide();
                 break;
             case R.id.action_googlemap:

@@ -19,7 +19,7 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
     private String mTitle;
     private Location mLocation;
     private String mAddress;
-    private InfoWindowManager mInfoWindowManager;
+    private PoiMarker mPoiMarker;
 
     @Nullable
     @Override
@@ -74,7 +74,7 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
                 showGoogleMap(mLocation, mTitle);
                 break;
         }
-        PoiManager.removePoiInfoWindow(mInfoWindowManager);
+        mPoiMarker.removePoiInfoWindow();
     }
 
     void setTitle(String title) {
@@ -85,8 +85,8 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
         mAddress = address;
     }
 
-    void setInfoWindowManager(InfoWindowManager infoWindowManager) {
-        mInfoWindowManager = infoWindowManager;
+    void setPoiMarker(PoiMarker poiMarker) {
+        mPoiMarker = poiMarker;
     }
 
     Location getLocation() {

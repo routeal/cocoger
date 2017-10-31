@@ -27,6 +27,7 @@ import com.franmontiel.fullscreendialog.FullScreenDialogContent;
 import com.franmontiel.fullscreendialog.FullScreenDialogController;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.manager.FriendManager;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.util.LoadImage;
 import com.routeal.cocoger.util.Utils;
@@ -155,7 +156,7 @@ public class UserDialogFragment extends Fragment
             mSearchText.setText("");
         }
 
-        FB.searchUsers(text, new FB.UserListListener() {
+        FB.findUsers(text, new FB.UserListListener() {
             @Override
             public void onSuccess(SortedMap<String, User> users) {
                 mUsers = users;
