@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.LocationAddress;
@@ -304,10 +305,10 @@ public class DBUtil {
     }
 
     // radius should be meter
-    public static Address getAddress(Location location, double radius) {
+    public static Address getAddress(LatLng location, double radius) {
         // https://stackoverflow.com/questions/3695224/sqlite-getting-nearest-locations-with-latitude-and-longitude
-        float latitude = (float) location.getLatitude();
-        float longitude = (float) location.getLongitude();
+        float latitude = (float) location.latitude;
+        float longitude = (float) location.longitude;
         PointF center = new PointF(latitude, longitude);
         final double mult = 1.1;
 
@@ -384,12 +385,12 @@ public class DBUtil {
         // minimum distance address
         Address minAddress = null;
 
-        float min = Float.MAX_VALUE;
+        double min = Double.MAX_VALUE;
         long updateId = 0;
         for (Map.Entry<Long, Address> entry : addressList.entrySet()) {
             Address address = entry.getValue();
-            Location loc = Utils.getLocation(address);
-            float v = loc.distanceTo(location);
+            LatLng loc = Utils.getLocation(address);
+            double v = Utils.distanceTo(loc, location);
             if (v < min) {
                 min = v;
                 minAddress = address;
@@ -413,7 +414,7 @@ public class DBUtil {
         return minAddress;
     }
 
-    public static Location getLocation(@NonNull String address) {
+    public static LatLng getLocation(@NonNull String address) {
         ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
 
         String selectionClause = DB.ReverseGeoLocations.ADDRESSLINE + " = ?";
@@ -422,7 +423,7 @@ public class DBUtil {
 
         long id = 0;
         int refcount = 0;
-        Location location = null;
+        LatLng location = null;
 
         if (cursor != null) {
             if (cursor.getCount() > 0) {
@@ -431,7 +432,7 @@ public class DBUtil {
                 refcount = cursor.getInt(cursor.getColumnIndex(DB.ReverseGeoLocations.REFCOUNT));
                 double latitude = cursor.getDouble(cursor.getColumnIndex(DB.ReverseGeoLocations.LATITUDE));
                 double longitude = cursor.getDouble(cursor.getColumnIndex(DB.ReverseGeoLocations.LONGITUDE));
-                location = Utils.getLocation(latitude, longitude);
+                location = new LatLng(latitude, longitude);
             }
             cursor.close();
         }
@@ -446,11 +447,11 @@ public class DBUtil {
         return location;
     }
 
-    public static void setLocation(@NonNull String address, @NonNull Location location) {
+    public static void setLocation(@NonNull String address, @NonNull LatLng location) {
         ContentValues values = new ContentValues();
         values.put(DB.ReverseGeoLocations.ADDRESSLINE, address);
-        values.put(DB.ReverseGeoLocations.LATITUDE, location.getLatitude());
-        values.put(DB.ReverseGeoLocations.LONGITUDE, location.getLongitude());
+        values.put(DB.ReverseGeoLocations.LATITUDE, location.latitude);
+        values.put(DB.ReverseGeoLocations.LONGITUDE, location.longitude);
         values.put(DB.ReverseGeoLocations.REFCOUNT, 0);
         ContentResolver contentResolver = MainApplication.getContext().getContentResolver();
         contentResolver.insert(DB.ReverseGeoLocations.CONTENT_URI, values);

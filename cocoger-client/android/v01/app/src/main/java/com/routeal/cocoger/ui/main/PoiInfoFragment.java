@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.appolica.interactiveinfowindow.InfoWindowManager;
+import com.google.android.gms.maps.model.LatLng;
 import com.routeal.cocoger.R;
 
 /**
@@ -17,7 +18,7 @@ import com.routeal.cocoger.R;
 
 public class PoiInfoFragment extends InfoFragment implements View.OnClickListener {
     private String mTitle;
-    private Location mLocation;
+    private LatLng mLocation;
     private String mAddress;
     private PoiMarker mPoiMarker;
 
@@ -89,11 +90,11 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
         mPoiMarker = poiMarker;
     }
 
-    Location getLocation() {
+    LatLng getLocation() {
         return mLocation;
     }
 
-    void setLocation(Location location) {
+    void setLocation(LatLng location) {
         mLocation = location;
     }
 }

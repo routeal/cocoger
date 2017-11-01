@@ -13,6 +13,7 @@ import com.appolica.interactiveinfowindow.InfoWindow;
 import com.appolica.interactiveinfowindow.InfoWindowManager;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.routeal.cocoger.MainApplication;
@@ -46,7 +47,7 @@ class ComboMarker {
     private InfoWindow mInfoWindow;
 
     ComboMarker(GoogleMap map, InfoWindowManager infoWindowManager,
-                String id, String name, Location location, Address address, int range) {
+                String id, String name, LatLng location, Address address, int range) {
         Log.d(TAG, "ComboMarker: new " + id);
         mMap = map;
         mInfoWindowManager = infoWindowManager;
@@ -62,7 +63,7 @@ class ComboMarker {
 
         // initial owner should be the one who constructs the object
         mOwner = markerInfo;
-        MarkerOptions options = new MarkerOptions().position(Utils.getLatLng(markerInfo.rangeLocation));
+        MarkerOptions options = new MarkerOptions().position(markerInfo.rangeLocation);
         options.anchor(0.5f, 0.5f);
         mMarker = mMap.addMarker(options);
 
@@ -118,7 +119,7 @@ class ComboMarker {
                 MarkerInfo info = entry.getValue();
                 if (!info.id.equals(id)) {
                     mOwner = info;
-                    mMarker.setPosition(Utils.getLatLng(mOwner.rangeLocation));
+                    mMarker.setPosition(mOwner.rangeLocation);
                     break;
                 }
             }
@@ -192,7 +193,7 @@ class ComboMarker {
         getPicture();
     }
 
-    void addUser(String id, String name, Location location, Address address, int range) {
+    void addUser(String id, String name, LatLng location, Address address, int range) {
         boolean hasInfo = contains(id);
         if (hasInfo) return;
 
@@ -259,25 +260,25 @@ class ComboMarker {
         }
     }
 
-    void setPosition(Location location, Address address, int range) {
+    void setPosition(LatLng location, Address address, int range) {
         if (mMarker != null) {
             mOwner.location = location;
             mOwner.address = address;
             mOwner.range = range;
             mOwner.rangeLocation = Utils.getRangedLocation(location, address, range);
-            mMarker.setPosition(Utils.getLatLng(mOwner.rangeLocation));
+            mMarker.setPosition(mOwner.rangeLocation);
         }
     }
 
-    Location getLocation() {
+    LatLng getLocation() {
         return mOwner.rangeLocation;
     }
 
     class MarkerInfo {
         String id;
         String name;
-        Location location;
-        Location rangeLocation;
+        LatLng location;
+        LatLng rangeLocation;
         Address address;
         int range;
     }

@@ -70,7 +70,7 @@ class MapDirection {
         mInfoWindowManager = infoWindowManager;
     }
 
-    private void getDirection(Location to, Location from, SimpleDirectionListener listener) {
+    private void getDirection(LatLng to, LatLng from, SimpleDirectionListener listener) {
         DownloadDirection DownloadDirection = new DownloadDirection(listener);
 
         String url = getUrl(from, to);
@@ -79,13 +79,13 @@ class MapDirection {
         DownloadDirection.execute(url);
     }
 
-    private String getUrl(Location origin, Location dest) {
+    private String getUrl(LatLng origin, LatLng dest) {
 
         // Origin of route
-        String str_origin = "origin=" + origin.getLatitude() + "," + origin.getLongitude();
+        String str_origin = "origin=" + origin.latitude + "," + origin.longitude;
 
         // Destination of route
-        String str_dest = "destination=" + dest.getLatitude() + "," + dest.getLongitude();
+        String str_dest = "destination=" + dest.latitude + "," + dest.longitude;
 
         // Sensor enabled
         String sensor = "sensor=false";
@@ -137,7 +137,7 @@ class MapDirection {
         return data;
     }
 
-    void addDirection(final Activity activity, final Location locationTo, final Location locationFrom) {
+    void addDirection(final Activity activity, final LatLng locationTo, final LatLng locationFrom) {
         if (activity.isFinishing()) {
             return;
         }
@@ -188,8 +188,8 @@ class MapDirection {
                 mInfoWindowManager.toggle(mDirectionRoute.window, true);
 
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
-                builder.include(Utils.getLatLng(locationTo));
-                builder.include(Utils.getLatLng(locationFrom));
+                builder.include(locationTo);
+                builder.include(locationFrom);
                 LatLngBounds bounds = builder.build();
                 int padding = 200; // offset from edges of the map in pixels
                 CameraUpdate cu = CameraUpdateFactory.newLatLngBounds(bounds, padding);
@@ -360,7 +360,7 @@ class MapDirection {
         /**
          * Receives a JSONObject and returns a list of lists containing latitude and longitude
          */
-        public List<ResponseRoute> parse(JSONObject jObject) {
+        List<ResponseRoute> parse(JSONObject jObject) {
             List<ResponseRoute> routes = new ArrayList<>();
 
             try {

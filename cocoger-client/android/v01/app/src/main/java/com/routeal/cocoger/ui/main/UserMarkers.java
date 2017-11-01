@@ -8,6 +8,7 @@ import com.appolica.interactiveinfowindow.InfoWindowManager;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.manager.FriendManager;
@@ -108,7 +109,7 @@ class UserMarkers {
     }
 
     // add a new user (friend)
-    private void add(String uid, String name, Location location, Address address, int range) {
+    private void add(String uid, String name, LatLng location, Address address, int range) {
         if (range == 0) return;
 
         if (address != null) {
@@ -123,7 +124,7 @@ class UserMarkers {
                 marker.setPosition(location, address, range);
                 return;
             }
-            Location rangeLocation = Utils.getRangedLocation(location, address, range);
+            LatLng rangeLocation = Utils.getRangedLocation(location, address, range);
             if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
                 Log.d(TAG, "add: combined " + uid);
                 marker.addUser(uid, name, location, address, range);
@@ -137,10 +138,10 @@ class UserMarkers {
     }
 
     // move the user (friend)
-    void move(String uid, Location location, Address address, int range) {
+    void move(String uid, LatLng location, Address address, int range) {
         Log.d(TAG, "move: " + uid);
 
-        Location rangeLocation = null;
+        LatLng rangeLocation = null;
         if (range > 0) {
             // this is the new position for the key
             rangeLocation = Utils.getRangedLocation(location, address, range);
@@ -272,7 +273,7 @@ class UserMarkers {
             return;
         }
 
-        Location rangeLocation = Utils.getRangedLocation(info.location, info.address, range);
+        LatLng rangeLocation = Utils.getRangedLocation(info.location, info.address, range);
 
         // find the nearest marker and join
         for (ComboMarker marker : mMarkers) {
@@ -311,8 +312,8 @@ class UserMarkers {
 
     private boolean combineMarkers(ComboMarker n, ComboMarker p) {
         if (n == p) return false;
-        Location pl = p.getLocation();
-        Location nl = n.getLocation();
+        LatLng pl = p.getLocation();
+        LatLng nl = n.getLocation();
         double distance = Utils.distanceTo(pl, nl);
         Log.d(TAG, "combineMarkers: p=" + Utils.getAddressLine(p.getOwner().address));
         Log.d(TAG, "combineMarkers: n=" + Utils.getAddressLine(n.getOwner().address));
@@ -365,8 +366,7 @@ class UserMarkers {
             if (marker.contains(uid)) {
                 ComboMarker.MarkerInfo markerInfo = marker.getOwner();
                 mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                        Utils.getLatLng(markerInfo.rangeLocation),
-                        mMap.getCameraPosition().zoom));
+                        markerInfo.rangeLocation, mMap.getCameraPosition().zoom));
                 return;
             }
         }
@@ -375,7 +375,7 @@ class UserMarkers {
     // update the user (friend)
     void update(String uid) {
         String name = null;
-        Location location = null;
+        LatLng location = null;
         Address address = null;
         int range = 0;
 
@@ -409,7 +409,7 @@ class UserMarkers {
         add(uid, name, location, address, range);
     }
 
-    void init(Location location, Address address) {
+    void init(LatLng location, Address address) {
         // run only once
         if (mHasFriendMarkers) return;
 
@@ -421,10 +421,12 @@ class UserMarkers {
             return;
         }
 
+        /*
         // in the very first beginning, the location might not be set.
         if (user.getLocation() == null) {
             FB.saveLocation(location, address);
         }
+        */
 
         Log.d(TAG, "init: start processing");
 
@@ -445,7 +447,8 @@ class UserMarkers {
                 FB.getLocation(friend.getLocation(), new FB.LocationListener() {
                     @Override
                     public void onSuccess(Location location, Address address) {
-                        add(key, friend.getDisplayName(), location, address, friend.getRange());
+                        LatLng latLng = Utils.getLatLng(location);
+                        add(key, friend.getDisplayName(), latLng, address, friend.getRange());
                     }
 
                     @Override

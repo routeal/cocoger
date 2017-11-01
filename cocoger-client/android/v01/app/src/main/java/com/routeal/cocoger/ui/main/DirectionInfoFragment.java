@@ -14,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
@@ -26,7 +27,7 @@ import com.routeal.cocoger.util.Utils;
 public class DirectionInfoFragment extends Fragment {
     private String mDuration;
     private String mDistance;
-    private Location mLocation;
+    private LatLng mLocation;
 
     @Nullable
     @Override
@@ -68,13 +69,13 @@ public class DirectionInfoFragment extends Fragment {
         mDistance = distance;
     }
 
-    void setDestination(Location location) {
+    void setDestination(LatLng location) {
         mLocation = location;
     }
 
     void startNavigation() {
         String url = String.format("google.navigation:q=%s,%s",
-                mLocation.getLatitude(), mLocation.getLongitude());
+                mLocation.latitude, mLocation.longitude);
         Uri gmmIntentUri = Uri.parse(url);
         Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
         mapIntent.setPackage("com.google.android.apps.maps");

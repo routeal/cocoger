@@ -54,7 +54,7 @@ abstract class MapActivity extends MapBaseActivity
 
     private View mapView;
     private CameraPosition mCameraPosition;
-    private Location mInitialLocation;
+    private LatLng mInitialLocation;
     private MapBroadcastReceiver mReceiver;
     private UserMarkers mUserMarkers;
     private PlaceMarkers mPlaceMarkers;
@@ -71,7 +71,7 @@ abstract class MapActivity extends MapBaseActivity
 
         // retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
-            mInitialLocation = (Location) savedInstanceState.getParcelable(KEY_LOCATION);
+            mInitialLocation = (LatLng) savedInstanceState.getParcelable(KEY_LOCATION);
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
         }
 
@@ -104,13 +104,12 @@ abstract class MapActivity extends MapBaseActivity
 
     @Override
     public void onClick(View v) {
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                Utils.getLatLng(mReceiver.getLocation()), DEFAULT_ZOOM));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mReceiver.getLocation(), DEFAULT_ZOOM));
     }
 
     @Override
     void startApp(Location location) {
-        mInitialLocation = location;
+        mInitialLocation = Utils.getLatLng(location);
 
         // show the mSpinner
         mSpinner = Utils.getProgressBar(this);
@@ -169,7 +168,7 @@ abstract class MapActivity extends MapBaseActivity
             mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
         } else if (mInitialLocation != null) {
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                    Utils.getLatLng(mInitialLocation), DEFAULT_ZOOM));
+                    mInitialLocation, DEFAULT_ZOOM));
         }
 
         // the location may not be available at this point

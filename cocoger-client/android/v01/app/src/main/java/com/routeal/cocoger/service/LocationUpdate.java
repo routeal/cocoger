@@ -254,6 +254,8 @@ public class LocationUpdate {
 
         if (mLocation == null) {
             mLocation = location;
+            // save the first one anyway
+            saveLocation(context, location);
             return;
         }
 
@@ -361,7 +363,9 @@ public class LocationUpdate {
         }
         Log.d(TAG, "saveLocation");
 
-        location.setSpeed(Utils.getSpeed(location, mLocation));
+        if (location != mLocation) {
+            location.setSpeed(Utils.getSpeed(location, mLocation));
+        }
 
         mLocation = location;
         mAddress = address;
@@ -403,7 +407,7 @@ public class LocationUpdate {
 
     private void broadcastLocation(Context context, Location location, Address address) {
         Intent intent = new Intent(FB.USER_LOCATION_UPDATE);
-        intent.putExtra(FB.LOCATION, location);
+        intent.putExtra(FB.LOCATION, Utils.getLatLng(location));
         intent.putExtra(FB.ADDRESS, address);
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }

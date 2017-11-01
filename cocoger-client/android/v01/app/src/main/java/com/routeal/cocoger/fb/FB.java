@@ -452,14 +452,19 @@ public class FB {
 
         double latitude = location.getLatitude();
         double longitude = location.getLongitude();
+        double altitude = location.getAltitude();
+        float speed = location.getSpeed();
+        long timestamp = location.getTime();
 
         LocationAddress loc = new LocationAddress();
         loc.setUid(getUid());
-        loc.setTimestamp(location.getTime());
+
+        loc.setTimestamp(timestamp);
         loc.setLatitude(latitude);
         loc.setLongitude(longitude);
-        loc.setAltitude(location.getAltitude());
-        loc.setSpeed(location.getSpeed());
+        loc.setAltitude(altitude);
+        loc.setSpeed(speed);
+
         loc.setPostalCode(address.getPostalCode());
         loc.setCountryName(address.getCountryName());
         loc.setAdminArea(address.getAdminArea());

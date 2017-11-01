@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
@@ -86,10 +87,10 @@ public class InfoFragment extends Fragment {
         }
     }
 
-    void setStreetViewPicture(Location location) {
+    void setStreetViewPicture(LatLng location) {
         if (location != null) {
             String url = String.format(getResources().getString(R.string.street_view_image_url),
-                    location.getLatitude(), location.getLongitude());
+                    location.latitude, location.longitude);
             new LoadImage(mStreetImageView).loadUrl(url);
         }
     }
@@ -106,14 +107,14 @@ public class InfoFragment extends Fragment {
         }
     }
 
-    void openStreetView(Location location, String address) {
+    void openStreetView(LatLng location, String address) {
         Intent intent = new Intent(MainApplication.getContext(), StreetViewActivity.class);
-        intent.putExtra("location", Utils.getLatLng(location));
+        intent.putExtra("location", location);
         intent.putExtra("address", address);
         MainApplication.getContext().startActivity(intent);
     }
 
-    void saveLocation(Location location, String address, String title) {
+    void saveLocation(LatLng location, String address, String title) {
         BitmapDrawable bitmapDrawable = ((BitmapDrawable) mStreetImageView.getDrawable());
         Bitmap bitmap;
         if (bitmapDrawable == null) {
@@ -131,7 +132,7 @@ public class InfoFragment extends Fragment {
         LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
     }
 
-    void showDirection(Location locationTo) {
+    void showDirection(LatLng locationTo) {
         Intent intent = new Intent(FB.DIRECTION_ROUTE_ADD);
         intent.putExtra(FB.LOCATION, locationTo);
         LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
@@ -141,13 +142,13 @@ public class InfoFragment extends Fragment {
         Toast.makeText(MainApplication.getContext(), "Send Message not implemented", Toast.LENGTH_SHORT).show();
     }
 
-    void showGoogleMap(Location location, String title) {
+    void showGoogleMap(LatLng location, String title) {
         Uri gmmIntentUri;
         if (title == null || title.isEmpty()) {
-            String url = String.format(Locale.getDefault(), "geo:%f,%f", location.getLatitude(), location.getLongitude());
+            String url = String.format(Locale.getDefault(), "geo:%f,%f", location.latitude, location.longitude);
             gmmIntentUri = Uri.parse(url);
         } else {
-            String url = String.format(Locale.getDefault(), "geo:%f,%f?q=", location.getLatitude(), location.getLongitude());
+            String url = String.format(Locale.getDefault(), "geo:%f,%f?q=", location.latitude, location.longitude);
             gmmIntentUri = Uri.parse(url + Uri.encode(title));
         }
         Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);

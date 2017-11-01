@@ -183,11 +183,8 @@ public class Utils {
         return l;
     }
 
-    public static Location getLocation(Address a) {
-        Location l = new Location("");
-        l.setLatitude(a.getLatitude());
-        l.setLongitude(a.getLongitude());
-        return l;
+    public static LatLng getLocation(Address a) {
+        return new LatLng(a.getLatitude(), a.getLongitude());
     }
 
     public static Address getAddress(LocationAddress la) {
@@ -297,7 +294,7 @@ public class Utils {
         return locationName;
     }
 
-    private static Location getRangedLocation(Address address, int range) {
+    private static LatLng getRangedLocation(Address address, int range) {
         LocationRange value = LocationRange.to(range);
         if (value == LocationRange.NONE) {
             return null;
@@ -305,7 +302,7 @@ public class Utils {
         if (value == LocationRange.CURRENT) {
             return Utils.getLocation(address);
         }
-        Location location = null;
+        LatLng location = null;
         String locationName = Utils.getAddressLine(address, range);
         if (locationName != null && !locationName.isEmpty()) {
             Log.d(TAG, "getRangedLocation:" + locationName);
@@ -314,7 +311,7 @@ public class Utils {
         return location;
     }
 
-    public static Location getRangedLocation(Location location, Address address, int range) {
+    public static LatLng getRangedLocation(LatLng location, Address address, int range) {
         if (range == LocationRange.CURRENT.range) {
             return location;
         }
@@ -346,8 +343,12 @@ public class Utils {
         return SphericalUtil.computeDistanceBetween(point1, point2);
     }
 
-    private static Location getFromAddress(@NonNull String address) {
-        Location location = DBUtil.getLocation(address);
+    public static double distanceTo(LatLng a, LatLng b) {
+        return SphericalUtil.computeDistanceBetween(a, b);
+    }
+
+    private static LatLng getFromAddress(@NonNull String address) {
+        LatLng location = DBUtil.getLocation(address);
         if (location == null) {
             try {
                 Log.d(TAG, "getFromAddress: from Geocoder");
@@ -378,14 +379,15 @@ public class Utils {
     }
 
     public static Address getFromLocation(Location location) {
+        LatLng latlng = getLatLng(location);
         // get the address from the database within 25 meter
-        Address address = DBUtil.getAddress(location, 25);
+        Address address = DBUtil.getAddress(latlng, 25);
         if (address == null) {
             List<Address> addressList = null;
             try {
                 Log.d(TAG, "getFromLocation: from Geocoder");
                 Geocoder geocoder = new Geocoder(MainApplication.getContext(), Locale.getDefault());
-                addressList = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+                addressList = geocoder.getFromLocation(latlng.latitude, latlng.longitude, 1);
             } catch (Exception e) {
                 Log.d(TAG, "getFromLocation: Geocoder failed:" + e.getLocalizedMessage());
             }
@@ -396,8 +398,8 @@ public class Utils {
         } else {
             Log.d(TAG, "getFromLocation: from Local database");
             // overwrite the current location
-            address.setLatitude(location.getLatitude());
-            address.setLongitude(location.getLongitude());
+            address.setLatitude(latlng.latitude);
+            address.setLongitude(latlng.longitude);
         }
         return address;
     }

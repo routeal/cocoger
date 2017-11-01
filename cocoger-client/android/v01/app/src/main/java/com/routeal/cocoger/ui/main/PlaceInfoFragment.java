@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.manager.FriendManager;
@@ -21,15 +22,7 @@ import com.routeal.cocoger.util.LoadImage;
  */
 
 public class PlaceInfoFragment extends InfoFragment implements View.OnClickListener {
-    private String mTitle;
-    private String mAddress;
-    private String mPlaceCreator;
-    private String mDescription;
-    private String mColor;
-    private String mPictureUrl;
-    private Location mLocation;
     private Bitmap mCopiedBitmap;
-    private boolean mSeenFriend;
     private Place mPlace;
     private String mKey;
     private PlaceMarkers mPlaceMarkers;
@@ -96,20 +89,16 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.info_street_view:
-                if (mLocation != null && mTitle != null) {
-                    openStreetView(mLocation, mTitle);
-                }
+                openStreetView(new LatLng(mPlace.getLatitude(), mPlace.getLongitude()), mPlace.getTitle());
                 break;
             case R.id.action_edit_place:
                 mPlaceMarkers.updatePlace(mKey, mPlace);
                 break;
             case R.id.action_direction:
-                if (mLocation != null) {
-                    showDirection(mLocation);
-                }
+                showDirection(new LatLng(mPlace.getLatitude(), mPlace.getLongitude()));
                 break;
             case R.id.action_googlemap:
-                showGoogleMap(mLocation, mTitle);
+                showGoogleMap(new LatLng(mPlace.getLatitude(), mPlace.getLongitude()), mPlace.getTitle());
                 break;
         }
         mPlaceMarkers.hideInfoWindow(this);

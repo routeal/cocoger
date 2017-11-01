@@ -77,7 +77,7 @@ class PoiMarker {
 
         final PoiInfoFragment poiInfoFragment = new PoiInfoFragment();
         poiInfoFragment.setTitle(place.getName().toString());
-        poiInfoFragment.setLocation(Utils.getLocation(place.getLatLng()));
+        poiInfoFragment.setLocation(place.getLatLng());
         poiInfoFragment.setAddress(place.getAddress().toString());
         poiInfoFragment.setPoiMarker(this);
         InfoWindow.MarkerSpecification mMarkerOffset = new InfoWindow.MarkerSpecification(0, 0);

@@ -276,7 +276,7 @@ public class PlaceMarkers {
     }
 
     // add a new place to create a new marker
-    void addPlace(String title, final Location location, String address, final Bitmap bitmap) {
+    void addPlace(String title, final LatLng location, String address, final Bitmap bitmap) {
         if (mActivity.isFinishing()) return;
 
         LayoutInflater layoutInflaterAndroid = LayoutInflater.from(mActivity);
@@ -364,8 +364,8 @@ public class PlaceMarkers {
                 final Place place = new Place();
                 place.setTitle(placeTitle.getText().toString());
                 place.setDescription(placeDesc.getText().toString());
-                place.setLatitude(location.getLatitude());
-                place.setLongitude(location.getLongitude());
+                place.setLatitude(location.latitude);
+                place.setLongitude(location.longitude);
                 place.setAddress(placeAddress.getText().toString());
                 place.setSeenBy(seenFriend.isChecked() ? "friends" : "none");
                 place.setMarkerColor(markerColor2);

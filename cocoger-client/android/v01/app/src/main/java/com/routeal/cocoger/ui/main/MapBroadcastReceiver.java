@@ -16,6 +16,7 @@ import com.franmontiel.fullscreendialog.FullScreenDialogFragment;
 import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.manager.FriendManager;
@@ -40,7 +41,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
     private UserMarkers mUserMarkers;
     private PlaceMarkers mPlaceMarkers;
 
-    private Location mLocation;
+    private LatLng mLocation;
     private Address mAddress;
 
     MapBroadcastReceiver(MapActivity activity, GoogleMap map, InfoWindowManager infoWindowManager,
@@ -80,25 +81,23 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
         Log.d(TAG, "Action=" + intent.getAction());
         if (intent.getAction().equals(FB.USER_LOCATION_UPDATE)) {
             Address address = intent.getParcelableExtra(FB.ADDRESS);
-            Location location = intent.getParcelableExtra(FB.LOCATION);
+            LatLng location = intent.getParcelableExtra(FB.LOCATION);
             if (location == null || address == null) {
                 Log.d(TAG, "no location or address");
                 return;
             }
-            if (mMap != null) {
-                // first time only
-                if (mLocation == null) {
-                    Log.d(TAG, "Receive Last_location_update: init");
-                    if (FB.getUser() != null) {
-                        mUserMarkers.init(location, address);
-                    }
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                            Utils.getLatLng(location), MapActivity.DEFAULT_ZOOM));
-                } else {
-                    if (FB.getUser() != null) {
-                        Log.d(TAG, "user location updated");
-                        mUserMarkers.move(FB.getUid(), location, address, LocationRange.CURRENT.range);
-                    }
+            // first time only
+            if (mLocation == null) {
+                Log.d(TAG, "Receive Last_location_update: init");
+                if (FB.getUser() != null) {
+                    mUserMarkers.init(location, address);
+                }
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                        location, MapActivity.DEFAULT_ZOOM));
+            } else {
+                if (FB.getUser() != null) {
+                    Log.d(TAG, "user location updated");
+                    mUserMarkers.move(FB.getUid(), location, address, LocationRange.CURRENT.range);
                 }
             }
             mLocation = location;
@@ -127,7 +126,8 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
 
                 @Override
                 public void onSuccess(Location location, final Address address) {
-                    mUserMarkers.move(fid, location, address, friend.getRange());
+                    LatLng latLng = Utils.getLatLng(location);
+                    mUserMarkers.move(fid, latLng, address, friend.getRange());
                 }
             });
         } else if (intent.getAction().equals(FB.FRIEND_LOCATION_UPDATE)) {
@@ -147,7 +147,8 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
 
                     final int range = friend.getRange();
                     // for testing
-                    mUserMarkers.move(fid, newLocation, newAddress, range);
+                    LatLng latLng = Utils.getLatLng(newLocation);
+                    mUserMarkers.move(fid, latLng, newAddress, range);
 /*
                     if (oldLocationKey == null) {
                         // move the cursor
@@ -214,13 +215,13 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             mUserMarkers.zoom(fid);
             mActivity.closeSlidePanel();
         } else if (intent.getAction().equals(FB.DIRECTION_ROUTE_ADD)) {
-            Location location = intent.getParcelableExtra(FB.LOCATION);
+            LatLng location = intent.getParcelableExtra(FB.LOCATION);
             mDirection.addDirection(mActivity, location, mLocation);
             mActivity.closeSlidePanel();
         } else if (intent.getAction().equals(FB.DIRECTION_ROUTE_REMOVE)) {
             mDirection.removeDirection();
         } else if (intent.getAction().equals(FB.PLACE_SAVE)) {
-            Location location = intent.getParcelableExtra(FB.LOCATION);
+            LatLng location = intent.getParcelableExtra(FB.LOCATION);
             String address = intent.getStringExtra(FB.ADDRESS);
             String title = intent.getStringExtra(FB.TITLE);
             Bitmap bitmap = intent.getParcelableExtra(FB.IMAGE);
@@ -271,11 +272,11 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-    Location getLocation() {
+    LatLng getLocation() {
         return mLocation;
     }
 
-    void setLocation(Location location) {
+    void setLocation(LatLng location) {
         mLocation = location;
     }
 }
