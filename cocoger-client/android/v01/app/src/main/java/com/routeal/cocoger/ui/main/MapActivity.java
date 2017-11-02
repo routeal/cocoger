@@ -23,6 +23,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.PointOfInterest;
+import com.google.android.gms.maps.model.Polyline;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.util.Utils;
@@ -34,6 +35,7 @@ abstract class MapActivity extends MapBaseActivity
         GoogleMap.OnMapLongClickListener,
         GoogleMap.OnMarkerDragListener,
         GoogleMap.OnPoiClickListener,
+        GoogleMap.OnPolylineClickListener,
         OnMapReadyCallback,
         View.OnClickListener,
         InfoWindowManager.WindowShowListener {
@@ -71,7 +73,6 @@ abstract class MapActivity extends MapBaseActivity
 
         // retrieve location and camera position from saved instance state.
         if (savedInstanceState != null) {
-            mInitialLocation = (LatLng) savedInstanceState.getParcelable(KEY_LOCATION);
             mCameraPosition = savedInstanceState.getParcelable(KEY_CAMERA_POSITION);
         }
 
@@ -86,7 +87,6 @@ abstract class MapActivity extends MapBaseActivity
     protected void onSaveInstanceState(Bundle outState) {
         if (mMap != null) {
             outState.putParcelable(KEY_CAMERA_POSITION, mMap.getCameraPosition());
-            outState.putParcelable(KEY_LOCATION, mReceiver.getLocation());
             super.onSaveInstanceState(outState);
         }
     }
@@ -104,7 +104,8 @@ abstract class MapActivity extends MapBaseActivity
 
     @Override
     public void onClick(View v) {
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mReceiver.getLocation(), DEFAULT_ZOOM));
+        Intent intent = new Intent(FB.USER_MARKER_SHOW);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
     @Override
@@ -131,18 +132,15 @@ abstract class MapActivity extends MapBaseActivity
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
         mGeoDataClient = Places.getGeoDataClient(this, null);
+
         mDirection = new MapDirection(mMap, mInfoWindowManager);
         mUserMarkers = new UserMarkers(mMap, mInfoWindowManager);
         mPlaceMarkers = new PlaceMarkers(this, mMap, mInfoWindowManager);
         mPoiMarker = new PoiMarker(mMap, mGeoDataClient, mInfoWindowManager);
-
-        if (mReceiver == null) {
-            mReceiver = new MapBroadcastReceiver(this, mMap, mInfoWindowManager, mUserMarkers,
-                    mPlaceMarkers, mDirection);
-            mReceiver.setLocation(mInitialLocation);
-        }
+        mMapStyle = new MapStyle(mMap, this);
+        mReceiver = new MapBroadcastReceiver(this, mMap, mInfoWindowManager, mUserMarkers,
+                mPlaceMarkers, mDirection);
 
         mMap.setPadding(8, 0, 0, 148);
         mMap.getUiSettings().setCompassEnabled(true);
@@ -154,38 +152,31 @@ abstract class MapActivity extends MapBaseActivity
         mMap.setOnMarkerDragListener(this);
         mMap.setOnMapLongClickListener(this);
         mMap.setOnPoiClickListener(this);
-
-        mPlaceMarkers.setup();
+        mMap.setOnPolylineClickListener(this);
 
         setupApp();
-
-        mMapStyle = new MapStyle(mMap, this);
-        mMapStyle.init(this, mMap);
 
         Log.d(TAG, "onMapReady: location detected from the base object");
 
         if (mCameraPosition != null) {
             mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
+            mInitialLocation = mCameraPosition.target;
         } else if (mInitialLocation != null) {
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                    mInitialLocation, DEFAULT_ZOOM));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mInitialLocation, MapActivity.DEFAULT_ZOOM));
         }
 
-        // the location may not be available at this point
-        if (mInitialLocation != null) {
-            Address address = Utils.getAddress(mInitialLocation);
-            if (address != null) {
-                Log.d(TAG, "onMapReady: init");
-                mUserMarkers.init(mInitialLocation, address);
-            } else {
-                Log.d(TAG, "onMapReady: no address, no init");
-            }
-
-            Intent intent = new Intent(FB.USER_LOCATION_UPDATE);
-            intent.putExtra(FB.LOCATION, mInitialLocation);
-            intent.putExtra(FB.ADDRESS, address);
-            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        Address address = Utils.getAddress(mInitialLocation);
+        if (address != null) {
+            mUserMarkers.init(mInitialLocation, address);
         }
+
+        // if the FB user is not available at this time, the markers are not initialized.  Send
+        // the initial location so that the markers can be initialized when the FB user becomes
+        // available.
+        Intent intent = new Intent(FB.USER_LOCATION_UPDATE);
+        intent.putExtra(FB.LOCATION, mInitialLocation);
+        intent.putExtra(FB.ADDRESS, address);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
         mCameraPosition = null;
         mInitialLocation = null;
@@ -253,6 +244,11 @@ abstract class MapActivity extends MapBaseActivity
     @Override
     public void onPoiClick(PointOfInterest pointOfInterest) {
         mPoiMarker.onPoiClick(pointOfInterest);
+    }
+
+    @Override
+    public void onPolylineClick(Polyline polyline) {
+        mDirection.onPolylineClick(polyline);
     }
 
     abstract void closeSlidePanel();

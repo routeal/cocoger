@@ -62,6 +62,7 @@ public class FB {
     public final static String USER_UPDATED = "user_updated";
     public final static String USER_CHANGE = "user_change";
     public final static String USER_LOCATION_UPDATE = "user_location_update";
+    public final static String USER_MARKER_SHOW = "user_marker_show";
     public final static String FRIEND_LOCATION_ADD = "friend_location_add";
     public final static String FRIEND_LOCATION_UPDATE = "friend_location_update";
     public final static String FRIEND_LOCATION_REMOVE = "friend_location_remove";

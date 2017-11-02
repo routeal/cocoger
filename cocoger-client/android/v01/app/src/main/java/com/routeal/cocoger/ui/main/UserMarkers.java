@@ -141,6 +141,11 @@ class UserMarkers {
     void move(String uid, LatLng location, Address address, int range) {
         Log.d(TAG, "move: " + uid);
 
+        User user = FB.getUser();
+        if (user == null) {
+            return;
+        }
+
         LatLng rangeLocation = null;
         if (range > 0) {
             // this is the new position for the key
@@ -194,7 +199,6 @@ class UserMarkers {
         // sometimes, try to move with range=0 multiple times
         if (range == 0) return;
 
-        User user = FB.getUser();
         String name = null;
 
         if (uid.equals(FB.getUid())) {

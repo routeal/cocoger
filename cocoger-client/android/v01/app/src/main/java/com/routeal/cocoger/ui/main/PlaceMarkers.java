@@ -85,6 +85,7 @@ public class PlaceMarkers {
         mActivity = activity;
         mMap = map;
         mInfoWindowManager = infoWindowManager;
+        setup();
     }
 
     private Drawable getIcon(int colorId) {

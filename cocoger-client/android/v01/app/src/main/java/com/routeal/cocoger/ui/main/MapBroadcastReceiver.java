@@ -56,6 +56,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
         filter.addAction(FB.USER_AVAILABLE);
         filter.addAction(FB.USER_UPDATED);
         filter.addAction(FB.USER_CHANGE);
+        filter.addAction(FB.USER_MARKER_SHOW);
         filter.addAction(FB.USER_LOCATION_UPDATE);
         filter.addAction(FB.FRIEND_LOCATION_ADD);
         filter.addAction(FB.FRIEND_LOCATION_UPDATE);
@@ -82,29 +83,21 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
         if (intent.getAction().equals(FB.USER_LOCATION_UPDATE)) {
             Address address = intent.getParcelableExtra(FB.ADDRESS);
             LatLng location = intent.getParcelableExtra(FB.LOCATION);
-            if (location == null || address == null) {
-                Log.d(TAG, "no location or address");
-                return;
-            }
-            // first time only
             if (mLocation == null) {
+                // location update from the service comes faster than MapBaseActivity
                 Log.d(TAG, "Receive Last_location_update: init");
-                if (FB.getUser() != null) {
-                    mUserMarkers.init(location, address);
-                }
-                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                        location, MapActivity.DEFAULT_ZOOM));
+                mUserMarkers.init(location, address);
             } else {
-                if (FB.getUser() != null) {
-                    Log.d(TAG, "user location updated");
-                    mUserMarkers.move(FB.getUid(), location, address, LocationRange.CURRENT.range);
-                }
+                mUserMarkers.move(FB.getUid(), location, address, LocationRange.CURRENT.range);
             }
             mLocation = location;
             mAddress = address;
         } else if (intent.getAction().equals(FB.USER_AVAILABLE)) {
             Log.d(TAG, "Receive User_available: init");
-            if (mLocation == null) return;
+            if (mLocation == null) {
+                // firebase user becomes available even before getting the current location
+                return;
+            }
             if (mAddress == null) {
                 mAddress = Utils.getAddress(mLocation);
             }
@@ -113,6 +106,8 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             mUserMarkers.update(FB.getUid());
         } else if (intent.getAction().equals(FB.USER_CHANGE)) {
             mActivity.updateMessage();
+        } else if (intent.getAction().equals(FB.USER_MARKER_SHOW)) {
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mLocation,MapActivity.DEFAULT_ZOOM));
         } else if (intent.getAction().equals(FB.FRIEND_LOCATION_ADD)) {
             final String fid = intent.getStringExtra(FB.KEY);
             final Friend friend = FriendManager.getFriend(fid);
@@ -270,13 +265,5 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
                     .build();
             dialogFragment.show(mActivity.getSupportFragmentManager(), "user-dialog");
         }
-    }
-
-    LatLng getLocation() {
-        return mLocation;
-    }
-
-    void setLocation(LatLng location) {
-        mLocation = location;
     }
 }

@@ -65,6 +65,8 @@ class MapStyle {
         FloatingActionButton layerButton = (FloatingActionButton) mActivity.findViewById(R.id.map_layer);
         layerButton.setImageDrawable(layerDrawable);
         layerButton.setOnClickListener(mapLayerButtonListener);
+
+        init(activity, map);
     }
 
     private void dialog() {

@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.location.Location;
 import android.os.AsyncTask;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -53,21 +52,17 @@ class MapDirection {
     private InfoWindowManager mInfoWindowManager;
     private SimpleDirectionRoute mDirectionRoute = new SimpleDirectionRoute();
 
-    private GoogleMap.OnPolylineClickListener mPolylineClickListener = new GoogleMap.OnPolylineClickListener() {
-        @Override
-        public void onPolylineClick(Polyline polyline) {
-            if (mDirectionRoute.line != null && mDirectionRoute.window != null) {
-                if (polyline.getId().equals(mDirectionRoute.line.getId())) {
-                    mInfoWindowManager.toggle(mDirectionRoute.window, true);
-                }
-            }
-        }
-    };
-
     MapDirection(GoogleMap googleMap, InfoWindowManager infoWindowManager) {
         mMap = googleMap;
-        mMap.setOnPolylineClickListener(mPolylineClickListener);
         mInfoWindowManager = infoWindowManager;
+    }
+
+    void onPolylineClick(Polyline polyline) {
+        if (mDirectionRoute.line != null && mDirectionRoute.window != null) {
+            if (polyline.getId().equals(mDirectionRoute.line.getId())) {
+                mInfoWindowManager.toggle(mDirectionRoute.window, true);
+            }
+        }
     }
 
     private void getDirection(LatLng to, LatLng from, SimpleDirectionListener listener) {
