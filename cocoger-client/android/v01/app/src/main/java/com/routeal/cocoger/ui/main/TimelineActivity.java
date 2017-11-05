@@ -379,7 +379,7 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
 
             String title = String.format("%s (%.2f m/h)", formattedDate, speed);
 
-            Drawable drawable = Utils.getIconDrawable(this, R.drawable.ic_place_white_24dp, R.color.steelblue);
+            Drawable drawable = Utils.getIconDrawable(this, R.drawable.ic_place_white_24dp, R.color.indigo_500);
 
             Marker marker = mMap.addMarker(new MarkerOptions().position(new LatLng(la.getLatitude(), la.getLongitude()))
                     .title(title)
@@ -419,7 +419,7 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
             // polyline
             lineOptions.addAll(points);
             lineOptions.width(10);
-            lineOptions.color(ContextCompat.getColor(this, R.color.slategray));
+            lineOptions.color(ContextCompat.getColor(this, R.color.blue_grey_400));
             mPolyline = mMap.addPolyline(lineOptions);
         }
 

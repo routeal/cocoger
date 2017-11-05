@@ -80,7 +80,7 @@
     <string name="by_creator" formatted="false">by %s</string>
     <string name="appinvite_error">Cannot present App Invite Dialog.</string>
     <string name="picture">Picture</string>
-    <string name="no_picture">No profile picture</string>
+    <string name="no_picture">N/A</string>
     <string name="min_name">Minimum 4 characters</string>
     <string name="min_password">Minimum 6 numbers</string>
     <string name="no_year_birth">Select one of the years</string>
@@ -124,7 +124,7 @@
     <string name="location_sharing">Location Sharing</string>
     <string name="receive_friend_request" formatted="false">You\'ve  received a friend request from %s.</string>
     <string name="receive_range_request" formatted="false">You\'ve received a range request to %s from %s.</string>
-    <string name="receive_group_join" formatted="false">You\'ve invited to join the group of %s.</string>
+    <string name="receive_group_join" formatted="false">You\'ve invited to join the group, %s.</string>
     <string name="send_friend_request" formatted="false">You sent a friend request to %s.</string>
     <string name="map_layers">Map Layers</string>
     <string name="account">Account</string>
@@ -168,8 +168,8 @@
     <string name="welcome">Welcome</string>
     <string name="welcome_message">Thank you for the installation.  We hope that you enjoy the app.</string>
     <string name="place_remove">Saved Location</string>
-    <string name="confirm_place_remove">Do you really want to remove this saved location?</string>
-    <string name="create_group">Create Group</string>
+    <string name="confirm_place_remove">Do you really want to remove this?</string>
+    <string name="create_group">Create</string>
     <string name="save_group">Save</string>
     <string name="no_group">You don\'t have a group yet.</string>
     <string name="group_list">Group</string>

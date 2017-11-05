@@ -21,7 +21,7 @@
             android:layout_gravity="center"
             android:layout_margin="4dp"
             android:layout_weight="1"
-            android:backgroundTint="@color/whitesmoke"
+            android:backgroundTint="@color/white"
             android:text="@string/create_group"
             android:textColor="@color/teal500" />
 
@@ -40,7 +40,7 @@
         android:layout_marginTop="32dp"
         android:gravity="center_horizontal"
         android:text="@string/no_group"
-        android:textColor="@color/slategray"
+        android:textColor="@color/white"
         android:textSize="20sp"
         android:textStyle="bold"
         android:visibility="gone" />

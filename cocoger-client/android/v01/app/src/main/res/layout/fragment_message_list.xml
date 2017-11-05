@@ -21,7 +21,7 @@
         android:layout_marginTop="32dp"
         android:gravity="center_horizontal"
         android:text="@string/no_message"
-        android:textColor="@color/slategray"
+        android:textColor="@color/white"
         android:textSize="20sp"
         android:textStyle="bold"
         android:visibility="gone" />

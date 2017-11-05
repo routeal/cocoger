@@ -62,20 +62,18 @@ public class PlaceMarkers {
 
     private final static String DEFAULT_MARKER_COLOR = "steelblue";
 
-    private final static HashMap<String, Integer> mPlaceColorMap = new HashMap<String, Integer>() {{
-        put("steelblue", R.color.steelblue);
-        put("yellowgreen", R.color.yellowgreen);
-        put("firebrick", R.color.firebrick);
-        put("gold", R.color.gold);
-        put("hotpink", R.color.hotpink);
-    }};
     private final static int MARKER_SIZE = 48;
     private PlaceColorButton mPlaceColorButtons[] = {
-            new PlaceColorButton(R.id.place_1, R.id.place_image_1, R.color.steelblue, "steelblue"),
-            new PlaceColorButton(R.id.place_2, R.id.place_image_2, R.color.yellowgreen, "yellowgreen"),
-            new PlaceColorButton(R.id.place_3, R.id.place_image_3, R.color.firebrick, "firebrick"),
-            new PlaceColorButton(R.id.place_4, R.id.place_image_4, R.color.gold, "gold"),
-            new PlaceColorButton(R.id.place_5, R.id.place_image_5, R.color.hotpink, "hotpink"),
+            new PlaceColorButton(R.id.place_1, R.id.place_image_1,
+                    R.color.light_blue_400, R.color.black, "light_blue_400"),
+            new PlaceColorButton(R.id.place_2, R.id.place_image_2,
+                    R.color.red_700, R.color.white, "red_700"),
+            new PlaceColorButton(R.id.place_3, R.id.place_image_3,
+                    R.color.teal_400, R.color.white, "teal_400"),
+            new PlaceColorButton(R.id.place_4, R.id.place_image_4,
+                    R.color.amber_400, R.color.black, "amber_400"),
+            new PlaceColorButton(R.id.place_5, R.id.place_image_5,
+                    R.color.pink_400, R.color.white, "pink_400"),
     };
     // this marker list with infowindow should be destroyed when the ui is destroyed
     private Map<Marker, InfoWindow> mPlaceMarkers = new HashMap<Marker, InfoWindow>();
@@ -125,9 +123,25 @@ public class PlaceMarkers {
         }
     }
 
+    int getBackgroundColor(String colorName) {
+        for (PlaceColorButton pcb: mPlaceColorButtons) {
+            if (pcb.colorName.equals(colorName))
+                return pcb.bgColorId;
+        }
+        return R.color.teal_400;
+    }
+
+    int getTextColor(String colorName) {
+        for (PlaceColorButton pcb: mPlaceColorButtons) {
+            if (pcb.colorName.equals(colorName))
+                return pcb.textColorId;
+        }
+        return R.color.white;
+    }
+
     // FIXME: too many fixed numbers
     private void getMarkerIconImpl(Place place, Bitmap bitmap, MarkerListener listener) {
-        int colorId = mPlaceColorMap.get(place.getMarkerColor());
+        int colorId = getBackgroundColor(place.getMarkerColor());
         Drawable drawable = Utils.getIconDrawable(mActivity, R.drawable.ic_place_white_48dp, colorId);
 
         float density = mActivity.getResources().getDisplayMetrics().density;
@@ -152,7 +166,7 @@ public class PlaceMarkers {
         canvas.drawRoundRect(30 * density, 6 * density, width, 28 * density,
                 2 * density, 2 * density, paint);
 
-        paint.setColor(ContextCompat.getColor(mActivity, R.color.navy));
+        paint.setColor(ContextCompat.getColor(mActivity, getTextColor(place.getMarkerColor())));
         paint.setTextSize(14 * density);
         canvas.drawText(place.getTitle(), 40 * density, 22 * density, paint);
 
@@ -198,7 +212,7 @@ public class PlaceMarkers {
 
         for (PlaceColorButton pc : mPlaceColorButtons) {
             pc.imageView = (ImageView) view.findViewById(pc.imageId);
-            pc.imageView.setImageDrawable(getIcon(pc.colorId));
+            pc.imageView.setImageDrawable(getIcon(pc.bgColorId));
             pc.radioButton = (RadioButton) view.findViewById(pc.id);
         }
         for (PlaceColorButton pc : mPlaceColorButtons) {
@@ -259,7 +273,7 @@ public class PlaceMarkers {
                 if (bitmap != null) {
                     placeImage.setImageBitmap(bitmap);
                 } else {
-                    placeImage.setImageDrawable(getIcon(R.color.steelblue));
+                    placeImage.setImageDrawable(getIcon(R.color.indigo_500));
                 }
             }
         }).loadPlace(place.getUid(), key);
@@ -364,7 +378,7 @@ public class PlaceMarkers {
 
         for (PlaceColorButton pc : mPlaceColorButtons) {
             pc.imageView = (ImageView) view.findViewById(pc.imageId);
-            pc.imageView.setImageDrawable(getIcon(pc.colorId));
+            pc.imageView.setImageDrawable(getIcon(pc.bgColorId));
             pc.radioButton = (RadioButton) view.findViewById(pc.id);
         }
         for (PlaceColorButton pc : mPlaceColorButtons) {
@@ -415,7 +429,7 @@ public class PlaceMarkers {
         if (bitmap != null) {
             placeImage.setImageBitmap(bitmap);
         } else {
-            placeImage.setImageDrawable(getIcon(R.color.steelblue));
+            placeImage.setImageDrawable(getIcon(R.color.indigo_500));
         }
 
         AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
@@ -566,13 +580,13 @@ public class PlaceMarkers {
             new AlertDialog.Builder(mActivity)
                     .setTitle((title != null) ? title : defaultTitle)
                     .setMessage(R.string.confirm_place_remove)
-                    .setNegativeButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             removePlaceImpl(key, place, fragment);
                         }
                     })
-                    .setPositiveButton(android.R.string.no, null)
+                    .setNegativeButton(android.R.string.no, null)
                     .show();
         } else {
             removePlaceImpl(key, null, fragment);
@@ -751,15 +765,17 @@ public class PlaceMarkers {
     private class PlaceColorButton {
         int id;
         int imageId;
-        int colorId;
+        int bgColorId;
+        int textColorId;
         String colorName;
         RadioButton radioButton;
         ImageView imageView;
 
-        PlaceColorButton(int id, int imageId, int colorId, String colorName) {
+        PlaceColorButton(int id, int imageId, int bgColorId, int textColorId, String colorName) {
             this.id = id;
             this.imageId = imageId;
-            this.colorId = colorId;
+            this.bgColorId = bgColorId;
+            this.textColorId = textColorId;
             this.colorName = colorName;
         }
     }

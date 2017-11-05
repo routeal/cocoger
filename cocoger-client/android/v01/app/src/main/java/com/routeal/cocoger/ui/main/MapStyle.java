@@ -61,7 +61,7 @@ class MapStyle {
         mMapStyles[6].resource = "pink";
 
         // set up the 'my' location button
-        Drawable layerDrawable = Utils.getIconDrawable(mActivity, R.drawable.ic_layers_white_24dp, R.color.gray);
+        Drawable layerDrawable = Utils.getIconDrawable(mActivity, R.drawable.ic_layers_white_24dp, R.color.grey_500);
         FloatingActionButton layerButton = (FloatingActionButton) mActivity.findViewById(R.id.map_layer);
         layerButton.setImageDrawable(layerDrawable);
         layerButton.setOnClickListener(mapLayerButtonListener);

@@ -155,7 +155,7 @@ class MapDirection {
                 PolylineOptions lineOptions = new PolylineOptions();
                 lineOptions.addAll(route.points);
                 lineOptions.width(10);
-                lineOptions.color(ContextCompat.getColor(activity, R.color.dodgerblue));
+                lineOptions.color(ContextCompat.getColor(activity, R.color.light_blue_500));
                 mDirectionRoute.line = mMap.addPolyline(lineOptions);
                 mDirectionRoute.line.setClickable(true);
 

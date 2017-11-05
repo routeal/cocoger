@@ -11,7 +11,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:layout_margin="4dp"
-        android:backgroundTint="@color/whitesmoke"
+        android:backgroundTint="@color/white"
         android:text="@string/add_friend"
         android:textColor="@color/teal500" />
 
@@ -21,7 +21,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="center"
         android:layout_margin="4dp"
-        android:backgroundTint="@color/whitesmoke"
+        android:backgroundTint="@color/white"
         android:text="@string/invite_friend"
         android:textColor="@color/teal500" />
 

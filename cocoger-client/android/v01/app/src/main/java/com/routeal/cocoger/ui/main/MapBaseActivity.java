@@ -112,7 +112,7 @@ abstract class MapBaseActivity extends FragmentActivity
                     connectGoogleApiClient();
                 } else {
                     Drawable drawable = Utils.getIconDrawable(this, R.drawable.ic_place_white_36dp,
-                            R.color.teal);
+                            R.color.teal_500);
                     new AlertDialog.Builder(this)
                             .setIcon(drawable)
                             .setTitle(R.string.location_denied_title)
@@ -155,7 +155,7 @@ abstract class MapBaseActivity extends FragmentActivity
                     connectGoogleApiClient();
                 } else {
                     Drawable drawable = Utils.getIconDrawable(this, R.drawable.ic_place_white_36dp,
-                            R.color.teal);
+                            R.color.teal_500);
                     new AlertDialog.Builder(this)
                             .setIcon(drawable)
                             .setTitle(R.string.googleapi_denied_title)

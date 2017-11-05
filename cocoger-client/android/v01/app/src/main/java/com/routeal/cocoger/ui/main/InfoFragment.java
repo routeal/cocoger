@@ -68,7 +68,7 @@ public class InfoFragment extends Fragment {
 
     void enableMessageButton(String key) {
         if (FB.isCurrentUser(key)) {
-            mTitleTextView.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.teal300));
+            mTitleTextView.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.teal_300));
             mActionMessageButton.setVisibility(View.GONE);
             mActionDirectionButton.setVisibility(View.GONE);
         } else {

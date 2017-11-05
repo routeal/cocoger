@@ -49,12 +49,17 @@ public class PanelMapActivity extends SearchMapActivity {
         mLayout.addPanelSlideListener(new PanelSlideListener() {
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
-                //Log.i(TAG, "onPanelSlide, offset " + slideOffset);
+                Log.i(TAG, "onPanelSlide, offset " + slideOffset);
             }
 
             @Override
             public void onPanelStateChanged(View panel, PanelState previousState, PanelState newState) {
-                //Log.i(TAG, "onPanelStateChanged " + newState);
+                Log.i(TAG, "onPanelStateChanged " + newState);
+                if (newState == PanelState.DRAGGING) {
+                    if (mMessageListFragment != null) {
+                        mMessageListFragment.updateMessages();
+                    }
+                }
             }
         });
 

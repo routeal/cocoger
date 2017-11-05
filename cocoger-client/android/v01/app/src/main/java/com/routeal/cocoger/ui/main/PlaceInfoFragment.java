@@ -46,7 +46,7 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
         mActionDirectionButton.setOnClickListener(this);
         mActionGoogleMapButton.setOnClickListener(this);
 
-        mTitleTextView.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.peru));
+        mTitleTextView.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.amber_500));
 
         return view;
     }

@@ -41,7 +41,7 @@ public class DirectionInfoFragment extends Fragment {
         AppCompatTextView mDurationTextView = (AppCompatTextView) view.findViewById(R.id.info_duration);
         ImageButton mActionDirectionButton = (ImageButton) view.findViewById(R.id.action_direction);
         ImageButton mActionRemoveButton = (ImageButton) view.findViewById(R.id.action_remove);
-        Drawable drawable = Utils.getIconDrawable(view.getContext(), R.drawable.ic_directions_white_24dp, R.color.dodgerblue);
+        Drawable drawable = Utils.getIconDrawable(view.getContext(), R.drawable.ic_directions_white_24dp, R.color.indigo_400);
         mActionDirectionButton.setImageDrawable(drawable);
         mActionDirectionButton.setOnClickListener(new View.OnClickListener() {
             @Override

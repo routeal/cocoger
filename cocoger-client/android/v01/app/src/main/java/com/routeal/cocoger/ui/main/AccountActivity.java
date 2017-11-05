@@ -404,7 +404,7 @@ public class AccountActivity extends AppCompatActivity {
         }
         if (mProfilePictureUri == null) {
             validated = false;
-            Drawable drawable = Utils.getIconDrawable(this, R.drawable.ic_photo_camera_white_48dp, R.color.red);
+            Drawable drawable = Utils.getIconDrawable(this, R.drawable.ic_photo_camera_white_48dp, R.color.red_500);
             mPhotoCameraView.setImageDrawable(drawable);
         }
         if (!validated) {

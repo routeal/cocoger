@@ -161,7 +161,7 @@ public class MultiInfoFragment extends InfoFragment {
             String uid = FB.getUid();
             if (uid.equals(info.id)) {
                 holder.range.setText(R.string.me);
-                holder.pane.setBackgroundColor(ContextCompat.getColor(getParentFragment().getContext(), R.color.teal50));
+                holder.pane.setBackgroundColor(ContextCompat.getColor(getParentFragment().getContext(), R.color.teal_50));
             } else {
                 holder.range.setText(LocationRange.toString(info.range));
             }

@@ -23,6 +23,8 @@
                 android:orientation="horizontal">
 
                 <RadioButton
+                    android:scaleX="0.8"
+                    android:scaleY="0.8"
                     android:id="@+id/place_1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -43,6 +45,8 @@
                 android:orientation="horizontal">
 
                 <RadioButton
+                    android:scaleX="0.8"
+                    android:scaleY="0.8"
                     android:id="@+id/place_2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
@@ -62,6 +66,8 @@
                 android:orientation="horizontal">
 
                 <RadioButton
+                    android:scaleX="0.8"
+                    android:scaleY="0.8"
                     android:id="@+id/place_3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
@@ -81,6 +87,8 @@
                 android:orientation="horizontal">
 
                 <RadioButton
+                    android:scaleX="0.8"
+                    android:scaleY="0.8"
                     android:id="@+id/place_4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
@@ -100,6 +108,8 @@
                 android:orientation="horizontal">
 
                 <RadioButton
+                    android:scaleX="0.8"
+                    android:scaleY="0.8"
                     android:id="@+id/place_5"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />

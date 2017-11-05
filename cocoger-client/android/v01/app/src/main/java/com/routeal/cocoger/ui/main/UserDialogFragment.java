@@ -269,7 +269,7 @@ public class UserDialogFragment extends Fragment
                 Map<String, Long> invites = me.getInvites();
                 if (invites != null && invites.containsKey(key)) {
                     // already invited
-                    disableInput(true, R.color.peachpuff);
+                    disableInput(true, R.color.blue_grey_50);
                     setLocation(mView.getResources().getString(R.string.pending));
                     return;
                 }

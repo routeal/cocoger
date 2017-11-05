@@ -126,7 +126,7 @@
             android:layout_height="wrap_content"
             android:text="@string/location_update_warning"
             android:textAppearance="@style/TextAppearance.AppCompat.Small"
-            android:textColor="@color/red"
+            android:textColor="@color/red_500"
             android:visibility="invisible" />
 
     </LinearLayout>

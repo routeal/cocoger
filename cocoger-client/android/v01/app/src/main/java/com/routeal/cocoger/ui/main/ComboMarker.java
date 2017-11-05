@@ -68,7 +68,7 @@ class ComboMarker {
         mMarker = mMap.addMarker(options);
 
         Drawable d = Utils.getIconDrawable(MainApplication.getContext(),
-                R.drawable.ic_face_black_48dp, R.color.steelblue);
+                R.drawable.ic_face_black_48dp, R.color.indigo_500);
         BitmapDescriptor icon = Utils.getBitmapDescriptor(d);
 
         mMarker.setIcon(icon);

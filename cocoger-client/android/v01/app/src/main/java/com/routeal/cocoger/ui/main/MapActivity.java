@@ -78,7 +78,7 @@ abstract class MapActivity extends MapBaseActivity
         }
 
         // set up the 'my' location button
-        Drawable myLocationDrawable = Utils.getIconDrawable(this, R.drawable.ic_my_location_white_36dp, R.color.gray);
+        Drawable myLocationDrawable = Utils.getIconDrawable(this, R.drawable.ic_my_location_white_36dp, R.color.grey_500);
         FloatingActionButton myLocationButton = (FloatingActionButton) findViewById(R.id.my_location);
         myLocationButton.setImageDrawable(myLocationDrawable);
         myLocationButton.setOnClickListener(this);

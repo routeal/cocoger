@@ -41,11 +41,16 @@ import java.util.Map;
 public class GroupDialogFragment extends Fragment implements FullScreenDialogContent {
 
     private static GroupColorButton mGroupColorButtons[] = {
-            new GroupColorButton(R.id.group_color_1, R.id.group_color_image_1, R.color.steelblue, "steelblue"),
-            new GroupColorButton(R.id.group_color_2, R.id.group_color_image_2, R.color.yellowgreen, "yellowgreen"),
-            new GroupColorButton(R.id.group_color_3, R.id.group_color_image_3, R.color.firebrick, "firebrick"),
-            new GroupColorButton(R.id.group_color_4, R.id.group_color_image_4, R.color.gold, "gold"),
-            new GroupColorButton(R.id.group_color_5, R.id.group_color_image_5, R.color.hotpink, "hotpink"),
+            new GroupColorButton(R.id.group_color_1, R.id.group_color_image_1,
+                    R.color.indigo_500, R.color.white, "indigo_500"),
+            new GroupColorButton(R.id.group_color_2, R.id.group_color_image_2,
+                    R.color.red_900, R.color.white, "red_900"),
+            new GroupColorButton(R.id.group_color_3, R.id.group_color_image_3,
+                    R.color.teal_a_700, R.color.black, "teal_a_700"),
+            new GroupColorButton(R.id.group_color_4, R.id.group_color_image_4,
+                    R.color.amber_a_400, R.color.black, "amber_a_400"),
+            new GroupColorButton(R.id.group_color_5, R.id.group_color_image_5,
+                    R.color.pink_a_400, R.color.white, "pink_a_400"),
     };
     private static String DEFAULT_GROUP_COLOR = mGroupColorButtons[0].colorName;
     List<String> mGroupKeys;
@@ -76,7 +81,7 @@ public class GroupDialogFragment extends Fragment implements FullScreenDialogCon
 
         for (GroupColorButton pc : mGroupColorButtons) {
             int size = (int) (24 * Resources.getSystem().getDisplayMetrics().density);
-            Bitmap bitmap = Utils.createCircleNumberImage(size, size, ContextCompat.getColor(getContext(), pc.colorId), "");
+            Bitmap bitmap = Utils.createCircleNumberImage(size, size, ContextCompat.getColor(getContext(), pc.bgColorId), "");
             pc.imageView = (ImageView) view.findViewById(pc.imageId);
             pc.imageView.setImageBitmap(bitmap);
             pc.radioButton = (RadioButton) view.findViewById(pc.id);
@@ -194,15 +199,17 @@ public class GroupDialogFragment extends Fragment implements FullScreenDialogCon
     private static class GroupColorButton {
         int id;
         int imageId;
-        int colorId;
+        int bgColorId;
+        int textColorId;
         String colorName;
         RadioButton radioButton;
         ImageView imageView;
 
-        GroupColorButton(int id, int imageId, int colorId, String colorName) {
+        GroupColorButton(int id, int imageId, int bgColorId, int textColorId, String colorName) {
             this.id = id;
             this.imageId = imageId;
-            this.colorId = colorId;
+            this.bgColorId = bgColorId;
+            this.textColorId = textColorId;
             this.colorName = colorName;
         }
     }

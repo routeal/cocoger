@@ -23,13 +23,13 @@
         rsb:absoluteMinValue="0"
         rsb:activeColor="@color/teal500"
         rsb:barHeight="4dp"
-        rsb:textAboveThumbsColor="@color/navy"
+        rsb:textAboveThumbsColor="@color/indigo_900"
         rsb:thumbDisabled="@drawable/seek_thumb_disabled"
         rsb:thumbNormal="@drawable/seek_thumb_normal"
         rsb:thumbPressed="@drawable/seek_thumb_pressed"
         rsb:thumbShadow="true"
         rsb:thumbShadowBlur="3dp"
-        rsb:thumbShadowColor="@color/teal50"
+        rsb:thumbShadowColor="@color/teal_50"
         rsb:thumbShadowXOffset="1dp"
         rsb:thumbShadowYOffset="2dp" />
 

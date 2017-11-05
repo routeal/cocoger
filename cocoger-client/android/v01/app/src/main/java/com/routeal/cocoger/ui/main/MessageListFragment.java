@@ -140,6 +140,7 @@ public class MessageListFragment extends PagerFragment {
                 Member member = entry2.getValue();
                 if (uid.equals(FB.getUid()) && member.getStatus() == Member.INVITED) {
                     GroupMessage m = new GroupMessage();
+                    m.name = group.getName();
                     m.key = key;
                     m.date = Utils.getShortDateTime(member.getTimestamp());
                     String pattern = getResources().getString(R.string.receive_group_join);
@@ -335,6 +336,7 @@ public class MessageListFragment extends PagerFragment {
             } else if (m instanceof GroupMessage) {
                 final GroupMessage gm = (GroupMessage) m;
                 new LoadImage(holder.picture).loadProfile(gm.key);
+                holder.title.setText(gm.name);
                 holder.date.setText(gm.date);
                 holder.content.setText(gm.message);
                 holder.ok.setText(R.string.join);
@@ -342,6 +344,7 @@ public class MessageListFragment extends PagerFragment {
                     @Override
                     public void onClick(View v) {
                         FB.joinGroup(gm.key);
+                        closeViewPage();
                         notifyDataSetChanged();
                     }
                 });
@@ -350,6 +353,7 @@ public class MessageListFragment extends PagerFragment {
                     @Override
                     public void onClick(View v) {
                         FB.removeGroup(gm.key);
+                        closeViewPage();
                         notifyDataSetChanged();
                     }
                 });

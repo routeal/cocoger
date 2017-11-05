@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="4dp"
         android:padding="2dp"
-        card_view:cardBackgroundColor="@color/teal50"
+        card_view:cardBackgroundColor="@color/teal_50"
         card_view:cardCornerRadius="8dp"
         card_view:cardElevation="8dp">
 
@@ -97,8 +97,8 @@
                 app:indicatorColor="@color/teal500"
                 app:itemsArrayId="@array/range_items"
                 app:progressColor="@color/teal500"
-                app:textIndicatorColor="@color/navy"
-                app:thumbnailColor="@color/teal300" />
+                app:textIndicatorColor="@color/indigo_900"
+                app:thumbnailColor="@color/teal_300" />
 
         </RelativeLayout>
 

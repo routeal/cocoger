@@ -2,7 +2,9 @@ package com.routeal.cocoger.ui.main;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -12,6 +14,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.appolica.interactiveinfowindow.InfoWindow;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
@@ -22,6 +25,7 @@ import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.Place;
 import com.routeal.cocoger.util.LoadImage;
 
+import java.util.HashMap;
 import java.util.Set;
 
 /**
@@ -103,6 +107,7 @@ public class PlaceListFragment extends PagerFragment {
             private final static String TAG = "PlaceListViewHolder";
 
             private View mView;
+            private CardView mCardView;
             private ImageView mPictureImage;
             private TextView mTitleText;
             private TextView mAddressText;
@@ -115,6 +120,7 @@ public class PlaceListFragment extends PagerFragment {
             ViewHolder(View itemView) {
                 super(itemView);
                 mView = itemView;
+                mCardView = (CardView) itemView.findViewById(R.id.card_view);
                 mPictureImage = (ImageView) itemView.findViewById(R.id.place_picture);
                 mTitleText = (TextView) itemView.findViewById(R.id.place_title);
                 mAddressText = (TextView) itemView.findViewById(R.id.place_address);
@@ -149,9 +155,18 @@ public class PlaceListFragment extends PagerFragment {
                 }
             }
 
+            private final HashMap<String, Integer> mBackgroundColor = new HashMap<String, Integer>() {{
+                put("light_blue_400", R.color.light_blue_50);
+                put("red_700", R.color.red_50);
+                put("teal_400", R.color.teal_50);
+                put("amber_400", R.color.amber_50);
+                put("pink_400", R.color.pink_50);
+            }};
+
             void bind(Place place, String key) {
                 mKey = key;
                 mPlace = place;
+                mCardView.setBackgroundColor(ContextCompat.getColor(getContext(), mBackgroundColor.get(mPlace.getMarkerColor())));
                 if (!mPlace.getUid().equals(FB.getUid())) {
                     mEditButton.setVisibility(View.INVISIBLE);
                     mRemoveButton.setVisibility(View.INVISIBLE);

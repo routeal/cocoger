@@ -151,11 +151,11 @@ public class GroupListFragment extends PagerFragment {
         class ViewHolder extends RecyclerView.ViewHolder {
 
             private final Map<String, Integer> mGroupColorMap = new HashMap<String, Integer>() {{
-                put("steelblue", R.color.steelblue);
-                put("yellowgreen", R.color.yellowgreen);
-                put("firebrick", R.color.firebrick);
-                put("gold", R.color.gold);
-                put("hotpink", R.color.hotpink);
+                put("indigo_500", R.color.indigo_500);
+                put("red_900", R.color.red_900);
+                put("teal_a_700", R.color.teal_a_700);
+                put("amber_a_400", R.color.amber_a_400);
+                put("pink_a_400", R.color.pink_a_400);
             }};
             private View mView;
             private ImageView mImage;
