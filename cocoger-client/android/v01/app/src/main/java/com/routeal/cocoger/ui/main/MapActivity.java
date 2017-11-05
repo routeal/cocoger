@@ -30,7 +30,8 @@ import com.routeal.cocoger.util.Utils;
 import com.theartofdev.edmodo.cropper.CropImage;
 
 abstract class MapActivity extends MapBaseActivity
-        implements GoogleMap.OnMarkerClickListener,
+        implements
+        GoogleMap.OnMarkerClickListener,
         GoogleMap.OnCameraMoveListener,
         GoogleMap.OnMapLongClickListener,
         GoogleMap.OnMarkerDragListener,
@@ -160,7 +161,6 @@ abstract class MapActivity extends MapBaseActivity
 
         if (mCameraPosition != null) {
             mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
-            mInitialLocation = mCameraPosition.target;
         } else if (mInitialLocation != null) {
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mInitialLocation, MapActivity.DEFAULT_ZOOM));
         }

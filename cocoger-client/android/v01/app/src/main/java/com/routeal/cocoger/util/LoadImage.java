@@ -23,26 +23,24 @@ public class LoadImage {
 
     private ImageView imageView;
     private boolean crop;
-    private int borderColor;
     private LoadImageListener listener;
 
-    public LoadImage(ImageView imageView, boolean crop, int borderColor, LoadImageListener listener) {
+    public LoadImage(ImageView imageView, boolean crop, LoadImageListener listener) {
         this.imageView = imageView;
         this.crop = crop;
-        this.borderColor = borderColor;
         this.listener = listener;
     }
 
     public LoadImage(ImageView imageView) {
-        this(imageView, false, 0, null);
+        this(imageView, false, null);
     }
 
     public LoadImage(LoadImageListener listener) {
-        this(null, true, 0, listener);
+        this(null, true, listener);
     }
 
     public LoadImage(boolean crop, LoadImageListener listener) {
-        this(null, crop, 0, listener);
+        this(null, crop, listener);
     }
 
     private void onDone(byte bytes[]) {
@@ -50,7 +48,7 @@ public class LoadImage {
             Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, null);
             if (imageView != null) {
                 if (crop) {
-                    Bitmap cropped = Utils.cropCircle(bitmap, borderColor);
+                    Bitmap cropped = Utils.cropCircle(bitmap);
                     imageView.setImageBitmap(cropped);
                 } else {
                     imageView.setImageBitmap(bitmap);
@@ -58,7 +56,7 @@ public class LoadImage {
             }
             if (listener != null) {
                 if (crop) {
-                    Bitmap cropped = Utils.cropCircle(bitmap, borderColor);
+                    Bitmap cropped = Utils.cropCircle(bitmap);
                     listener.onSuccess(cropped);
                 } else {
                     listener.onSuccess(bitmap);

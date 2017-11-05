@@ -2,6 +2,10 @@ package com.routeal.cocoger.ui.main;
 
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
@@ -11,6 +15,7 @@ import android.os.SystemClock;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.SwitchCompat;
 import android.util.Log;
@@ -28,6 +33,7 @@ import com.appolica.interactiveinfowindow.InfoWindowManager;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -35,6 +41,7 @@ import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.manager.PlaceManager;
 import com.routeal.cocoger.model.Place;
+import com.routeal.cocoger.provider.DBUtil;
 import com.routeal.cocoger.util.LoadImage;
 import com.routeal.cocoger.util.Utils;
 import com.theartofdev.edmodo.cropper.CropImage;
@@ -62,7 +69,7 @@ public class PlaceMarkers {
         put("gold", R.color.gold);
         put("hotpink", R.color.hotpink);
     }};
-
+    private final static int MARKER_SIZE = 48;
     private PlaceColorButton mPlaceColorButtons[] = {
             new PlaceColorButton(R.id.place_1, R.id.place_image_1, R.color.steelblue, "steelblue"),
             new PlaceColorButton(R.id.place_2, R.id.place_image_2, R.color.yellowgreen, "yellowgreen"),
@@ -70,13 +77,10 @@ public class PlaceMarkers {
             new PlaceColorButton(R.id.place_4, R.id.place_image_4, R.color.gold, "gold"),
             new PlaceColorButton(R.id.place_5, R.id.place_image_5, R.color.hotpink, "hotpink"),
     };
-
     // this marker list with infowindow should be destroyed when the ui is destroyed
     private Map<Marker, InfoWindow> mPlaceMarkers = new HashMap<Marker, InfoWindow>();
-
     // TODO: need to be removed but no idea how to do this
     private ImageView cropImageView;
-
     private MapActivity mActivity;
     private InfoWindowManager mInfoWindowManager;
     private GoogleMap mMap;
@@ -88,17 +92,84 @@ public class PlaceMarkers {
         setup();
     }
 
+    // icons for color selection
     private Drawable getIcon(int colorId) {
         return Utils.getIconDrawable(mActivity, R.drawable.ic_place_white_18dp, colorId);
     }
 
-    private BitmapDescriptor getIcon(String colorName) {
-        int colorId = mPlaceColorMap.get(colorName);
-        Drawable drawable = Utils.getIconDrawable(mActivity, R.drawable.ic_place_white_48dp, colorId);
-        return Utils.getBitmapDescriptor(drawable);
+    // marker icon
+    private void getMarkerIcon(String key, final Place place, Bitmap bitmap, final MarkerListener listener) {
+        if (bitmap != null) {
+            getMarkerIconImpl(place, Utils.cropCircle(bitmap), listener);
+        } else {
+            final String name = place.getUid() + "_" + key + "_" + FB.PLACE_IMAGE;
+            byte[] bytes = DBUtil.getImage(name);
+            if (bytes != null) {
+                Bitmap bitmap2 = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, null);
+                getMarkerIconImpl(place, Utils.cropCircle(bitmap2), listener);
+            } else {
+                FB.downloadPlaceImage(place.getUid(), key, new FB.DownloadDataListener() {
+                    @Override
+                    public void onSuccess(byte[] bytes) {
+                        DBUtil.saveImage(name, bytes);
+                        Bitmap bitmap2 = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, null);
+                        getMarkerIconImpl(place, Utils.cropCircle(bitmap2), listener);
+                    }
+
+                    @Override
+                    public void onFail(String err) {
+                        getMarkerIconImpl(place, null, listener);
+                    }
+                });
+            }
+        }
     }
 
-    void setup() {
+    // FIXME: too many fixed numbers
+    private void getMarkerIconImpl(Place place, Bitmap bitmap, MarkerListener listener) {
+        int colorId = mPlaceColorMap.get(place.getMarkerColor());
+        Drawable drawable = Utils.getIconDrawable(mActivity, R.drawable.ic_place_white_48dp, colorId);
+
+        float density = mActivity.getResources().getDisplayMetrics().density;
+
+        Paint paint = new Paint();
+        paint.setTextSize(14 * density);
+
+        float textWidth = paint.measureText(place.getTitle());
+
+        int width = (int) (MARKER_SIZE * density + textWidth);
+        int height = (int) (MARKER_SIZE * density);
+
+        Canvas canvas = new Canvas();
+        Bitmap bitmap2 = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        canvas.setBitmap(bitmap2);
+
+        drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+        drawable.draw(canvas);
+
+        paint.setAntiAlias(true);
+        paint.setColor(ContextCompat.getColor(mActivity, colorId));
+        canvas.drawRoundRect(30 * density, 6 * density, width, 28 * density,
+                2 * density, 2 * density, paint);
+
+        paint.setColor(ContextCompat.getColor(mActivity, R.color.navy));
+        paint.setTextSize(14 * density);
+        canvas.drawText(place.getTitle(), 40 * density, 22 * density, paint);
+
+        if (bitmap != null) {
+            Rect src = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+            Rect dst = new Rect((int) (12 * density), (int) (6 * density),
+                    (int) (36 * density), (int) (30 * density));
+            canvas.drawBitmap(bitmap, src, dst, null);
+        }
+
+        if (listener != null) {
+            float anchorU = (float) (MARKER_SIZE) / (float) (bitmap2.getWidth());
+            listener.onComplete(anchorU, 1.0f, BitmapDescriptorFactory.fromBitmap(bitmap2));
+        }
+    }
+
+    private void setup() {
         if (PlaceManager.getPlaces().size() == 0) return;
         for (Map.Entry<String, Place> entry : PlaceManager.getPlaces().entrySet()) {
             String key = entry.getKey();
@@ -239,8 +310,16 @@ public class PlaceMarkers {
                             fragment.setPlace(place);
 
                             // marker color
-                            Marker marker = getMarker(fragment);
-                            marker.setIcon(getIcon(place.getMarkerColor()));
+                            final Marker marker = getMarker(fragment);
+                            if (marker != null) {
+                                getMarkerIcon(key, place, null, new MarkerListener() {
+                                    @Override
+                                    public void onComplete(float anchorU, float anchorV, BitmapDescriptor bitmapDescriptor) {
+                                        marker.setIcon(bitmapDescriptor);
+                                        marker.setAnchor(anchorU, anchorV);
+                                    }
+                                });
+                            }
                         }
 
                         @Override
@@ -386,9 +465,16 @@ public class PlaceMarkers {
     }
 
     void addMarker(String key, Place place, Bitmap bitmap, boolean hasAnimation) {
-        Marker marker = mMap.addMarker(new MarkerOptions()
-                .position(new LatLng(place.getLatitude(), place.getLongitude()))
-                .icon(getIcon(place.getMarkerColor())));
+        final Marker marker = mMap.addMarker(new MarkerOptions()
+                .position(new LatLng(place.getLatitude(), place.getLongitude())));
+
+        getMarkerIcon(key, place, bitmap, new MarkerListener() {
+            @Override
+            public void onComplete(float anchorU, float anchorV, BitmapDescriptor bitmapDescriptor) {
+                marker.setIcon(bitmapDescriptor);
+                marker.setAnchor(anchorU, anchorV);
+            }
+        });
 
         if (hasAnimation) {
             dropPinEffect(marker);
@@ -428,7 +514,7 @@ public class PlaceMarkers {
     }
 
     void change(String key, Place place) {
-        Marker marker = getMarker(key);
+        final Marker marker = getMarker(key);
         if (marker != null) {
             // position
             LatLng latLng = new LatLng(place.getLatitude(), place.getLongitude());
@@ -441,7 +527,13 @@ public class PlaceMarkers {
             fragment.setPlace(place);
 
             // marker color
-            marker.setIcon(getIcon(place.getMarkerColor()));
+            getMarkerIcon(key, place, null, new MarkerListener() {
+                @Override
+                public void onComplete(float anchorU, float anchorV, BitmapDescriptor bitmapDescriptor) {
+                    marker.setIcon(bitmapDescriptor);
+                    marker.setAnchor(anchorU, anchorV);
+                }
+            });
         }
     }
 
@@ -650,6 +742,10 @@ public class PlaceMarkers {
                 }
             }
         });
+    }
+
+    interface MarkerListener {
+        void onComplete(float anchorU, float anchorV, BitmapDescriptor bitmapDescriptor);
     }
 
     private class PlaceColorButton {

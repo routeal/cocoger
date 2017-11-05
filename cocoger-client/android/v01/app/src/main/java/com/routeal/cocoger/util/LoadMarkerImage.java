@@ -20,19 +20,13 @@ public class LoadMarkerImage {
     private final static int MARKER_SZIE = 128;
 
     private Marker marker;
-    private int borderColor;
     private int numLoaded;
     private int totalImages;
     private List<Bitmap> bitmaps;
     private boolean canceled;
 
     public LoadMarkerImage(Marker marker) {
-        this(marker, 0);
-    }
-
-    private LoadMarkerImage(Marker marker, int borderColor) {
         this.marker = marker;
-        this.borderColor = borderColor;
         this.numLoaded = 0;
         this.canceled = false;
         this.bitmaps = new ArrayList<>();
@@ -58,7 +52,7 @@ public class LoadMarkerImage {
                 return;
             }
 
-            Bitmap cropped = Utils.cropCircle(combined, borderColor);
+            Bitmap cropped = Utils.cropCircle(combined);
             combined.recycle();
 
             if (marker.isVisible()) {

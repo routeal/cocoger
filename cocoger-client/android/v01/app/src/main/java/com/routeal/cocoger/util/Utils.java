@@ -4,11 +4,13 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapShader;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
@@ -228,7 +230,7 @@ public class Utils {
         return str;
     }
 
-    public static Bitmap createImage(int width, int height, int color, String str) {
+    public static Bitmap createCircleNumberImage(int width, int height, int color, String str) {
         Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         // draw circle
@@ -404,42 +406,25 @@ public class Utils {
         return address;
     }
 
-    public static Bitmap cropCircle(Bitmap from) {
-        return cropCircle(from, -1);
-    }
+    public static Bitmap cropCircle(Bitmap bitmap) {
+        final Bitmap output = Bitmap.createBitmap(bitmap.getWidth(),
+                bitmap.getHeight(), Bitmap.Config.ARGB_8888);
+        final Canvas canvas = new Canvas(output);
 
-    public static Bitmap cropCircle(Bitmap from, int borderColor) {
-        if (from == null || from.isRecycled()) {
-            return null;
-        }
+        final Paint paint = new Paint();
+        final Rect rect = new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight());
+        final RectF rectF = new RectF(rect);
 
-        int borderWidth = 4;
-        int width = from.getWidth() + borderWidth;
-        int height = from.getHeight() + borderWidth;
-
-        Bitmap to = Bitmap.createBitmap(width, height, from.getConfig());
-
-        BitmapShader shader = new BitmapShader(from, BitmapShader.TileMode.CLAMP, BitmapShader.TileMode.CLAMP);
-
-        Paint paint = new Paint();
         paint.setAntiAlias(true);
-        paint.setShader(shader);
+        canvas.drawARGB(0, 0, 0, 0);
+        canvas.drawOval(rectF, paint);
 
-        float radius = width > height ? ((float) height) / 2f : ((float) width) / 2f;
+        paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN));
+        canvas.drawBitmap(bitmap, rect, rect, paint);
 
-        Canvas canvas = new Canvas(to);
-        canvas.drawColor(Color.TRANSPARENT);
-        canvas.drawCircle(width / 2, height / 2, radius, paint);
+        bitmap.recycle();
 
-        if (borderColor > 0) {
-            paint.setShader(null);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setColor(Color.BLUE);
-            paint.setStrokeWidth(borderWidth);
-            canvas.drawCircle(width / 2, height / 2, radius - borderWidth / 2, paint);
-        }
-
-        return to;
+        return output;
     }
 
     public static int detectRangeMove(Address n, Address o) {

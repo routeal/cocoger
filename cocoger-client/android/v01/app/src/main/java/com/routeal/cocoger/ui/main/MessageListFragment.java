@@ -16,7 +16,10 @@ import android.widget.TextView;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.manager.FriendManager;
+import com.routeal.cocoger.manager.GroupManager;
 import com.routeal.cocoger.model.Friend;
+import com.routeal.cocoger.model.Group;
+import com.routeal.cocoger.model.Member;
 import com.routeal.cocoger.model.NoticeMessage;
 import com.routeal.cocoger.model.RangeRequest;
 import com.routeal.cocoger.model.User;
@@ -127,6 +130,26 @@ public class MessageListFragment extends PagerFragment {
             }
         }
 
+        Map<String, Group> groups = GroupManager.getGroups();
+        for (Map.Entry<String, Group> entry : groups.entrySet()) {
+            String key = entry.getKey();
+            Group group = entry.getValue();
+            Map<String, Member> members = group.getMembers();
+            for (Map.Entry<String, Member> entry2 : members.entrySet()) {
+                String uid = entry2.getKey();
+                Member member = entry2.getValue();
+                if (uid.equals(FB.getUid()) && member.getStatus() == Member.INVITED) {
+                    GroupMessage m = new GroupMessage();
+                    m.key = key;
+                    m.date = Utils.getShortDateTime(member.getTimestamp());
+                    String pattern = getResources().getString(R.string.receive_group_join);
+                    m.message = String.format(pattern, group.getName());
+                    m.nid = Math.abs((int) member.getTimestamp());
+                    messages.add(m);
+                }
+            }
+        }
+
         List<NoticeMessage> noticeMessages = DBUtil.getMessages();
         for (NoticeMessage nm : noticeMessages) {
             InfoMessage m = new InfoMessage();
@@ -161,6 +184,10 @@ public class MessageListFragment extends PagerFragment {
     }
 
     class InviteMessage extends OkNoMessage {
+    }
+
+    class GroupMessage extends OkNoMessage {
+        String name;
     }
 
     class RangeMessage extends OkNoMessage {
@@ -305,6 +332,27 @@ public class MessageListFragment extends PagerFragment {
                     }
                 });
                 holder.no.setVisibility(View.INVISIBLE);
+            } else if (m instanceof GroupMessage) {
+                final GroupMessage gm = (GroupMessage) m;
+                new LoadImage(holder.picture).loadProfile(gm.key);
+                holder.date.setText(gm.date);
+                holder.content.setText(gm.message);
+                holder.ok.setText(R.string.join);
+                holder.ok.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        FB.joinGroup(gm.key);
+                        notifyDataSetChanged();
+                    }
+                });
+                holder.no.setText(R.string.decline);
+                holder.no.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        FB.removeGroup(gm.key);
+                        notifyDataSetChanged();
+                    }
+                });
             }
         }
 

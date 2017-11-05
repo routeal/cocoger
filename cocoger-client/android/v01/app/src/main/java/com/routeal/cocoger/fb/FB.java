@@ -49,6 +49,7 @@ import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Notifi;
 import com.routeal.cocoger.util.Utils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -105,8 +106,8 @@ public class FB {
     private final static String TAG = "FB";
 
     private static boolean mHasMonitoringStarted = false;
-
     private static User mUser;
+    private static Map<DatabaseReference, ValueEventListener> mKeyChildListeners = new HashMap<>();
 
     public static User getUser() {
         return mUser;
@@ -235,44 +236,46 @@ public class FB {
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 String key = dataSnapshot.getKey();
                 DatabaseReference db = getDB().child("groups").child(key);
-                db.addListenerForSingleValueEvent(new ValueEventListener() {
+                ValueEventListener listener = db.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         String key = dataSnapshot.getKey();
-                        Group group = dataSnapshot.getValue(Group.class);
-                        Log.d(TAG, "key = " + key + " " + group.getName());
-                        GroupManager.add(key, group);
+                        if (dataSnapshot.getValue() != null) {
+                            Group group = dataSnapshot.getValue(Group.class);
+                            if (GroupManager.getGroup(key) != null) {
+                                GroupManager.change(key, group);
+                            } else {
+                                GroupManager.add(key, group);
+                            }
+                        } else {
+                            if (GroupManager.getGroup(key) != null) {
+                                GroupManager.remove(key);
+                            }
+                        }
                     }
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
                     }
                 });
+                mKeyChildListeners.put(db, listener);
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                String key = dataSnapshot.getKey();
-                DatabaseReference db = getDB().child("groups").child(key);
-                db.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        String key = dataSnapshot.getKey();
-                        Group group = dataSnapshot.getValue(Group.class);
-                        Log.d(TAG, "key = " + key + " " + group.getName());
-                        GroupManager.change(key, group);
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                    }
-                });
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
                 String key = dataSnapshot.getKey();
-                GroupManager.remove(key);
+                DatabaseReference db = getDB().child("groups").getRef().child(key);
+                ValueEventListener listener = mKeyChildListeners.remove(db);
+                if (listener != null) {
+                    getDB().child("groups").child(key).removeEventListener(listener);
+                }
+                if (GroupManager.getGroup(key) != null) {
+                    GroupManager.remove(key);
+                }
             }
 
             @Override
@@ -286,65 +289,52 @@ public class FB {
             }
         });
 
-        monitorPlaces();
-    }
-
-    public static void monitorPlaces() {
-        String key = getUid();
-
-        DatabaseReference db = getDB().child("user_places").child(key);
+        db = getDB().child("user_places").child(key);
         db.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 String key = dataSnapshot.getKey();
                 DatabaseReference db = getDB().child("places").child(key);
-                db.addListenerForSingleValueEvent(new ValueEventListener() {
+                ValueEventListener listener = db.addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         String key = dataSnapshot.getKey();
-                        Place place = dataSnapshot.getValue(Place.class);
-                        PlaceManager.add(key, place);
-                        Intent intent = new Intent(FB.PLACE_ADD);
-                        intent.putExtra(FB.KEY, key);
-                        intent.putExtra(FB.PLACE, place);
-                        LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+                        if (dataSnapshot.getValue() != null) {
+                            Place place = dataSnapshot.getValue(Place.class);
+                            if (PlaceManager.getPlace(key) != null) {
+                                PlaceManager.change(key, place);
+                            } else {
+                                PlaceManager.add(key, place);
+                            }
+                        } else {
+                            if (PlaceManager.getPlace(key) != null) {
+                                PlaceManager.remove(key);
+                            }
+                        }
                     }
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
                     }
                 });
+                mKeyChildListeners.put(db, listener);
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                String key = dataSnapshot.getKey();
-                DatabaseReference db = getDB().child("places").child(key);
-                db.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        String key = dataSnapshot.getKey();
-                        Place place = dataSnapshot.getValue(Place.class);
-                        PlaceManager.change(key, place);
-                        Intent intent = new Intent(FB.PLACE_CHANGE);
-                        intent.putExtra(FB.KEY, key);
-                        intent.putExtra(FB.PLACE, place);
-                        LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                    }
-                });
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
                 String key = dataSnapshot.getKey();
-                PlaceManager.remove(key);
-                Intent intent = new Intent(FB.PLACE_REMOVE);
-                intent.putExtra(FB.KEY, key);
-                LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+                DatabaseReference db = getDB().child("places").getRef().child(key);
+                ValueEventListener listener = mKeyChildListeners.remove(db);
+                if (listener != null) {
+                    getDB().child("places").child(key).removeEventListener(listener);
+                }
+                if (PlaceManager.getPlace(key) != null) {
+                    PlaceManager.remove(key);
+                }
             }
 
             @Override
@@ -793,7 +783,7 @@ public class FB {
         friendDb.setValue(myInfo);
 
         SortedMap<String, Place> places = PlaceManager.getPlaces();
-        for(Map.Entry<String, Place> entry : places.entrySet()) {
+        for (Map.Entry<String, Place> entry : places.entrySet()) {
             String key = entry.getKey();
             Place place = entry.getValue();
             if (place.getUid().equals(getUid()) && place.getSeenBy().equals("friends")) {
@@ -883,7 +873,7 @@ public class FB {
         myDb.removeValue();
 
         SortedMap<String, Place> places = PlaceManager.getPlaces();
-        for(Map.Entry<String, Place> entry : places.entrySet()) {
+        for (Map.Entry<String, Place> entry : places.entrySet()) {
             String key = entry.getKey();
             Place place = entry.getValue();
             if (place.getUid().equals(fid) && place.getSeenBy().equals("friends")) {
@@ -1343,8 +1333,47 @@ public class FB {
         db.updateChildren(updates);
     }
 
-    public static void updateGroup(String name, String color, List<String> keys) {
+    public static void updateGroup(String key, Group group, String name, String color, List<String> keys) {
+        Map<String, Object> updates = new HashMap<>();
+        if (name != null && !name.equals(group.getName())) {
+            updates.put("groups/" + key + "/name", name);
+        }
+        if (color != null && !color.equals(group.getColor())) {
+            updates.put("groups/" + key + "/color", color);
+        }
+        List<String> newMembers = new ArrayList<>(keys);
+        for (Map.Entry<String, Member> entry : group.getMembers().entrySet()) {
+            String key2 = entry.getKey();
+            if (keys.contains(key2)) {
+                newMembers.remove(key2);
+            }
+        }
+        if (!newMembers.isEmpty()) {
+            for (String key2 : newMembers) {
+                Member member = new Member();
+                member.setStatus(Member.INVITED);
+                member.setTimestamp(System.currentTimeMillis());
+                updates.put("groups/" + key + "/members/" + key2 + "/status", Member.INVITED);
+                updates.put("groups/" + key + "/members/" + key2 + "/timestamp", System.currentTimeMillis());
+                updates.put("user_groups/" + key2 + "/" + key, false);
+            }
+        }
+        DatabaseReference db = getDB();
+        db.updateChildren(updates);
+    }
 
+    public static void removeMember(String key, Group group) {
+        // remove the group if this is the last member
+        if (group.getMembers().size() == 1) {
+            DatabaseReference db = getDB().child("groups").child(key);
+            db.removeValue();
+        } else {
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("groups/" + key + "/members/" + getUid(), null);
+            updates.put("user_groups/" + getUid() + "/" + key, null);
+            DatabaseReference db = getDB();
+            db.updateChildren(updates);
+        }
     }
 
     public static void deleteGroup(String key, Group group) {

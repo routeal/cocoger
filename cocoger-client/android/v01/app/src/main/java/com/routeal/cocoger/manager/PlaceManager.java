@@ -1,5 +1,10 @@
 package com.routeal.cocoger.manager;
 
+import android.content.Intent;
+import android.support.v4.content.LocalBroadcastManager;
+
+import com.routeal.cocoger.MainApplication;
+import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Place;
 
 import java.util.SortedMap;
@@ -34,6 +39,10 @@ public class PlaceManager {
         if (mUpdateListener != null) {
             mUpdateListener.onAdded(key, place);
         }
+        Intent intent = new Intent(FB.PLACE_ADD);
+        intent.putExtra(FB.KEY, key);
+        intent.putExtra(FB.PLACE, place);
+        LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
     }
 
     public static void change(String key, Place place) {
@@ -41,6 +50,10 @@ public class PlaceManager {
         if (mUpdateListener != null) {
             mUpdateListener.onChanged(key, place);
         }
+        Intent intent = new Intent(FB.PLACE_CHANGE);
+        intent.putExtra(FB.KEY, key);
+        intent.putExtra(FB.PLACE, place);
+        LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
     }
 
     public static void remove(String key) {
@@ -48,6 +61,9 @@ public class PlaceManager {
         if (mUpdateListener != null) {
             mUpdateListener.onRemoved(key);
         }
+        Intent intent = new Intent(FB.PLACE_REMOVE);
+        intent.putExtra(FB.KEY, key);
+        LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
     }
 
     public static void setUpdateListener(UpdateListener<Place> listener) {

@@ -17,6 +17,7 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.franmontiel.fullscreendialog.FullScreenDialogContent;
 import com.franmontiel.fullscreendialog.FullScreenDialogController;
@@ -75,7 +76,7 @@ public class GroupDialogFragment extends Fragment implements FullScreenDialogCon
 
         for (GroupColorButton pc : mGroupColorButtons) {
             int size = (int) (24 * Resources.getSystem().getDisplayMetrics().density);
-            Bitmap bitmap = Utils.createImage(size, size, ContextCompat.getColor(getContext(), pc.colorId), "");
+            Bitmap bitmap = Utils.createCircleNumberImage(size, size, ContextCompat.getColor(getContext(), pc.colorId), "");
             pc.imageView = (ImageView) view.findViewById(pc.imageId);
             pc.imageView.setImageBitmap(bitmap);
             pc.radioButton = (RadioButton) view.findViewById(pc.id);
@@ -84,7 +85,7 @@ public class GroupDialogFragment extends Fragment implements FullScreenDialogCon
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     for (GroupColorButton pc : mGroupColorButtons) {
                         if (isChecked) {
-                            if (pc.radioButton != buttonView) {
+                            if (pc.radioButton != null && pc.radioButton != buttonView) {
                                 pc.radioButton.setChecked(false);
                             }
                         }
@@ -160,8 +161,11 @@ public class GroupDialogFragment extends Fragment implements FullScreenDialogCon
 
         mGroupName.setError(null);
 
-        if (mGroupKeys.isEmpty()) {
-            return true;
+        if (mKey == null && mGroup == null) {
+            if (mGroupKeys.isEmpty()) {
+                Toast.makeText(getActivity(), "Member not selected", Toast.LENGTH_SHORT).show();
+                return true;
+            }
         }
 
         String tmp = DEFAULT_GROUP_COLOR;
@@ -176,7 +180,7 @@ public class GroupDialogFragment extends Fragment implements FullScreenDialogCon
         if (mKey == null && mGroup == null) {
             FB.createGroup(groupName, groupColor, mGroupKeys);
         } else {
-            FB.updateGroup(groupName, groupColor, mGroupKeys);
+            FB.updateGroup(mKey, mGroup, groupName, groupColor, mGroupKeys);
         }
 
         return false;

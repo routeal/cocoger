@@ -50,24 +50,24 @@ public class GroupManager {
     }
 
     public static void add(String key, Group group) {
+        mGroupList.put(key, group);
         if (mUpdateListener != null) {
             mUpdateListener.onAdded(key, group);
         }
-        mGroupList.put(key, group);
     }
 
     public static void change(String key, Group group) {
+        mGroupList.put(key, group);
         if (mUpdateListener != null) {
             mUpdateListener.onChanged(key, group);
         }
-        mGroupList.put(key, group);
     }
 
     public static void remove(String key) {
+        mGroupList.remove(key);
         if (mUpdateListener != null) {
             mUpdateListener.onRemoved(key);
         }
-        mGroupList.remove(key);
     }
 
     public static void setUpdateListener(UpdateListener<Group> listener) {

@@ -2,7 +2,6 @@ package com.routeal.cocoger.ui.main;
 
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -32,7 +31,12 @@ public class DirectionInfoFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_dir_info, container, false);
+        return inflater.inflate(R.layout.fragment_dir_info, container, false);
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         AppCompatTextView mDistanceTextView = (AppCompatTextView) view.findViewById(R.id.info_distance);
         AppCompatTextView mDurationTextView = (AppCompatTextView) view.findViewById(R.id.info_duration);
         ImageButton mActionDirectionButton = (ImageButton) view.findViewById(R.id.action_direction);
@@ -51,14 +55,12 @@ public class DirectionInfoFragment extends Fragment {
                 removeDirection();
             }
         });
-        mDurationTextView.setText(mDuration);
-        mDistanceTextView.setText(mDistance);
-        return view;
-    }
-
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+        if (mDuration != null) {
+            mDurationTextView.setText(mDuration);
+        }
+        if (mDistance != null) {
+            mDistanceTextView.setText(mDistance);
+        }
     }
 
     void setDuration(String duration) {

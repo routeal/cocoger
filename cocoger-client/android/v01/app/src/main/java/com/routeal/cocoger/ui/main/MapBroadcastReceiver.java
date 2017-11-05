@@ -7,21 +7,17 @@ import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.location.Address;
 import android.location.Location;
-import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.appolica.interactiveinfowindow.InfoWindowManager;
-import com.franmontiel.fullscreendialog.FullScreenDialogFragment;
 import com.google.android.gms.location.places.GeoDataClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
-import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.manager.FriendManager;
 import com.routeal.cocoger.model.Friend;
-import com.routeal.cocoger.model.Group;
 import com.routeal.cocoger.model.Place;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Utils;
@@ -72,8 +68,6 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
         filter.addAction(FB.PLACE_ADD);
         filter.addAction(FB.PLACE_CHANGE);
         filter.addAction(FB.PLACE_REMOVE);
-        filter.addAction(FB.GROUP_CREATE);
-        filter.addAction(FB.GROUP_EDIT);
         LocalBroadcastManager.getInstance(activity).registerReceiver(this, filter);
     }
 
@@ -107,7 +101,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
         } else if (intent.getAction().equals(FB.USER_CHANGE)) {
             mActivity.updateMessage();
         } else if (intent.getAction().equals(FB.USER_MARKER_SHOW)) {
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mLocation,MapActivity.DEFAULT_ZOOM));
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mLocation, MapActivity.DEFAULT_ZOOM));
         } else if (intent.getAction().equals(FB.FRIEND_LOCATION_ADD)) {
             final String fid = intent.getStringExtra(FB.KEY);
             final Friend friend = FriendManager.getFriend(fid);
@@ -245,25 +239,6 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
         } else if (intent.getAction().equals(FB.PLACE_REMOVE)) {
             String key = intent.getStringExtra(FB.KEY);
             mPlaceMarkers.remove(key);
-        } else if (intent.getAction().equals(FB.GROUP_CREATE)) {
-            FullScreenDialogFragment dialogFragment = new FullScreenDialogFragment.Builder(mActivity)
-                    .setTitle(R.string.new_group)
-                    .setConfirmButton(R.string.create_group)
-                    .setContent(GroupDialogFragment.class, new Bundle())
-                    .build();
-            dialogFragment.show(mActivity.getSupportFragmentManager(), "user-dialog");
-        } else if (intent.getAction().equals(FB.GROUP_EDIT)) {
-            String key = intent.getStringExtra("key");
-            Group group = (Group) intent.getSerializableExtra("group");
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("key", key);
-            bundle.putSerializable("group", group);
-            FullScreenDialogFragment dialogFragment = new FullScreenDialogFragment.Builder(mActivity)
-                    .setTitle(R.string.edit_group)
-                    .setConfirmButton(R.string.save_group)
-                    .setContent(GroupDialogFragment.class, bundle)
-                    .build();
-            dialogFragment.show(mActivity.getSupportFragmentManager(), "user-dialog");
         }
     }
 }

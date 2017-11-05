@@ -1,10 +1,10 @@
 package com.routeal.cocoger.ui.main;
 
-import android.content.Intent;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -15,7 +15,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.routeal.cocoger.MainApplication;
+import com.franmontiel.fullscreendialog.FullScreenDialogFragment;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.manager.FriendManager;
@@ -66,8 +66,12 @@ public class GroupListFragment extends PagerFragment {
         mCreateGroup.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(FB.GROUP_CREATE);
-                LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+                FullScreenDialogFragment dialogFragment = new FullScreenDialogFragment.Builder(getActivity())
+                        .setTitle(R.string.new_group)
+                        .setConfirmButton(R.string.create_group)
+                        .setContent(GroupDialogFragment.class, new Bundle())
+                        .build();
+                dialogFragment.show(getActivity().getSupportFragmentManager(), "group-create-dialog");
             }
         });
 
@@ -92,6 +96,22 @@ public class GroupListFragment extends PagerFragment {
         });
 
         return view;
+    }
+
+    @Override
+    void onViewPageSelected() {
+        int size = GroupManager.getGroups().size();
+        if (size == 0) {
+            if (FriendManager.isEmpty()) {
+                mCreateGroup.setEnabled(false);
+            } else {
+                mCreateGroup.setEnabled(true);
+            }
+            mEmptyTextView.setVisibility(View.VISIBLE);
+        } else {
+            mCreateGroup.setEnabled(true);
+            mEmptyTextView.setVisibility(View.GONE);
+        }
     }
 
     class GroupListAdapter extends RecyclerView.Adapter<GroupListAdapter.ViewHolder> {
@@ -122,6 +142,7 @@ public class GroupListFragment extends PagerFragment {
                 }
                 mEmptyTextView.setVisibility(View.VISIBLE);
             } else {
+                mCreateGroup.setEnabled(true);
                 mEmptyTextView.setVisibility(View.GONE);
             }
             return size;
@@ -136,7 +157,7 @@ public class GroupListFragment extends PagerFragment {
                 put("gold", R.color.gold);
                 put("hotpink", R.color.hotpink);
             }};
-            private View mViiew;
+            private View mView;
             private ImageView mImage;
             private TextView mGroupName;
             private RecyclerView mRecyclerView;
@@ -150,7 +171,7 @@ public class GroupListFragment extends PagerFragment {
 
             public ViewHolder(final View itemView) {
                 super(itemView);
-                mViiew = itemView;
+                mView = itemView;
                 mImage = (ImageView) itemView.findViewById(R.id.image);
                 mGroupName = (TextView) itemView.findViewById(R.id.name);
                 mRecyclerView = (RecyclerView) itemView.findViewById(R.id.list);
@@ -175,18 +196,34 @@ public class GroupListFragment extends PagerFragment {
                 mEditButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent intent = new Intent(FB.GROUP_EDIT);
-                        intent.putExtra("key", mKey);
-                        intent.putExtra("group", mGroup);
-                        LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+                        Bundle bundle = new Bundle();
+                        bundle.putSerializable("key", mKey);
+                        bundle.putSerializable("group", mGroup);
+                        FullScreenDialogFragment dialogFragment = new FullScreenDialogFragment.Builder(getActivity())
+                                .setTitle(R.string.edit_group)
+                                .setConfirmButton(R.string.save_group)
+                                .setContent(GroupDialogFragment.class, bundle)
+                                .build();
+                        dialogFragment.show(getActivity().getSupportFragmentManager(), "group-update-dialog");
                     }
                 });
                 mRemoveButton = (ImageButton) itemView.findViewById(R.id.remove);
                 mRemoveButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        // FIXME: should be removeMember()
-                        FB.deleteGroup(mKey, mGroup);
+                        String msg = String.format(itemView.getResources().getString(R.string.confirm_ungroup),
+                                mGroupName.getText().toString());
+                        new AlertDialog.Builder(mView.getContext())
+                                .setTitle(R.string.ungroup)
+                                .setMessage(msg)
+                                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        FB.removeMember(mKey, mGroup);
+                                    }
+                                })
+                                .setNegativeButton(android.R.string.no, null)
+                                .show();
                     }
                 });
             }
@@ -222,7 +259,7 @@ public class GroupListFragment extends PagerFragment {
                     mRemoveButton.setVisibility(View.INVISIBLE);
                 }
                 String size = String.format(Locale.getDefault(), "%d", mMembers.size());
-                Bitmap bitmap = Utils.createImage(48, 48, ContextCompat.getColor(mViiew.getContext(), colorId), size);
+                Bitmap bitmap = Utils.createCircleNumberImage(48, 48, ContextCompat.getColor(mView.getContext(), colorId), size);
                 mImage.setImageBitmap(bitmap);
                 mGroupName.setText(group.getName());
                 mRecyclerView.setAdapter(new UserListAdapter());
