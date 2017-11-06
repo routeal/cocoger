@@ -91,6 +91,14 @@ public class FriendManager {
 
         Friend oldFriend = mFriendList.get(key);
 
+        /* TODO: don't know what to do by knowing the current status
+        if (oldFriend.getStatus() != newFriend.getStatus()) {
+            if (newFriend.getStatus() == Friend.ONLINE) {
+            } else if (newFriend.getStatus() == Friend.OFFLINE) {
+            }
+        }
+        */
+
         if (newFriend.getRangeRequest() != null) {
             int requestRange = newFriend.getRangeRequest().getRange();
             int currentRange = newFriend.getRange();

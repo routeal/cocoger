@@ -60,7 +60,7 @@ import java.util.Map;
 public class PlaceMarkers {
     private final static String TAG = "PlaceMarkers";
 
-    private final static String DEFAULT_MARKER_COLOR = "steelblue";
+    private final static String DEFAULT_MARKER_COLOR = "light_blue_400";
 
     private final static int MARKER_SIZE = 48;
     private PlaceColorButton mPlaceColorButtons[] = {

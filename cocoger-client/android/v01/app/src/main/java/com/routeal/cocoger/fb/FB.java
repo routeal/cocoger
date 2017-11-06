@@ -134,6 +134,14 @@ public class FB {
     }
 
     public static void signOut() {
+        String uid = getUid();
+        Map<String, Object> updates = new HashMap<>();
+        for (Map.Entry<String, Friend> entry : FriendManager.getFriends().entrySet()) {
+            updates.put("friends/" + entry.getKey() + "/" + uid + "/status", Friend.OFFLINE);
+        }
+        DatabaseReference db = getDB();
+        db.updateChildren(updates);
+
         FirebaseAuth.getInstance().signOut();
     }
 
@@ -202,6 +210,7 @@ public class FB {
                 Friend friend = dataSnapshot.getValue(Friend.class);
                 if (!key.equals(FB.getUid())) {
                     FriendManager.add(key, friend);
+                    setMyStatusOnFriend(key, Friend.ONLINE);
                 }
             }
 
@@ -347,6 +356,11 @@ public class FB {
 
             }
         });
+    }
+
+    private static void setMyStatusOnFriend(String key, int status) {
+        DatabaseReference db = getDB().child("friends").child(key).child(getUid());
+        db.child("status").setValue(status);
     }
 
     public static void signIn(Activity activity, String email, String password, final SignInListener listener) {

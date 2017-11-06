@@ -4,11 +4,23 @@ import java.io.Serializable;
 
 public class Friend implements Serializable {
 
+    public final static int OFFLINE = 0;
+    public final static int ONLINE = 1;
+
     private int range;
     private long created;
     private String displayName;
     private RangeRequest rangeRequest;
     private String location;
+    private int status;
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
 
     public int getRange() {
         return range;

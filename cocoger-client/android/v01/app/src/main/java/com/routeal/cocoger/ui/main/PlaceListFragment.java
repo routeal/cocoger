@@ -14,7 +14,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.appolica.interactiveinfowindow.InfoWindow;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
@@ -98,14 +97,20 @@ public class PlaceListFragment extends PagerFragment {
             if (size == 0) {
                 mEmptyTextView.setVisibility(View.VISIBLE);
             } else {
-                mEmptyTextView.setVisibility(View.GONE);
+                mEmptyTextView.setVisibility(View.INVISIBLE);
             }
             return size;
         }
 
         class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
             private final static String TAG = "PlaceListViewHolder";
-
+            private final HashMap<String, Integer> mBackgroundColor = new HashMap<String, Integer>() {{
+                put("light_blue_400", R.color.light_blue_50);
+                put("red_700", R.color.red_50);
+                put("teal_400", R.color.teal_50);
+                put("amber_400", R.color.amber_50);
+                put("pink_400", R.color.pink_50);
+            }};
             private View mView;
             private CardView mCardView;
             private ImageView mPictureImage;
@@ -154,14 +159,6 @@ public class PlaceListFragment extends PagerFragment {
                     LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
                 }
             }
-
-            private final HashMap<String, Integer> mBackgroundColor = new HashMap<String, Integer>() {{
-                put("light_blue_400", R.color.light_blue_50);
-                put("red_700", R.color.red_50);
-                put("teal_400", R.color.teal_50);
-                put("amber_400", R.color.amber_50);
-                put("pink_400", R.color.pink_50);
-            }};
 
             void bind(Place place, String key) {
                 mKey = key;

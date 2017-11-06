@@ -122,7 +122,7 @@ public class FriendListFragment extends PagerFragment {
             if (size == 0) {
                 mEmptyTextView.setVisibility(View.VISIBLE);
             } else {
-                mEmptyTextView.setVisibility(View.GONE);
+                mEmptyTextView.setVisibility(View.INVISIBLE);
             }
             return size;
         }

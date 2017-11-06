@@ -103,13 +103,13 @@ public class GroupListFragment extends PagerFragment {
         int size = GroupManager.getGroups().size();
         if (size == 0) {
             if (FriendManager.isEmpty()) {
-                mCreateGroup.setEnabled(false);
+                mCreateGroup.setVisibility(View.GONE);
             } else {
-                mCreateGroup.setEnabled(true);
+                mCreateGroup.setVisibility(View.VISIBLE);
             }
             mEmptyTextView.setVisibility(View.VISIBLE);
         } else {
-            mCreateGroup.setEnabled(true);
+            mCreateGroup.setVisibility(View.VISIBLE);
             mEmptyTextView.setVisibility(View.GONE);
         }
     }
@@ -136,14 +136,14 @@ public class GroupListFragment extends PagerFragment {
             int size = GroupManager.getGroups().size();
             if (size == 0) {
                 if (FriendManager.isEmpty()) {
-                    mCreateGroup.setEnabled(false);
+                    mCreateGroup.setVisibility(View.INVISIBLE);
                 } else {
-                    mCreateGroup.setEnabled(true);
+                    mCreateGroup.setVisibility(View.VISIBLE);
                 }
                 mEmptyTextView.setVisibility(View.VISIBLE);
             } else {
-                mCreateGroup.setEnabled(true);
-                mEmptyTextView.setVisibility(View.GONE);
+                mCreateGroup.setVisibility(View.VISIBLE);
+                mEmptyTextView.setVisibility(View.INVISIBLE);
             }
             return size;
         }

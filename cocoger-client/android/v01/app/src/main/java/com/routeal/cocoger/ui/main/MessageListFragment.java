@@ -72,10 +72,8 @@ public class MessageListFragment extends PagerFragment {
             mRecyclerView.getAdapter().notifyDataSetChanged();
             if (mMessages.isEmpty()) {
                 mEmptyText.setVisibility(View.VISIBLE);
-                mRecyclerView.setVisibility(View.GONE);
             } else {
-                mEmptyText.setVisibility(View.GONE);
-                mRecyclerView.setVisibility(View.VISIBLE);
+                mEmptyText.setVisibility(View.INVISIBLE);
             }
         }
     }

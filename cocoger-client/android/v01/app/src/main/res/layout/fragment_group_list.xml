@@ -40,9 +40,9 @@
         android:layout_marginTop="32dp"
         android:gravity="center_horizontal"
         android:text="@string/no_group"
-        android:textColor="@color/white"
+        android:textColor="@color/black"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:visibility="gone" />
+        android:visibility="invisible" />
 
 </LinearLayout>

@@ -39,7 +39,7 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
         mActionDirectionButton.setOnClickListener(this);
         mActionGoogleMapButton.setOnClickListener(this);
 
-        mTitleTextView.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.amber_500));
+        mTitleTextView.setBackgroundColor(ContextCompat.getColor(getContext(), R.color.orange_500));
 
         return view;
     }
