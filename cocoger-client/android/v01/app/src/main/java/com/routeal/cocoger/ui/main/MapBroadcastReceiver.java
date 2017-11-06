@@ -105,8 +105,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
         } else if (intent.getAction().equals(FB.FRIEND_LOCATION_ADD)) {
             final String fid = intent.getStringExtra(FB.KEY);
             final Friend friend = FriendManager.getFriend(fid);
-            if (friend == null) return; // shouldn't happen
-            if (friend.getLocation() == null) return;
+            if (friend == null || friend.getLocation() == null) return;
             FB.getLocation(friend.getLocation(), new FB.LocationListener() {
                 @Override
                 public void onFail(String err) {
@@ -114,7 +113,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
                 }
 
                 @Override
-                public void onSuccess(Location location, final Address address) {
+                public void onSuccess(Location location, Address address) {
                     LatLng latLng = Utils.getLatLng(location);
                     mUserMarkers.move(fid, latLng, address, friend.getRange());
                 }
@@ -179,27 +178,15 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             });
         } else if (intent.getAction().equals(FB.FRIEND_LOCATION_REMOVE)) {
             String fid = intent.getStringExtra(FB.KEY);
-            if (fid == null) {
-                return;
-            }
             mUserMarkers.remove(fid);
         } else if (intent.getAction().equals(FB.FRIEND_RANGE_UPDATE)) {
             String fid = intent.getStringExtra(FB.KEY);
-            if (fid == null) {
-                return;
-            }
             Friend friend = FriendManager.getFriend(fid);
-            if (friend == null || friend.getLocation() == null) {
-                return;
-            }
             int range = friend.getRange();
             Log.d(TAG, "FRIEND_RANGE_UPDATE:" + fid);
             mUserMarkers.update(fid, range);
         } else if (intent.getAction().equals(FB.FRIEND_MARKER_SHOW)) {
             String fid = intent.getStringExtra(FB.KEY);
-            if (fid == null) {
-                return;
-            }
             Log.d(TAG, "FRIEND_MARKER_SHOW:" + fid);
             mUserMarkers.zoom(fid);
             mActivity.closeSlidePanel();

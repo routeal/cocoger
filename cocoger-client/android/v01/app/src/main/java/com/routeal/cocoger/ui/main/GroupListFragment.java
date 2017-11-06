@@ -68,7 +68,7 @@ public class GroupListFragment extends PagerFragment {
             public void onClick(View v) {
                 FullScreenDialogFragment dialogFragment = new FullScreenDialogFragment.Builder(getActivity())
                         .setTitle(R.string.new_group)
-                        .setConfirmButton(R.string.create_group)
+                        .setConfirmButton(R.string.create)
                         .setContent(GroupDialogFragment.class, new Bundle())
                         .build();
                 dialogFragment.show(getActivity().getSupportFragmentManager(), "group-create-dialog");
