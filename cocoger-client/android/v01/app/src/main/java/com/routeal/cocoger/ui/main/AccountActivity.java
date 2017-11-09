@@ -336,7 +336,7 @@ public class AccountActivity extends AppCompatActivity {
                 @Override
                 public void onSuccess() {
                     AccountActivity.this.finish();
-                    Intent intent = new Intent(FB.USER_UPDATED);
+                    Intent intent = new Intent(FB.USER_UPDATE);
                     LocalBroadcastManager.getInstance(AccountActivity.this).sendBroadcast(intent);
                 }
 
@@ -361,7 +361,7 @@ public class AccountActivity extends AppCompatActivity {
                     // set the url to the user
                     if (mName == null && mBod == null && mGender == null) {
                         AccountActivity.this.finish();
-                        Intent intent = new Intent(FB.USER_UPDATED);
+                        Intent intent = new Intent(FB.USER_UPDATE);
                         LocalBroadcastManager.getInstance(AccountActivity.this).sendBroadcast(intent);
                         return;
                     }
@@ -369,7 +369,7 @@ public class AccountActivity extends AppCompatActivity {
                         @Override
                         public void onSuccess() {
                             AccountActivity.this.finish();
-                            Intent intent = new Intent(FB.USER_UPDATED);
+                            Intent intent = new Intent(FB.USER_UPDATE);
                             LocalBroadcastManager.getInstance(AccountActivity.this).sendBroadcast(intent);
                         }
 

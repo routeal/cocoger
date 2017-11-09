@@ -158,7 +158,7 @@ public class GroupListFragment extends PagerFragment {
                 put("pink_a_400", R.color.pink_a_400);
             }};
             private View mView;
-            private ImageView mImage;
+            private ImageButton mImage;
             private TextView mGroupName;
             private RecyclerView mRecyclerView;
             private String mKey;
@@ -172,7 +172,7 @@ public class GroupListFragment extends PagerFragment {
             public ViewHolder(final View itemView) {
                 super(itemView);
                 mView = itemView;
-                mImage = (ImageView) itemView.findViewById(R.id.image);
+                mImage = (ImageButton) itemView.findViewById(R.id.numberofmembers);
                 mGroupName = (TextView) itemView.findViewById(R.id.name);
                 mRecyclerView = (RecyclerView) itemView.findViewById(R.id.list);
                 LinearLayoutManager layoutManager
@@ -289,7 +289,7 @@ public class GroupListFragment extends PagerFragment {
 
                     ViewHolder2(View itemView) {
                         super(itemView);
-                        mImage = (ImageView) itemView.findViewById(R.id.image);
+                        mImage = (ImageView) itemView.findViewById(R.id.numberofmembers);
                     }
                 }
             }

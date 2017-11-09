@@ -180,4 +180,8 @@
     <string name="group_members">Group members</string>
     <string name="friends">Friends</string>
     <string name="join">Join</string>
+    <string name="date">Date</string>
+    <string name="display_name_prompt">Input Display Name</string>
+    <string name="birth_year_prompt">Select Birth Year</string>
+    <string name="gender_prompt">Select Gender</string>
 </resources>

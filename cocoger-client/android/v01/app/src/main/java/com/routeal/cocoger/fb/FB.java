@@ -60,26 +60,26 @@ import java.util.TreeMap;
 public class FB {
 
     public final static String USER_AVAILABLE = "user_available";
-    public final static String USER_UPDATED = "user_updated";
+    public final static String USER_UPDATE = "user_updated";
     public final static String USER_CHANGE = "user_change";
-    public final static String USER_LOCATION_UPDATE = "user_location_update";
-    public final static String USER_MARKER_SHOW = "user_marker_show";
-    public final static String FRIEND_LOCATION_ADD = "friend_location_add";
-    public final static String FRIEND_LOCATION_UPDATE = "friend_location_update";
-    public final static String FRIEND_LOCATION_REMOVE = "friend_location_remove";
-    public final static String FRIEND_RANGE_UPDATE = "friend_range_update";
-    public final static String FRIEND_MARKER_SHOW = "friend_marker_show";
-    public final static String DIRECTION_ROUTE_ADD = "direction_route_add";
-    public final static String DIRECTION_ROUTE_REMOVE = "direction_route_remove";
+    public final static String USER_LOCATION = "user_location_update";
+    public final static String USER_SHOW = "user_marker_show";
+    public final static String FRIEND_ADD = "friend_location_add";
+    public final static String FRIEND_LOCATION = "friend_location_update";
+    public final static String FRIEND_REMOVE = "friend_location_remove";
+    public final static String FRIEND_RANGE = "friend_range_update";
+    public final static String FRIEND_SHOW = "friend_marker_show";
+    public final static String DIRECTION_ADD = "direction_route_add";
+    public final static String DIRECTION_REMOVE = "direction_route_remove";
     public final static String PLACE_SAVE = "place_save";
-    public final static String PLACE_EDIT = "place_edit";
+    public final static String PLACE_UPDATE = "place_edit";
     public final static String PLACE_DELETE = "place_delete";
     public final static String PLACE_SHOW = "place_show";
     public final static String PLACE_ADD = "place_add";
     public final static String PLACE_CHANGE = "place_change";
     public final static String PLACE_REMOVE = "place_remove";
-    public final static String GROUP_CREATE = "group_create";
-    public final static String GROUP_EDIT = "group_edit";
+    public final static String GROUP_ADD = "group_add";
+    public final static String GROUP_INVITE = "group_invite";
 
     public final static String KEY = "key";
     public final static String LOCATION = "location";
@@ -87,6 +87,7 @@ public class FB {
     public final static String TITLE = "title";
     public final static String IMAGE = "image";
     public final static String PLACE = "place";
+    public final static String GROUP = "group";
 
     public final static String ACTION_FRIEND_REQUEST_ACCEPTED = "FRIEND_REQUEST_ACCEPTED";
     public final static String ACTION_FRIEND_REQUEST_DECLINED = "FRIEND_REQUEST_DECLINED";

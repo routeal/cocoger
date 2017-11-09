@@ -113,8 +113,8 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
     private void selectDateTime() {
         LayoutInflater layoutInflaterAndroid = LayoutInflater.from(TimelineActivity.this);
         View view = layoutInflaterAndroid.inflate(R.layout.dialog_datetime, null);
-        final EditText dateText = (EditText) view.findViewById(R.id.dialog_date);
-        final EditText timeText = (EditText) view.findViewById(R.id.dialog_time);
+        final EditText dateText = (EditText) view.findViewById(R.id.dialog_datepicker);
+        final EditText timeText = (EditText) view.findViewById(R.id.dialog_timerange);
 
         mDate = null;
         mStartTime = 0;
@@ -145,7 +145,7 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
             @Override
             public void onClick(View v) {
                 LayoutInflater layoutInflaterAndroid = LayoutInflater.from(TimelineActivity.this);
-                View childView = layoutInflaterAndroid.inflate(R.layout.dialog_date, null);
+                View childView = layoutInflaterAndroid.inflate(R.layout.dialog_datepicker, null);
                 final DatePicker datePicker = (DatePicker) childView.findViewById(R.id.datePicker);
                 new AlertDialog.Builder(TimelineActivity.this)
                         .setView(childView)
@@ -175,7 +175,7 @@ public class TimelineActivity extends AppCompatActivity implements OnMapReadyCal
             @Override
             public void onClick(View v) {
                 LayoutInflater layoutInflaterAndroid = LayoutInflater.from(TimelineActivity.this);
-                View childView = layoutInflaterAndroid.inflate(R.layout.dialog_time, null);
+                View childView = layoutInflaterAndroid.inflate(R.layout.dialog_timerange, null);
                 final RangeSeekBar seekBar = (RangeSeekBar) childView.findViewById(R.id.seekbar);
                 new AlertDialog.Builder(TimelineActivity.this)
                         .setView(childView)

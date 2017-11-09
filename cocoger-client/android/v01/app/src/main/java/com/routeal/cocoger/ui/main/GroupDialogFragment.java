@@ -258,7 +258,7 @@ public class GroupDialogFragment extends Fragment implements FullScreenDialogCon
             ViewHolder(View itemView) {
                 super(itemView);
                 displayName = (TextView) itemView.findViewById(R.id.display_name);
-                imageView = (ImageView) itemView.findViewById(R.id.image);
+                imageView = (ImageView) itemView.findViewById(R.id.numberofmembers);
                 checkbox = (CheckBox) itemView.findViewById(R.id.checkbox);
             }
         }
@@ -308,7 +308,7 @@ public class GroupDialogFragment extends Fragment implements FullScreenDialogCon
             ViewHolder(View itemView) {
                 super(itemView);
                 displayName = (TextView) itemView.findViewById(R.id.display_name);
-                imageView = (ImageView) itemView.findViewById(R.id.image);
+                imageView = (ImageView) itemView.findViewById(R.id.numberofmembers);
                 checkbox = (CheckBox) itemView.findViewById(R.id.checkbox);
             }
         }

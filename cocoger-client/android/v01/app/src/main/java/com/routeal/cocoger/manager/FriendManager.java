@@ -77,7 +77,7 @@ public class FriendManager {
 
         mFriendList.put(key, friend);
 
-        Intent intent = new Intent(FB.FRIEND_LOCATION_ADD);
+        Intent intent = new Intent(FB.FRIEND_ADD);
         intent.putExtra(FB.KEY, key);
         LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
     }
@@ -112,7 +112,7 @@ public class FriendManager {
         // the range has been update, notify the map acitivity
         // to change the marker location
         if (newFriend.getRange() != oldFriend.getRange()) {
-            Intent intent = new Intent(FB.FRIEND_RANGE_UPDATE);
+            Intent intent = new Intent(FB.FRIEND_RANGE);
             intent.putExtra(FB.KEY, key);
             LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
         }
@@ -120,7 +120,7 @@ public class FriendManager {
         if (oldFriend.getLocation() == null ||
                 (newFriend.getLocation() != null && oldFriend.getLocation() != null &&
                         !newFriend.getLocation().equals(oldFriend.getLocation()))) {
-            Intent intent = new Intent(FB.FRIEND_LOCATION_UPDATE);
+            Intent intent = new Intent(FB.FRIEND_LOCATION);
             intent.putExtra(FB.KEY, key);
             intent.putExtra(FB.LOCATION, oldFriend.getLocation());
             LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
@@ -139,7 +139,7 @@ public class FriendManager {
             mUpdateListener.onRemoved(key);
         }
 
-        Intent intent = new Intent(FB.FRIEND_LOCATION_REMOVE);
+        Intent intent = new Intent(FB.FRIEND_REMOVE);
         intent.putExtra(FB.KEY, key);
         LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
     }

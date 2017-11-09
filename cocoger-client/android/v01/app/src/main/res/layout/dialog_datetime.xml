@@ -12,11 +12,11 @@
         android:layout_marginTop="8dp">
 
         <EditText
-            android:id="@+id/dialog_date"
+            android:id="@+id/dialog_datepicker"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:focusable="false"
-            android:hint="Date" />
+            android:hint="@string/date" />
 
     </android.support.design.widget.TextInputLayout>
 
@@ -27,11 +27,11 @@
         android:layout_marginTop="8dp">
 
         <EditText
-            android:id="@+id/dialog_time"
+            android:id="@+id/dialog_timerange"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:focusable="false"
-            android:hint="Time Range" />
+            android:hint="@string/time_range" />
 
     </android.support.design.widget.TextInputLayout>
 

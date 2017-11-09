@@ -407,7 +407,7 @@ public class LocationUpdate {
 
     private void broadcastLocation(Context context, Location location, Address address) {
         if (location == null || address == null) return;
-        Intent intent = new Intent(FB.USER_LOCATION_UPDATE);
+        Intent intent = new Intent(FB.USER_LOCATION);
         intent.putExtra(FB.LOCATION, Utils.getLatLng(location));
         intent.putExtra(FB.ADDRESS, address);
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);

@@ -144,7 +144,7 @@ public class PlaceListFragment extends PagerFragment {
             @Override
             public void onClick(View v) {
                 if (v == mEditButton) {
-                    Intent intent = new Intent(FB.PLACE_EDIT);
+                    Intent intent = new Intent(FB.PLACE_UPDATE);
                     intent.putExtra(FB.KEY, mKey);
                     intent.putExtra(FB.PLACE, mPlace);
                     LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);

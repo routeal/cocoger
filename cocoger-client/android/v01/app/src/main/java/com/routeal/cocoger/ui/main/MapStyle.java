@@ -71,7 +71,7 @@ class MapStyle {
 
     private void dialog() {
         LayoutInflater layoutInflaterAndroid = LayoutInflater.from(mActivity);
-        View view = layoutInflaterAndroid.inflate(R.layout.dialog_layer, null);
+        View view = layoutInflaterAndroid.inflate(R.layout.dialog_maplayer, null);
 
         mMapStyles[0].view = (SwitchCompat) view.findViewById(R.id.switch_retro);
         mMapStyles[1].view = (SwitchCompat) view.findViewById(R.id.switch_night);

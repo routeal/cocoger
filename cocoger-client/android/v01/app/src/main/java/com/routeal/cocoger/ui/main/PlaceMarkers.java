@@ -123,7 +123,7 @@ public class PlaceMarkers {
         }
     }
 
-    int getBackgroundColor(String colorName) {
+    private int getBackgroundColor(String colorName) {
         for (PlaceColorButton pcb: mPlaceColorButtons) {
             if (pcb.colorName.equals(colorName))
                 return pcb.bgColorId;
@@ -131,7 +131,7 @@ public class PlaceMarkers {
         return R.color.teal_400;
     }
 
-    int getTextColor(String colorName) {
+    private int getTextColor(String colorName) {
         for (PlaceColorButton pcb: mPlaceColorButtons) {
             if (pcb.colorName.equals(colorName))
                 return pcb.textColorId;
@@ -285,7 +285,7 @@ public class PlaceMarkers {
         builder.setNeutralButton(R.string.delete, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                removePlace(key, place, fragment);
+                deletePlace(key, place, fragment);
             }
         });
 
@@ -478,7 +478,11 @@ public class PlaceMarkers {
         }
     }
 
-    void addMarker(String key, Place place, Bitmap bitmap, boolean hasAnimation) {
+    void add(String key, Place place) {
+        addMarker(key, place, null, false);
+    }
+
+    private void addMarker(String key, Place place, Bitmap bitmap, boolean hasAnimation) {
         final Marker marker = mMap.addMarker(new MarkerOptions()
                 .position(new LatLng(place.getLatitude(), place.getLongitude())));
 
@@ -562,18 +566,18 @@ public class PlaceMarkers {
         }
     }
 
-    void removePlace(String key, Place place) {
+    void deletePlace(String key, Place place) {
         Marker marker = getMarker(key);
         if (marker != null) {
             InfoWindow infoWindow = mPlaceMarkers.get(marker);
             PlaceInfoFragment fragment = (PlaceInfoFragment) infoWindow.getWindowFragment();
             if (fragment != null) {
-                removePlace(key, place, fragment);
+                deletePlace(key, place, fragment);
             }
         }
     }
 
-    private void removePlace(final String key, final Place place, final PlaceInfoFragment fragment) {
+    private void deletePlace(final String key, final Place place, final PlaceInfoFragment fragment) {
         if (place != null) {
             String title = place.getTitle();
             String defaultTitle = mActivity.getResources().getString(R.string.place_remove);
@@ -583,20 +587,18 @@ public class PlaceMarkers {
                     .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            removePlaceImpl(key, place, fragment);
+                            deletePlaceImpl(key, place, fragment);
                         }
                     })
                     .setNegativeButton(android.R.string.no, null)
                     .show();
         } else {
-            removePlaceImpl(key, null, fragment);
-
+            deletePlaceImpl(key, null, fragment);
         }
     }
 
-    private void removePlaceImpl(String key, Place place, PlaceInfoFragment fragment) {
+    private void deletePlaceImpl(String key, Place place, PlaceInfoFragment fragment) {
         removeFragment(fragment);
-
         if (place != null) {
             FB.deletePlace(key, place, null);
         }

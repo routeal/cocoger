@@ -4,7 +4,6 @@ import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
-import android.location.Location;
 import android.net.Uri;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -20,7 +19,6 @@ import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.util.LoadImage;
-import com.routeal.cocoger.util.Utils;
 
 import java.util.Locale;
 
@@ -133,7 +131,7 @@ public class InfoFragment extends Fragment {
     }
 
     void showDirection(LatLng locationTo) {
-        Intent intent = new Intent(FB.DIRECTION_ROUTE_ADD);
+        Intent intent = new Intent(FB.DIRECTION_ADD);
         intent.putExtra(FB.LOCATION, locationTo);
         LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
     }

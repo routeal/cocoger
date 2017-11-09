@@ -135,7 +135,7 @@ public class FriendListFragment extends PagerFragment {
             private int mCurrentRange;
             private String mFriendId;
 
-            public ViewHolder(final View itemView) {
+            ViewHolder(final View itemView) {
                 super(itemView);
 
                 mView = itemView;
@@ -146,7 +146,7 @@ public class FriendListFragment extends PagerFragment {
                 mPicture.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent intent = new Intent(FB.FRIEND_MARKER_SHOW);
+                        Intent intent = new Intent(FB.FRIEND_SHOW);
                         intent.putExtra(FB.KEY, mFriendId);
                         LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
                     }
@@ -155,7 +155,7 @@ public class FriendListFragment extends PagerFragment {
                 mName.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent intent = new Intent(FB.FRIEND_MARKER_SHOW);
+                        Intent intent = new Intent(FB.FRIEND_SHOW);
                         intent.putExtra(FB.KEY, mFriendId);
                         LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
                     }

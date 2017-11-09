@@ -23,6 +23,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.PointOfInterest;
+import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
@@ -37,6 +38,7 @@ abstract class MapActivity extends MapBaseActivity
         GoogleMap.OnMarkerDragListener,
         GoogleMap.OnPoiClickListener,
         GoogleMap.OnPolylineClickListener,
+        GoogleMap.OnPolygonClickListener,
         OnMapReadyCallback,
         View.OnClickListener,
         InfoWindowManager.WindowShowListener {
@@ -61,6 +63,7 @@ abstract class MapActivity extends MapBaseActivity
     private MapBroadcastReceiver mReceiver;
     private UserMarkers mUserMarkers;
     private PlaceMarkers mPlaceMarkers;
+    private GroupMarkers mGroupMarkers;
     private PoiMarker mPoiMarker;
 
     @Override
@@ -105,7 +108,7 @@ abstract class MapActivity extends MapBaseActivity
 
     @Override
     public void onClick(View v) {
-        Intent intent = new Intent(FB.USER_MARKER_SHOW);
+        Intent intent = new Intent(FB.USER_SHOW);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
@@ -136,12 +139,16 @@ abstract class MapActivity extends MapBaseActivity
         mGeoDataClient = Places.getGeoDataClient(this, null);
 
         mDirection = new MapDirection(mMap, mInfoWindowManager);
+        mGroupMarkers = new GroupMarkers(this, mMap, mInfoWindowManager);
         mUserMarkers = new UserMarkers(mMap, mInfoWindowManager);
         mPlaceMarkers = new PlaceMarkers(this, mMap, mInfoWindowManager);
         mPoiMarker = new PoiMarker(mMap, mGeoDataClient, mInfoWindowManager);
         mMapStyle = new MapStyle(mMap, this);
         mReceiver = new MapBroadcastReceiver(this, mMap, mInfoWindowManager, mUserMarkers,
-                mPlaceMarkers, mDirection);
+                mPlaceMarkers, mGroupMarkers, mDirection);
+
+        mGroupMarkers.setUserMarkers(mUserMarkers);
+        mUserMarkers.setGroupMarkers(mGroupMarkers);
 
         mMap.setPadding(8, 0, 0, 148);
         mMap.getUiSettings().setCompassEnabled(true);
@@ -154,6 +161,7 @@ abstract class MapActivity extends MapBaseActivity
         mMap.setOnMapLongClickListener(this);
         mMap.setOnPoiClickListener(this);
         mMap.setOnPolylineClickListener(this);
+        mMap.setOnPolygonClickListener(this);
 
         setupApp();
 
@@ -167,13 +175,13 @@ abstract class MapActivity extends MapBaseActivity
 
         Address address = Utils.getAddress(mInitialLocation);
         if (address != null) {
-            mUserMarkers.init(mInitialLocation, address);
+            mUserMarkers.setup(mInitialLocation, address);
         }
 
         // if the FB user is not available at this time, the markers are not initialized.  Send
         // the initial location so that the markers can be initialized when the FB user becomes
         // available.
-        Intent intent = new Intent(FB.USER_LOCATION_UPDATE);
+        Intent intent = new Intent(FB.USER_LOCATION);
         intent.putExtra(FB.LOCATION, mInitialLocation);
         intent.putExtra(FB.ADDRESS, address);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
@@ -249,6 +257,11 @@ abstract class MapActivity extends MapBaseActivity
     @Override
     public void onPolylineClick(Polyline polyline) {
         mDirection.onPolylineClick(polyline);
+    }
+
+    @Override
+    public void onPolygonClick(Polygon polygon) {
+        mGroupMarkers.onPolygonClick(polygon);
     }
 
     abstract void closeSlidePanel();
