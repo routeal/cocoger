@@ -106,7 +106,7 @@ class UserMarkers {
     }
 
     void move(String uid, String name, LatLng location, Address address, int range) {
-        Log.d(TAG, "move:" + Arrays.toString(Thread.currentThread().getStackTrace()));
+        Log.d(TAG, "move: " + uid + " for " + name + " " + Arrays.toString(Thread.currentThread().getStackTrace()));
         LatLng rangeLocation = null;
 
         // remove the marker from the current joined one
@@ -152,7 +152,7 @@ class UserMarkers {
 
         for (ComboMarker marker : mMarkers) {
             if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
-                Log.d(TAG, "add: combined " + uid);
+                Log.d(TAG, "add: combined for " + name);
                 marker.addUser(uid, name, location, address, range, rangeLocation);
                 mGroupMarkers.notifyChange(marker);
                 return;
@@ -171,16 +171,21 @@ class UserMarkers {
         Map<String, ComboMarker.MarkerInfo> aparted = new HashMap<>();
 
         for (ComboMarker marker : mMarkers) {
-            Log.d(TAG, "zoomIn: apart for " + marker.getOwner().id + " size=" + marker.size());
+            Log.d(TAG, "zoomIn: apart for " + marker.getOwner().name + " size=" + marker.size());
             marker.apart(aparted, mMarkerDistance);
         }
+
+        Log.d(TAG, "zoomIn: aparted = " + aparted.size());
 
         if (!aparted.isEmpty()) {
             for (Map.Entry<String, ComboMarker.MarkerInfo> entry : aparted.entrySet()) {
                 ComboMarker.MarkerInfo info = entry.getValue();
+                Log.d(TAG, "zoomIn: aparted add: " + info.name);
                 move(info.id, info.name, info.location, info.address, info.range);
             }
         }
+
+        Log.d(TAG, "zoomIn End");
     }
 
     private boolean combineMarkers(ComboMarker n, ComboMarker p) {
@@ -324,6 +329,7 @@ class UserMarkers {
                 FB.getLocation(friend.getLocation(), new FB.LocationListener() {
                     @Override
                     public void onSuccess(Location location, Address address) {
+                        Log.d(TAG, "setup: " + key + " for " + friend.getDisplayName());
                         LatLng latLng = Utils.getLatLng(location);
                         move(key, friend.getDisplayName(), latLng, address, friend.getRange());
                     }

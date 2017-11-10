@@ -37,7 +37,7 @@ class ComboMarker {
 
     ComboMarker(GoogleMap map, InfoWindowManager infoWindowManager,
                 String id, String name, LatLng location, Address address, int range) {
-        Log.d(TAG, "ComboMarker: new " + id);
+        Log.d(TAG, "ComboMarker: new " + id + " for " + name);
         mMap = map;
         mInfoWindowManager = infoWindowManager;
 
@@ -151,24 +151,21 @@ class ComboMarker {
 
     // apart the users in the marker when the distance is longer
     void apart(Map<String, MarkerInfo> aparted, double minDistance) {
-        aparted.clear();
-
         //Log.d(TAG, "apart: " + mOwner.key);
         // no need to apart
         if (mInfoMap.size() == 1) {
-            //Log.d(TAG, "NOP apart: no need to apart - only one");
+            Log.d(TAG, "apart: no need to apart - only one");
             return;
         }
 
-        for (Iterator<Map.Entry<String, MarkerInfo>> it = mInfoMap.entrySet().iterator();
-             it.hasNext(); ) {
+        for (Iterator<Map.Entry<String, MarkerInfo>> it = mInfoMap.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<String, MarkerInfo> entry = it.next();
             MarkerInfo info = entry.getValue();
             // owner should not leave
             if (mOwner == info) continue;
             // remove from this marker and put into the list argument
             if (Utils.distanceTo(mOwner.rangeLocation, info.rangeLocation) > minDistance) {
-                //Log.d(TAG, "apart: removed and added " + info.key + " size=" + mInfoList.size());
+                Log.d(TAG, "apart: removed and added " + info.name + " size=" + mInfoMap.size());
                 it.remove();
                 //Log.d(TAG, "apart: removed and added after size=" + mInfoList.size());
                 aparted.put(info.id, info);
@@ -188,7 +185,7 @@ class ComboMarker {
         info.range = range;
         info.rangeLocation = rangeLocation;
         mInfoMap.put(info.id, info);
-        Log.d(TAG, "addUsr: " + info.id);
+        Log.d(TAG, "addUsr: " + info.id + " for " + name);
         retrieveMarkerImage();
     }
 
