@@ -84,8 +84,10 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             Address address = intent.getParcelableExtra(FB.ADDRESS);
             LatLng location = intent.getParcelableExtra(FB.LOCATION);
             if (mLocation == null) {
-                // location update from the service comes faster than MapBaseActivity
                 Log.d(TAG, "Receive Last_location_update: setup");
+                // try to setup the markers and save the initial location, but this may fail due to
+                // the unavailability of the user.
+                mActivity.saveInitialLocation();
                 mUserMarkers.setup(location, address);
             } else {
                 mUserMarkers.move(FB.getUid(), FB.getUser().getDisplayName(),
@@ -95,12 +97,13 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             mAddress = address;
         } else if (intent.getAction().equals(FB.USER_AVAILABLE)) {
             Log.d(TAG, "Receive User_available: setup");
-            // when firebase user becomes available before detecting the current location,
-            // it won't set up the markers.
+            // in order to set up the markers and initial location upload, there must be the user
+            // available.  So, if the initial location is set, this has to work.
             if (mLocation != null) {
                 if (mAddress == null) {
                     mAddress = Utils.getAddress(mLocation);
                 }
+                mActivity.saveInitialLocation();
                 mUserMarkers.setup(mLocation, mAddress);
             }
         } else if (intent.getAction().equals(FB.USER_UPDATE)) {
@@ -121,6 +124,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
 
                 @Override
                 public void onSuccess(Location location, Address address) {
+                    if (location == null || address == null) return;
                     LatLng latLng = Utils.getLatLng(location);
                     mUserMarkers.move(fid, friend.getDisplayName(), latLng, address, friend.getRange());
                 }

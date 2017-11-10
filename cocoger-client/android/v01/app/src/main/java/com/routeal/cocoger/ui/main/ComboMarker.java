@@ -123,7 +123,7 @@ class ComboMarker {
             mImageTask.cancel();
             mImageTask = null;
         }
-        //Log.d(TAG, "remove: from the map " + mOwner.key);
+        Log.d(TAG, "remove: from the map " + mOwner.id + " : " + mOwner.name);
         mMarker.remove();
         mMarker = null;
         if (mInfoWindow != null) {
@@ -141,8 +141,11 @@ class ComboMarker {
     // copy all users in the argument
     void copy(ComboMarker m) {
         Log.d(TAG, "copy: all children from " + m.mOwner.id);
-        for (MarkerInfo value : m.mInfoMap.values()) {
-            addUser(value);
+        for (MarkerInfo info : m.mInfoMap.values()) {
+            if (!contains(info.id)) {
+                mInfoMap.put(info.id, info);
+                retrieveMarkerImage();
+            }
         }
     }
 
@@ -175,23 +178,18 @@ class ComboMarker {
         retrieveMarkerImage();
     }
 
-    private void addUser(MarkerInfo info) {
-        boolean hasInfo = contains(info.id);
-        if (hasInfo) return;
+    void addUser(String id, String name, LatLng location, Address address, int range, LatLng rangeLocation) {
+        if (contains(id)) return;
+        MarkerInfo info = new MarkerInfo();
+        info.id = id;
+        info.name = name;
+        info.location = location;
+        info.address = address;
+        info.range = range;
+        info.rangeLocation = rangeLocation;
         mInfoMap.put(info.id, info);
         Log.d(TAG, "addUsr: " + info.id);
         retrieveMarkerImage();
-    }
-
-    void addUser(String id, String name, LatLng location, Address address, int range) {
-        MarkerInfo markerInfo = new MarkerInfo();
-        markerInfo.id = id;
-        markerInfo.name = name;
-        markerInfo.location = location;
-        markerInfo.address = address;
-        markerInfo.range = range;
-        markerInfo.rangeLocation = Utils.getRangedLocation(location, address, range);
-        addUser(markerInfo);
     }
 
     private void retrieveMarkerImage() {

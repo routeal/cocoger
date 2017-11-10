@@ -90,7 +90,7 @@ public class LocationUpdate {
         FB.monitorAuthentication();
     }
 
-    static LocationUpdate getInstance() {
+    public static LocationUpdate getInstance() {
         /*
         if (thisInstance == null) {
             thisInstance = new LocationUpdate();
@@ -255,7 +255,7 @@ public class LocationUpdate {
         if (mLocation == null) {
             mLocation = location;
             // save the first one anyway
-            saveLocation(context, location);
+            saveLocation(location);
             return;
         }
 
@@ -263,7 +263,7 @@ public class LocationUpdate {
 
         if (mIsServiceForeground == ServiceMode.FOREGROUND) {
             if (distance >= BACKGROUND_MIN_MOVEMENT) {
-                saveLocation(context, location);
+                saveLocation(location);
             } else {
                 Log.d(TAG, "NOT ENOUGH MOVE TO SAVE FOR BACKGROUND MOVE");
                 if (FriendManager.getFriends().isEmpty()) {
@@ -279,7 +279,7 @@ public class LocationUpdate {
             if (interval > mCurrentLocationUpdateInterval) {
                 if (mLocationQueue.size() > PAST_LOCATION_QUEUE_MAX ||
                         mLocation.distanceTo(pl.location) > FOREGROUND_MIN_MOVEMENT) {
-                    saveLocation(context, pl.location);
+                    saveLocation(pl.location);
                     mLocationQueue.clear();
                 }
             }
@@ -355,7 +355,7 @@ public class LocationUpdate {
         mLocationQueue.clear();
     }
 
-    private void saveLocation(Context context, final Location location) {
+    private void saveLocation(Location location) {
         Address address = Utils.getFromLocation(location);
         if (address == null) {
             Log.d(TAG, "address not available from Geocoder");
@@ -367,6 +367,10 @@ public class LocationUpdate {
             location.setSpeed(Utils.getSpeed(location, mLocation));
         }
 
+        saveLocation(location, address);
+    }
+
+    public void saveLocation(Location location, Address address) {
         mLocation = location;
         mAddress = address;
 

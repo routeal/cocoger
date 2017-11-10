@@ -259,7 +259,7 @@ public class UserDialogFragment extends Fragment
                 // FIXME:
                 // disable myself, don't know how to remove myself from the searched list
                 if (FB.isCurrentUser(key)) {
-                    disableInput(false, R.color.light_gray);
+                    disableInput(false, R.color.grey_400);
                     setLocation("");
                     return;
                 }

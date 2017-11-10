@@ -1,6 +1,6 @@
 package com.routeal.cocoger.ui.main;
 
-import android.location.Location;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
@@ -8,7 +8,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.appolica.interactiveinfowindow.InfoWindowManager;
 import com.google.android.gms.maps.model.LatLng;
 import com.routeal.cocoger.R;
 
@@ -21,6 +20,7 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
     private LatLng mLocation;
     private String mAddress;
     private PoiMarker mPoiMarker;
+    private Bitmap mBitmap;
 
     @Nullable
     @Override
@@ -52,6 +52,9 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
         }
         if (mTitle != null && !mTitle.isEmpty()) {
             super.setTitle(mTitle);
+        }
+        if (mBitmap != null) {
+            super.setStreetViewPicture(mBitmap);
         }
     }
 
@@ -96,5 +99,9 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
 
     void setLocation(LatLng location) {
         mLocation = location;
+    }
+
+    void setImage(Bitmap bitmap) {
+        mBitmap = bitmap;
     }
 }

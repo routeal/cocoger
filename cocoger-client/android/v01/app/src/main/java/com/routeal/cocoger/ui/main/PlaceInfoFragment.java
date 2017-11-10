@@ -102,15 +102,19 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.info_street_view:
+                if (mLoadImage != null) mLoadImage.cancel();
                 openStreetView(new LatLng(mPlace.getLatitude(), mPlace.getLongitude()), mPlace.getTitle());
                 break;
             case R.id.action_edit_place:
+                if (mLoadImage != null) mLoadImage.cancel();
                 mPlaceMarkers.updatePlace(mKey, mPlace);
                 break;
             case R.id.action_direction:
+                if (mLoadImage != null) mLoadImage.cancel();
                 showDirection(new LatLng(mPlace.getLatitude(), mPlace.getLongitude()));
                 break;
             case R.id.action_googlemap:
+                if (mLoadImage != null) mLoadImage.cancel();
                 showGoogleMap(new LatLng(mPlace.getLatitude(), mPlace.getLongitude()), mPlace.getTitle());
                 break;
         }

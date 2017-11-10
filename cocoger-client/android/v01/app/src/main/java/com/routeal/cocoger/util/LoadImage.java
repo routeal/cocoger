@@ -118,8 +118,18 @@ public class LoadImage {
         load(url);
     }
 
+    private DownloadTask task;
+
     private void load(String url) {
-        new DownloadTask().execute(url);
+        task = new DownloadTask();
+        task.execute(url);
+    }
+
+    public void cancel() {
+        if (task != null) {
+            task.cancel(true);
+            task = null;
+        }
     }
 
     public interface LoadImageListener {
@@ -166,8 +176,20 @@ public class LoadImage {
         }
 
         @Override
+        protected void onCancelled() {
+            if (listener != null) listener.onSuccess(null);
+        }
+
+        @Override
+        protected void onCancelled(byte[] bytes) {
+            if (listener != null) listener.onSuccess(null);
+        }
+
+        @Override
         protected void onPostExecute(byte[] bytes) {
-            onDone(bytes);
+            if (!isCancelled()) {
+                onDone(bytes);
+            }
         }
     }
 }

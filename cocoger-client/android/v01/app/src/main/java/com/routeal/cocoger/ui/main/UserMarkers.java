@@ -14,6 +14,7 @@ import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.manager.FriendManager;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.User;
+import com.routeal.cocoger.service.LocationUpdate;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Utils;
 
@@ -152,7 +153,7 @@ class UserMarkers {
         for (ComboMarker marker : mMarkers) {
             if (Utils.distanceTo(rangeLocation, marker.getLocation()) < mMarkerDistance) {
                 Log.d(TAG, "add: combined " + uid);
-                marker.addUser(uid, name, location, address, range);
+                marker.addUser(uid, name, location, address, range, rangeLocation);
                 mGroupMarkers.notifyChange(marker);
                 return;
             }

@@ -27,6 +27,7 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.Polyline;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
+import com.routeal.cocoger.service.LocationUpdate;
 import com.routeal.cocoger.util.Utils;
 import com.theartofdev.edmodo.cropper.CropImage;
 
@@ -59,7 +60,8 @@ abstract class MapActivity extends MapBaseActivity
 
     private View mapView;
     private CameraPosition mCameraPosition;
-    private LatLng mInitialLocation;
+    private Location mInitialLocation;
+    private Address mInitialAddress;
     private MapBroadcastReceiver mReceiver;
     private UserMarkers mUserMarkers;
     private PlaceMarkers mPlaceMarkers;
@@ -114,7 +116,10 @@ abstract class MapActivity extends MapBaseActivity
 
     @Override
     void startApp(Location location) {
-        mInitialLocation = Utils.getLatLng(location);
+        mInitialLocation = location;
+        if (location != null) {
+            mInitialAddress = Utils.getAddress(location);
+        }
 
         // show the mSpinner
         mSpinner = Utils.getProgressBar(this);
@@ -167,27 +172,32 @@ abstract class MapActivity extends MapBaseActivity
 
         Log.d(TAG, "onMapReady: location detected from the base object");
 
-        if (mCameraPosition != null) {
-            mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
-        } else if (mInitialLocation != null) {
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mInitialLocation, MapActivity.DEFAULT_ZOOM));
-        }
+        LatLng latLng = null;
 
-        Address address = Utils.getAddress(mInitialLocation);
-        if (address != null) {
-            mUserMarkers.setup(mInitialLocation, address);
-        }
+        if (mInitialLocation != null) {
+            latLng = Utils.getLatLng(mInitialLocation);
 
-        // if the FB user is not available at this time, the markers are not initialized.  Send
-        // the initial location so that the markers can be initialized when the FB user becomes
-        // available.
-        Intent intent = new Intent(FB.USER_LOCATION);
-        intent.putExtra(FB.LOCATION, mInitialLocation);
-        intent.putExtra(FB.ADDRESS, address);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+            if (mCameraPosition != null) {
+                mMap.moveCamera(CameraUpdateFactory.newCameraPosition(mCameraPosition));
+            } else if (mInitialLocation != null) {
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, MapActivity.DEFAULT_ZOOM));
+            }
+
+            mUserMarkers.setup(latLng, mInitialAddress);
+
+            // if the FB user is not available at this time, the markers are not initialized.  Send
+            // the initial location so that the markers can be initialized when the FB user becomes
+            // available.
+            Intent intent = new Intent(FB.USER_LOCATION);
+            intent.putExtra(FB.LOCATION, latLng);
+            intent.putExtra(FB.ADDRESS, mInitialAddress);
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
+            // this may not save the initial location since the user may not become available by this time
+            saveInitialLocation();
+        }
 
         mCameraPosition = null;
-        mInitialLocation = null;
 
         if (mSpinner != null) {
             mSpinner.hide();
@@ -262,6 +272,14 @@ abstract class MapActivity extends MapBaseActivity
     @Override
     public void onPolygonClick(Polygon polygon) {
         mGroupMarkers.onPolygonClick(polygon);
+    }
+
+    void saveInitialLocation() {
+        if (mInitialLocation != null && mInitialAddress != null && FB.getUser() != null) {
+            LocationUpdate.getInstance().saveLocation(mInitialLocation, mInitialAddress);
+            mInitialLocation = null;
+            mInitialAddress = null;
+        }
     }
 
     abstract void closeSlidePanel();

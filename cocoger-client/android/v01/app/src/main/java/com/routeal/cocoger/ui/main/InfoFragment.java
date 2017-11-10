@@ -37,6 +37,7 @@ public class InfoFragment extends Fragment {
     protected ImageButton mActionDirectionButton;
     protected ImageButton mActionMessageButton;
     protected ImageButton mActionGoogleMapButton;
+    protected LoadImage mLoadImage;
 
     void setupView(Object parent) {
         if (parent instanceof View) {
@@ -89,13 +90,8 @@ public class InfoFragment extends Fragment {
         if (location != null) {
             String url = String.format(getResources().getString(R.string.street_view_image_url),
                     location.latitude, location.longitude);
-            new LoadImage(mStreetImageView).loadUrl(url);
-        }
-    }
-
-    void setStreetViewPicture(String url) {
-        if (url != null) {
-            new LoadImage(mStreetImageView).loadUrl(url);
+            mLoadImage = new LoadImage(mStreetImageView);
+            mLoadImage.loadUrl(url);
         }
     }
 
