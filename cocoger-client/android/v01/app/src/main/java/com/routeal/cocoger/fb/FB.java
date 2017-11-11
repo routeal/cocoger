@@ -93,10 +93,13 @@ public class FB {
     public final static String ACTION_FRIEND_REQUEST_DECLINED = "FRIEND_REQUEST_DECLINED";
     public final static String ACTION_RANGE_REQUEST_ACCEPTED = "RANGE_REQUEST_ACCEPTED";
     public final static String ACTION_RANGE_REQUEST_DECLINED = "RANGE_REQUEST_DECLINED";
+    public final static String ACTION_GROUP_JOIN_ACCEPTED = "GROUP_JOIN_ACCEPTED";
+    public final static String ACTION_GROUP_JOIN_DECLINED = "GROUP_JOIN_DECLINED";
 
     public final static String NOTIFI_RANGE_REQUESTER = "range_requester";
     public final static String NOTIFI_RANGE = "range";
     public final static String NOTIFI_FRIEND_INVITE = "friend_invite";
+    public final static String NOTIFI_GROUP_INVITE = "group_invite";
 
     public final static String USER_CATEGORY = "users";
     public final static String PLACE_CATEGORY = "places";
@@ -1264,7 +1267,7 @@ public class FB {
             deletePlaceImage(getUid(), key, new DeleteDataListener() {
                 @Override
                 public void onDone(String err) {
-                    if (err == null) {
+                    if (err != null) {
                         if (listener != null) listener.onFail(err);
                         return;
                     }
@@ -1396,17 +1399,15 @@ public class FB {
     }
 
     public static void removeMember(String key, Group group) {
-        // remove the group if this is the last member
+        Map<String, Object> updates = new HashMap<>();
         if (group.getMembers().size() == 1) {
-            DatabaseReference db = getDB().child("groups").child(key);
-            db.removeValue();
+            updates.put("groups/" + key, null);
         } else {
-            Map<String, Object> updates = new HashMap<>();
             updates.put("groups/" + key + "/members/" + getUid(), null);
-            updates.put("user_groups/" + getUid() + "/" + key, null);
-            DatabaseReference db = getDB();
-            db.updateChildren(updates);
         }
+        updates.put("user_groups/" + getUid() + "/" + key, null);
+        DatabaseReference db = getDB();
+        db.updateChildren(updates);
     }
 
     public static void deleteGroup(String key, Group group) {

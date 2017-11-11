@@ -89,12 +89,16 @@ public class PanelMapActivity extends SearchMapActivity {
         friendListFragment.setViewPager(viewPager);
         mViewPagerAdapter.addFragment(friendListFragment, null);
 
-        PagerFragment groupListFragment = new GroupListFragment();
+        GroupListFragment groupListFragment = new GroupListFragment();
+        groupListFragment.setGroupMarkers(mGroupMarkers);
         groupListFragment.setSlidingUpPanelLayout(mLayout);
         groupListFragment.setViewPager(viewPager);
         mViewPagerAdapter.addFragment(groupListFragment, null);
 
         final PlaceListFragment placeListFragment = new PlaceListFragment();
+        placeListFragment.setPlaceMarkers(mPlaceMarkers);
+        placeListFragment.setGoogleMap(mMap);
+        placeListFragment.setActivity(this);
         placeListFragment.setSlidingUpPanelLayout(mLayout);
         placeListFragment.setViewPager(viewPager);
         mViewPagerAdapter.addFragment(placeListFragment, null);
@@ -157,6 +161,21 @@ public class PanelMapActivity extends SearchMapActivity {
             // set the current page to the friend list fragment
             ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
             viewPager.setCurrentItem(LIST_FRIENDS);
+
+            // show the friend list fragment
+            SlidingUpPanelLayout mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+            mLayout.setPanelState(PanelState.ANCHORED);
+        } else if (action.equals(FB.ACTION_GROUP_JOIN_ACCEPTED)) {
+            String key = extras.getString(FB.NOTIFI_GROUP_INVITE);
+            FB.joinGroup(key);
+
+            // remove the notification
+            int nid = extras.getInt(Notifi.ID);
+            Notifi.remove(nid);
+
+            // set the current page to the friend list fragment
+            ViewPager viewPager = (ViewPager) findViewById(R.id.viewpager);
+            viewPager.setCurrentItem(LIST_GROUPS);
 
             // show the friend list fragment
             SlidingUpPanelLayout mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);

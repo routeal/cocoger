@@ -42,6 +42,7 @@ public class GroupListFragment extends PagerFragment {
     private RecyclerView mRecyclerView;
     private Button mCreateGroup;
     private TextView mEmptyTextView;
+    private GroupMarkers mGroupMarkers;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -112,6 +113,10 @@ public class GroupListFragment extends PagerFragment {
             mCreateGroup.setVisibility(View.VISIBLE);
             mEmptyTextView.setVisibility(View.GONE);
         }
+    }
+
+    void setGroupMarkers(GroupMarkers groupMarkers) {
+        mGroupMarkers = groupMarkers;
     }
 
     class GroupListAdapter extends RecyclerView.Adapter<GroupListAdapter.ViewHolder> {

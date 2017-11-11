@@ -2,10 +2,9 @@ package com.routeal.cocoger.ui.main;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
-import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 
-import com.firebase.ui.database.FirebaseRecyclerAdapter;
+import com.google.android.gms.maps.GoogleMap;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 /**
@@ -14,6 +13,9 @@ import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 public class PagerFragment extends Fragment {
     private static final String TAG = "PagerFragment";
+    protected PlaceMarkers mPlaceMarkers;
+    protected GoogleMap mMap;
+    protected PanelMapActivity mActivity;
     private SlidingUpPanelLayout mSlidingUpPanelLayout;
     private ViewPager mViewPager;
 
@@ -40,9 +42,18 @@ public class PagerFragment extends Fragment {
         }
     }
 
-    void onViewPageSelected() {}
+    void onViewPageSelected() {
+    }
 
-    public interface ChangeListener {
-        void onEmpty(boolean empty);
+    void setPlaceMarkers(PlaceMarkers placeMarkers) {
+        mPlaceMarkers = placeMarkers;
+    }
+
+    void setGoogleMap(GoogleMap map) {
+        mMap = map;
+    }
+
+    void setActivity(PanelMapActivity activity) {
+        mActivity = activity;
     }
 }

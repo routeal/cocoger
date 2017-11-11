@@ -42,45 +42,56 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
     private LatLng mLocation;
     private Address mAddress;
 
-    MapBroadcastReceiver(MapActivity activity, GoogleMap map, InfoWindowManager infoWindowManager,
-                         UserMarkers userMarkers, PlaceMarkers placeMarkers, GroupMarkers groupMarkers,
-                         MapDirection mapDirection) {
+    MapBroadcastReceiver(MapActivity activity) {
         mActivity = activity;
+    }
+
+    void setup(GoogleMap map, InfoWindowManager infoWindowManager,
+               UserMarkers userMarkers, PlaceMarkers placeMarkers, GroupMarkers groupMarkers,
+               MapDirection mapDirection) {
         mInfoWindowManager = infoWindowManager;
         mMap = map;
         mUserMarkers = userMarkers;
         mPlaceMarkers = placeMarkers;
         mGroupMarkers = groupMarkers;
         mDirection = mapDirection;
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(FB.USER_AVAILABLE);
-        filter.addAction(FB.USER_UPDATE);
-        filter.addAction(FB.USER_CHANGE);
-        filter.addAction(FB.USER_SHOW);
-        filter.addAction(FB.USER_LOCATION);
-        filter.addAction(FB.FRIEND_ADD);
-        filter.addAction(FB.FRIEND_LOCATION);
-        filter.addAction(FB.FRIEND_REMOVE);
-        filter.addAction(FB.FRIEND_RANGE);
-        filter.addAction(FB.FRIEND_SHOW);
-        filter.addAction(FB.DIRECTION_ADD);
-        filter.addAction(FB.DIRECTION_REMOVE);
-        filter.addAction(FB.PLACE_SAVE);
-        filter.addAction(FB.PLACE_UPDATE);
-        filter.addAction(FB.PLACE_DELETE);
-        filter.addAction(FB.PLACE_SHOW);
-        filter.addAction(FB.PLACE_ADD);
-        filter.addAction(FB.PLACE_CHANGE);
-        filter.addAction(FB.PLACE_REMOVE);
-        filter.addAction(FB.GROUP_ADD);
-        filter.addAction(FB.GROUP_INVITE);
-        LocalBroadcastManager.getInstance(activity).registerReceiver(this, filter);
+    }
+
+    void register() {
+        IntentFilter mFilter = new IntentFilter();
+        mFilter.addAction(FB.USER_AVAILABLE);
+        mFilter.addAction(FB.USER_UPDATE);
+        mFilter.addAction(FB.USER_CHANGE);
+        mFilter.addAction(FB.USER_SHOW);
+        mFilter.addAction(FB.USER_LOCATION);
+        mFilter.addAction(FB.FRIEND_ADD);
+        mFilter.addAction(FB.FRIEND_LOCATION);
+        mFilter.addAction(FB.FRIEND_REMOVE);
+        mFilter.addAction(FB.FRIEND_RANGE);
+        mFilter.addAction(FB.FRIEND_SHOW);
+        mFilter.addAction(FB.DIRECTION_ADD);
+        mFilter.addAction(FB.DIRECTION_REMOVE);
+        mFilter.addAction(FB.PLACE_SAVE);
+        mFilter.addAction(FB.PLACE_UPDATE);
+        mFilter.addAction(FB.PLACE_DELETE);
+        mFilter.addAction(FB.PLACE_SHOW);
+        mFilter.addAction(FB.PLACE_ADD);
+        mFilter.addAction(FB.PLACE_CHANGE);
+        mFilter.addAction(FB.PLACE_REMOVE);
+        mFilter.addAction(FB.GROUP_ADD);
+        mFilter.addAction(FB.GROUP_INVITE);
+        LocalBroadcastManager.getInstance(mActivity).registerReceiver(this, mFilter);
+    }
+
+    void unregister() {
+        LocalBroadcastManager.getInstance(mActivity).unregisterReceiver(this);
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "Action=" + intent.getAction());
         if (intent.getAction().equals(FB.USER_LOCATION)) {
+            if (mUserMarkers == null) return;
             Address address = intent.getParcelableExtra(FB.ADDRESS);
             LatLng location = intent.getParcelableExtra(FB.LOCATION);
             if (mLocation == null) {
@@ -96,6 +107,7 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             mLocation = location;
             mAddress = address;
         } else if (intent.getAction().equals(FB.USER_AVAILABLE)) {
+            if (mUserMarkers == null) return;
             Log.d(TAG, "Receive User_available: setup");
             // in order to set up the markers and initial location upload, there must be the user
             // available.  So, if the initial location is set, this has to work.
@@ -107,10 +119,12 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
                 mUserMarkers.setup(mLocation, mAddress);
             }
         } else if (intent.getAction().equals(FB.USER_UPDATE)) {
+            if (mUserMarkers == null) return;
             mUserMarkers.update(FB.getUid());
         } else if (intent.getAction().equals(FB.USER_CHANGE)) {
             mActivity.updateMessage();
         } else if (intent.getAction().equals(FB.USER_SHOW)) {
+            if (mMap == null) return;
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(mLocation, MapActivity.DEFAULT_ZOOM));
         } else if (intent.getAction().equals(FB.FRIEND_ADD)) {
             final String fid = intent.getStringExtra(FB.KEY);
@@ -222,18 +236,6 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
             String title = intent.getStringExtra(FB.TITLE);
             Bitmap bitmap = intent.getParcelableExtra(FB.IMAGE);
             mPlaceMarkers.addPlace(title, location, address, bitmap);
-        } else if (intent.getAction().equals(FB.PLACE_UPDATE)) {
-            String key = intent.getStringExtra(FB.KEY);
-            Place place = (Place) intent.getSerializableExtra(FB.PLACE);
-            mPlaceMarkers.updatePlace(key, place);
-        } else if (intent.getAction().equals(FB.PLACE_DELETE)) {
-            String key = intent.getStringExtra(FB.KEY);
-            Place place = (Place) intent.getSerializableExtra(FB.PLACE);
-            mPlaceMarkers.deletePlace(key, place);
-        } else if (intent.getAction().equals(FB.PLACE_SHOW)) {
-            String key = intent.getStringExtra(FB.KEY);
-            mPlaceMarkers.showPlace(mMap, key);
-            mActivity.closeSlidePanel();
         } else if (intent.getAction().equals(FB.PLACE_ADD)) {
             String key = intent.getStringExtra(FB.KEY);
             Place place = (Place) intent.getSerializableExtra(FB.PLACE);

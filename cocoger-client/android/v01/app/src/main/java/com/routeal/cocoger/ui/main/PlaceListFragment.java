@@ -1,9 +1,7 @@
 package com.routeal.cocoger.ui.main;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,7 +12,6 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.R;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.manager.FriendManager;
@@ -143,19 +140,12 @@ public class PlaceListFragment extends PagerFragment {
             @Override
             public void onClick(View v) {
                 if (v == mEditButton) {
-                    Intent intent = new Intent(FB.PLACE_UPDATE);
-                    intent.putExtra(FB.KEY, mKey);
-                    intent.putExtra(FB.PLACE, mPlace);
-                    LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+                    mPlaceMarkers.updatePlace(mKey, mPlace);
                 } else if (v == mRemoveButton) {
-                    Intent intent = new Intent(FB.PLACE_DELETE);
-                    intent.putExtra(FB.KEY, mKey);
-                    intent.putExtra(FB.PLACE, mPlace);
-                    LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+                    mPlaceMarkers.deletePlace(mKey, mPlace);
                 } else if (v == mTitleText || v == mAddressText || v == mCreatorText || v == mPictureImage) {
-                    Intent intent = new Intent(FB.PLACE_SHOW);
-                    intent.putExtra(FB.KEY, mKey);
-                    LocalBroadcastManager.getInstance(MainApplication.getContext()).sendBroadcast(intent);
+                    mPlaceMarkers.showPlace(mMap, mKey);
+                    mActivity.closeSlidePanel();
                 }
             }
 

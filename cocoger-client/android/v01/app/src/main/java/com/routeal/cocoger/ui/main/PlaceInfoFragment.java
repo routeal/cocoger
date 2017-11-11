@@ -1,7 +1,6 @@
 package com.routeal.cocoger.ui.main;
 
 import android.graphics.Bitmap;
-import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
@@ -24,6 +23,13 @@ import java.util.HashMap;
  */
 
 public class PlaceInfoFragment extends InfoFragment implements View.OnClickListener {
+    private final HashMap<String, Integer> mBackgroundColor = new HashMap<String, Integer>() {{
+        put("light_blue_400", R.color.light_blue_400);
+        put("red_700", R.color.red_700);
+        put("teal_400", R.color.teal_400);
+        put("amber_400", R.color.amber_400);
+        put("pink_400", R.color.pink_400);
+    }};
     private Bitmap mCopiedBitmap;
     private Place mPlace;
     private String mKey;
@@ -50,14 +56,6 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
 
         return view;
     }
-
-    private final HashMap<String, Integer> mBackgroundColor = new HashMap<String, Integer>() {{
-        put("light_blue_400", R.color.light_blue_400);
-        put("red_700", R.color.red_700);
-        put("teal_400", R.color.teal_400);
-        put("amber_400", R.color.amber_400);
-        put("pink_400", R.color.pink_400);
-    }};
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {

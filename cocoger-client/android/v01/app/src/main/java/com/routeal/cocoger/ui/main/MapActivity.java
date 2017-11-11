@@ -57,20 +57,21 @@ abstract class MapActivity extends MapBaseActivity
     protected Utils.ProgressBarView mSpinner;
     protected MapDirection mDirection;
     protected MapStyle mMapStyle;
+    protected UserMarkers mUserMarkers;
+    protected PlaceMarkers mPlaceMarkers;
+    protected GroupMarkers mGroupMarkers;
+    protected PoiMarker mPoiMarker;
 
     private View mapView;
     private CameraPosition mCameraPosition;
     private Location mInitialLocation;
     private Address mInitialAddress;
     private MapBroadcastReceiver mReceiver;
-    private UserMarkers mUserMarkers;
-    private PlaceMarkers mPlaceMarkers;
-    private GroupMarkers mGroupMarkers;
-    private PoiMarker mPoiMarker;
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mReceiver.unregister();
     }
 
     @Override
@@ -87,6 +88,9 @@ abstract class MapActivity extends MapBaseActivity
         FloatingActionButton myLocationButton = (FloatingActionButton) findViewById(R.id.my_location);
         myLocationButton.setImageDrawable(myLocationDrawable);
         myLocationButton.setOnClickListener(this);
+
+        mReceiver = new MapBroadcastReceiver(this);
+        mReceiver.register();
     }
 
     @Override
@@ -149,7 +153,7 @@ abstract class MapActivity extends MapBaseActivity
         mPlaceMarkers = new PlaceMarkers(this, mMap, mInfoWindowManager);
         mPoiMarker = new PoiMarker(mMap, mGeoDataClient, mInfoWindowManager);
         mMapStyle = new MapStyle(mMap, this);
-        mReceiver = new MapBroadcastReceiver(this, mMap, mInfoWindowManager, mUserMarkers,
+        mReceiver.setup(mMap, mInfoWindowManager, mUserMarkers,
                 mPlaceMarkers, mGroupMarkers, mDirection);
 
         mGroupMarkers.setUserMarkers(mUserMarkers);
@@ -233,6 +237,7 @@ abstract class MapActivity extends MapBaseActivity
     @Override
     public void onWindowHidden(@NonNull InfoWindow infoWindow) {
         mPoiMarker.onWindowHidden(infoWindow);
+        mGroupMarkers.onWindowHidden(infoWindow);
     }
 
     @Override

@@ -142,6 +142,16 @@ public class LocationUpdateService extends Service {
                         }
                         break;
                     }
+                    case FB.ACTION_GROUP_JOIN_DECLINED: {
+                        // delete the invite and invitee from the database
+                        String key = intent.getStringExtra(FB.NOTIFI_FRIEND_INVITE);
+                        FB.removeGroup(key);
+                        int nid = intent.getIntExtra(Notifi.ID, 0);
+                        if (nid > 0) {
+                            Notifi.remove(nid);
+                        }
+                        break;
+                    }
                 }
             }
         }

@@ -14,7 +14,6 @@ import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.manager.FriendManager;
 import com.routeal.cocoger.model.Friend;
 import com.routeal.cocoger.model.User;
-import com.routeal.cocoger.service.LocationUpdate;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Utils;
 
@@ -200,6 +199,7 @@ class UserMarkers {
             Log.d(TAG, "combineMarkers: removed and added to the other");
             n.copy(p);
             p.remove();
+            mGroupMarkers.notifyChange(n);
             return true;
         } else {
             Log.d(TAG, "combineMarkers: two are too far to combine");

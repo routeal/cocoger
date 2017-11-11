@@ -136,6 +136,7 @@ class ComboMarker {
             }
             mInfoWindow = null;
         }
+        mInfoMap.clear();
     }
 
     // copy all users in the argument

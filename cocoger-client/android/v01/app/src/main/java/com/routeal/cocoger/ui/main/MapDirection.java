@@ -180,7 +180,7 @@ class MapDirection {
                 InfoWindow.MarkerSpecification mMarkerOffset = new InfoWindow.MarkerSpecification(0, 0);
                 mDirectionRoute.window = new InfoWindow(mDirectionRoute.marker, mMarkerOffset, dif);
                 mInfoWindowManager.setHideOnFling(true);
-                mInfoWindowManager.toggle(mDirectionRoute.window, true);
+                mInfoWindowManager.show(mDirectionRoute.window, true);
 
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
                 builder.include(locationTo);
