@@ -39,7 +39,6 @@ public class PlaceListFragment extends PagerFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
         View view = inflater.inflate(R.layout.fragment_place_list, container, false);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(view.getContext());

@@ -67,6 +67,7 @@ public class MessageListFragment extends PagerFragment {
     }
 
     void updateMessages() {
+        if (getActivity() == null) return;
         mMessages = createMessageList();
         if (mRecyclerView != null) {
             mRecyclerView.getAdapter().notifyDataSetChanged();

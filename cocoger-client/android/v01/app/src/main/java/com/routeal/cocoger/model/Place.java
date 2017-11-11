@@ -16,6 +16,7 @@ public class Place implements Serializable {
     private String markerColor;
     private String seenBy;
     private long created;
+    private long updated;
 
     public String getUid() {
         return uid;
@@ -87,5 +88,13 @@ public class Place implements Serializable {
 
     public void setCreated(long created) {
         this.created = created;
+    }
+
+    public long getUpdated() {
+        return updated;
+    }
+
+    public void setUpdated(long updated) {
+        this.updated = updated;
     }
 }

@@ -206,6 +206,8 @@ public class DBUtil {
     }
 
     public static void saveImage(String url, byte[] bytes) {
+        deleteImage(url);
+
         ContentValues values = new ContentValues();
         values.put(DB.Images.NAME, url);
         values.put(DB.Images.DATA, bytes);

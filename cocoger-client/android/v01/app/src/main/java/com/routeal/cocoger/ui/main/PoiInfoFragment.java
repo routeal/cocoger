@@ -78,7 +78,7 @@ public class PoiInfoFragment extends InfoFragment implements View.OnClickListene
                 showGoogleMap(mLocation, mTitle);
                 break;
         }
-        mPoiMarker.removePoiInfoWindow();
+        mPoiMarker.hideInfoWindow();
     }
 
     void setTitle(String title) {

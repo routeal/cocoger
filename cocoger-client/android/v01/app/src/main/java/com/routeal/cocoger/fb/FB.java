@@ -1243,7 +1243,7 @@ public class FB {
         }
     }
 
-    public static void updatePlace(final String key, Place place, byte bytes[], final CompleteListener listener) {
+    static void updatePlaceImpl(final String key, Place place, final CompleteListener listener) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("places/" + key, place);
         for (Map.Entry<String, Friend> entry : FriendManager.getFriends().entrySet()) {
@@ -1256,16 +1256,34 @@ public class FB {
         DatabaseReference db = getDB();
         db.updateChildren(updates);
 
-        if (bytes == null) {
-            if (listener != null) listener.onSuccess();
-            return;
-        }
-
-        deletePlaceImage(getUid(), key, null);
-
-        uploadPlaceImage(bytes, key, null);
-
         if (listener != null) listener.onSuccess();
+    }
+
+    public static void updatePlace(final String key, final Place place, final byte bytes[], final CompleteListener listener) {
+        if (bytes != null) {
+            deletePlaceImage(getUid(), key, new DeleteDataListener() {
+                @Override
+                public void onDone(String err) {
+                    if (err == null) {
+                        if (listener != null) listener.onFail(err);
+                        return;
+                    }
+                    uploadPlaceImage(bytes, key, new UploadDataListener() {
+                        @Override
+                        public void onSuccess(String url) {
+                            updatePlaceImpl(key, place, listener);
+                        }
+
+                        @Override
+                        public void onFail(String err) {
+                            if (listener != null) listener.onFail(err);
+                        }
+                    });
+                }
+            });
+        } else {
+            updatePlaceImpl(key, place, listener);
+        }
     }
 
     public static void deletePlace(final String key, Place place, final CompleteListener listener) {

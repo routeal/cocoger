@@ -49,6 +49,7 @@
             android:contentDescription="@string/street_view"
             android:cropToPadding="true"
             android:padding="2dp"
+            android:src="@drawable/ic_place_white_24dp"
             android:scaleType="centerCrop" />
 
     </android.support.v7.widget.CardView>

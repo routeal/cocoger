@@ -278,7 +278,7 @@ public class PlaceMarkers {
             }
         }).loadPlace(place.getUid(), key);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(mActivity);
         builder.setView(view);
         builder.setCancelable(true);
         builder.setNegativeButton(android.R.string.cancel, null);
@@ -306,17 +306,27 @@ public class PlaceMarkers {
                     bitmap = ((BitmapDrawable) cropImageView.getDrawable()).getBitmap();
                     cropImageView = null;
                 }
-                Bitmap updateBitmap = bitmap;
+                final Bitmap updateBitmap = bitmap;
 
                 place.setTitle(placeTitle.getText().toString());
                 place.setDescription(placeDesc.getText().toString());
                 place.setAddress(placeAddress.getText().toString());
                 place.setSeenBy(placeFriend.isChecked() ? "friends" : "none");
                 place.setMarkerColor(markerColor2);
+                place.setUpdated(System.currentTimeMillis());
 
-                byte bytes[] = Utils.getBitmapBytes(mActivity, updateBitmap);
+                byte bytes[] = null;
+                if (updateBitmap != null) {
+                    bytes = Utils.getBitmapBytes(mActivity, updateBitmap);
+                }
 
                 if (isEdit) {
+                    // replace the cache image
+                    if (bytes != null) {
+                        String name = place.getUid() + "_" + key + "_" + FB.PLACE_IMAGE;
+                        DBUtil.saveImage(name, bytes);
+                    }
+
                     FB.updatePlace(key, place, bytes, new FB.CompleteListener() {
                         @Override
                         public void onSuccess() {
@@ -326,7 +336,7 @@ public class PlaceMarkers {
                             // marker color
                             final Marker marker = getMarker(fragment);
                             if (marker != null) {
-                                getMarkerIcon(key, place, null, new MarkerListener() {
+                                getMarkerIcon(key, place, updateBitmap, new MarkerListener() {
                                     @Override
                                     public void onComplete(float anchorU, float anchorV, BitmapDescriptor bitmapDescriptor) {
                                         marker.setIcon(bitmapDescriptor);
@@ -338,7 +348,7 @@ public class PlaceMarkers {
 
                         @Override
                         public void onFail(String err) {
-
+                            Log.d(TAG, "updatePlace: failed:" + err);
                         }
                     });
                 } else {
@@ -507,7 +517,7 @@ public class PlaceMarkers {
         placeInfoFragment.setStreetViewPicture(bitmap);
         placeInfoFragment.setPlaceMarkers(this);
 
-        InfoWindow.MarkerSpecification mMarkerOffset = new InfoWindow.MarkerSpecification(0, 128);
+        InfoWindow.MarkerSpecification mMarkerOffset = new InfoWindow.MarkerSpecification(0, 86);
         InfoWindow window = new InfoWindow(marker, mMarkerOffset, placeInfoFragment);
 
         mPlaceMarkers.put(marker, window);
@@ -517,8 +527,9 @@ public class PlaceMarkers {
         Marker marker = getMarker(fragment);
         if (marker != null) {
             InfoWindow window = mPlaceMarkers.get(marker);
-            if (window.getWindowState() == InfoWindow.State.SHOWN) {
-                mInfoWindowManager.hide(window, true);
+            if (window.getWindowState() == InfoWindow.State.SHOWN ||
+                    window.getWindowState() == InfoWindow.State.SHOWING) {
+                mInfoWindowManager.hide(window, false);
             }
             FragmentManager fragmentManager = fragment.getFragmentManager();
             if (fragmentManager != null) {
@@ -570,6 +581,7 @@ public class PlaceMarkers {
         Marker marker = getMarker(key);
         if (marker != null) {
             InfoWindow infoWindow = mPlaceMarkers.get(marker);
+//            mInfoWindowManager.hide(infoWindow, false);
             PlaceInfoFragment fragment = (PlaceInfoFragment) infoWindow.getWindowFragment();
             if (fragment != null) {
                 deletePlace(key, place, fragment);
@@ -578,7 +590,7 @@ public class PlaceMarkers {
     }
 
     private void deletePlace(final String key, final Place place, final PlaceInfoFragment fragment) {
-        if (place != null) {
+        if (place != null && !mActivity.isFinishing()) {
             String title = place.getTitle();
             String defaultTitle = mActivity.getResources().getString(R.string.place_remove);
             new AlertDialog.Builder(mActivity)
@@ -597,10 +609,22 @@ public class PlaceMarkers {
         }
     }
 
-    private void deletePlaceImpl(String key, Place place, PlaceInfoFragment fragment) {
+    // key might be null before the place is added to the server
+    private void deletePlaceImpl(final String key, final Place place, PlaceInfoFragment fragment) {
         removeFragment(fragment);
-        if (place != null) {
-            FB.deletePlace(key, place, null);
+        if (key != null && place != null) {
+            FB.deletePlace(key, place, new FB.CompleteListener() {
+                @Override
+                public void onSuccess() {
+                    String name = place.getUid() + "_" + key + "_" + FB.PLACE_IMAGE;
+                    DBUtil.deleteImage(name);
+                }
+
+                @Override
+                public void onFail(String err) {
+
+                }
+            });
         }
     }
 
@@ -614,8 +638,7 @@ public class PlaceMarkers {
     }
 
     private PlaceInfoFragment getPlaceInfoFragment(Place place) {
-        for (Iterator<Map.Entry<Marker, InfoWindow>> it = mPlaceMarkers.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<Marker, InfoWindow> entry = it.next();
+        for (Map.Entry<Marker, InfoWindow> entry : mPlaceMarkers.entrySet()) {
             InfoWindow window = entry.getValue();
             if (window.getWindowFragment() instanceof PlaceInfoFragment) {
                 PlaceInfoFragment fragment = (PlaceInfoFragment) window.getWindowFragment();
@@ -629,8 +652,7 @@ public class PlaceMarkers {
     }
 
     private Marker getMarker(Fragment fragment) {
-        for (Iterator<Map.Entry<Marker, InfoWindow>> it = mPlaceMarkers.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<Marker, InfoWindow> entry = it.next();
+        for (Map.Entry<Marker, InfoWindow> entry : mPlaceMarkers.entrySet()) {
             InfoWindow window = entry.getValue();
             if (window.getWindowFragment() == fragment) {
                 return entry.getKey();
@@ -640,8 +662,7 @@ public class PlaceMarkers {
     }
 
     private Marker getMarker(String key) {
-        for (Iterator<Map.Entry<Marker, InfoWindow>> it = mPlaceMarkers.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<Marker, InfoWindow> entry = it.next();
+        for (Map.Entry<Marker, InfoWindow> entry : mPlaceMarkers.entrySet()) {
             InfoWindow window = entry.getValue();
             if (window.getWindowFragment() instanceof PlaceInfoFragment) {
                 PlaceInfoFragment fragment = (PlaceInfoFragment) window.getWindowFragment();
@@ -654,8 +675,7 @@ public class PlaceMarkers {
     }
 
     boolean onMarkerClick(Marker marker) {
-        for (Iterator<Map.Entry<Marker, InfoWindow>> it = mPlaceMarkers.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<Marker, InfoWindow> entry = it.next();
+        for (Map.Entry<Marker, InfoWindow> entry : mPlaceMarkers.entrySet()) {
             Marker m = entry.getKey();
             if (marker.getId().equals(m.getId())) {
                 InfoWindow window = entry.getValue();
@@ -682,6 +702,8 @@ public class PlaceMarkers {
         Address address = Utils.getAddress(position);
         String addressLine = Utils.getAddressLine(address);
         place.setAddress(addressLine);
+
+        place.setUpdated(System.currentTimeMillis());
 
         String key = fragment.getKey();
         if (key == null || key.isEmpty()) {
@@ -718,8 +740,7 @@ public class PlaceMarkers {
     }
 
     void hideInfoWindow(PlaceInfoFragment fragment) {
-        for (Iterator<Map.Entry<Marker, InfoWindow>> it = mPlaceMarkers.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<Marker, InfoWindow> entry = it.next();
+        for (Map.Entry<Marker, InfoWindow> entry : mPlaceMarkers.entrySet()) {
             InfoWindow infoWindow = entry.getValue();
             if (infoWindow.getWindowFragment() == fragment) {
                 mInfoWindowManager.hide(infoWindow, true);

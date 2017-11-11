@@ -6,6 +6,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import com.routeal.cocoger.MainApplication;
 import com.routeal.cocoger.fb.FB;
 import com.routeal.cocoger.model.Place;
+import com.routeal.cocoger.provider.DBUtil;
 
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -47,6 +48,8 @@ public class PlaceManager {
 
     public static void change(String key, Place place) {
         mPlaceList.put(key, place);
+        String name = place.getUid() + "_" + key + "_" + FB.PLACE_IMAGE;
+        DBUtil.deleteImage(name);
         if (mUpdateListener != null) {
             mUpdateListener.onChanged(key, place);
         }

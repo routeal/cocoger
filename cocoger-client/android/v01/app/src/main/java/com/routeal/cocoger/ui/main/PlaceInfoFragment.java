@@ -100,6 +100,7 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
+        mPlaceMarkers.hideInfoWindow(this);
         switch (v.getId()) {
             case R.id.info_street_view:
                 if (mLoadImage != null) mLoadImage.cancel();
@@ -118,7 +119,6 @@ public class PlaceInfoFragment extends InfoFragment implements View.OnClickListe
                 showGoogleMap(new LatLng(mPlace.getLatitude(), mPlace.getLongitude()), mPlace.getTitle());
                 break;
         }
-        mPlaceMarkers.hideInfoWindow(this);
     }
 
     Place getPlace() {

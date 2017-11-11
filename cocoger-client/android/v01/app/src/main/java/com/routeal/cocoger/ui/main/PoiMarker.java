@@ -46,9 +46,7 @@ class PoiMarker {
     }
 
     void onPoiClick(PointOfInterest pointOfInterest) {
-        if (mWindow != null) {
-            mInfoWindowManager.hide(mWindow, false);
-        }
+        hideInfoWindow();
 
         mGeoDataClient.getPlaceById(pointOfInterest.placeId).addOnCompleteListener(new OnCompleteListener<PlaceBufferResponse>() {
             @Override
@@ -66,6 +64,7 @@ class PoiMarker {
     // One time exclusive info window for clicking on Poi in the map, which creates
     // a transparent marker and adds an info window on it.
     private void addPoiInfoWindow(Place place) {
+        // adds a transparent marker to pop up the info window
         LatLng pos = place.getLatLng();
         Bitmap bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
@@ -130,7 +129,7 @@ class PoiMarker {
         mInfoWindowManager.toggle(mWindow, true);
     }
 
-    void removePoiInfoWindow() {
+    private void removeInfoWindow() {
         if (mWindow != null) {
             Fragment fragment = mWindow.getWindowFragment();
             mWindow = null;
@@ -147,11 +146,17 @@ class PoiMarker {
         }
     }
 
+    void hideInfoWindow() {
+        if (mWindow != null) {
+            mInfoWindowManager.hide(mWindow, false);
+        }
+    }
+
     void onWindowHidden(InfoWindow infoWindow) {
         Fragment fragment = infoWindow.getWindowFragment();
         if (fragment != null) {
             if (fragment instanceof PoiInfoFragment) {
-                removePoiInfoWindow();
+                removeInfoWindow();
             }
         }
     }
