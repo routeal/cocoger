@@ -119,6 +119,7 @@ public class GroupListFragment extends PagerFragment {
     }
 
     boolean hasPolygon(String key) {
+        if (mRecyclerView == null) return false;
         GroupListAdapter adapter = (GroupListAdapter) mRecyclerView.getAdapter();
         if (adapter == null) return false;
 

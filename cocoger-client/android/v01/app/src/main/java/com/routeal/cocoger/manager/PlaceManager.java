@@ -24,6 +24,11 @@ public class PlaceManager {
 
     private static UpdateListener<Place> mUpdateListener;
 
+    public static void cleanup() {
+        mPlaceList.clear();
+        mUpdateListener = null;
+    }
+
     public static Place getPlace(String key) {
         if (key != null && !key.isEmpty()) {
             return mPlaceList.get(key);

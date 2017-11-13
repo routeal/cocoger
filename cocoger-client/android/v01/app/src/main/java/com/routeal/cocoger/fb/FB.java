@@ -45,6 +45,7 @@ import com.routeal.cocoger.model.RangeRequest;
 import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.service.LocationUpdateService;
 import com.routeal.cocoger.ui.main.PanelMapActivity;
+import com.routeal.cocoger.ui.main.PlaceMarkers;
 import com.routeal.cocoger.util.LocationRange;
 import com.routeal.cocoger.util.Notifi;
 import com.routeal.cocoger.util.Utils;
@@ -149,6 +150,10 @@ public class FB {
         stopMonitorUserDatabases();
 
         FirebaseAuth.getInstance().signOut();
+
+        FriendManager.cleanup();
+        GroupManager.cleanup();
+        PlaceManager.cleanup();
     }
 
     private static DatabaseReference getDB() {

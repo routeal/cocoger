@@ -260,7 +260,7 @@ public class UserDialogFragment extends Fragment
                 // disable myself, don't know how to remove myself from the searched list
                 if (FB.isCurrentUser(key)) {
                     disableInput(false, R.color.grey_400);
-                    setLocation("");
+                    setLocation(mView.getResources().getString(R.string.me));
                     return;
                 }
 

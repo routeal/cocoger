@@ -30,6 +30,12 @@ public class FriendManager {
     private static Map<String, LocationAddress> mLocationList = new HashMap<>();
     private static UpdateListener<Friend> mUpdateListener;
 
+    public static void cleanup() {
+        mFriendList.clear();
+        mLocationList.clear();
+        mUpdateListener = null;
+    }
+
     public static SortedMap<String, Friend> getFriends() {
         return mFriendList;
     }

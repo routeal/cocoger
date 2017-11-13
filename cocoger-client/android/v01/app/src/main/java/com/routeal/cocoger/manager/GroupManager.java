@@ -33,6 +33,11 @@ public class GroupManager {
     private static SortedMap<String, Group> mGroupList = new TreeMap<>();
     private static UpdateListener<Group> mUpdateListener;
 
+    public static void cleanup() {
+        mGroupList.clear();
+        mUpdateListener = null;
+    }
+
     public static Group getGroup(String key) {
         if (key != null && !key.isEmpty()) {
             return mGroupList.get(key);
