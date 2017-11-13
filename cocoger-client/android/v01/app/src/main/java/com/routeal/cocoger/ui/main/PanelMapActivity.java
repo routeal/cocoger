@@ -94,6 +94,7 @@ public class PanelMapActivity extends SearchMapActivity {
         groupListFragment.setSlidingUpPanelLayout(mLayout);
         groupListFragment.setViewPager(viewPager);
         mViewPagerAdapter.addFragment(groupListFragment, null);
+        mGroupMarkers.setGroupListFragment(groupListFragment);
 
         final PlaceListFragment placeListFragment = new PlaceListFragment();
         placeListFragment.setPlaceMarkers(mPlaceMarkers);

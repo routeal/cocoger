@@ -146,6 +146,8 @@ public class FB {
         DatabaseReference db = getDB();
         db.updateChildren(updates);
 
+        stopMonitorUserDatabases();
+
         FirebaseAuth.getInstance().signOut();
     }
 
@@ -172,12 +174,17 @@ public class FB {
                     monitorUserDatabases();
                 } else {
                     Log.d(TAG, "Firebase User invalidated");
-                    FB.setUser(null);
                     LocationUpdateService.stop();
+                    FB.setUser(null);
                 }
             }
         });
     }
+
+    private static ValueEventListener mUserValueEventListener;
+    private static ChildEventListener mFriendChildEventListener;
+    private static ChildEventListener mGroupChildEventListener;
+    private static ChildEventListener mPlaceChildEventListener;
 
     // Even without UI, monitor the user(myself), my friends, my groups, my places.
     // Monitoring should be set only once in the beginning.
@@ -185,7 +192,7 @@ public class FB {
         String key = getUid();
 
         DatabaseReference db = getDB().child("users").child(key);
-        db.addValueEventListener(new ValueEventListener() {
+        mUserValueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 String key = dataSnapshot.getKey();
@@ -204,10 +211,11 @@ public class FB {
             public void onCancelled(DatabaseError databaseError) {
 
             }
-        });
+        };
+        db.addValueEventListener(mUserValueEventListener);
 
         db = getDB().child("friends").child(key);
-        db.addChildEventListener(new ChildEventListener() {
+        mFriendChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 String key = dataSnapshot.getKey();
@@ -241,10 +249,11 @@ public class FB {
             public void onCancelled(DatabaseError databaseError) {
 
             }
-        });
+        };
+        db.addChildEventListener(mFriendChildEventListener);
 
         db = getDB().child("user_groups").child(key);
-        db.addChildEventListener(new ChildEventListener() {
+        mGroupChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 String key = dataSnapshot.getKey();
@@ -300,10 +309,11 @@ public class FB {
             public void onCancelled(DatabaseError databaseError) {
 
             }
-        });
+        };
+        db.addChildEventListener(mGroupChildEventListener);
 
         db = getDB().child("user_places").child(key);
-        db.addChildEventListener(new ChildEventListener() {
+        mPlaceChildEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 String key = dataSnapshot.getKey();
@@ -359,7 +369,36 @@ public class FB {
             public void onCancelled(DatabaseError databaseError) {
 
             }
-        });
+        };
+        db.addChildEventListener(mPlaceChildEventListener);
+    }
+
+    private static void stopMonitorUserDatabases() {
+        String key = getUid();
+
+        if (mUserValueEventListener != null) {
+            DatabaseReference db = getDB().child("users").child(key);
+            db.removeEventListener(mUserValueEventListener);
+            mUserValueEventListener = null;
+        }
+
+        if (mFriendChildEventListener != null) {
+            DatabaseReference db = getDB().child("friends").child(key);
+            db.removeEventListener(mFriendChildEventListener);
+            mFriendChildEventListener = null;
+        }
+
+        if (mGroupChildEventListener != null) {
+            DatabaseReference db = getDB().child("user_groups").child(key);
+            db.removeEventListener(mGroupChildEventListener);
+            mGroupChildEventListener = null;
+        }
+
+        if (mPlaceChildEventListener != null) {
+            DatabaseReference db = getDB().child("user_places").child(key);
+            db.removeEventListener(mPlaceChildEventListener);
+            mPlaceChildEventListener = null;
+        }
     }
 
     private static void setMyStatusOnFriend(String key, int status) {

@@ -139,6 +139,7 @@ public class PlaceListFragment extends PagerFragment {
 
             @Override
             public void onClick(View v) {
+                if (mPlaceMarkers == null) return;
                 if (v == mEditButton) {
                     mPlaceMarkers.updatePlace(mKey, mPlace);
                 } else if (v == mRemoveButton) {

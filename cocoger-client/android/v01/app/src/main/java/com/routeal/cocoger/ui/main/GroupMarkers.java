@@ -23,6 +23,7 @@ import com.routeal.cocoger.R;
 import com.routeal.cocoger.manager.GroupManager;
 import com.routeal.cocoger.model.Group;
 import com.routeal.cocoger.model.Member;
+import com.routeal.cocoger.model.User;
 import com.routeal.cocoger.util.Utils;
 
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ import java.util.Set;
 
 public class GroupMarkers {
 
-    private final HashMap<String, MarkerColor> mBackgroundColor = new HashMap<String, MarkerColor>() {{
+    final static HashMap<String, MarkerColor> GroupColor = new HashMap<String, MarkerColor>() {{
         put("indigo_500", new MarkerColor(R.color.indigo_500, R.color.indigo_100));
         put("red_900", new MarkerColor(R.color.red_900, R.color.red_100));
         put("teal_a_700", new MarkerColor(R.color.teal_a_700, R.color.teal_100));
@@ -54,6 +55,7 @@ public class GroupMarkers {
     private UserMarkers mUserMarkers;
     private Map<String, Polygon> mPolygons = new HashMap<>();
     private Marker mMarker;
+    private GroupListFragment mGroupListFragment;
 
     GroupMarkers(MapActivity activity, GoogleMap map, InfoWindowManager infoWindowManager) {
         mActivity = activity;
@@ -70,6 +72,10 @@ public class GroupMarkers {
 
     void setUserMarkers(UserMarkers userMarkers) {
         mUserMarkers = userMarkers;
+    }
+
+    void setGroupListFragment(GroupListFragment groupListFragment) {
+        mGroupListFragment = groupListFragment;
     }
 
     void onPolygonClick(Polygon polygon) {
@@ -95,10 +101,16 @@ public class GroupMarkers {
         canvas.drawColor(Color.TRANSPARENT);
         BitmapDescriptor transparent = BitmapDescriptorFactory.fromBitmap(bitmap);
 
+        String address = Utils.getAddressLine(Utils.getAddress(center));
+
         MarkerOptions options = new MarkerOptions()
+                .title("Center Location")
+                .snippet(address)
                 .position(center)
+                .icon(transparent)
                 .anchor((float) 0.5, (float) 0.5);
         mMarker = mMap.addMarker(options);
+        mMarker.showInfoWindow();
     }
 
     void notifyChange(ComboMarker marker) {
@@ -111,12 +123,7 @@ public class GroupMarkers {
         }
     }
 
-    private void update(String key, Group group) {
-        Polygon polygon = mPolygons.get(key);
-        if (polygon != null) {
-            polygon.remove();
-        }
-
+    private PolygonOptions createPolygon(String key, Group group) {
         Set<ComboMarker> markers = new HashSet<>();
 
         for (Map.Entry<String, Member> entry : group.getMembers().entrySet()) {
@@ -131,7 +138,7 @@ public class GroupMarkers {
         }
 
         if (markers.size() <= 1) {
-            return;
+            return null;
         }
 
         List<LatLng> points = new ArrayList<>();
@@ -142,12 +149,12 @@ public class GroupMarkers {
         }
 
         if (points.size() <= 1) {
-            return;
+            return null;
         }
 
-        Collections.sort(points, new SortPoints(points.get(0)));
+        Collections.sort(points, new SortPoints(new LatLng(0, 0)));
 
-        MarkerColor markerColor = mBackgroundColor.get(group.getColor());
+        MarkerColor markerColor = GroupColor.get(group.getColor());
 
         PolygonOptions options = new PolygonOptions();
         options.addAll(points);
@@ -155,8 +162,23 @@ public class GroupMarkers {
         options.fillColor(getColorWithAlpha(ContextCompat.getColor(mActivity, markerColor.fillColor), 100));
         options.clickable(true);
 
-        polygon = mMap.addPolygon(options);
-        mPolygons.put(key, polygon);
+        return options;
+    }
+
+    private void update(String key, Group group) {
+        Polygon polygon = mPolygons.get(key);
+        if (polygon != null) {
+            polygon.remove();
+            mPolygons.remove(key);
+        }
+
+        if (mGroupListFragment.hasPolygon(key)) {
+            PolygonOptions options = createPolygon(key, group);
+            if (options != null) {
+                polygon = mMap.addPolygon(options);
+                mPolygons.put(key, polygon);
+            }
+        }
     }
 
     void onWindowHidden(InfoWindow infoWindow) {
@@ -170,7 +192,24 @@ public class GroupMarkers {
         }
     }
 
-    private class MarkerColor {
+    void showPolygon(String key, Group group, boolean show) {
+        Polygon polygon = mPolygons.get(key);
+        if (show) {
+            if (polygon != null) return;
+            PolygonOptions options = createPolygon(key, group);
+            if (options != null) {
+                polygon = mMap.addPolygon(options);
+                mPolygons.put(key, polygon);
+            }
+        } else {
+            if (polygon != null) {
+                polygon.remove();
+                mPolygons.remove(key);
+            }
+        }
+    }
+
+    static class MarkerColor {
         int strokeColor;
         int fillColor;
 

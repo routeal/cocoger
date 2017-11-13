@@ -27,7 +27,6 @@ import com.routeal.cocoger.util.LoadImage;
 import com.routeal.cocoger.util.Utils;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -119,6 +118,22 @@ public class GroupListFragment extends PagerFragment {
         mGroupMarkers = groupMarkers;
     }
 
+    boolean hasPolygon(String key) {
+        GroupListAdapter adapter = (GroupListAdapter) mRecyclerView.getAdapter();
+        if (adapter == null) return false;
+
+        for (int i = 0; i < adapter.getItemCount(); i++) {
+            View view = mRecyclerView.getChildAt(i);
+            if (view == null) return false;
+            GroupListAdapter.ViewHolder holder = (GroupListAdapter.ViewHolder) mRecyclerView.getChildViewHolder(view);
+            if (holder != null) {
+                return holder.mHasPolygon;
+            }
+        }
+
+        return false;
+    }
+
     class GroupListAdapter extends RecyclerView.Adapter<GroupListAdapter.ViewHolder> {
         @Override
         public GroupListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -155,13 +170,6 @@ public class GroupListFragment extends PagerFragment {
 
         class ViewHolder extends RecyclerView.ViewHolder {
 
-            private final Map<String, Integer> mGroupColorMap = new HashMap<String, Integer>() {{
-                put("indigo_500", R.color.indigo_500);
-                put("red_900", R.color.red_900);
-                put("teal_a_700", R.color.teal_a_700);
-                put("amber_a_400", R.color.amber_a_400);
-                put("pink_a_400", R.color.pink_a_400);
-            }};
             private View mView;
             private ImageButton mImage;
             private TextView mGroupName;
@@ -173,11 +181,24 @@ public class GroupListFragment extends PagerFragment {
             private ImageButton mEditButton;
             private ImageButton mRemoveButton;
             private List<String> mMembers;
+            private boolean mHasPolygon = false;
 
             public ViewHolder(final View itemView) {
                 super(itemView);
                 mView = itemView;
                 mImage = (ImageButton) itemView.findViewById(R.id.numberofmembers);
+                mImage.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mHasPolygon = !mHasPolygon;
+                        GroupMarkers.MarkerColor color = GroupMarkers.GroupColor.get(mGroup.getColor());
+                        int colorId = mHasPolygon ? color.strokeColor : color.fillColor;
+                        String size = String.format(Locale.getDefault(), "%d", mMembers.size());
+                        Bitmap bitmap = Utils.createCircleNumberImage(48, 48, ContextCompat.getColor(mView.getContext(), colorId), size);
+                        mImage.setImageBitmap(bitmap);
+                        mGroupMarkers.showPolygon(mKey, mGroup, mHasPolygon);
+                    }
+                });
                 mGroupName = (TextView) itemView.findViewById(R.id.name);
                 mRecyclerView = (RecyclerView) itemView.findViewById(R.id.list);
                 LinearLayoutManager layoutManager
@@ -239,7 +260,6 @@ public class GroupListFragment extends PagerFragment {
                 // list of active members
                 mMembers = new ArrayList<>();
                 boolean isActiveMember = false;
-                int colorId = mGroupColorMap.get(group.getColor());
                 // show only the current active members, getMembers() returns invited members
                 // who do not accept to join the group
                 for (Map.Entry<String, Member> entry : mGroup.getMembers().entrySet()) {
@@ -263,6 +283,8 @@ public class GroupListFragment extends PagerFragment {
                     mEditButton.setVisibility(View.INVISIBLE);
                     mRemoveButton.setVisibility(View.INVISIBLE);
                 }
+                GroupMarkers.MarkerColor color = GroupMarkers.GroupColor.get(group.getColor());
+                int colorId = mHasPolygon ? color.strokeColor : color.fillColor;
                 String size = String.format(Locale.getDefault(), "%d", mMembers.size());
                 Bitmap bitmap = Utils.createCircleNumberImage(48, 48, ContextCompat.getColor(mView.getContext(), colorId), size);
                 mImage.setImageBitmap(bitmap);

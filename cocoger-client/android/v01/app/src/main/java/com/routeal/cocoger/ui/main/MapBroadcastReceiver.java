@@ -91,7 +91,6 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Log.d(TAG, "Action=" + intent.getAction());
         if (intent.getAction().equals(FB.USER_LOCATION)) {
-            if (mUserMarkers == null) return;
             Address address = intent.getParcelableExtra(FB.ADDRESS);
             LatLng location = intent.getParcelableExtra(FB.LOCATION);
             if (mLocation == null) {
@@ -99,10 +98,12 @@ public class MapBroadcastReceiver extends BroadcastReceiver {
                 // try to setup the markers and save the initial location, but this may fail due to
                 // the unavailability of the user.
                 mActivity.saveInitialLocation();
-                mUserMarkers.setup(location, address);
+                if (mUserMarkers != null) mUserMarkers.setup(location, address);
             } else {
-                mUserMarkers.move(FB.getUid(), FB.getUser().getDisplayName(),
-                        location, address, LocationRange.CURRENT.range);
+                if (mUserMarkers != null) {
+                    mUserMarkers.move(FB.getUid(), FB.getUser().getDisplayName(),
+                            location, address, LocationRange.CURRENT.range);
+                }
             }
             mLocation = location;
             mAddress = address;
